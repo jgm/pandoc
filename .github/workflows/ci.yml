@@ -149,13 +149,6 @@ jobs:
     - uses: cachix/install-nix-action@v31
       with:
         nix_path: nixpkgs=channel:nixos-unstable
-    - name: Cache cabal global package db
-      id:   cabal-global
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.local/state/cabal
-        key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
     - name: Cache cabal work
       id:   cabal-local
       uses: actions/cache@v5
