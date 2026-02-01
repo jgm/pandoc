@@ -10,11 +10,6 @@ package pandoc
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/asciidoc-hs.git
-  tag: 6b7d77db10f83cb58dc8059ac7bd739d5e37570b
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/typst-hs.git
   tag: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
 
