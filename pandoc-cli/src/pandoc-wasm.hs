@@ -31,6 +31,11 @@ import qualified Data.ByteString.Lazy as BL
 
 foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
 
+-- | The parameters are a pointer and length for a C string
+-- containing JSON-encoded pandoc options (isomorphic to a defaults
+-- file).  The calling program should set up a virtual file system
+-- containing @/stdin@ (input), @/stdout@ (output), and @/warnings@ (output).
+-- @/stdin@ can be used to pass input to pandoc.
 wasm_main :: Ptr CChar -> Int -> IO ()
 wasm_main raw_args_ptr raw_args_len =
   E.catch act (\(err :: SomeException) ->
@@ -55,10 +60,14 @@ wasm_main raw_args_ptr raw_args_len =
                           }
           convertWithOpts engine opts'
 
-foreign export ccall "get_extensions_for_format" getExtensionsForFormat :: Ptr CChar -> Int -> IO ()
+foreign export ccall "get_extensions_for_format" get_extensions_for_format
+   :: Ptr CChar -> Int -> IO ()
 
-getExtensionsForFormat :: Ptr CChar -> Int -> IO ()
-getExtensionsForFormat raw_fmt_ptr raw_fmt_len = do
+-- | Given a C string with the format name, returnsa  JSON object
+-- mapping extensions relevant for this format to true or false,
+-- depending on whether they are enabled by default.
+get_extensions_for_format :: Ptr CChar -> Int -> IO ()
+get_extensions_for_format raw_fmt_ptr raw_fmt_len = do
   formatName <- readMaybe <$> peekCStringLen (raw_fmt_ptr, raw_fmt_len)
   free raw_fmt_ptr
   case formatName of
