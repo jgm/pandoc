@@ -326,6 +326,7 @@ hie.yaml: ## regenerate hie.yaml
 
 pandoc.wasm: ## build pandoc.wasm
 	-rm $@
+	wasm32-wasi-cabal update
 	wasm32-wasi-cabal build pandoc-cli
 ifeq ($(OPTIMIZE_WASM),1)
 	echo "Optimizing (this may take a long time, to avoid, set OPTIMIZE_WASM=0)..."
