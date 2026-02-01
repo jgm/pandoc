@@ -27,8 +27,6 @@ if arch(wasm32)
     flags: +cross-compile
     ghc-options: -optc-mllvm
                  -optc-wasm-enable-sjlj
-                 -optc-mllvm
-                 -optc-wasm-use-legacy-eh=false
                  -optc-D_WASI_EMULATED_PROCESS_CLOCKS
                  -optc-D_WASI_EMULATED_SIGNAL
                  -optc-DLUA_STUB_TMPNAM
