@@ -25,7 +25,7 @@ site/%: %
 	cp $< $@
 
 upload: site
-	rsync -av site/ website:pandoc.org/wasm-demo
+	rsync -av site/ website:pandoc.org/app
 .PHONY: upload
 
 serve: site
