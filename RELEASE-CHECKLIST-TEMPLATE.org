@@ -44,10 +44,10 @@ https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/
   -d '{"ref":"main"}'
     #+end_src
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
-*** TODO If it builds successfully, download artifacts from GitHub, cirrus-ci.com
-    (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
-    from cirrus)
-*** TODO Use 'make' in macos and windows artifacts to sign code
+*** TODO If it builds successfully, download artifacts
+from GitHub: Windows and intel mac and pandoc.wasm
+from Cirrus-ci.com: linux amd64 and arm64 and m1 mac
+*** TODO Use 'make' in macos artifact to sign code
 *** TODO Install pandoc from package
 So website will have the correct executable.
 *** TODO Update website
@@ -94,6 +94,12 @@ tar xvzf pandoc-RELEASE_VERSION-linux-amd64.tar.gz
 scp pandoc-RELEASE_VERSION/bin/pandoc website:cgi-bin/pandoc-server.cgi
 #+end_src
 
+*** TODO Upload pandoc.wasm
+#+begin_src sh
+make pandoc.wasm
+cd wasm
+make upload
+#+end_src
 *** TODO create release announcement and add to GH release announcement
 #+NAME: relann
 #+begin_src elisp :results value file :file relann-RELEASE_VERSION
