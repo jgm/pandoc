@@ -58,6 +58,8 @@
 
     .header h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }
     .header .tagline { color: var(--gray-400); font-size: 0.8rem; }
+    .header .help-link { color: var(--gray-400); font-size: 0.85rem; text-decoration: none; }
+    .header .help-link:hover { color: white; }
 
     .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
 
@@ -431,7 +433,10 @@
       word-wrap: break-word;
     }
 
-    .output-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+    .output-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+    .verbosity-control { flex-direction: row; margin-left: auto; }
+    .verbosity-control label { font-size: 0.85rem; margin-right: 0.5rem; }
+    .verbosity-control select { padding: 0.5rem; font-size: 0.85rem; }
 
     .download-btn {
       display: inline-flex;
@@ -529,6 +534,7 @@
   <div class="header">
     <h1>pandoc for the people</h1>
     <span class="tagline">Convert documents without leaving the browser</span>
+    <a href="https://pandoc.org/MANUAL.html" class="help-link" target="_blank">Help</a>
   </div>
 
   <div id="app" v-scope="pandocApp()" @vue:mounted="init()">
@@ -611,7 +617,7 @@
             </div>
             <input type="file" ref="fileInput" class="hidden" multiple @change="handleFileInput($event)" />
             <div class="file-list" v-if="fileOrder.length > 0">
-              <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
+              <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" v-if="files[name]" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
                 <span class="file-icon">&#128196;</span>
                 <a class="file-name" href="#" @click.prevent.stop="downloadFile(files[name], name)">{{ name }}</a>
                 <span class="file-size">{{ formatFileSize(files[name].size) }}</span>
@@ -681,10 +687,13 @@
               </div>
               <div class="form-group">
                 <label for="opt-tab-stop">Tab stop</label>
-                <select id="opt-tab-stop" v-model="opts.tabStop" style="width: 110px;">
+                <select id="opt-tab-stop" v-model="opts.tabStop" style="width: 70px;">
                   <option v-for="n in 8" :key="n" :value="n">{{ n }}</option>
-                  <option value="preserve">Preserve tabs</option>
                 </select>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-preserve-tabs" v-model="opts.preserveTabs" />
+                <label for="opt-preserve-tabs">Preserve tabs</label>
               </div>
               <div class="form-group">
                 <label for="opt-eol">Line endings</label>
@@ -1310,9 +1319,17 @@
             <button class="download-btn" v-show="output" @click="download">&#128229; Download {{ outputFilenameActual }}</button>
             <button class="copy-btn" v-show="output && !isBinaryOutput" @click="copyToClipboard">{{ copyBtnText }}</button>
             <button class="download-btn" v-show="mediaZip" @click="downloadMedia">&#128247; Download Media</button>
+            <div class="form-group verbosity-control" v-show="messages.length > 0">
+              <label for="opt-verbosity">Verbosity:</label>
+              <select id="opt-verbosity" v-model="verbosity">
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="error">Error</option>
+              </select>
+            </div>
           </div>
           <div class="messages">
-            <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.type">{{ msg.text }}</div>
+            <div v-for="(msg, idx) in filteredMessages" :key="idx" class="message" :class="msg.type">{{ msg.text }}</div>
           </div>
           <div class="output-preview" v-show="!isBinaryOutput && outputPreview">{{ outputPreview }}</div>
         </div>
@@ -1328,6 +1345,8 @@
     </div>
   </div>
   <footer>
+    This is <tt>pandoc.wasm</tt> running in your browser.
+    Nothing is being transmitted to the server!<br>
     Copyright &copy; 2026 John MacFarlane
   </footer>
   <script type="module" src="index.js?sha1=SHA1_INDEX_JS"></script>

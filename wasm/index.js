@@ -66,6 +66,7 @@ window.pandocApp = function() {
       tocDepth: '3',
       shiftHeading: '0',
       tabStop: '4',
+      preserveTabs: false,
       eol: '',
       dpi: '',
       numberOffset: '',
@@ -151,6 +152,7 @@ window.pandocApp = function() {
     outputFilenameActual: '',
     outputPreview: '',
     messages: [],
+    verbosity: 'info',
     copyBtnText: '📋 Copy to Clipboard',
     mediaZip: null,
 
@@ -395,6 +397,14 @@ window.pandocApp = function() {
     get supportsTopLevelDivision() { return this.topLevelDivisionFormats.includes(this.effectiveOutputFormat); },
     get supportsListOf() { return this.listOfFormats.includes(this.effectiveOutputFormat); },
     get isBinaryOutput() { return this.binaryFormats.includes(this.effectiveOutputFormat); },
+    get filteredMessages() {
+      if (this.verbosity === 'error') {
+        return this.messages.filter(m => m.type === 'error');
+      } else if (this.verbosity === 'warning') {
+        return this.messages.filter(m => m.type === 'error' || m.type === 'warning');
+      }
+      return this.messages;
+    },
 
     get suggestedVariables() {
       const fmt = this.effectiveOutputFormat;
@@ -1097,12 +1107,9 @@ window.pandocApp = function() {
       if (this.opts.fileScope) opts['file-scope'] = true;
       const shiftHeading = parseInt(this.opts.shiftHeading);
       if (shiftHeading !== 0) opts['shift-heading-level-by'] = shiftHeading;
-      if (this.opts.tabStop === 'preserve') {
-        opts['preserve-tabs'] = true;
-      } else {
-        const tabStop = parseInt(this.opts.tabStop);
-        if (tabStop !== 4) opts['tab-stop'] = tabStop;
-      }
+      if (this.opts.preserveTabs) opts['preserve-tabs'] = true;
+      const tabStop = parseInt(this.opts.tabStop);
+      if (tabStop !== 4) opts['tab-stop'] = tabStop;
       if (this.opts.eol) opts.eol = this.opts.eol;
       if (this.opts.dpi) opts.dpi = parseInt(this.opts.dpi);
       if (this.opts.numberOffset.trim()) {
