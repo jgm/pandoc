@@ -15,11 +15,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/citeproc.git
-  tag: 777a916be683a40e9b5e17da25816917b6fb1208
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/typst-hs.git
   tag: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
 
