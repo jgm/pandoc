@@ -122,6 +122,33 @@ jobs:
         name: macos-x86_64
         path: macos-x86_64
 
+  wasm:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+    - uses: actions/checkout@v6
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v5
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
+    - name: Build pandoc.wasm
+      run: |
+        nix develop --command bash -c "make pandoc.wasm"
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: pandoc.wasm
+        path: pandoc.wasm
+
+
 # linux:
 
 #   runs-on: ubuntu-latest
