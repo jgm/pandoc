@@ -88,6 +88,7 @@ jobs:
         github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
+      timeout-minutes: 120
 
     - name: upload-signed-artifact
       id: upload-signed-artifact
