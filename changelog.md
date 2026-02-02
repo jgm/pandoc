@@ -1,5 +1,333 @@
 # Revision history for pandoc
 
+## pandoc 3.9 (2026-02-03)
+
+  * Add support for compiling pandoc to WASM. (To build, `make
+    pandoc.wasm`.) A stanza in `cabal.project` contains the
+    necessary build modifications. We owe this almost entirely to
+    TerrorJack, who created the original proof of context and
+    came up with the necessary build flags and patches to some
+    dependencies.
+
+    `pandoc.wasm` has almost all the power of regular pandoc. The
+    main limitations is that it operates in a WASM sandbox and thus
+    cannot use HTTP to fetch resources and cannot run system commands.
+    As a result, JSON filters cannot be used, `--embed-resources`
+    works only with resources that have been explicitly provided in
+    the WASM sandbox, and PDFs cannot be produced (since that requires
+    running external commands). However, Lua filters can be used,
+    as long as they do not run system commands.
+
+    A JavaScript bridge module, `wasm/pandoc.js`, is provided; this
+    handles the setup necessary to run `pandoc.wasm` in a browser.
+
+    In addition, a full-featured GUI interface is provided in the
+    `wasm` subdirectory. `make serve` from that directory and it
+    will run locally, or visit <https://pandoc.org/app>.  Note that
+    once the relevant code has been downloaded by the browser, it runs
+    entirely in the browser, and the conversions never touch a server.
+    The GUI was developed in interaction with Claude Code.  This app
+    includes a WASM version of Typst and can produce PDF output via
+    Typst.
+
+  * Defaults files may now be either JSON or YAML (though a `.yaml`
+    extension will still be assumed if the file has no extension).
+    The structure of a JSON defaults file is isomorphic to that of
+    a YAML defaults file.
+
+  * Variable expansion now works even for the `defaults` field of
+    defaults files (#8024, Jacob Larkin).
+
+  * `--extract-media` will now create a zip archive containing the media
+    (instead of a directory) if the path provided has a `.zip` extension.
+
+  * Processing with `--citeproc` is now affected by a
+    `reset-citation-positions` class on headings. When the
+    `reset-citation-positions` class is added to a top-level
+    heading, `--citeproc` will reset position information at that
+    point in the document. This is needed in order to ensure that
+    the first citation in a chapter to a work that has been cited
+    in a previous chapter will not be in abbreviated form.
+
+  * RST reader:
+
+    + Fix definition lists where term ends with `-` (#11323).
+      This reverts some old code giving special treatment to
+      lines ending in hyphens; I don't understand why it was
+      there, because rst2html does not seem to do this.
+
+  * HTML reader:
+
+    + Revert an earlier change that caused style tags in the body
+      to be ignored (#10643, #11246).
+    + Parse inline style elements as RawInline (#10643, #11246).
+
+  * Markdown reader:
+
+    + Fix parsing of inline math (`$...$`) (#11311, benniekiss).
+      Do not allow blank lines before closing `$` delimiter. This brings the
+      parser in line with the documentation.
+    + Allow superscripted spans (#11409). These were being parsed as inline
+      notes. Now we disallow an inline note followed by
+      attributes, as this is almost certainly meant to be a span.
+    + Support `alerts` extension for pandoc markdown (#9716). It is not
+      enabled by default.
+
+  * MediaWiki reader:
+
+    + Add behavior switches support (#11354, Anton Melnikov).
+      They add a field to metadata without producing any text.
+    + Handle non-recognized tags as plain text (#11299).
+    + Better handling of inline tags (#11299). `<mark>`, `<var>`,
+      `<samp>`, and `<kbd>` now produce Code or Span elements with
+      classes, which can be handled by multiple output formats,
+      instead of simply being parsed as raw HTML tags.
+
+  * RTF reader:
+
+    + Ensure a new paragraph on `\pard` (#11361, Tuong Nguyen Manh). New
+      paragraphs may start with `\pard` alone without an explicit paragraph
+      break with `\par` preceding it.
+    + Improve hyperlink parsing more (#10942, Tuong Nguyen Manh).
+      Both the field instruction and its result may be ungrouped.
+    + Fix bug where list items were incorporated into a following table
+      (#11364).
+
+  * ODT reader:
+
+    + Add table row and column spans (#11366, Tuong Nguyen Manh).
+      Parse the number-rows-spanned and number-columns-spanned attributes to
+      create Cells for the Table.
+
+  * DocBook reader:
+
+    + Support "role" attribute (#11255, Yann Trividic). The `role`
+      attribute is parsed and added to Pandoc AST elements, using a
+      wrapper Div if needed.
+    + Omit empty title when not required (#11422).
+      This affects example and sidebar elements.
+    + Fix adding wrong metadata (#11300, Tuong Nguyen Manh). Now
+      keep track of the current element stack to only add metadata
+      if inside an appropriate parent element.
+
+  * DocBook/JATS reader:
+
+    + Don't export surrounding space from inline elements (#11398). Previously
+      we would export leading and trailing space inside elements like
+      emphasis or ulink so they appeared outside the resulting pandoc Inline
+      (Emph or Link). This is not really motivated; DocBook and XML in general
+      treats leading and trailing whitespace in this context as significant.
+
+  * Docx reader:
+
+    + Handle tables without `tblGrid` (#11380).
+    + Look inside v:rect as well as v:shape (#11412).
+
+  * LaTeX reader:
+
+    + Handle more quote macros from fontspec and ngerman babel (#6120).
+
+  * Org reader:
+
+    + Don't include 'example' class when parsing org example blocks (#11339).
+      These are just unmarked code blocks.
+
+  * Texinfo writer:
+
+    + Improve handling of certain code blocks (#11312).
+      MediaWiki, for example, will parse a code block containing
+      formatting as a sequence of Code elements separated by
+      LineBreaks. For this we now use a texinfo example block.
+
+  * Typst writer:
+
+    + Escape hyphens when needed (#11334).
+
+  * HTML writer:
+
+    + Include all classes on highlighted code elements (#11423). Previously,
+      only the language class was included, and the others were dropped.
+    + Slide formats: Make `. . .` pause work in nested blocks (#7201, #7582).
+    + For revealjs, add idiomatic highlight.js support (#11420, Claude Opus 4.5).
+      When using `--syntax-highlighting=idiomatic` with reveal.js output, pandoc
+      now generates HTML compatible with reveal.js's built-in highlight.js plugin:
+      Code blocks use `<pre><code class="language-X">` format.
+      The template loads highlight.js CSS, JS, and RevealHighlight plugin.
+
+  * Markdown writer:
+
+    + Ensure that `\ ` line breaks are used for commonmark.
+    + Use setext for headers containing line breaks for commonmark (#11341).
+    + Allow display math to start/end with space (#11384).
+      This reverts to earlier < 3.7 behavior.
+    + Properly handle tables with footers (#11416).
+
+  * JATS writer:
+
+    + Fix XML output for nested figures (#11362, Albert Krewinkel).
+      Subfigures are now wrapped inside a `<fig-group>` element. Furthermore,
+      figure content that isn't allowed as children of `<fig>` elements, such as
+      raw text, gets wrapped in `<p>` elements to ensure schema-conforming XML.
+
+  * AsciiDoc writer:
+
+    + Use doubled delims in more contexts (#11362). Also escape the `#` character.
+    + Use a span with role for SmallCaps (#11374).
+    + Export spaces inside delimited constructs like emph.
+
+  * Docx writer:
+
+    + Skip directory entries when building media overrides (#11379, You Jiangbin).
+      Pandoc's docx writer was previously adding an `<Override>` for
+      `/word/media/` in `[Content_Types].xml` when the reference doc contains
+      media, which violates OPC rules and causes Word to report corruption.
+    + Refactor the monolithic `writeDocx` into a number of smaller functions
+      (Claude Opus 4.5).
+    + Replace generic XML traversal with direct path navigation (Claude
+      Opus 4.5). Instead of using Data.Generics `everywhere` to traverse the
+      entire XML tree when setting language attributes, navigate directly to
+      the known path `w:docDefaults/w:rPr/w:lang`. This is more efficient and
+      removes the dependency on `Data.Generics`.
+
+  * EPUB writer:
+
+    + Don't use footnote backlinks for EPUBv3. Here we use aside elements,
+      which are popups, and the backlinks are not needed; in some readers
+      they cause a redundant number to appear, since the reader adds a note number.
+
+  * MediaWiki writer:
+
+    + Use Doc Text instead of Text for document construction (with Claude Open 4.5).
+      This refactors the writer to use Text.DocLayout combinators (vcat, hcat,
+      literal, blankline, cr, chomp) for building output, following the pattern
+      used by other text format writers (RST, Markdown, Man). This enables
+      better control over line spacing and paragraph separation.
+    + Improve blank space around div elements (#11417). This is merely cosmetic.
+
+  * PPTX writer:
+
+    + Support notes field in metadata for title slide (#5844, Chris Callison-Burch).
+      This adds support for a `notes` field in the YAML metadata block that will
+      be used as speaker notes for the title slide in PowerPoint output.
+      Previously, there was no way to add speaker notes to the title slide since
+      it is generated from metadata rather than from content blocks.
+
+  * LaTeX writer:
+
+    + Add PDF standard support via DocumentMetadata (#11407, Gordon Woodhull
+      with Claude Opus 4.5). The `pdfstandard` variable can be
+      used to specify PDF standards (PDF/A, PDF/X, PDF/UA) in
+      LaTeX output. This uses LaTeX's `\DocumentMetadata`
+      command, which requires LuaLaTeX. PDF version requirements
+      are automatically inferred, but can be explicitly overridden.
+      Automatic tagging is added for standards that require it.
+
+  * Typst template:
+
+    + Fix keywords usage. (#11317, har7an).
+    + Disable hyphenation for title, subtitle (#11375).
+
+  * HTML5 template:
+
+    + Conditionally include lang attribute, instead of providing
+      it with an empty value.
+
+  * JATS template:
+
+    + Fix author prefix placeholder (#11381, Christophe Dervieux).
+
+  * Text.Pandoc.Citeproc:
+
+    + Fix biblatex parsing of `@commentary` entries (#11322).
+    + Fix typo affecting `jurisdiction` biblatex type (#11321).
+    + Avoid adding an extra space at the beginning of a Cite.
+
+  * Text.Pandoc.Shared:
+
+    + Export `hasLineBreaks` [API change]. This was formerly
+      defined in the DocBook writer but more generally useful.
+
+  * Text.Pandoc.PDF:
+
+    + Add `SOURCE_DATE_EPOCH` to verbose environment variable info.
+
+  * Text.Pandoc.Class:
+
+    + Factor out `openURL` into Text.Pandoc.Class.IO.HTTP (unexported module).
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Mark readers and writers with their types (#11367). The
+      `pandoc.readers` and `pandoc.writers` maps now have string values
+      instead of boolean values. The string signals the type of the
+      reader/writer, `"text"` for TextReader/TextWriter and `"bytestring"`
+      for ByteStringReader/ByteStringWriter.
+    + Support equallity checks of LogMessage objects.
+    + Add function `pandoc.with_state` (#10859). The function allows
+      to run a callback with a modified pandoc state. This provides
+      the ability to temporarily modify the resource path, the user
+      data directory, and the HTTP request headers.
+    + Let `pandoc.with_state` error on unknown options (#11376).
+    + Add function `pandoc.utils.documentation` (#10999).
+      This is now used to generate much of the Lua API documentation.
+
+  * Text.Pandoc.App:
+
+    + Remove redundant check for asciidoc in UnknownReader.
+
+  * Text.Pandoc.Logging:
+
+    + Add `pretty` field to ToJSON instance for LogMessage.
+      This just reproduces the output of `logMessage`, for convenience for those
+      who are using the JSON output outside of Haskell.
+
+  * Text.Pandoc.Error:
+
+    + Change PandocHttpError constructor to take a Text instead of an
+      HttpException as the second argument (see #10980) [API change]
+      Motivation: exposing HttpException in the public API makes it
+      difficult to provide a version of pandoc that can be compiled
+      to wasm, which currently can't handle the network libraries.
+    + Define `displayException` for PandocError. This is a behavior change,
+      not an API change, since there was already a definition that defaulted
+      to using Show. The change here is that we use `renderError` for
+      a more human-readable version.
+
+  * Drop support for compilation with GHC versions < 9.6.
+
+  * Use released citeproc 0.13, djot 0.1.3, skylighting-format-blaze-html
+    0.1.2 (see #11423), texmath 0.13.1, asciidoc 0.1.0.1, typst-0.9,
+    hslua 2.5.
+
+  * Add `-Wno-deriving-typeble` to cabal ghc-options for ghc >= 9.12.
+
+  * Add `http` cabal flag (#10980). This allows pandoc to be
+    compiled without support for making HTTP requests, which is
+    useful when WASM is the target.
+
+  * pandoc-lua-engine has a new build flag `repl`, allowing support
+    for the Lua repl to be disabled for the wasm build.
+
+  * We now sign Windows artifacts with a code signing
+    certificate provided by SignPath.
+
+  * Mention Excel in cabal description.
+
+  * Makefile: remove some obsolete targets.
+
+  * MANUAL.txt:
+
+    + Fix typo about `--chunk-template` (#11358, Albert Lei).
+    + Fix link for bbcode_steam (#11389).
+    + Small rewrite of syntax-highlighting info.
+    + Fix defaults.yaml example for `wrap`.
+
+  * Fix a few mistakes in the contributing docs. (#11318, har7an).
+
+  * Fix a couple small errors in `doc/lua-filters.md`,
+    `doc/custom-writers.md`, and `doc/custom-readers.md`
+    (#11408, #11388).
+
 ## pandoc 3.8.3 (2025-12-01)
 
   * Add `asciidoc` as an input format (#1456).
