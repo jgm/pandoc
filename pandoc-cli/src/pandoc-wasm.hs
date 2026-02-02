@@ -37,13 +37,12 @@ foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
 -- containing @/stdin@ (input), @/stdout@ (output), and @/warnings@ (output).
 -- @/stdin@ can be used to pass input to pandoc.
 wasm_main :: Ptr CChar -> Int -> IO ()
-wasm_main raw_args_ptr raw_args_len =
+wasm_main ptr len =
   E.catch act (\(err :: SomeException) ->
                  writeFile "/stderr" ("ERROR: " <> displayException err))
   where
     act = do
-      args <- peekCStringLen (raw_args_ptr, raw_args_len)
-      free raw_args_ptr
+      args <- getCString ptr len
       engine <- getEngine
       let aesonRes = Aeson.eitherDecode (UTF8.fromStringLazy args)
       case aesonRes of
@@ -67,9 +66,8 @@ foreign export ccall "get_extensions_for_format" get_extensions_for_format
 -- mapping extensions relevant for this format to true or false,
 -- depending on whether they are enabled by default.
 get_extensions_for_format :: Ptr CChar -> Int -> IO ()
-get_extensions_for_format raw_fmt_ptr raw_fmt_len = do
-  formatName <- readMaybe <$> peekCStringLen (raw_fmt_ptr, raw_fmt_len)
-  free raw_fmt_ptr
+get_extensions_for_format ptr len = do
+  formatName <- readMaybe <$> getCString ptr len
   case formatName of
     Just fmt -> do
        let allExts = getAllExtensions fmt
@@ -77,6 +75,9 @@ get_extensions_for_format raw_fmt_ptr raw_fmt_len = do
        let addExt x = M.insert (drop 4 (show x)) (extensionEnabled x defExts)
        BL.writeFile "/stdout" $ Aeson.encode $ foldr addExt mempty (extensionsToList allExts)
     Nothing -> writeFile "/stdout" "{}"
+
+getCString :: Ptr CChar -> Int -> IO String
+getCString ptr len = peekCStringLen (ptr, len) <* free ptr
 
 -- This must be included or we get an error:
 main :: IO ()
