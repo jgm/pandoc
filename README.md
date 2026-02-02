@@ -135,7 +135,7 @@ It can convert *to*
 - `bbcode_phpbb` [BBCode
   (phpBB)](https://www.phpbb.com/community/help/bbcode)
 - `bbcode_steam` [BBCode
-  (Hubzilla)](https://hubzilla.org/help/member/bbcode)
+  (Steam)](https://steamcommunity.com/comment/ForumTopic/formattinghelp)
 - `bbcode_hubzilla` [BBCode
   (Hubzilla)](https://hubzilla.org/help/member/bbcode)
 - `bbcode_xenforo` [BBCode
