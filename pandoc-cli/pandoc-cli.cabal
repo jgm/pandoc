@@ -100,7 +100,7 @@ executable pandoc
     hs-source-dirs:  no-server
 
   if flag(lua)
-    build-depends:   pandoc-lua-engine >= 0.5 && < 0.6
+    build-depends:   pandoc-lua-engine >= 0.5.1 && < 0.6
     hs-source-dirs:  lua
   else
     hs-source-dirs:  no-lua

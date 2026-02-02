@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                pandoc-lua-engine
-version:             0.5.0.2
+version:             0.5.1
 build-type:          Simple
 license:             GPL-2.0-or-later
 license-file:        COPYING.md
@@ -10,12 +10,6 @@ maintainer:          Albert Krewinkel <albert@hslua.org>
 bug-reports:         https://github.com/jgm/pandoc/issues
 homepage:            https://pandoc.org
 category:            Text
-tested-with:         GHC == 8.6.5
-                   , GHC == 8.8.4
-                   , GHC == 8.10.7
-                   , GHC == 9.0.2
-                   , GHC == 9.2.5
-                   , GHC == 9.4.4
 synopsis:            Lua engine to power custom pandoc conversions
 description:         This package provides a pandoc scripting engine based on
                      Lua.
