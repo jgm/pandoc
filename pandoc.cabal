@@ -101,6 +101,7 @@ data-files:
                  data/templates/affiliations.jats
                  data/templates/default.markua
                  data/templates/default.typst
+                 data/templates/document-metadata.latex
                  data/templates/template.typst
                  data/templates/common.latex
                  data/templates/hypersetup.latex
