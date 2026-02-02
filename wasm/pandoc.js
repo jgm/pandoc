@@ -1,7 +1,7 @@
 /* pandoc.js: JavaScript interface to pandoc.wasm.
    Copyright (c) 2025 Tweag I/O Limited and John MacFarlane. MIT License.
 
-   Interface: await pandoc(options, stdin, files)
+   Interface: await convert(options, stdin, files)
 
    - options is a JavaScript object representing pandoc options: this should
      correspond to the format used in pandoc's default files.
@@ -9,10 +9,10 @@
    - files is a JavaScript object whose keys are filenames and whose values
      are the data in the corresponding file, as Blobs.
 
-   The return value is a JavaScript object with 3 properties, stdout, stderr,
-   and warnings, all strings.  warnings is a JSON-encoded version of the warnings
-   produced by pandoc. If the pandoc process produces an output file, it will be
-   added to files.
+   The return value is a JavaScript object with 3 properties, stdout,
+   stderr, and warnings, all strings. warnings is a JSON-encoded
+   version of the warnings produced by pandoc. If the pandoc process
+   produces an output file, it will be added to files.
 */
 
 import {
@@ -88,7 +88,7 @@ export async function getExtensionsForFormat(options) {
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(out_file.data));
 }
 
-export async function pandoc(options, stdin, files) {
+export async function convert(options, stdin, files) {
   const opts_str = JSON.stringify(options);
   const opts_ptr = instance.exports.malloc(opts_str.length);
   new TextEncoder().encodeInto(
@@ -119,7 +119,7 @@ export async function pandoc(options, stdin, files) {
   if (stdin) {
     in_file.data = new TextEncoder().encode(stdin);
   }
-  instance.exports.wasm_main(opts_ptr, opts_str.length);
+  instance.exports.convert(opts_ptr, opts_str.length);
 
   if (options["output-file"]) {
     files[options["output-file"]] =

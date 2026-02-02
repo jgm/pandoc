@@ -82,7 +82,7 @@ executable pandoc
   if arch(wasm32)
     main-is:       pandoc-wasm.hs
     build-depends: aeson, containers, bytestring
-    ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=wasm_main,--export=get_extensions_for_format
+    ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=convert,--export=get_extensions_for_format
   else
     main-is:       pandoc.hs
     build-depends: text

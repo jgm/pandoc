@@ -29,15 +29,15 @@ import qualified Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
 
-foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
+foreign export ccall "convert" convert :: Ptr CChar -> Int -> IO ()
 
 -- | The parameters are a pointer and length for a C string
 -- containing JSON-encoded pandoc options (isomorphic to a defaults
 -- file).  The calling program should set up a virtual file system
 -- containing @/stdin@ (input), @/stdout@ (output), and @/warnings@ (output).
 -- @/stdin@ can be used to pass input to pandoc.
-wasm_main :: Ptr CChar -> Int -> IO ()
-wasm_main ptr len =
+convert :: Ptr CChar -> Int -> IO ()
+convert ptr len =
   E.catch act (\(err :: SomeException) ->
                  writeFile "/stderr" ("ERROR: " <> displayException err))
   where

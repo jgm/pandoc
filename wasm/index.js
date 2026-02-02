@@ -1,11 +1,11 @@
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
-import { pandoc, getExtensionsForFormat } from "./pandoc.js?sha1=SHA1_PANDOC_JS";
+import { convert, getExtensionsForFormat } from "./pandoc.js?sha1=SHA1_PANDOC_JS";
 
 // Make fflate available globally
 window.fflate = { zipSync, unzipSync, strToU8, strFromU8 };
 
 // Make pandoc available globally for the app
-window.pandocModule = { pandoc, getExtensionsForFormat };
+window.pandocModule = { convert, getExtensionsForFormat };
 
 // Lazy-load typst library only when needed
 let typstLoaded = false;
@@ -1324,7 +1324,7 @@ window.pandocApp = function() {
           typstOptions.standalone = true;
           delete typstOptions['output-file'];
 
-          const typstResult = await window.pandocModule.pandoc(typstOptions, stdin, files);
+          const typstResult = await window.pandocModule.convert(typstOptions, stdin, files);
           if (typstResult.stderr && typstResult.stderr.includes('ERROR')) {
             throw new Error(typstResult.stderr);
           }
@@ -1358,7 +1358,7 @@ window.pandocApp = function() {
           this.output = pdfBlob;
           this.displayResults(typstResult, options, files);
         } else {
-          const result = await window.pandocModule.pandoc(options, stdin, files);
+          const result = await window.pandocModule.convert(options, stdin, files);
           this.displayResults(result, options, files);
         }
       } catch (err) {
