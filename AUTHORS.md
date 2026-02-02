@@ -6,6 +6,7 @@
 - Akash Patel
 - Akos Marton
 - Albert Krewinkel
+- Albert Lei
 - Alex Ivkin
 - Alex Toldaiev
 - Alex Vong
@@ -33,6 +34,7 @@
 - Anti-Distinctlyminty
 - Antoine Latter
 - Anton Antich
+- Anton Melnikov
 - Antonio Terceiro
 - Arata Mizuki
 - Arata Mizuki
@@ -74,6 +76,7 @@
 - Charles Tapley Hoyt
 - Charlotte Koch
 - Chris Black
+- Chris Callison-Burch
 - Christian Conkle
 - Christian Christiansen
 - Christian Despres
@@ -176,6 +179,7 @@
 - Ivar de Bruin
 - Ivo Clarysse
 - Jaap de Jong
+- Jacob Larkin
 - James J Balamuta
 - J. B. Rainsberger
 - J. Lewis Muir
@@ -441,15 +445,18 @@
 - Wout Gevaert
 - Xavier Olive
 - Yan Pashkovsky
+- Yann Trividic
 - Yehuda Katz
 - YI
 - Yoan Blanc
+- You Jiangbin
 - Yuchen Pei
 - Zihang Chen
 - 3w36zj6
 - arcnmx
 - a-vrma
 - andrebauer
+- benniekiss
 - black-desk
 - blmage
 - bucklereed
@@ -466,6 +473,7 @@
 - etclub
 - favonia
 - guqicun
+- har7an
 - harabat
 - hseg
 - infinity0x
