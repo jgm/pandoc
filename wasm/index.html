@@ -617,7 +617,7 @@
             </div>
             <input type="file" ref="fileInput" class="hidden" multiple @change="handleFileInput($event)" />
             <div class="file-list" v-if="fileOrder.length > 0">
-              <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" v-if="files[name]" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
+              <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" v-show="files[name]" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
                 <span class="file-icon">&#128196;</span>
                 <a class="file-name" href="#" @click.prevent.stop="downloadFile(files[name], name)">{{ name }}</a>
                 <span class="file-size">{{ formatFileSize(files[name].size) }}</span>
