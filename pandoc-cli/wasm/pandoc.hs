@@ -17,9 +17,11 @@ module Main where
 import qualified Data.Map as M
 import Text.Read (readMaybe)
 import qualified Control.Exception as E
+import Data.List (sort)
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.App ( convertWithOpts, Opt(..), defaultOpts )
-import Text.Pandoc (Verbosity(ERROR), pandocVersion)
+import Text.Pandoc (Verbosity(ERROR), pandocVersion, Reader, Writer, PandocIO,
+                    readers, writers)
 import Text.Pandoc.Extensions (extensionsToList, extensionEnabled, getAllExtensions,
                                getDefaultExtensions)
 import PandocCLI.Lua
@@ -81,6 +83,10 @@ query ptr len =
         Left e -> error e
         Right PandocVersion ->
           BL.writeFile "/stdout" $ Aeson.encode $ showVersion pandocVersion
+        Right InputFormats -> do
+          BL.writeFile "/stdout" $ Aeson.encode readersNames
+        Right OutputFormats -> do
+          BL.writeFile "/stdout" $ Aeson.encode writersNames
         Right (ExtensionsForFormat fmt) -> do
           let allExts = getAllExtensions fmt
           let defExts = getDefaultExtensions fmt
@@ -88,9 +94,15 @@ query ptr len =
                               (extensionEnabled x defExts)
           BL.writeFile "/stdout" $ Aeson.encode $
                  foldr addExt mempty (extensionsToList allExts)
+    readersNames = sort (map fst (readers :: [(T.Text, Reader PandocIO)]))
+    writersNames = sort
+      ("pdf" : map fst (writers :: [(T.Text, Writer PandocIO)]))
+
 
 data Query =
     PandocVersion
+  | InputFormats
+  | OutputFormats
   | ExtensionsForFormat T.Text
   deriving (Show)
 
@@ -99,6 +111,8 @@ instance FromJSON Query where
     queryType <- o .: "query"
     case queryType of
       "extensions-for-format" -> ExtensionsForFormat <$> o .: "format"
+      "input-formats" -> pure InputFormats
+      "output-formats" -> pure OutputFormats
       "version" -> pure PandocVersion
       _ -> fail $ "Unknown query type " <> queryType
 

@@ -10,6 +10,9 @@ window.pandocModule = { convert, query };
 const pandocVersion = await window.pandocModule.query({ query: "version" });
 document.getElementById("pandoc-version").innerText = pandocVersion;
 
+const inputFormats = await window.pandocModule.query({ query: "input-formats" });
+const outputFormats = await window.pandocModule.query({ query: "output-formats" });
+
 // Lazy-load typst library only when needed
 let typstLoaded = false;
 let typstLoadingPromise = null;
@@ -215,7 +218,7 @@ window.pandocApp = function() {
       opendocument: 'OpenDocument XML',
       opml: 'OPML',
       org: 'Emacs Org mode',
-      'pdf-typst': 'PDF via Typst',
+      pdf: 'PDF via Typst',
       plain: 'plain text',
       pod: 'Perl POD',
       pptx: 'PowerPoint',
@@ -243,31 +246,10 @@ window.pandocApp = function() {
     },
 
     // List of supported input formats (in display order)
-    inputFormats: [
-      'asciidoc', 'biblatex', 'bibtex', 'bits', 'commonmark', 'commonmark_x',
-      'creole', 'csljson', 'csv', 'djot', 'docbook', 'docx', 'dokuwiki',
-      'endnotexml', 'epub', 'fb2', 'gfm', 'haddock', 'html', 'ipynb',
-      'jats', 'jira', 'json', 'latex', 'man', 'markdown', 'markdown_mmd',
-      'markdown_phpextra', 'markdown_strict', 'mdoc', 'mediawiki', 'muse',
-      'native', 'odt', 'opml', 'org', 'pod', 'pptx', 'ris', 'rst', 'rtf',
-      't2t', 'textile', 'tikiwiki', 'tsv', 'twiki', 'typst', 'vimwiki',
-      'xlsx', 'xml'
-    ],
+    inputFormats: inputFormats,
 
     // List of supported output formats (in display order)
-    outputFormats: [
-      'ansi', 'asciidoc', 'asciidoc_legacy', 'asciidoctor', 'bbcode',
-      'beamer', 'biblatex', 'bibtex', 'chunkedhtml', 'commonmark',
-      'commonmark_x', 'context', 'csljson', 'djot', 'docbook', 'docbook5',
-      'docx', 'dokuwiki', 'dzslides', 'epub', 'epub2', 'epub3', 'fb2',
-      'gfm', 'haddock', 'html', 'html4', 'html5', 'icml', 'ipynb', 'jats',
-      'jira', 'json', 'latex', 'man', 'markdown', 'markdown_mmd',
-      'markdown_phpextra', 'markdown_strict', 'markua', 'mediawiki', 'ms',
-      'muse', 'native', 'odt', 'opendocument', 'opml', 'org', 'pdf-typst',
-      'plain', 'pptx', 'revealjs', 'rst', 'rtf', 's5', 'slideous', 'slidy',
-      'tei', 'texinfo', 'textile', 'typst', 'vimdoc', 'xml', 'xwiki',
-      'zimwiki'
-    ],
+    outputFormats: outputFormats,
 
     // Format constants
     formatByExtension: {
@@ -286,7 +268,7 @@ window.pandocApp = function() {
       'markdown': 'md', 'markdown_strict': 'md', 'markdown_mmd': 'md', 'markdown_phpextra': 'md',
       'gfm': 'md', 'commonmark': 'md', 'commonmark_x': 'md',
       'latex': 'tex', 'beamer': 'tex', 'context': 'tex',
-      'pdf': 'pdf', 'pdf-typst': 'pdf', 'docx': 'docx', 'odt': 'odt',
+      'pdf': 'pdf', 'docx': 'docx', 'odt': 'odt',
       'epub': 'epub', 'epub2': 'epub', 'epub3': 'epub',
       'rst': 'rst', 'org': 'org', 'plain': 'txt',
       'json': 'json', 'native': 'native',
@@ -303,9 +285,9 @@ window.pandocApp = function() {
     slideFormats: ['revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'beamer', 'pptx'],
     htmlFormats: ['html', 'html4', 'html5', 'revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'epub', 'epub2', 'epub3', 'chunkedhtml'],
     docFormats: ['docx', 'odt', 'pptx'],
-    binaryFormats: ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'pdf-typst', 'chunkedhtml'],
+    binaryFormats: ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'chunkedhtml'],
     markdownFormats: ['markdown', 'markdown_strict', 'markdown_mmd', 'markdown_phpextra', 'gfm', 'commonmark', 'commonmark_x'],
-    captionPositionFormats: ['html', 'html4', 'html5', 'latex', 'beamer', 'docx', 'odt', 'typst', 'pdf-typst'],
+    captionPositionFormats: ['html', 'html4', 'html5', 'latex', 'beamer', 'docx', 'odt', 'typst', 'pdf'],
     asciiFormats: ['html', 'html4', 'html5', 'markdown', 'markdown_strict', 'markdown_mmd', 'markdown_phpextra', 'gfm', 'commonmark', 'commonmark_x', 'docbook', 'docbook4', 'docbook5', 'jats', 'man', 'ms', 'latex', 'beamer'],
     topLevelDivisionFormats: ['latex', 'beamer', 'context', 'docbook', 'docbook4', 'docbook5', 'tei'],
     listOfFormats: ['latex', 'beamer', 'context'],
@@ -346,7 +328,7 @@ window.pandocApp = function() {
       beamer: ['all', 'latex', 'beamer'],
       context: ['all', 'context'],
       typst: ['all', 'typst'],
-      'pdf-typst': ['all', 'typst'],
+      pdf: ['all', 'typst'],
       ms: ['all', 'ms'],
       man: ['all', 'man'],
       docx: ['all', 'docx'],
@@ -368,7 +350,7 @@ window.pandocApp = function() {
         const ext = outFile.split('.').pop().toLowerCase();
         const formatByOutputExtension = {
           'html': 'html', 'htm': 'html', 'md': 'markdown', 'markdown': 'markdown',
-          'tex': 'latex', 'pdf': 'pdf-typst', 'docx': 'docx', 'odt': 'odt',
+          'tex': 'latex', 'pdf': 'pdf', 'docx': 'docx', 'odt': 'odt',
           'epub': 'epub', 'rst': 'rst', 'org': 'org', 'txt': 'plain',
           'json': 'json', 'native': 'native', 'xml': 'docbook', 'rtf': 'rtf',
           'adoc': 'asciidoc', 'ipynb': 'ipynb', 'typ': 'typst', 'pptx': 'pptx',
@@ -457,7 +439,7 @@ window.pandocApp = function() {
       const fmt = this.effectiveOutputFormat;
       return this.showStripComments || this.showDefaultImageExtension || this.showAbbreviations ||
         this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
-        ['latex', 'beamer'].includes(fmt) || ['typst', 'pdf-typst'].includes(fmt) ||
+        ['latex', 'beamer'].includes(fmt) || ['typst', 'pdf'].includes(fmt) ||
         this.supportsCaptionPosition || this.supportsAscii || this.supportsTopLevelDivision ||
         this.supportsListOf || this.docFormats.includes(fmt);
     },
@@ -1024,7 +1006,7 @@ window.pandocApp = function() {
         } catch (e) { console.warn('Could not get input extensions:', e); }
       }
 
-      const outFmt = this.outputFormat === 'pdf-typst' ? 'typst' : this.outputFormat;
+      const outFmt = this.outputFormat === 'pdf' ? 'typst' : this.outputFormat;
       if (outFmt !== 'auto') {
         try {
           const extData = await window.pandocModule.query({ query: "extensions-for-format", format: outFmt});
@@ -1318,7 +1300,7 @@ window.pandocApp = function() {
         this.luaFilters.forEach(file => { files[file.name] = file; });
 
         const stdin = this.inputMode === 'text' ? this.textInput : null;
-        const isPdfTypst = this.outputFormat === 'pdf-typst';
+        const isPdfTypst = this.outputFormat === 'pdf';
 
         if (isPdfTypst) {
           await window.loadTypst();
