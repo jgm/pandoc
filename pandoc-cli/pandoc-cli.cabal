@@ -81,7 +81,7 @@ executable pandoc
 
   if arch(wasm32)
     hs-source-dirs:  wasm
-    build-depends: aeson, containers, bytestring
+    build-depends: aeson, containers, bytestring, skylighting, filepath, pandoc-lua-engine
     ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=convert,--export=query
   else
     hs-source-dirs:  src

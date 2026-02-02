@@ -1,7 +1,9 @@
 /* pandoc.js: JavaScript interface to pandoc.wasm.
    Copyright (c) 2025 Tweag I/O Limited and John MacFarlane. MIT License.
 
-   Interface: await convert(options, stdin, files)
+   Interface:
+
+   await convert(options, stdin, files)
 
    - options is a JavaScript object representing pandoc options: this should
      correspond to the format used in pandoc's default files.
@@ -13,6 +15,17 @@
    stderr, and warnings, all strings. warnings is a JSON-encoded
    version of the warnings produced by pandoc. If the pandoc process
    produces an output file, it will be added to files.
+
+   await query(options)
+
+    - options is a JavaScript object with a 'query' property and in
+      some cases a 'format' property. Possible queries include
+      'version', 'highlight-styles', 'highlight-languages', 'input-formats',
+      'output-formats', 'default-template' (requires 'format'),
+      and 'extensions-for-format' (requires 'format').
+
+   The return value is a JavaScript string or in some cases a list
+   of strings.
 */
 
 import {
