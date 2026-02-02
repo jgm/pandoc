@@ -9,7 +9,7 @@ ROOT=$ARTIFACTS/pandoc
 DEST=$ROOT/usr/local
 ME=$(whoami)
 
-CABALOPTS="-fembed_data_files -fserver -flua"
+CABALOPTS="-fembed_data_files -fserver -flua -fhttp"
 # Build the pandoc binary and put it in .
 cabal update
 cabal build all $CABALOPTS

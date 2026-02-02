@@ -25,7 +25,7 @@ jobs:
           ghc --version
           cabal --version
           cabal update
-          cabal build --dependencies-only -fembed_data_files -fnightly pandoc-cli
+          cabal build --dependencies-only -fembed_data_files -fhttp -fnightly pandoc-cli
     - name: Build and install artifact
       run: |
           export ARTIFACTS=nightly-linux/pandoc-nightly-linux-$(date +%Y-%m-%d)
@@ -52,7 +52,7 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
-          cabal build --dependencies-only -fembed_data_files -fnightly pandoc-cli
+          cabal build --dependencies-only -fembed_data_files -fhttp -fnightly pandoc-cli
     - name: Build artifacts
       shell: cmd
       run: |
@@ -86,7 +86,7 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
-          cabal build --dependencies-only -fnightly -fembed_data_files pandoc-cli
+          cabal build --dependencies-only -fnightly -fembed_data_files -fhttp pandoc-cli
     - name: Build artifacts
       run: |
           export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
