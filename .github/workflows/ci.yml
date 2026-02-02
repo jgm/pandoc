@@ -192,7 +192,7 @@ jobs:
     - name: Build and test
       run: |
           cabal update
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+          cabal test --ghc-option=-Werror -fhttp --enable-tests --disable-optimization --ghc-options=-Werror all
 
 # We no longer run the macos tests, to make CI faster.
 # macos:
