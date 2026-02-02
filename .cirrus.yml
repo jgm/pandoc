@@ -44,8 +44,8 @@ task:
   upload_caches:
     - cabal_store
   package_script:
-    - cabal freeze && cat cabal.project.freeze
     - bash linux/make_artifacts.sh
+    - cabal freeze && cat cabal.project.freeze
   linux_arm64_artifacts:
     path: ./linux-arm64/**
 
