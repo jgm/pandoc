@@ -34,8 +34,8 @@ tests =
       =: link "/url" "" "foo"
       =?> "[[/url][foo]]"
     , "internal link to anchor"
-      =: link "#my-custom-id" "" "#my-custom-id"
-      =?> "[[#my-custom-id]]"
+      =: link "#ch002.xhtml#twosub" "" "#ch002.xhtml#twosub"
+      =?> "[[ch002.xhtml_twosub]]"
     ]
 
   , testGroup "lists"
