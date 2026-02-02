@@ -7,6 +7,9 @@ window.fflate = { zipSync, unzipSync, strToU8, strFromU8 };
 // Make pandoc available globally for the app
 window.pandocModule = { convert, query };
 
+const pandocVersion = await window.pandocModule.query({ query: "version" });
+document.getElementById("pandoc-version").innerText = pandocVersion;
+
 // Lazy-load typst library only when needed
 let typstLoaded = false;
 let typstLoadingPromise = null;

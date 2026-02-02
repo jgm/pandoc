@@ -19,7 +19,7 @@ import Text.Read (readMaybe)
 import qualified Control.Exception as E
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.App ( convertWithOpts, Opt(..), defaultOpts )
-import Text.Pandoc (Verbosity(ERROR))
+import Text.Pandoc (Verbosity(ERROR), pandocVersion)
 import Text.Pandoc.Extensions (extensionsToList, extensionEnabled, getAllExtensions,
                                getDefaultExtensions)
 import PandocCLI.Lua
@@ -30,6 +30,7 @@ import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
+import Data.Version (showVersion)
 
 foreign export ccall "convert" convert :: Ptr CChar -> Int -> IO ()
 
@@ -78,6 +79,8 @@ query ptr len =
       args <- getCString ptr len
       case Aeson.eitherDecode (UTF8.fromStringLazy args) of
         Left e -> error e
+        Right PandocVersion ->
+          BL.writeFile "/stdout" $ Aeson.encode $ showVersion pandocVersion
         Right (ExtensionsForFormat fmt) -> do
           let allExts = getAllExtensions fmt
           let defExts = getDefaultExtensions fmt
@@ -87,7 +90,8 @@ query ptr len =
                  foldr addExt mempty (extensionsToList allExts)
 
 data Query =
-  ExtensionsForFormat T.Text
+    PandocVersion
+  | ExtensionsForFormat T.Text
   deriving (Show)
 
 instance FromJSON Query where
@@ -95,6 +99,7 @@ instance FromJSON Query where
     queryType <- o .: "query"
     case queryType of
       "extensions-for-format" -> ExtensionsForFormat <$> o .: "format"
+      "version" -> pure PandocVersion
       _ -> fail $ "Unknown query type " <> queryType
 
 getCString :: Ptr CChar -> Int -> IO String
