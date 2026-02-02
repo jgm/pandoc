@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 {- |
    Module      : Main
@@ -25,13 +26,14 @@ import PandocCLI.Lua
 import Control.Exception
 import Foreign
 import Foreign.C
-import qualified Data.Aeson as Aeson
+import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
 
 foreign export ccall "convert" convert :: Ptr CChar -> Int -> IO ()
 
--- | The parameters are a pointer and length for a C string
+  -- | The parameters are a pointer and length for a C string
 -- containing JSON-encoded pandoc options (isomorphic to a defaults
 -- file).  The calling program should set up a virtual file system
 -- containing @/stdin@ (input), @/stdout@ (output), and @/warnings@ (output).
@@ -59,22 +61,41 @@ convert ptr len =
                           }
           convertWithOpts engine opts'
 
-foreign export ccall "get_extensions_for_format" get_extensions_for_format
-   :: Ptr CChar -> Int -> IO ()
+foreign export ccall "query" query :: Ptr CChar -> Int -> IO ()
 
--- | Given a C string with the format name, returnsa  JSON object
--- mapping extensions relevant for this format to true or false,
--- depending on whether they are enabled by default.
-get_extensions_for_format :: Ptr CChar -> Int -> IO ()
-get_extensions_for_format ptr len = do
-  formatName <- readMaybe <$> getCString ptr len
-  case formatName of
-    Just fmt -> do
-       let allExts = getAllExtensions fmt
-       let defExts = getDefaultExtensions fmt
-       let addExt x = M.insert (drop 4 (show x)) (extensionEnabled x defExts)
-       BL.writeFile "/stdout" $ Aeson.encode $ foldr addExt mempty (extensionsToList allExts)
-    Nothing -> writeFile "/stdout" "{}"
+-- | The parameters are a pointer and length for a C string
+-- containing a JSON-encoded query, e.g.,
+-- @{ "query": "extensions-for-format", "argument": "markdown" }@.
+-- The calling program should set up a virtual file system
+-- containing @/stdout@, which will be used to hold the output,
+-- and @/stderr@, which will be used to hold any error messages.
+query :: Ptr CChar -> Int -> IO ()
+query ptr len =
+  E.catch act (\(err :: SomeException) ->
+                 writeFile "/stderr" ("ERROR: " <> displayException err))
+  where
+    act = do
+      args <- getCString ptr len
+      case Aeson.eitherDecode (UTF8.fromStringLazy args) of
+        Left e -> error e
+        Right (ExtensionsForFormat fmt) -> do
+          let allExts = getAllExtensions fmt
+          let defExts = getDefaultExtensions fmt
+          let addExt x = M.insert (drop 4 (show x))
+                              (extensionEnabled x defExts)
+          BL.writeFile "/stdout" $ Aeson.encode $
+                 foldr addExt mempty (extensionsToList allExts)
+
+data Query =
+  ExtensionsForFormat T.Text
+  deriving (Show)
+
+instance FromJSON Query where
+  parseJSON = withObject "Query" $ \o -> do
+    queryType <- o .: "query"
+    case queryType of
+      "extensions-for-format" -> ExtensionsForFormat <$> o .: "format"
+      _ -> fail $ "Unknown query type " <> queryType
 
 getCString :: Ptr CChar -> Int -> IO String
 getCString ptr len = peekCStringLen (ptr, len) <* free ptr

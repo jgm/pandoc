@@ -70,7 +70,7 @@ memory_data_view().setUint32(argv_ptr, argv, true);
 
 instance.exports.hs_init_with_rtsopts(argc_ptr, argv_ptr);
 
-export async function getExtensionsForFormat(options) {
+export async function query(options) {
   const opts_str = JSON.stringify(options);
   const opts_ptr = instance.exports.malloc(opts_str.length);
   new TextEncoder().encodeInto(
@@ -83,10 +83,14 @@ export async function getExtensionsForFormat(options) {
   const err_file = new File(new Uint8Array(), { readonly: false });
   fileSystem.set("stdout", out_file);
   fileSystem.set("stderr", err_file);
-  instance.exports.get_extensions_for_format(opts_ptr, opts_str.length);
+  instance.exports.query(opts_ptr, opts_str.length);
 
-  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(out_file.data));
+  const err_text = new TextDecoder("utf-8", { fatal: true }).decode(err_file.data);
+  if (err_text) console.log(err_text);
+  const out_text = new TextDecoder("utf-8", { fatal: true }).decode(out_file.data);
+  return JSON.parse(out_text);
 }
+
 
 export async function convert(options, stdin, files) {
   const opts_str = JSON.stringify(options);

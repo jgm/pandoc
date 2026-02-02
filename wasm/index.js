@@ -1,11 +1,11 @@
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
-import { convert, getExtensionsForFormat } from "./pandoc.js?sha1=SHA1_PANDOC_JS";
+import { convert, query } from "./pandoc.js?sha1=SHA1_PANDOC_JS";
 
 // Make fflate available globally
 window.fflate = { zipSync, unzipSync, strToU8, strFromU8 };
 
 // Make pandoc available globally for the app
-window.pandocModule = { convert, getExtensionsForFormat };
+window.pandocModule = { convert, query };
 
 // Lazy-load typst library only when needed
 let typstLoaded = false;
@@ -1014,7 +1014,7 @@ window.pandocApp = function() {
 
       if (this.inputFormat !== 'auto') {
         try {
-          const extData = await window.pandocModule.getExtensionsForFormat(this.inputFormat);
+          const extData = await window.pandocModule.query({ query: "extensions-for-format", format: this.inputFormat });
           this.inputExtensionsList = Object.entries(extData)
             .map(([name, defaultOn]) => ({ name, defaultOn }))
             .sort((a, b) => a.name.localeCompare(b.name));
@@ -1024,7 +1024,7 @@ window.pandocApp = function() {
       const outFmt = this.outputFormat === 'pdf-typst' ? 'typst' : this.outputFormat;
       if (outFmt !== 'auto') {
         try {
-          const extData = await window.pandocModule.getExtensionsForFormat(outFmt);
+          const extData = await window.pandocModule.query({ query: "extensions-for-format", format: outFmt});
           this.outputExtensionsList = Object.entries(extData)
             .map(([name, defaultOn]) => ({ name, defaultOn }))
             .sort((a, b) => a.name.localeCompare(b.name));
