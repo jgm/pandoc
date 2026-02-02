@@ -6,7 +6,7 @@ constraints: skylighting-format-blaze-html >= 0.1.2,
              skylighting-format-context >= 0.1.0.2
 
 package pandoc
-  flags: +embed_data_files
+  flags: +embed_data_files +http
 
 if arch(wasm32)
   tests: False

@@ -15,7 +15,7 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            cabal_opts: '-fembed_data_files -fserver -flua -fhttp'
+            cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
     - uses: actions/checkout@v6
