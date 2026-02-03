@@ -10,10 +10,10 @@
    Stability   : alpha
    Portability : portable
 
-Parses command-line options and calls the appropriate readers and
-writers (wasm version).
+Exposes wasm functions to convert documents and get information
+from pandoc.
 -}
-module Main where
+module PandocWasm where
 import qualified Data.Map as M
 import qualified Control.Exception as E
 import Data.List (sort)
@@ -169,7 +169,3 @@ instance FromJSON Query where
 
 getCString :: Ptr CChar -> Int -> IO String
 getCString ptr len = peekCStringLen (ptr, len) <* free ptr
-
--- This must be included or we get an error:
-main :: IO ()
-main = pure ()

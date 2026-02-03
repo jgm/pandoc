@@ -29,6 +29,9 @@ import qualified Data.Text as T
 import qualified Language.Haskell.TH as TH
 import Data.Time
 #endif
+#ifdef INCLUDE_WASM
+import PandocWasm()
+#endif
 
 #ifdef NIGHTLY
 versionSuffix :: String
