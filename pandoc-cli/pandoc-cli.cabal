@@ -18,9 +18,6 @@ extra-source-files:
                  man/pandoc.1
                  man/pandoc-lua.1
                  man/pandoc-server.1
-                 wasm/pandoc.js
-                 wasm/index.html
-                 wasm/LICENSE
 source-repository head
   type:          git
   location:      https://github.com/jgm/pandoc.git
