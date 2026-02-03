@@ -226,6 +226,9 @@
 
     + Fix keywords usage. (#11317, har7an).
     + Disable hyphenation for title, subtitle (#11375).
+    + Improve accessibility of definition lists (#11436). Before this
+      change, our show rule produced an error when typst was run with
+      `--pdf-standard=ua1`.
 
   * HTML5 template:
 
