@@ -45,7 +45,7 @@ https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/
     #+end_src
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
 *** TODO If it builds successfully, download artifacts
-from GitHub: Windows and intel mac and pandoc.wasm
+from GitHub: Windows and intel mac and pandoc.wasm (rename as pandoc-VERSION.wasm)
 from Cirrus-ci.com: linux amd64 and arm64 and m1 mac
 *** TODO Use 'make' in macos artifact to sign code
 *** TODO Install pandoc from package
