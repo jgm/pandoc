@@ -67,6 +67,7 @@ block :: PandocMonad m => MoinParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
      <|> header
+     <|> bulletList
      <|> para
   return res
 
@@ -88,6 +89,15 @@ para :: PandocMonad m => MoinParser m B.Blocks
 para = do
   contents <- B.trimInlines . mconcat <$> many1 inline
   return $ B.para contents
+
+-- XXX only handles one line/item
+bulletList :: PandocMonad m => MoinParser m B.Blocks
+bulletList = do
+  lev <- length <$> many1 space
+  char '*'
+  spaces
+  contents <- B.plain . B.trimInlines . mconcat <$> manyTill inline newline
+  return $ B.bulletList [contents]
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
