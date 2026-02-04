@@ -37,7 +37,7 @@ parseMoinMoin :: PandocMonad m => MoinParser m Pandoc
 parseMoinMoin = do
   many processingInstruction
   blocks <- mconcat <$> many block
-  spaces -- optional space?
+  spaces
   eof
 
   let meta = nullMeta
@@ -102,6 +102,7 @@ bulletList = do
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
       <|> str
+      <|> externalLink
 
 -- from Readers.Mediawiki
 whitespace :: PandocMonad m => MoinParser m B.Inlines
@@ -110,6 +111,17 @@ whitespace = B.space <$ skipMany1 spaceChar
 -- from Readers.Mediawiki
 str :: PandocMonad m => MoinParser m B.Inlines
 str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
+
+externalLink :: PandocMonad m => MoinParser m B.Inlines
+externalLink = do
+  string "[["
+  (src,_) <- uri -- XXX is eating '|'
+  title <- option src $ do
+    char '|'
+    many1TillChar anyChar (try (char ']'))
+  string "]]"
+  let label = B.fromList [] -- XXX convert title to B.Inlines
+  return $ B.link src "" label
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
