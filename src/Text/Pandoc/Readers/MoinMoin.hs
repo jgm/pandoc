@@ -115,13 +115,18 @@ str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
 externalLink :: PandocMonad m => MoinParser m B.Inlines
 externalLink = do
   string "[["
-  (src,_) <- uri -- XXX is eating '|'
-  title <- option src $ do
-    char '|'
-    many1TillChar anyChar (try (char ']'))
-  string "]]"
-  let label = B.fromList [] -- XXX convert title to B.Inlines
-  return $ B.link src "" label
+  (src,label) <-  try labelledLink <|> unlabelledLink
+  --string "]]"
+  return $ B.link src "" $ B.str label
+  where
+    labelledLink = do
+      src <- manyTillChar (noneOf "|") (try (char '|'))
+      lbl <- manyTillChar (noneOf "]") (string "]]")
+      return (src,lbl)
+
+    unlabelledLink = do
+      src <- manyTillChar (noneOf "|") (string "]]")
+      return (src,src)
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
