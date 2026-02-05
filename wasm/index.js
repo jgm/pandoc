@@ -1,17 +1,39 @@
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
-import { convert, query } from "./pandoc.js?sha1=SHA1_PANDOC_JS";
 
 // Make fflate available globally
 window.fflate = { zipSync, unzipSync, strToU8, strFromU8 };
 
-// Make pandoc available globally for the app
-window.pandocModule = { convert, query };
+// Pandoc loading - starts immediately in background, but doesn't block UI
+let pandocReadyPromise = null;
+let onFormatsLoaded = null; // Callback to update Vue app when formats load
 
-const pandocVersion = await window.pandocModule.query({ query: "version" });
-document.getElementById("pandoc-version").innerText = pandocVersion;
+function loadPandoc() {
+  // Only load once
+  if (pandocReadyPromise) return pandocReadyPromise;
 
-const inputFormats = await window.pandocModule.query({ query: "input-formats" });
-const outputFormats = await window.pandocModule.query({ query: "output-formats" });
+  pandocReadyPromise = (async () => {
+    // Dynamic import so WASM loading happens in background
+    const { convert, query } = await import("./pandoc.js?sha1=SHA1_PANDOC_JS");
+    window.pandocModule = { convert, query };
+
+    // Query version and formats
+    const pandocVersion = await query({ query: "version" });
+    document.getElementById("pandoc-version").innerText = pandocVersion;
+
+    const inputFormats = await query({ query: "input-formats" });
+    const outputFormats = await query({ query: "output-formats" });
+
+    // Update Vue app if callback is registered
+    if (onFormatsLoaded) {
+      onFormatsLoaded(inputFormats, outputFormats);
+    }
+  })();
+
+  return pandocReadyPromise;
+}
+
+// Start loading immediately in background (fire and forget)
+loadPandoc();
 
 // Lazy-load typst library only when needed
 let typstLoaded = false;
@@ -47,6 +69,7 @@ window.pandocApp = function() {
   return {
     // State
     pandocReady: false,
+    waitingForPandoc: false,
     selectedExample: '',
     showExamplesBar: false,
     inputMode: 'file',
@@ -245,11 +268,10 @@ window.pandocApp = function() {
       zimwiki: 'ZimWiki markup'
     },
 
-    // List of supported input formats (in display order)
-    inputFormats: inputFormats,
-
-    // List of supported output formats (in display order)
-    outputFormats: outputFormats,
+    // List of supported formats (populated when pandoc loads)
+    inputFormats: [],
+    outputFormats: [],
+    formatsLoaded: false,
 
     // Format constants
     formatByExtension: {
@@ -340,7 +362,7 @@ window.pandocApp = function() {
     // Computed-like getters
     get canConvert() {
       const hasInput = this.inputMode === 'file' ? this.fileOrder.length > 0 : this.textInput.trim().length > 0;
-      return hasInput && this.pandocReady && this.hasChanges;
+      return hasInput && this.hasChanges;
     },
 
     get effectiveOutputFormat() {
@@ -461,8 +483,24 @@ window.pandocApp = function() {
     },
 
     init() {
-      this.pandocReady = true;
-      console.log('Pandoc converter ready');
+      // Register callback to populate formats when pandoc loads
+      onFormatsLoaded = (inputFmts, outputFmts) => {
+        this.inputFormats = inputFmts;
+        this.outputFormats = outputFmts;
+        this.formatsLoaded = true;
+      };
+      console.log('Pandoc converter initialized (pandoc.wasm loading in background)');
+    },
+
+    async ensurePandocLoaded() {
+      if (this.pandocReady) return;
+      this.waitingForPandoc = true;
+      try {
+        await loadPandoc();
+        this.pandocReady = true;
+      } finally {
+        this.waitingForPandoc = false;
+      }
     },
 
     async loadExample() {
@@ -470,8 +508,13 @@ window.pandocApp = function() {
       if (!zipPath) return;
 
       try {
+        // Fetch the example first
         const response = await fetch(zipPath + "?sha1=SHA1_EXAMPLES");
         const arrayBuffer = await response.arrayBuffer();
+
+        // Ensure pandoc is loaded before processing (which auto-converts)
+        await this.ensurePandocLoaded();
+
         await this.loadExampleFromBuffer(arrayBuffer, zipPath.split('/').pop());
       } catch (err) {
         this.messages.push({ type: 'error', text: `Failed to load example: ${err.message}` });
@@ -485,6 +528,10 @@ window.pandocApp = function() {
       try {
         const arrayBuffer = await file.arrayBuffer();
         e.target.value = '';
+
+        // Ensure pandoc is loaded before processing (which auto-converts)
+        await this.ensurePandocLoaded();
+
         await this.loadExampleFromBuffer(arrayBuffer, file.name);
       } catch (err) {
         this.showOutput = true;
@@ -1269,6 +1316,9 @@ window.pandocApp = function() {
     },
 
     async convert() {
+      // Ensure pandoc is loaded before converting
+      await this.ensurePandocLoaded();
+
       this.isConverting = true;
       this.showOutput = false;
       this.messages = [];

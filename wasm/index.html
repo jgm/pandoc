@@ -589,15 +589,15 @@
             <div class="format-bar">
               <div class="form-group">
                 <label for="input-format">From:</label>
-                <select id="input-format" v-model="inputFormat" @change="onInputFormatChange">
-                  <option value="auto">Auto-detect</option>
+                <select id="input-format" v-model="inputFormat" @change="onInputFormatChange" :disabled="!formatsLoaded">
+                  <option value="auto">{{ formatsLoaded ? 'Auto-detect' : 'Loading formats...' }}</option>
                   <option v-for="fmt in inputFormats" :key="fmt" :value="fmt">{{ getFormatLabel(fmt, 'input') }}</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="output-format">To:</label>
-                <select id="output-format" v-model="outputFormat" @change="onOutputFormatChange">
-                  <option value="auto">Auto-detect</option>
+                <select id="output-format" v-model="outputFormat" @change="onOutputFormatChange" :disabled="!formatsLoaded">
+                  <option value="auto">{{ formatsLoaded ? 'Auto-detect' : 'Loading formats...' }}</option>
                   <option v-for="fmt in outputFormats" :key="fmt" :value="fmt">{{ getFormatLabel(fmt, 'output') }}</option>
                 </select>
               </div>
@@ -1336,8 +1336,8 @@
       </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" v-show="!pandocReady">
+    <!-- Loading Overlay - shows when user action requires pandoc but it's still loading -->
+    <div class="loading-overlay" v-show="waitingForPandoc">
       <div class="loading-box">
         <div class="spinner"></div>
         <p>Loading pandoc.wasm...</p>
