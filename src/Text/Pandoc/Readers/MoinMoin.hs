@@ -90,14 +90,15 @@ para = do
   contents <- B.trimInlines . mconcat <$> many1 inline
   return $ B.para contents
 
--- XXX only handles one line/item
 bulletList :: PandocMonad m => MoinParser m B.Blocks
-bulletList = do
+bulletList = many1 bulletListItem >>= return . B.bulletList
+
+bulletListItem :: PandocMonad m => MoinParser m B.Blocks
+bulletListItem = try $ do
   lev <- length <$> many1 space
   char '*'
   spaces
-  contents <- B.plain . B.trimInlines . mconcat <$> manyTill inline newline
-  return $ B.bulletList [contents]
+  B.plain . B.trimInlines . mconcat <$> manyTill inline newline
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
