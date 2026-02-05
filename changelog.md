@@ -3187,7 +3187,7 @@
 
   * New module Text.Pandoc.Transforms [API change] (Albert Krewinkel).
     This module exports the following functions which were formerly
-    exported from Tetx.Pnadoc.Shared: `headerShift`,
+    exported from Text.Pandoc.Shared: `headerShift`,
     `filterIpynbOutput`, `eastAsianLineBreakFilter`, as well as some
     functions that were previously not exported.
 
