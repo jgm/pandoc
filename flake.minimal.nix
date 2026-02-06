@@ -20,16 +20,7 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             wasmToolchain
-            haskellPackages.haskell-language-server
-            haskellPackages.hlint
             haskellPackages.cabal-install
-            haskellPackages.cabal-plan
-            haskellPackages.hpc
-            haskellPackages.ghcid
-            haskellPackages.stylish-haskell
-            haskellPackages.eventlog2html
-            haskellPackages.profiterole
-            haskellPackages.profiteur
             zlib.dev
             git
             gnumake
