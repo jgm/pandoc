@@ -1,5 +1,7 @@
 local tasty = require 'tasty'
+local system = require 'pandoc.system'
 local types = require 'pandoc.types'
+local Sources = types.Sources
 local Version = types.Version
 
 local assert = tasty.assert
@@ -7,6 +9,32 @@ local test = tasty.test_case
 local group = tasty.test_group
 
 return {
+  group 'Sources' {
+    group 'constructor' {
+      test('has type `table`', function ()
+        assert.are_same(type(Sources ""), 'table')
+      end),
+      test('accepts a single string', function ()
+        assert.are_same(type(Sources('a')), 'table')
+      end),
+      test('accepts a list of strings', function ()
+        local srcs = Sources{'first text\n', 'second text\n'}
+        assert.are_equal(srcs[1].name, '')
+        assert.are_equal(srcs[1].text, 'first text\n')
+      end),
+      test('accepts list of filepath/content tuples', function ()
+        local srcs = Sources{{'test.txt', 'semi-random content'}}
+        assert.are_equal(srcs[1].name, 'test.txt')
+        assert.are_equal(srcs[1].text, 'semi-random content\n')
+      end),
+      test('accepts lists of Source-like tables', function ()
+        local srcs = Sources{{name = 'test.txt', text = 'semi-random content'}}
+        assert.are_equal(srcs[1].name, 'test.txt')
+        assert.are_equal(srcs[1].text, 'semi-random content\n')
+      end),
+    },
+  },
+
   group 'Version' {
 
     group 'constructor' {
