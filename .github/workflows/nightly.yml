@@ -122,7 +122,7 @@ jobs:
         key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
     - name: Build pandoc.wasm
       run: |
-        nix develop --command bash -c "ln -sf flake.minimal.nix flake.nix && make pandoc.wasm"
+        nix develop --command bash -c "make pandoc.wasm"
     - name: Upload artifact
       uses: actions/upload-artifact@v6
       with:

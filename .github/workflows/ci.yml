@@ -159,7 +159,7 @@ jobs:
           dist-newstyle
         key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
     - run: |
-        nix develop --command bash -c "ln -sf flake.minimal.nix flake.nix && make pandoc.wasm"
+        nix develop --command bash -c "make pandoc.wasm"
 
   windows:
 
