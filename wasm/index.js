@@ -33,7 +33,7 @@ function loadPandoc() {
 }
 
 // Start loading immediately in background (fire and forget)
-loadPandoc();
+loadPandoc().catch(err => console.error("Failed to load pandoc:", err));
 
 // Lazy-load typst library only when needed
 let typstLoaded = false;
