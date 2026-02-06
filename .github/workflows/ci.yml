@@ -147,12 +147,8 @@ jobs:
     - uses: wimpysworld/nothing-but-nix@v9
       with:
         hatchet-protocol: 'rampage'
-    - uses: cachix/install-nix-action@v31
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-        nix_conf: |
-          keep-env-derivations = true
-          keep-outputs = true
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - name: Cache cabal work
       id:   cabal-local
       uses: actions/cache@v5
