@@ -1,17 +1,17 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TupleSections        #-}
 {- |
 Module      : Text.Pandoc.Lua.Marshaling.Sources
-Copyright   : © 2021-2024 Albert Krewinkel
-License     : GNU GPL, version 2 or above
-Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
+Copyright   : © 2021-2026 Albert Krewinkel <albert+pandoc@tarleb.com>
+License     : GPL-2.0-or-later
 
 Marshal 'Sources'.
 -}
 module Text.Pandoc.Lua.Marshal.Sources
   ( peekSources
   , pushSources
+  , typeSource
   ) where
 
 import Control.Monad ((<$!>))
@@ -37,17 +37,31 @@ pushSources (Sources srcs) = do
 -- | Retrieves sources from the stack.
 peekSources :: LuaError e => Peeker e Sources
 peekSources idx = liftLua (ltype idx) >>= \case
-  TypeString -> toSources <$!> peekText idx
-  TypeTable  -> Sources <$!> peekList (peekUD typeSource) idx
-  _          -> Sources . (:[]) <$!> peekUD typeSource idx
+  TypeTable  -> mconcat <$!> peekList peekSourcesSingleton idx
+  _          -> peekSourcesSingleton idx
+
+-- | Retrieves a Sources singleton, i.e., a list with exactly one item.
+peekSourcesSingleton :: LuaError e => Peeker e Sources
+peekSourcesSingleton = choice
+  [ fmap toSources . peekText
+  , fmap (Sources . (:[])) . peekUD typeSource
+  , fmap (toSources . (:[])) . peekPair peekString peekText
+  , fmap (toSources . (:[])) .
+    (\idx -> (,)
+      <$> peekFieldRaw peekString "name" idx
+      <*> peekFieldRaw peekText "text" idx)
+  ]
+
+-- | A @Sources@ item.
+type Source = (SourcePos, Text)
 
 -- | Source object type.
-typeSource :: LuaError e => DocumentedType e (SourcePos, Text)
+typeSource :: LuaError e => DocumentedType e Source
 typeSource = deftype "Source"
   [ operation Tostring $ lambda
     ### liftPure snd
     <#> udparam typeSource "srcs" "Source to print in native format"
-    =#> functionResult pushText "string" "Haskell representation"
+    =#> functionResult pushText "string" "source contents"
   ]
   [ readonly "name" "source name"
       (pushString, sourceName . fst)
