@@ -108,6 +108,8 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - uses: wimpysworld/nothing-but-nix@v9
+      with:
+       hatchet-protocol: 'rampage'
     - uses: cachix/install-nix-action@v31
       with:
         nix_path: nixpkgs=channel:nixos-unstable
