@@ -103,6 +103,7 @@ bulletListItem = try $ do
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
       <|> str
+      <|> italic
       <|> externalLink
 
 -- from Readers.Mediawiki
@@ -112,6 +113,13 @@ whitespace = B.space <$ skipMany1 spaceChar
 -- from Readers.Mediawiki
 str :: PandocMonad m => MoinParser m B.Inlines
 str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
+
+italic :: PandocMonad m => MoinParser m B.Inlines
+italic =
+  enclosed doubleApostrophe doubleApostrophe inline >>=
+    return . B.singleton . B.Emph .  B.toList .  mconcat
+  where
+    doubleApostrophe = char '\'' >> char '\''
 
 externalLink :: PandocMonad m => MoinParser m B.Inlines
 externalLink = do
