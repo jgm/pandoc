@@ -136,29 +136,6 @@ jobs:
       run: |
           stack test --fast
 
-  nix-wasm:
-
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v6
-    # Remove unneeded cruft in runner so we have room for Nix:
-    - uses: wimpysworld/nothing-but-nix@v9
-      with:
-        hatchet-protocol: 'rampage'
-    - uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v5
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
-    - run: |
-        nix develop --command bash -c "make pandoc.wasm"
-
   windows:
 
     runs-on: windows-2022
@@ -193,6 +170,31 @@ jobs:
       run: |
           cabal update
           cabal test --ghc-option=-Werror -fhttp --enable-tests --disable-optimization --ghc-options=-Werror all
+
+# The nix build ran out of resources. Not sure how to fix.
+#
+#  nix-wasm:
+#
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: true
+#    steps:
+#    - uses: actions/checkout@v6
+#    # Remove unneeded cruft in runner so we have room for Nix:
+#    - uses: wimpysworld/nothing-but-nix@v9
+#      with:
+#        hatchet-protocol: 'rampage'
+#    - uses: DeterminateSystems/nix-installer-action@main
+#    - uses: DeterminateSystems/magic-nix-cache-action@main
+#    - name: Cache cabal work
+#      id:   cabal-local
+#      uses: actions/cache@v5
+#      with:
+#        path: |
+#          dist-newstyle
+#        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
+#    - run: |
+#        nix develop --command bash -c "make pandoc.wasm"
 
 # We no longer run the macos tests, to make CI faster.
 # macos:
