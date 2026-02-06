@@ -85,18 +85,17 @@ instance.exports.hs_init_with_rtsopts(argc_ptr, argv_ptr);
 
 export async function query(options) {
   const opts_str = JSON.stringify(options);
-  const opts_ptr = instance.exports.malloc(opts_str.length);
-  new TextEncoder().encodeInto(
-    opts_str,
-    new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_str.length)
-  );
+  const opts_bytes = new TextEncoder().encode(opts_str);
+  const opts_ptr = instance.exports.malloc(opts_bytes.length);
+  new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_bytes.length)
+    .set(opts_bytes);
   // add input files to fileSystem
   fileSystem.clear()
   const out_file = new File(new Uint8Array(), { readonly: false });
   const err_file = new File(new Uint8Array(), { readonly: false });
   fileSystem.set("stdout", out_file);
   fileSystem.set("stderr", err_file);
-  instance.exports.query(opts_ptr, opts_str.length);
+  instance.exports.query(opts_ptr, opts_bytes.length);
 
   const err_text = new TextDecoder("utf-8", { fatal: true }).decode(err_file.data);
   if (err_text) console.log(err_text);
@@ -107,11 +106,10 @@ export async function query(options) {
 
 export async function convert(options, stdin, files) {
   const opts_str = JSON.stringify(options);
-  const opts_ptr = instance.exports.malloc(opts_str.length);
-  new TextEncoder().encodeInto(
-    opts_str,
-    new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_str.length)
-  );
+  const opts_bytes = new TextEncoder().encode(opts_str);
+  const opts_ptr = instance.exports.malloc(opts_bytes.length);
+  new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_bytes.length)
+    .set(opts_bytes);
   // add input files to fileSystem
   fileSystem.clear()
   const in_file = new File(new Uint8Array(), { readonly: true });
@@ -136,7 +134,7 @@ export async function convert(options, stdin, files) {
   if (stdin) {
     in_file.data = new TextEncoder().encode(stdin);
   }
-  instance.exports.convert(opts_ptr, opts_str.length);
+  instance.exports.convert(opts_ptr, opts_bytes.length);
 
   if (options["output-file"]) {
     files[options["output-file"]] =
