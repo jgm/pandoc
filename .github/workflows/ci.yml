@@ -145,7 +145,7 @@ jobs:
     - uses: actions/checkout@v6
     # Remove unneeded cruft in runner so we have room for Nix:
     - uses: wimpysworld/nothing-but-nix@v9
-       with:
+      with:
         hatchet-protocol: 'rampage'
     - uses: cachix/install-nix-action@v31
       with:
