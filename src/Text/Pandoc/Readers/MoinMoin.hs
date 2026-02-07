@@ -104,6 +104,11 @@ inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
       <|> str
       <|> italic
+      <|> bold
+      <|> underline
+      <|> superscript
+      <|> subscript
+--    <|> stroke
       <|> externalLink
 
 -- from Readers.Mediawiki
@@ -114,12 +119,33 @@ whitespace = B.space <$ skipMany1 spaceChar
 str :: PandocMonad m => MoinParser m B.Inlines
 str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
 
-italic :: PandocMonad m => MoinParser m B.Inlines
-italic =
-  enclosed doubleApostrophe doubleApostrophe inline >>=
-    return . B.singleton . B.Emph .  B.toList .  mconcat
-  where
-    doubleApostrophe = char '\'' >> char '\''
+-- utility fn for most of the inline text formatters
+formatter :: PandocMonad m
+          => String
+          -> ([Inline] -> B.Inline)
+          -> MoinParser m B.Inlines
+formatter delim inliner =
+  enclosed delim' delim' inline >>=
+    return . B.singleton . inliner . B.toList . mconcat
+  where delim' = string delim
+
+italic      :: PandocMonad m => MoinParser m B.Inlines
+italic      = formatter ("''") B.Emph
+bold        :: PandocMonad m => MoinParser m B.Inlines
+bold        = formatter ("'''") B.Strong
+-- monospace: B.code (Code Attr Text) needs different handling
+-- code: as monospace
+underline   :: PandocMonad m => MoinParser m B.Inlines
+underline   = formatter ("__") B.Underline
+superscript :: PandocMonad m => MoinParser m B.Inlines
+superscript = formatter "^" B.Superscript
+subscript   :: PandocMonad m => MoinParser m B.Inlines
+subscript   = formatter ",," B.Subscript
+-- smaller/larger: needs some thought
+stroke :: PandocMonad m => MoinParser m B.Inlines
+stroke = enclosed (string "--(") (string ")--") inline >>=
+    return . B.singleton . B.Strikeout . B.toList . mconcat
+
 
 externalLink :: PandocMonad m => MoinParser m B.Inlines
 externalLink = do
@@ -139,7 +165,7 @@ externalLink = do
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\_"
+specialChars = "'[]<=&*{}|\":\\_^,"
 
 -- from Readers.Mediawiki
 spaceChars :: [Char]
