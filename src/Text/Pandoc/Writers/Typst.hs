@@ -443,7 +443,7 @@ inlineToTypst inline =
         WrapPreserve -> return cr
         WrapAuto     -> return space
         WrapNone     -> return space
-    LineBreak -> return (space <> "\\" <> cr)
+    LineBreak -> return (space <> "\\" <> space)
     Math mathType str -> do
       res <- convertMath TM.writeTypst mathType str
       case res of
