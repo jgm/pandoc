@@ -20,6 +20,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing
 import qualified Text.Pandoc.Builder as B
+import qualified Data.Text as T
 
 -- | Read MoinMoin from an input string and return a Pandoc document.
 readMoinMoin :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
@@ -110,6 +111,7 @@ inline =  whitespace
       <|> subscript
 --    <|> stroke
       <|> externalLink
+      <|> special
 
 -- from Readers.Mediawiki
 whitespace :: PandocMonad m => MoinParser m B.Inlines
@@ -146,6 +148,8 @@ stroke :: PandocMonad m => MoinParser m B.Inlines
 stroke = enclosed (string "--(") (string ")--") inline >>=
     return . B.strikeout . mconcat
 
+special :: PandocMonad m => MoinParser m B.Inlines
+special = B.str . T.singleton <$> oneOf specialChars
 
 externalLink :: PandocMonad m => MoinParser m B.Inlines
 externalLink = do
