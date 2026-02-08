@@ -16,34 +16,13 @@ sampleMW = T.pack "\
 \\n\
 \[[Category:Foo]]"
 
-sampleMM = T.pack "\
-\#format wiki\n\
-\#language en\n\
-\#pragma supplementation-page on\n\
-\\n\
-\== Jon Dowland ==\n\
-\\n\
-\ * [[http://jmtd.net|jmtd.net]]\n\
-\ * another bullet\n\
-\\n\
-\ ''mostly'' meta '''indeed'''. This is __useful__.\n\
-\\n\
-\what does `monospace` look like? different to ?\n\
-\\n\
-\what goes ^up^ must come ,,down,,.\n\
-\\n\
-\what --(happened in)-- there?\n\
-\\n\
-\----\n\
-\\n\
-\CategoryHomepage"
 
 -- this exposes bugs in the Mediawiki reader (level 2 does not get captured as a nested DL)
 tinyMW = T.pack "level 0\n:level 1\n::level 2"
 
 parsedMW = (fromRight (error "") . runPure . readMediaWiki def) sampleMW
 
-parsedMM = (fromRight (error "?") . runPure . readMoinMoin def) sampleMM
+parseMM = fromRight (error "?") . runPure . readMoinMoin def
 
 main = do
   -- what structure do we get from a Mediawiki doc?
@@ -55,7 +34,9 @@ main = do
   --(handleError . runPure . writeMediaWiki def) parsedMW >>= TIO.putStrLn
   --putStrLn "##################################"
 
-  (putStrLn . show) parsedMM
+  sampleMM <- TIO.readFile "testmoin.txt"
+
+  (putStrLn . show . parseMM) sampleMM
   putStrLn "\n##################################\n"
 
   result <- runIO $
