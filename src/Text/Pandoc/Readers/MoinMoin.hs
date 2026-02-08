@@ -122,29 +122,29 @@ str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
 -- utility fn for most of the inline text formatters
 formatter :: PandocMonad m
           => String
-          -> ([Inline] -> B.Inline)
+          -> (B.Inlines -> B.Inlines)
           -> MoinParser m B.Inlines
 formatter delim inliner =
-  enclosed delim' delim' inline >>=
-    return . B.singleton . inliner . B.toList . mconcat
+  enclosed delim' delim' inline >>= return . inliner . mconcat
   where delim' = string delim
 
 italic      :: PandocMonad m => MoinParser m B.Inlines
-italic      = formatter ("''") B.Emph
+italic      = formatter ("''") B.emph
 bold        :: PandocMonad m => MoinParser m B.Inlines
-bold        = formatter ("'''") B.Strong
+bold        = formatter ("'''") B.strong
 -- monospace: B.code (Code Attr Text) needs different handling
 -- code: as monospace
+-- however, B.code :: Text -> Inlines
 underline   :: PandocMonad m => MoinParser m B.Inlines
-underline   = formatter ("__") B.Underline
+underline   = formatter ("__") B.underline
 superscript :: PandocMonad m => MoinParser m B.Inlines
-superscript = formatter "^" B.Superscript
+superscript = formatter "^" B.superscript
 subscript   :: PandocMonad m => MoinParser m B.Inlines
-subscript   = formatter ",," B.Subscript
+subscript   = formatter ",," B.subscript
 -- smaller/larger: needs some thought
 stroke :: PandocMonad m => MoinParser m B.Inlines
 stroke = enclosed (string "--(") (string ")--") inline >>=
-    return . B.singleton . B.Strikeout . B.toList . mconcat
+    return . B.strikeout . mconcat
 
 
 externalLink :: PandocMonad m => MoinParser m B.Inlines
