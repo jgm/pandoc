@@ -100,32 +100,33 @@ jobs:
         name: nightly-macos
         path: nightly-macos
 
-  wasm:
-
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v6
-    - uses: wimpysworld/nothing-but-nix@v9
-      with:
-       hatchet-protocol: 'rampage'
-    - uses: cachix/install-nix-action@v31
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v5
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
-    - name: Build pandoc.wasm
-      run: |
-        nix develop --command bash -c "make pandoc.wasm"
-    - name: Upload artifact
-      uses: actions/upload-artifact@v6
-      with:
-        name: nightly-wasm
-        path: pandoc.wasm
+#  nightly workflow never finishes...
+#  wasm:
+#
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: true
+#    steps:
+#    - uses: actions/checkout@v6
+#    - uses: wimpysworld/nothing-but-nix@v9
+#      with:
+#       hatchet-protocol: 'rampage'
+#    - uses: cachix/install-nix-action@v31
+#      with:
+#        nix_path: nixpkgs=channel:nixos-unstable
+#    - name: Cache cabal work
+#      id:   cabal-local
+#      uses: actions/cache@v5
+#      with:
+#        path: |
+#          dist-newstyle
+#        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
+#    - name: Build pandoc.wasm
+#      run: |
+#        nix develop --command bash -c "make pandoc.wasm"
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v6
+#      with:
+#        name: nightly-wasm
+#        path: pandoc.wasm
 
