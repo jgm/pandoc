@@ -112,7 +112,9 @@ inline =  whitespace
       <|> underline
       <|> superscript
       <|> subscript
---    <|> stroke
+      <|> smaller
+      <|> larger
+      <|> stroke
       <|> externalLink
       <|> special
 
@@ -166,7 +168,15 @@ superscript :: PandocMonad m => MoinParser m B.Inlines
 superscript = formatter "^" B.superscript
 subscript   :: PandocMonad m => MoinParser m B.Inlines
 subscript   = formatter ",," B.subscript
--- smaller/larger: needs some thought
+-- smaller/larger: possibly mark the inlines with an attribute
+smaller :: PandocMonad m => MoinParser m B.Inlines
+smaller = enclosed (string "~-") (string "-~") inline >>=
+    return . mconcat
+
+larger :: PandocMonad m => MoinParser m B.Inlines
+larger = enclosed (string "~+") (string "+~") inline >>=
+    return . mconcat
+
 stroke :: PandocMonad m => MoinParser m B.Inlines
 stroke = enclosed (string "--(") (string ")--") inline >>=
     return . B.strikeout . mconcat
@@ -192,7 +202,7 @@ externalLink = do
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\_^,"
+specialChars = "'[]<=&*{}|\":\\_^,~-+()"
 
 -- from Readers.Mediawiki
 spaceChars :: [Char]
