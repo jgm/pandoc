@@ -47,11 +47,3 @@ main = do
     readMoinMoin def sampleMM >>= writeMarkdown def
   mdwn <- handleError result
   TIO.putStrLn mdwn
-
--- parser tests
-camelWord :: Stream s m Char
-          => ParsecT s () m String
-camelWord = do
-  f    <- upper
-  rest <- many1 (satisfy (\c -> isAlphaNum c && not (isUpper c)))
-  return (f:rest)

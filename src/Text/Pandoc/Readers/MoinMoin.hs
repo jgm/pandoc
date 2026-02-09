@@ -15,8 +15,10 @@ module Text.Pandoc.Readers.MoinMoin( readMoinMoin ) where
 
 import Control.Monad (guard)
 import Control.Monad.Except (throwError)
+import Data.Char -- isUpper, isAlphaNum
 import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class (runPure) -- debug
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing
 import qualified Text.Pandoc.Builder as B
@@ -103,6 +105,7 @@ bulletListItem = try $ do
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
+      <|> camelCaseLink
       <|> str
       <|> italic
       <|> bold
@@ -116,6 +119,26 @@ inline =  whitespace
 -- from Readers.Mediawiki
 whitespace :: PandocMonad m => MoinParser m B.Inlines
 whitespace = B.space <$ skipMany1 spaceChar
+
+many2 :: PandocMonad m => MoinParser m a -> MoinParser m [a]
+many2 p = do
+  first <- p
+  rest  <- many1 p
+  return (first:rest)
+
+camelWord :: PandocMonad m => MoinParser m String
+camelWord = do
+  f    <- satisfy isUpper
+  rest <- many1 (satisfy (\c -> isAlphaNum c && not (isUpper c)))
+  return (f:rest)
+
+camelCaseLink :: PandocMonad m => MoinParser m B.Inlines
+camelCaseLink = try $ do
+  src <- mconcat <$> many2 camelWord
+  let tsrc  = T.pack src
+  let title = ""
+  let label = B.str tsrc
+  return $ B.link tsrc title label
 
 -- from Readers.Mediawiki
 str :: PandocMonad m => MoinParser m B.Inlines
@@ -174,3 +197,8 @@ specialChars = "'[]<=&*{}|\":\\_^,"
 -- from Readers.Mediawiki
 spaceChars :: [Char]
 spaceChars = " \n\t"
+
+-- debug function to run the inline parser in GHCi
+debugParse :: PandocMonad m => T.Text -> m (Either ParseError B.Inlines)
+debugParse t =
+  runParserT (mconcat <$> many inline) MoinState "srcname" (toSources t)
