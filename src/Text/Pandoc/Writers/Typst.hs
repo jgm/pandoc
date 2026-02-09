@@ -18,7 +18,7 @@ module Text.Pandoc.Writers.Typst (
     writeTypst
   ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Class ( PandocMonad, report )
+import Text.Pandoc.Class ( PandocMonad, report, runPure, fetchItem )
 import Text.Pandoc.ImageSize ( dimension, Dimension(Pixel), Direction(..),
                                showInInch )
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
@@ -37,6 +37,7 @@ import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
                                  styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
+import Text.Pandoc.Error (PandocError(PandocSomeError))
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
@@ -44,11 +45,13 @@ import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Pandoc.Logging (LogMessage(..))
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 import Unicode.Char (isXIDContinue)
+import qualified Data.ByteString as B
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -553,10 +556,16 @@ mkImage opts useBox src attr
         Nothing -> mempty
         Just dim -> ", width: " <> showDim dim)
   isData = "data:" `T.isPrefixOf` src'
-  dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
-  coreImage
-    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> dimAttrs)
-    | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs)
+  eitherImageData = if isData
+                       then runPure (fetchItem src)
+                       else Left $ PandocSomeError "not a data URI"
+  toArray = parens . hcat . intersperse "," . map (literal . tshow) . B.unpack
+  coreImage = "image" <> parens
+    (case eitherImageData of
+      Right (contents, Just "image/svg+xml")
+        -> "bytes" <> parens (doubleQuoted (UTF8.toText contents)) <> dimAttrs
+      Right (bytes, _mime) -> "bytes" <> parens (toArray bytes) <> dimAttrs
+      Left _ -> doubleQuoted src' <> dimAttrs)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
