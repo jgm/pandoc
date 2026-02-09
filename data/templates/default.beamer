@@ -125,7 +125,7 @@ $for(titlegraphic)$
 $endfor$}
 $endif$
 $if(logo)$
-\logo{\includegraphics{$logo$}}
+\logo{\includegraphics$if(logooptions)$[$logooptions$]$endif${$logo$}}
 $endif$
 
 \begin{document}

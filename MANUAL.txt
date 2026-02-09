@@ -2999,6 +2999,9 @@ These variables change the appearance of PDF slides using [`beamer`].
 `logo`
 :   logo image for slides
 
+`logooptions`
+:   options for logo image
+
 `navigation`
 :   controls navigation symbols (default is `empty` for no navigation
     symbols; other valid values are `frame`, `vertical`, and `horizontal`)
