@@ -3000,7 +3000,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 :   logo image for slides
 
 `logooptions`
-:   options for logo image
+:   options for logo image (e.g., `width`, `height`)
 
 `navigation`
 :   controls navigation symbols (default is `empty` for no navigation
@@ -3019,7 +3019,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 :   image for title slide: can be a list
 
 `titlegraphicoptions`
-:   options for title slide image
+:   options for title slide image (e.g., `width`, `height`)
 
 `shorttitle`, `shortsubtitle`, `shortauthor`, `shortinstitute`, `shortdate`
 :   some beamer themes use short versions of the title, subtitle, author,
