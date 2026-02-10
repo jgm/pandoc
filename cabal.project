@@ -5,6 +5,11 @@ packages: .
 constraints: skylighting-format-blaze-html >= 0.1.2,
              skylighting-format-context >= 0.1.0.2
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/asciidoc-hs
+  tag: 0701fadaafe1dd95c5efeb43aaa66bc598a8c772
+
 package pandoc
   flags: +embed_data_files +http
 
