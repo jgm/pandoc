@@ -413,8 +413,12 @@ tableCell = try $ do
   notFollowedBy blankline
   raw <- trim . T.pack <$>
          many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
-  content <- mconcat <$> parseFromString' (many inline) raw
-  return ((isHeader, alignment), B.plain content)
+  content <- parseFromString' parseBlocks (raw <> "\n\n")
+  -- Convert lone Para to Plain for backward compatibility
+  let content' = case B.toList content of
+                   [Para ils] -> B.plain (B.fromList ils)
+                   _          -> content
+  return ((isHeader, alignment), content')
 
 -- | A table row is made of many table cells
 tableRow :: PandocMonad m => TextileParser m [((Bool, Alignment), Blocks)]
