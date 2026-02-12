@@ -29,9 +29,11 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
+import Text.Pandoc.Translations (Term(References), translateTerm)
 import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
+import Control.Monad.Trans (lift)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, isJust)
@@ -401,6 +403,25 @@ blockHandlers = M.fromList
   ,("pad", \_ _ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pBlocks)
   ,("pagebreak", \_ _ _ -> pure $ B.divWith ("", ["page-break"], [("wrapper", "1")]) B.horizontalRule)
+  ,("bibliography", \_ _ fields -> do
+      let getSources v = case v of
+                      VString t -> MetaString t
+                      VArray xs -> MetaList $ map getSources $ V.toList xs
+                      _ -> MetaBool True -- should not occur
+      let mbSources = getSources <$> M.lookup "sources" fields
+
+      let updateBibliography x = updateState $ \s ->
+             s{ sMeta = B.setMeta "bibliography" x (sMeta s) }
+      maybe (pure ()) updateBibliography mbSources
+
+      let title' = M.lookup "title" fields
+      mbTitle <- case title' of
+                   Just VNone -> pure Nothing
+                   Just (VContent cs) -> Just <$> pWithContents pInlines cs
+                   Just (VString t) -> pure $ Just $ B.text t
+                   _ -> Just . B.text <$> lift (translateTerm References)
+      let hdr = maybe mempty (B.header 1) mbTitle
+      pure $ hdr <> B.divWith ("refs", [], []) mempty)
   ]
 
 inlineHandlers :: PandocMonad m =>
