@@ -26,8 +26,10 @@ extra-deps:
 - djot-0.1.3
 - texmath-0.13.1
 - skylighting-format-blaze-html-0.1.2
-- asciidoc-0.1.0.1
-- typst-0.9
+- git: https://github.com/jgm/typst-hs
+  commit: 6827d387cf43c231c5ed3e178f2268963ee1f77d
+- git: https://github.com/jgm/asciidoc-hs
+  commit: 16775c344b62daf6cfdc162200afc77cfb387468
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
