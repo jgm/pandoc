@@ -27,7 +27,7 @@ extra-deps:
 - texmath-0.13.1
 - skylighting-format-blaze-html-0.1.2
 - git: https://github.com/jgm/typst-hs
-  commit: 6827d387cf43c231c5ed3e178f2268963ee1f77d
+  commit: 1e2ecd62451ddfc9139c680a3aa5fe2637299a7f
 - git: https://github.com/jgm/asciidoc-hs
   commit: 16775c344b62daf6cfdc162200afc77cfb387468
 
