@@ -602,13 +602,19 @@ escapeTypst smart context t =
       | otherwise = (c, T.snoc t' c)
     escapeChar c
       | c == '\160' = "~"
+      | c == '\8216', smart = "'" -- left quote
       | c == '\8217', smart = "'" -- apostrophe
+      | c == '\8220', smart = "\"" -- left double quote
+      | c == '\8221', smart = "\"" -- right double quote
       | c == '\8212', smart = "---" -- em dash
       | c == '\8211', smart = "--" -- en dash
       | needsEscape c = "\\" <> T.singleton c
       | otherwise = T.singleton c
     needsEscape '\160' = True
+    needsEscape '\8216' = smart
     needsEscape '\8217' = smart
+    needsEscape '\8220' = smart
+    needsEscape '\8221' = smart
     needsEscape '\8212' = smart
     needsEscape '\8211' = smart
     needsEscape '\'' = smart
