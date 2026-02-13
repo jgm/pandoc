@@ -318,6 +318,10 @@ tests = [ testGroup "document"
             "docx/table_with_list_cell.docx"
             "docx/table_with_list_cell.native"
           , testCompare
+            "a table with gridBefore"
+            "docx/table_gridbefore.docx"
+            "docx/table_gridbefore.native"
+          , testCompare
             "a table with a header which contains rowspans greater than 1"
             "docx/table_header_rowspan.docx"
             "docx/table_header_rowspan.native"

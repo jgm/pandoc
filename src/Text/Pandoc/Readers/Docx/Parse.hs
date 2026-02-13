@@ -292,6 +292,9 @@ data Align = AlignDefault | AlignLeft | AlignRight | AlignCenter
 data Cell = Cell Align GridSpan VMerge [BodyPart]
             deriving Show
 
+emptyCell :: Cell
+emptyCell = Cell AlignDefault 1 Restart []
+
 type GridSpan = Integer
 
 data VMerge = Continue
@@ -716,12 +719,18 @@ elemToTblLook _ _ = throwError WrongElem
 elemToRow :: NameSpaces -> Element -> D Row
 elemToRow ns element | isElem ns "w" "tr" element =
   do
+    let properties = findChildByName ns "w" "trPr" element
+    let gridBefore = properties
+                     >>= findChildByName ns "w" "gridBefore"
+                     >>= findAttrByName ns "w" "val"
+                     >>= stringToInteger
     let cellElems = findChildrenByName ns "w" "tc" element
+    let beforeCells = genericReplicate (fromMaybe 0 gridBefore) emptyCell
     cells <- mapD (elemToCell ns) cellElems
     let hasTblHeader = maybe NoTblHeader (const HasTblHeader)
-          (findChildByName ns "w" "trPr" element
+          (properties
            >>= findChildByName ns "w" "tblHeader")
-    return $ Row hasTblHeader cells
+    return $ Row hasTblHeader (beforeCells ++ cells)
 elemToRow _ _ = throwError WrongElem
 
 elemToCell :: NameSpaces -> Element -> D Cell
