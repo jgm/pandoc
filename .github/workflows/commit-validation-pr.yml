@@ -13,13 +13,20 @@ jobs:
         fetch-depth: 0
     - name: Check commit message length
       run: |
-          git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | (
-            longlines=0
-            while IFS='' read -r line; do
-              if [ "${#line}" -gt 78 ]; then
-                echo "Overlong line: ${line}" >&2
-                longlines=$(( longlines + 1 ))
+        git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | (
+          longlines=0
+          while IFS='' read -r line; do
+              if [ "${#line}" -gt 78 ] ; then
+                  if echo "$line" | grep -q '^\s*https://\S*\s*$'; then
+                      echo "Ignoring long line with URL."
+                  else
+                      echo "Overlong line: ${line}" >&2
+                      if echo "$line" | grep -q 'https://'; then
+                          echo "Put a long URL on a line by itself."
+                      fi
+                      longlines=$(( longlines + 1 ))
+                  fi
               fi
-            done
-            [ "${longlines}" -eq 0 ]
-          )
+          done
+          [ "${longlines}" -eq 0 ]
+        )
