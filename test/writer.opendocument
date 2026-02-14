@@ -1663,11 +1663,11 @@ strong and em.</text:span></text:p>
 <text:p text:style-name="Text_20_body">So is
 <text:span text:style-name="T3">this</text:span> word.</text:p>
 <text:p text:style-name="Text_20_body">This is code:
-<text:span text:style-name="Source_Text">&gt;</text:span>,
-<text:span text:style-name="Source_Text">$</text:span>,
-<text:span text:style-name="Source_Text">\</text:span>,
-<text:span text:style-name="Source_Text">\$</text:span>,
-<text:span text:style-name="Source_Text">&lt;html&gt;</text:span>.</text:p>
+<text:span text:style-name="Source_20_Text">&gt;</text:span>,
+<text:span text:style-name="Source_20_Text">$</text:span>,
+<text:span text:style-name="Source_20_Text">\</text:span>,
+<text:span text:style-name="Source_20_Text">\$</text:span>,
+<text:span text:style-name="Source_20_Text">&lt;html&gt;</text:span>.</text:p>
 <text:p text:style-name="Text_20_body"><text:span text:style-name="T4">This is
 </text:span><text:span text:style-name="T5">strikeout</text:span><text:span text:style-name="T4">.</text:span></text:p>
 <text:p text:style-name="Text_20_body">Superscripts:
@@ -1692,7 +1692,7 @@ trees. So is ‘pine.’</text:p>
 <text:p text:style-name="Text_20_body">‘He said, “I want to go.”’ Were you alive
 in the 70’s?</text:p>
 <text:p text:style-name="Text_20_body">Here is some quoted
-‘<text:span text:style-name="Source_Text">code</text:span>’ and a
+‘<text:span text:style-name="Source_20_Text">code</text:span>’ and a
 “<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted
 link</text:span></text:a>”.</text:p>
 <text:p text:style-name="Text_20_body">Some dashes: one—two — three—four —
@@ -1734,7 +1734,7 @@ five.</text:p>
 <text:list text:style-name="L27">
   <text:list-item>
     <text:p text:style-name="P52">To get the famous equation, write
-    <text:span text:style-name="Source_Text">$e = mc^2$</text:span>.</text:p>
+    <text:span text:style-name="Source_20_Text">$e = mc^2$</text:span>.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
@@ -1746,7 +1746,7 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">Escaped
-    <text:span text:style-name="Source_Text">$</text:span>: $73
+    <text:span text:style-name="Source_20_Text">$</text:span>: $73
     <text:span text:style-name="T1">this should be emphasized</text:span>
     23$.</text:p>
   </text:list-item>
@@ -1868,7 +1868,7 @@ link in pointy braces</text:span></text:a>.</text:p>
 <text:p text:style-name="P56">Blockquoted:
 <text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition">http://example.com/</text:span></text:a></text:p>
 <text:p text:style-name="First_20_paragraph">Auto-links should not occur here:
-<text:span text:style-name="Source_Text">&lt;http://example.com/&gt;</text:span></text:p>
+<text:span text:style-name="Source_20_Text">&lt;http://example.com/&gt;</text:span></text:p>
 <text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="images" />Images<text:bookmark-end text:name="images" /></text:h>
@@ -1898,8 +1898,9 @@ note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3<
 is <text:span text:style-name="T1">easier</text:span> to type. Inline notes may
 contain
 <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a>
-and <text:span text:style-name="Source_Text">]</text:span> verbatim characters,
-as well as [bracketed text].</text:p></text:note-body></text:note></text:p>
+and <text:span text:style-name="Source_20_Text">]</text:span> verbatim
+characters, as well as [bracketed
+text].</text:p></text:note-body></text:note></text:p>
 <text:p text:style-name="P59">Notes can go in
 quotes.<text:note text:id="ftn3" text:note-class="footnote"><text:note-citation>4</text:note-citation><text:note-body><text:p text:style-name="Footnote">In
 quote.</text:p></text:note-body></text:note></text:p>

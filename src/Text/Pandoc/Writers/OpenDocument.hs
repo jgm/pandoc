@@ -671,7 +671,7 @@ inlineToOpenDocument o ils
     where
       unhighlighted s = inlinedCode $ preformatted s
       inlinedCode s = return $ inTags False "text:span"
-                                 [("text:style-name", "Source_Text")] s
+                                 [("text:style-name", "Source_20_Text")] s
       mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
