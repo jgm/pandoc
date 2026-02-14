@@ -167,6 +167,7 @@ namesOfTestsComparingToNative  :: [ String ]
 namesOfTestsComparingToNative   = [ "blockquote"
                                   , "image"
                                   , "imageIndex"
+                                  , "imageRelative"
                                   , "imageWithCaption"
                                   , "inlinedCode"
                                   , "listContinueNumbering"
