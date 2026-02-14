@@ -165,6 +165,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLastFigureNum :: DottedNum
                             , sLastTableNum  :: DottedNum
                             , sLastNoteNum   :: Int
+                            , sFootnoteTexts :: M.Map Int Blocks
                             , sTheoremMap    :: M.Map Text TheoremSpec
                             , sLastTheoremStyle :: TheoremStyle
                             , sLastLabel     :: Maybe Text
@@ -195,6 +196,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLastFigureNum = DottedNum []
                               , sLastTableNum  = DottedNum []
                               , sLastNoteNum   = 0
+                              , sFootnoteTexts = M.empty
                               , sTheoremMap    = M.empty
                               , sLastTheoremStyle = PlainStyle
                               , sLastLabel     = Nothing

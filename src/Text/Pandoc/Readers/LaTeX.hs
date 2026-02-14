@@ -110,6 +110,7 @@ parseLaTeX = do
        (if bottomLevel < 1
            then walk (adjustHeaders (1 - bottomLevel))
            else id) $
+       walk (resolveFootnoteMarks (sFootnoteTexts st)) $
        walk (resolveRefs (sLabels st)) doc'
   return $ Pandoc meta bs'
 
@@ -123,6 +124,18 @@ resolveRefs labels x@(Link (ident,classes,kvs) _ _) =
                Nothing  -> x
         _ -> x
 resolveRefs _ x = x
+
+-- | Resolve footnote marks (\footnotemark) to actual notes using
+-- the footnote texts collected from \footnotetext commands.
+resolveFootnoteMarks :: M.Map Int Blocks -> Inline -> Inline
+resolveFootnoteMarks fnTexts (Span (_, classes, kvs) _)
+  | "footnote-mark" `elem` classes
+  , Just numText <- lookup "note-num" kvs
+  , [(n, "")] <- reads (T.unpack numText)
+  = case M.lookup n fnTexts of
+      Just contents -> Note (toList contents)
+      Nothing       -> Str ""  -- No matching footnotetext found
+resolveFootnoteMarks _ x = x
 
 
 -- testParser :: LP PandocIO a -> Text -> IO a
@@ -407,6 +420,8 @@ inlineCommands = M.unions
     , ("lowercase", makeLowercase <$> tok)
     , ("thanks", skipopts >> note <$> grouped block)
     , ("footnote", skipopts >> footnote)
+    , ("footnotemark", footnotemark)
+    , ("footnotetext", footnotetext)
     , ("newline", pure B.linebreak)
     , ("passthrough", fixPassthroughEscapes <$> tok)
     -- \passthrough macro used by latex writer
@@ -476,6 +491,39 @@ footnote = do
   updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + 1 }
   contents <- grouped block >>= walkM resolveNoteLabel
   return $ note contents
+
+-- | Parse \footnotemark[n]. If n is not given, increment the counter.
+-- Returns a span marker that will be resolved to a Note later.
+footnotemark :: PandocMonad m => LP m Inlines
+footnotemark = do
+  mbNum <- optionalFootnoteNum
+  noteNum <- case mbNum of
+    Just n  -> return n
+    Nothing -> do
+      updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + 1 }
+      sLastNoteNum <$> getState
+  return $ B.spanWith ("", ["footnote-mark"], [("note-num", tshow noteNum)]) mempty
+
+-- | Parse \footnotetext[n]{text}. If n is not given, use current counter.
+-- Stores the text in state to be resolved later.
+footnotetext :: PandocMonad m => LP m Inlines
+footnotetext = do
+  mbNum <- optionalFootnoteNum
+  noteNum <- case mbNum of
+    Just n  -> return n
+    Nothing -> sLastNoteNum <$> getState
+  contents <- grouped block >>= walkM resolveNoteLabel
+  updateState $ \st -> st{
+    sFootnoteTexts = M.insert noteNum contents (sFootnoteTexts st) }
+  return mempty
+
+-- | Parse optional footnote number argument [n]
+optionalFootnoteNum :: PandocMonad m => LP m (Maybe Int)
+optionalFootnoteNum = option Nothing $ do
+  t <- bracketedToks
+  case reads (T.unpack $ untokenize t) of
+    [(n, "")] -> return $ Just n
+    _         -> return Nothing
 
 resolveNoteLabel :: PandocMonad m => Inline -> LP m Inline
 resolveNoteLabel (Span (_,cls,kvs) _)
