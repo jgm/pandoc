@@ -327,6 +327,7 @@ withNewStyle a = proc x -> do
   where
     isCodeStyle :: StyleName -> Bool
     isCodeStyle "Source_Text" = True
+    isCodeStyle "Source_20_Text" = True
     isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
