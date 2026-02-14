@@ -652,26 +652,36 @@ read_span         = matchingElement NsText "span"
 
 --
 read_paragraph   :: ElementMatcher CombiningBlocks
-read_paragraph    = matchingElement NsText "p"
-                    $ liftA CombiningBlocks
-                    $ constructPara
-                    $ liftA para
-                    $ withNewStyle
-                    $ matchChildContent [ read_span
-                                        , read_spaces
-                                        , read_line_break
-                                        , read_tab
-                                        , read_link
-                                        , read_note
-                                        , read_citation
-                                        , read_bookmark
-                                        , read_bookmark_start
-                                        , read_reference_start
-                                        , read_bookmark_ref
-                                        , read_reference_ref
-                                        , read_frame
-                                        , read_text_seq
-                                        ] read_plain_text
+read_paragraph    = matchingElement NsText "p" $
+                      liftA CombiningBlocks $ proc blocks -> do
+                        fStyle <- readStyleByName -< blocks
+                        case fStyle of
+                          Right (styleName, _) | isPreformattedStyle styleName -> do
+                            liftA (codeBlock . stringify) $ matchParagraphContent -< blocks
+                          _ ->
+                            constructPara $ liftA para $ withNewStyle matchParagraphContent -< blocks
+                        where
+                          isPreformattedStyle :: StyleName -> Bool
+                          isPreformattedStyle "Preformatted_20_Text" = True
+                          isPreformattedStyle _ = False
+
+
+matchParagraphContent :: ODTReaderSafe a Inlines
+matchParagraphContent = matchChildContent [ read_span
+                                          , read_spaces
+                                          , read_line_break
+                                          , read_tab
+                                          , read_link
+                                          , read_note
+                                          , read_citation
+                                          , read_bookmark
+                                          , read_bookmark_start
+                                          , read_reference_start
+                                          , read_bookmark_ref
+                                          , read_reference_ref
+                                          , read_frame
+                                          , read_text_seq
+                                          ] read_plain_text
 
 
 ----------------------
