@@ -656,13 +656,14 @@ read_paragraph    = matchingElement NsText "p" $
                       liftA CombiningBlocks $ proc blocks -> do
                         fStyle <- readStyleByName -< blocks
                         case fStyle of
-                          Right (styleName, _) | isPreformattedStyle styleName -> do
+                          Right style | isPreformattedStyle style -> do
                             liftA (codeBlock . stringify) $ matchParagraphContent -< blocks
                           _ ->
                             constructPara $ liftA para $ withNewStyle matchParagraphContent -< blocks
                         where
-                          isPreformattedStyle :: StyleName -> Bool
-                          isPreformattedStyle "Preformatted_20_Text" = True
+                          isPreformattedStyle :: (StyleName, Style) -> Bool
+                          isPreformattedStyle ("Preformatted_20_Text", _) = True
+                          isPreformattedStyle (_, Style { styleParentName = Just "Preformatted_20_Text" }) = True
                           isPreformattedStyle _ = False
 
 
