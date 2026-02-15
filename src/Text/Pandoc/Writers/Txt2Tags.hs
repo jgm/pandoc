@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Txt2Tags
-   Copyright   : Copyright (C) 2020 Eric Forgeot, based on John MacFarlane dokuwiki writer
+   Copyright   : Copyright (C) 2008-2024 Eric Forgeot, based on John MacFarlane DokuWiki writer
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Eric Forgeot - https://github.com/farvardin/
+   Maintainer  : Clare Macrae <clare.macrae@googlemail.com>
    Stability   : alpha
    Portability : portable
 
 Conversion of 'Pandoc' documents to Txt2Tags markup.
 
-Txt2Tags:  <https://www.Txt2Tags.org/>
+Txt2Tags:  <https://www.txt2tags.org/>
 -}
 
 {-
@@ -20,7 +20,8 @@ Txt2Tags:  <https://www.Txt2Tags.org/>
    - Definition lists are broken
    - Tables could be improved
    - Some formats make better results than others (html is ok, md is somehow broken)
-   - code related to only dokuwiki could be removed
+   - code related to dokuwiki only could be removed
+   - a test case should be made
 -}
 
 module Text.Pandoc.Writers.Txt2Tags ( writeTxt2Tags ) where
@@ -28,27 +29,32 @@ import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
-import Data.List (intersect, transpose)
+import Data.List (transpose)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
+import Text.Pandoc.Extensions
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
-                           removeFormatting, trimr, tshow)
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents,
+                            writerTemplate, writerWrapText), isEnabled)
+import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Data.Maybe (fromMaybe)
+import qualified Data.Map as M
 
 data WriterState = WriterState {
   }
 
 data WriterEnvironment = WriterEnvironment {
     stIndent      :: Text          -- Indent after the marker at the beginning of list items
-  , stUseTags     :: Bool            -- True if we should use HTML tags because we're in a complex list
   , stBackSlashLB :: Bool     -- True if we should produce formatted strings with newlines (as in a table cell)
+  , stBlockQuoteLevel :: Int   -- Block quote level
   }
 
 instance Default WriterState where
@@ -56,8 +62,8 @@ instance Default WriterState where
 
 instance Default WriterEnvironment where
   def = WriterEnvironment { stIndent = ""
-                          , stUseTags = False
-                          , stBackSlashLB = False }
+                          , stBackSlashLB = False
+                          , stBlockQuoteLevel = 0 }
 
 type Txt2Tags m = ReaderT WriterEnvironment (StateT WriterState m)
 
@@ -97,76 +103,60 @@ blockToTxt2Tags :: PandocMonad m
                 -> Block         -- ^ Block element
                 -> Txt2Tags m Text
 
-blockToTxt2Tags _ Null = return ""
-
 blockToTxt2Tags opts (Div _attrs bs) = do
   contents <- blockListToTxt2Tags opts bs
-  return $ contents <> "\n\n"
+  indent <- asks stIndent
+  return $ contents <> if T.null indent then "\n\n" else ""
 
 blockToTxt2Tags opts (Plain inlines) =
   inlineListToTxt2Tags opts inlines
 
--- title beginning with fig: indicates that the image is a figure
--- Txt2Tags doesn't support captions - so combine together alt and caption into alt
-blockToTxt2Tags opts (Para [Image attr txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = do
-      capt <- if null txt
-              then return ""
-              else (" " <>) `fmap` inlineListToTxt2Tags opts txt
-      let opt = if null txt
-                then ""
-                else "|" <> if T.null tit then capt else tit <> capt
-      return $ "{{" <> src <> imageDims opts attr <> opt <> "}}\n"
-
 blockToTxt2Tags opts (Para inlines) = do
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
   indent <- asks stIndent
-  useTags <- asks stUseTags
   contents <- inlineListToTxt2Tags opts inlines
-  return $ if useTags
-              then "<HTML><p></HTML>" <> contents <> "<HTML></p></HTML>"
-              else contents <> if T.null indent then "\n" else ""
+  return $ bqPrefix <> contents <> if T.null indent then "\n" else ""
 
 blockToTxt2Tags opts (LineBlock lns) =
   blockToTxt2Tags opts $ linesToPara lns
 
-blockToTxt2Tags _ b@(RawBlock f str)
+blockToTxt2Tags opts b@(RawBlock f str)
   | f == Format "Txt2Tags" = return str
   -- See https://www.Txt2Tags.org/wiki:syntax
   -- use uppercase HTML tag for block-level content:
-  | f == Format "html"     = return $ "<HTML>\n" <> str <> "\n</HTML>"
+  | f == Format "html"
+  , isEnabled Ext_raw_html opts = return $ "<HTML>\n" <> str <> "\n</HTML>"
   | otherwise              = "" <$
          report (BlockNotRendered b)
 
-blockToTxt2Tags _ HorizontalRule = return "\n---------------------\n"
+blockToTxt2Tags _ HorizontalRule = return "\n---------------\n"
 
 blockToTxt2Tags opts (Header level _ inlines) = do
   -- emphasis, links etc. not allowed in headers, apparently,
   -- so we remove formatting:
   contents <- inlineListToTxt2Tags opts $ removeFormatting inlines
-  let eqs = T.replicate level "="
+  let eqs = T.replicate level  "="
   return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 
 blockToTxt2Tags _ (CodeBlock (_,classes,_) str) = do
-  let at  = classes `intersect` ["actionscript", "ada", "apache", "applescript", "asm", "asp",
-                       "autoit", "bash", "blitzbasic", "bnf", "c", "c_mac", "caddcl", "cadlisp", "cfdg", "cfm",
-                       "cpp", "cpp-qt", "csharp", "css", "d", "delphi", "diff", "div", "dos", "eiffel", "fortran",
-                       "freebasic", "gml", "groovy", "html4strict", "idl", "ini", "inno", "io", "java", "java5",
-                       "javascript", "latex", "lisp", "lua", "matlab", "mirc", "mpasm", "mysql", "nsis", "objc",
-                       "ocaml", "ocaml-brief", "oobas", "oracle8", "pascal", "perl", "php", "php-brief", "plsql",
-                       "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
-                       "smalltalk", "smarty", "sql", "tcl",  "thinbasic", "tsql", "vb", "vbnet", "vhdl",
-                       "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
-  return $ "```" <>
-                (case at of
-                      []    -> "\n"
-                      (x:_) -> " " <> x <> "\n") <> str <> "\n```"
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  return $ bqPrefix <>
+           "<code" <>
+           (case classes of
+               []    -> ""
+               (x:_) -> " " <> fromMaybe x (M.lookup x languageNames)) <>
+           ">\n" <> str <>
+           (if "\n" `T.isSuffixOf` str then "" else "\n") <> "</code>\n"
 
-blockToTxt2Tags opts (BlockQuote blocks) = do
-  contents <- blockListToTxt2Tags opts blocks
-  if isSimpleBlockQuote blocks
-     then return $ T.unlines $ map ("\t" <>) $ T.lines contents
-     else return $ "```\n" <> contents <> "```"
+blockToTxt2Tags opts (BlockQuote blocks) =
+  local (\st -> st{ stBlockQuoteLevel = stBlockQuoteLevel st + 1 })
+               (blockListToTxt2Tags opts blocks)
 
 blockToTxt2Tags opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (capt, aligns, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
@@ -179,7 +169,8 @@ blockToTxt2Tags opts (Table _ blkCapt specs thead tbody tfoot) = do
                  then return []
                  else zipWithM (tableItemToTxt2Tags opts) aligns headers
   rows' <- mapM (zipWithM (tableItemToTxt2Tags opts) aligns) rows
-  let widths = map (maximum . map T.length) $ transpose (headers':rows')
+  let widths = map (maybe 0 maximum . nonEmpty . map T.length)
+                   $ transpose (headers':rows')
   let padTo (width, al) s =
           case width - T.length s of
                x | x > 0 ->
@@ -196,102 +187,77 @@ blockToTxt2Tags opts (Table _ blkCapt specs thead tbody tfoot) = do
            (if null headers' then "" else renderRow "|" headers' <> "\n") <>
            T.unlines (map (renderRow "|") rows')
 
-blockToTxt2Tags opts x@(BulletList items) = do
-  oldUseTags <- asks stUseTags
+blockToTxt2Tags opts (BulletList items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
                       (mapM (listItemToTxt2Tags opts) items)
-        return $ "```\n" <> vcat contents <> "```\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (listItemToTxt2Tags opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  return $ vcat contents <> if T.null indent then "\n" else ""
 
-blockToTxt2Tags opts x@(OrderedList attribs items) = do
-  oldUseTags <- asks stUseTags
+blockToTxt2Tags opts (OrderedList _attribs items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
-                      (mapM (orderedListItemToTxt2Tags opts) items)
-        return $ "+ " <> listAttribsToString attribs <> ">\n" <> vcat contents <> "\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (orderedListItemToTxt2Tags opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
+                (mapM (orderedListItemToTxt2Tags opts) items)
+  return $ vcat contents <> if T.null indent then "\n" else ""
+
+blockToTxt2Tags opts (Figure attr capt body) =
+  blockToTxt2Tags opts $ figureDiv attr capt body
 
 -- TODO Need to decide how to make definition lists work on Txt2Tags - I don't think there
 --      is a specific representation of them.
 -- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
-blockToTxt2Tags opts x@(DefinitionList items) = do
-  oldUseTags <- asks stUseTags
+blockToTxt2Tags opts (DefinitionList items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
-                      (mapM (definitionListItemToTxt2Tags opts) items)
-        return $ ": \n" <> vcat contents <> "\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (definitionListItemToTxt2Tags opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
+                (mapM (definitionListItemToTxt2Tags opts) items)
+  return $ vcat contents <> if T.null indent then "\n" else ""
 
 -- Auxiliary functions for lists:
-
--- | Convert ordered list attributes to HTML attribute string
-listAttribsToString :: ListAttributes -> Text
-listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ tshow numstyle
-  in  (if startnum /= 1
-          then " start=\"" <> tshow startnum <> "\""
-          else "") <>
-      (if numstyle /= DefaultStyle
-          then " style=\"list-style-type: " <> numstyle' <> ";\""
-          else "")
 
 -- | Convert bullet list item (list of blocks) to Txt2Tags.
 listItemToTxt2Tags :: PandocMonad m
                    => WriterOptions -> [Block] -> Txt2Tags m Text
 listItemToTxt2Tags opts items = do
-  useTags <- asks stUseTags
-  if useTags
-     then do
-       contents <- blockListToTxt2Tags opts items
-       return $ "<HTML><li></HTML>" <> contents <> "<HTML></li></HTML>"
-     else do
-       bs <- mapM (blockToTxt2Tags opts) items
-       let contents = case items of
-                           [_, CodeBlock _ _] -> T.concat bs
-                           _                  -> vcat bs
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "- " <> contents
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  let useWrap = not (isSimpleListItem items)
+  bs <- mapM (blockToTxt2Tags opts) items
+  let contents = case items of
+                      [_, CodeBlock _ _] -> T.concat bs
+                      _                  -> vcat bs
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "- " <>
+    if useWrap
+       then "<WRAP>\n" <> contents <> "\n</WRAP>"
+       else contents
 
 -- | Convert ordered list item (list of blocks) to Txt2Tags.
 -- | TODO Emiminate dreadful duplication of text from listItemToTxt2Tags
 orderedListItemToTxt2Tags :: PandocMonad m => WriterOptions -> [Block] -> Txt2Tags m Text
 orderedListItemToTxt2Tags opts items = do
-  contents <- blockListToTxt2Tags opts items
-  useTags <- asks stUseTags
-  if useTags
-     then return $ "<HTML><li></HTML>" <> contents <> "<HTML></li></HTML>"
-     else do
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "+ " <> contents
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  let useWrap = not (isSimpleListItem items)
+  contents <- local (\st -> st{ stBlockQuoteLevel = 0 })
+               (blockListToTxt2Tags opts items)
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "+ " <>
+    if useWrap
+       then "<WRAP>\n" <> contents <> "\n</WRAP>"
+       else contents
 
 -- | Convert definition list item (label, list of blocks) to Txt2Tags.
 definitionListItemToTxt2Tags :: PandocMonad m
@@ -299,19 +265,33 @@ definitionListItemToTxt2Tags :: PandocMonad m
                              -> ([Inline],[[Block]])
                              -> Txt2Tags m Text
 definitionListItemToTxt2Tags opts (label, items) = do
+  let useWrap = not (all isSimpleListItem items)
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
   labelText <- inlineListToTxt2Tags opts label
-  contents <- mapM (blockListToTxt2Tags opts) items
-  useTags <- asks stUseTags
-  if useTags
-     then return $ "<HTML><dt></HTML>" <> labelText <> "<HTML></dt></HTML>\n" <>
-           T.intercalate "\n" (map (\d -> "<HTML><dd></HTML>" <> d <> "<HTML></dd></HTML>") contents)
-     else do
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "* **" <> labelText <> "** " <> T.concat contents
+  contents <- local (\st -> st{ stBlockQuoteLevel = 0 })
+               (mapM (blockListToTxt2Tags opts) items)
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "* **" <> labelText <> "** " <>
+    if useWrap
+       then "<WRAP>\n" <> vcat contents <> "\n</WRAP>"
+       else T.intercalate "; " contents
 
--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
+-- | True if list item can be handled with the simple wiki syntax.  False if
+--   WRAP tags will be needed.
+isSimpleListItem :: [Block] -> Bool
+isSimpleListItem []  = True
+isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
+isSimpleListItem (Div _ bs : ys) = -- see #8920
+  isSimpleListItem bs && all isSimpleList ys
+isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
+isSimpleListItem _ = False
+--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
+
 isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
@@ -320,21 +300,10 @@ isSimpleList x =
        DefinitionList items        -> all (all isSimpleListItem . snd) items
        _                           -> False
 
--- | True if list item can be handled with the simple wiki syntax.  False if
---   HTML tags will be needed.
-isSimpleListItem :: [Block] -> Bool
-isSimpleListItem []  = True
-isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
-isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
-isSimpleListItem _ = False
-
 isPlainOrPara :: Block -> Bool
 isPlainOrPara (Plain _) = True
 isPlainOrPara (Para  _) = True
 isPlainOrPara _         = False
-
-isSimpleBlockQuote :: [Block] -> Bool
-isSimpleBlockQuote bs  = all isPlainOrPara bs
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
@@ -365,8 +334,9 @@ tableItemToTxt2Tags opts align' item = do
                  (if align' == AlignLeft || align' == AlignCenter
                      then "  "
                      else "")
-  contents <- local (\s -> s { stBackSlashLB = True }) $
-              blockListToTxt2Tags opts item
+  contents <- local (\s -> s { stBackSlashLB = True
+                             , stBlockQuoteLevel = 0 }) $
+                blockListToTxt2Tags opts item
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to Txt2Tags.
@@ -456,9 +426,10 @@ inlineToTxt2Tags _ (Math mathType str) = return $ delim <> str <> delim
                      DisplayMath -> "$$"
                      InlineMath  -> "$"
 
-inlineToTxt2Tags _ il@(RawInline f str)
+inlineToTxt2Tags opts il@(RawInline f str)
   | f == Format "Txt2Tags" = return str
-  | f == Format "html"     = return $ "<html>" <> str <> "</html>"
+  | f == Format "html"
+  , isEnabled Ext_raw_html opts = return $ "<html>" <> str <> "</html>"
   | otherwise              = "" <$ report (InlineNotRendered il)
 
 inlineToTxt2Tags _ LineBreak = do
@@ -495,7 +466,8 @@ inlineToTxt2Tags opts (Image attr alt (source, tit)) = do
   return $ "[" <> source <> imageDims opts attr <> txt <> "]"
 
 inlineToTxt2Tags opts (Note contents) = do
-  contents' <- blockListToTxt2Tags opts contents
+  contents' <- local (\st -> st{ stBlockQuoteLevel = 0 })
+                 (blockListToTxt2Tags opts contents)
   return $ "((" <> contents' <> "))"
   -- note - may not work for notes with multiple blocks
 
@@ -509,3 +481,19 @@ imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height 
     go (Just w) (Just h) = "?" <> w <> "x" <> h
     go Nothing  (Just h) = "?0x" <> h
     go Nothing  Nothing  = ""
+
+languageNames :: M.Map Text Text
+languageNames = M.fromList
+  [("cs", "csharp")
+  ,("coffee", "cofeescript")
+  ,("commonlisp", "lisp")
+  ,("gcc", "c")
+  ,("html", "html5")
+  ,("makefile", "make")
+  ,("objectivec", "objc")
+  ,("r", "rsplus")
+  ,("sqlmysql", "mysql")
+  ,("sqlpostgresql", "postgresql")
+  ,("sci", "scilab")
+  ,("xorg", "xorgconf")
+  ]
