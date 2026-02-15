@@ -862,14 +862,15 @@ read_frame_img =
       ""   -> returnV mempty -< ()
       src' -> do
         let exts = extensionsFromList [Ext_auto_identifiers]
-        resource   <- lookupResource                          -< T.unpack src'
+            src'' = fixRelativeLink src'
+        resource   <- lookupResource                          -< T.unpack src''
         _          <- updateMediaWithResource                 -< resource
         w          <- findAttrText' NsSVG "width"             -< ()
         h          <- findAttrText' NsSVG "height"            -< ()
         titleNodes <- matchChildContent' [ read_frame_title ] -< ()
         alt        <- matchChildContent [] read_plain_text    -< ()
         arr (firstMatch . uncurry4 imageWith)                 -<
-          (image_attributes w h, src', inlineListToIdentifier exts (toList titleNodes), alt)
+          (image_attributes w h, src'', inlineListToIdentifier exts (toList titleNodes), alt)
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
