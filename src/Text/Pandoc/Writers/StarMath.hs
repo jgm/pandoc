@@ -9,6 +9,7 @@ import Text.TeXMath.Types
   ( Exp(..)
   , Alignment(..)
   , FractionType(..)
+  , TextType(..)
   , TeXSymbolType(..)
   )
 
@@ -20,36 +21,138 @@ writeStarMath _dt exps =
     Just rendered -> T.strip rendered
     Nothing       -> writeTeX exps
 
-renderExps :: [Exp] -> Maybe T.Text
-renderExps = fmap T.concat . mapM renderExp
+data AlignContext = AlignDefault | AlignLeftCtx | AlignRightCtx
+  deriving (Eq)
 
-renderExp :: Exp -> Maybe T.Text
-renderExp e =
+renderExps :: [Exp] -> Maybe T.Text
+renderExps = renderExpsIn AlignDefault
+
+renderExpsIn :: AlignContext -> [Exp] -> Maybe T.Text
+renderExpsIn ctx exps = do
+  rendered <- mapM (renderExpIn ctx) exps
+  let pieces = zip exps rendered
+  let merged = mergePieces pieces
+  pure $ if startsWithOperatorNeedingLhs exps
+            then "{} " <> T.stripStart merged
+            else merged
+
+mergePieces :: [(Exp, T.Text)] -> T.Text
+mergePieces [] = ""
+mergePieces ((e0, t0) : rest) = snd $ foldl' step (e0, t0) rest
+ where
+  step (prevE, acc) (curE, curT) =
+    if T.null curT
+       then (prevE, acc)
+       else
+         let sep = if needsSeparator prevE curE then " " else ""
+         in (curE, acc <> sep <> curT)
+
+needsSeparator :: Exp -> Exp -> Bool
+needsSeparator prevE curE
+  | isGreekIdentifierExp prevE && isIdentifierLike curE = True
+  | isUnaryMinusSymbol prevE && isIdentifierLike curE    = True
+  | isScripted prevE && not (isLargeOpScripted prevE) &&
+      isIdentifierLike curE                             = True
+  | isCloseLike prevE && isIdentifierLike curE          = True
+  | isIdentifierLike prevE && isWideSpace curE          = True
+  | isIdentifierLike prevE && isDelimited curE          = True
+  | otherwise                                            = False
+
+isGreekIdentifierExp :: Exp -> Bool
+isGreekIdentifierExp e =
+  case e of
+    EIdentifier t -> greekName t /= Nothing
+    _             -> False
+
+isIdentifierLike :: Exp -> Bool
+isIdentifierLike e =
+  case e of
+    EIdentifier{}   -> True
+    ENumber{}       -> True
+    EMathOperator{} -> True
+    ESub{}          -> True
+    ESuper{}        -> True
+    ESubsup{}       -> True
+    EStyled{}       -> True
+    _               -> False
+
+isDelimited :: Exp -> Bool
+isDelimited e =
+  case e of
+    EDelimited{} -> True
+    _            -> False
+
+isWideSpace :: Exp -> Bool
+isWideSpace e =
+  case e of
+    ESpace w -> w >= 1
+    _        -> False
+
+isCloseLike :: Exp -> Bool
+isCloseLike e =
+  case e of
+    ESymbol Close _ -> True
+    EDelimited{}    -> True
+    _               -> False
+
+isScripted :: Exp -> Bool
+isScripted e =
+  case e of
+    ESub{}    -> True
+    ESuper{}  -> True
+    ESubsup{} -> True
+    _         -> False
+
+isUnaryMinusSymbol :: Exp -> Bool
+isUnaryMinusSymbol e =
+  case e of
+    ESymbol t "-" -> t /= Bin
+    ESymbol t "−" -> t /= Bin
+    _             -> False
+
+isLargeOpScripted :: Exp -> Bool
+isLargeOpScripted e =
+  case e of
+    ESub base _      -> largeOpName base /= Nothing
+    ESuper base _    -> largeOpName base /= Nothing
+    ESubsup base _ _ -> largeOpName base /= Nothing
+    _                -> False
+
+startsWithOperatorNeedingLhs :: [Exp] -> Bool
+startsWithOperatorNeedingLhs exps =
+  case exps of
+    (ESymbol _ s : _) -> s `elem` ["×", "⋅", "·"]
+    _                 -> False
+
+renderExpIn :: AlignContext -> Exp -> Maybe T.Text
+renderExpIn ctx e =
   case e of
     ENumber t       -> Just t
     EIdentifier t   -> Just (renderIdentifier t)
-    EMathOperator t -> Just t
+    EMathOperator t -> Just ("func " <> t)
     ESymbol t s     -> Just (renderSymbol t s)
     EText _ t       -> Just (quoteText t)
-    ESpace _        -> Just " "
-    EGrouped xs     -> ("{" <>) . (<> "}") <$> renderExps xs
-    EStyled _ xs    -> renderExps xs
+    ESpace w        -> Just (renderSpace w)
+    EGrouped xs     -> ("{" <>) . (<> "}") <$> renderExpsIn ctx xs
+    EStyled sty xs  -> renderStyled ctx sty xs
 
     EFraction frac num den -> do
-      num' <- renderExp num
-      den' <- renderExp den
+      num' <- renderExpIn AlignDefault num
+      den' <- renderExpIn AlignDefault den
+      let num'' = maybeCenterFractionArg ctx num'
+      let den'' = maybeCenterFractionArg ctx den'
       pure $ case frac of
-        NoLineFrac -> "{" <> num' <> " / " <> den' <> "}"
-        _          -> "{" <> num' <> " over " <> den' <> "}"
+        NoLineFrac -> "{" <> num'' <> " / " <> den'' <> "}"
+        _          -> "{" <> num'' <> " over " <> den'' <> "}"
 
-    ESqrt x -> ("sqrt {" <>) . (<> "}") <$> renderExp x
+    ESqrt x -> ("sqrt {" <>) . (<> "}") <$> renderExpIn ctx x
     ERoot idx rad -> do
-      idx' <- renderExp idx
-      rad' <- renderExp rad
+      idx' <- renderExpIn ctx idx
+      rad' <- renderExpIn ctx rad
       pure $ "nroot {" <> idx' <> "} {" <> rad' <> "}"
 
     EDelimited op cl xs -> do
-      body <- renderDelimitedBody xs
+      body <- renderDelimitedBody ctx xs
       let op' = delimToken DelimLeft op
       let cl' = delimToken DelimRight cl
       pure $ "left " <> op' <> " " <> body <> " right " <> cl'
@@ -57,85 +160,176 @@ renderExp e =
     ESub base sub -> do
       case largeOpName base of
         Just op -> do
-          sub' <- renderLimitArg sub
+          sub' <- renderLimitArg ctx sub
           pure $ op <> " from " <> sub' <> " "
         Nothing -> do
-          base' <- renderExp base
-          sub'  <- renderScriptArg sub
+          base' <- renderExpIn ctx base
+          sub'  <- renderScriptArg ctx sub
           pure $ renderScriptBase base base' <> "_" <> sub'
 
     ESuper base sup -> do
       case largeOpName base of
         Just op -> do
-          sup' <- renderLimitArg sup
+          sup' <- renderLimitArg ctx sup
           pure $ op <> " to " <> sup' <> " "
         Nothing -> do
-          base' <- renderExp base
-          sup'  <- renderScriptArg sup
+          base' <- renderExpIn ctx base
+          sup'  <- renderScriptArg ctx sup
           pure $ renderScriptBase base base' <> "^" <> sup'
 
     ESubsup base sub sup -> do
       case largeOpName base of
         Just op -> do
-          sub' <- renderLimitArg sub
-          sup' <- renderLimitArg sup
+          sub' <- renderLimitArg ctx sub
+          sup' <- renderLimitArg ctx sup
           pure $ op <> " from " <> sub' <> " to " <> sup' <> " "
         Nothing -> do
-          base' <- renderExp base
-          sub'  <- renderScriptArg sub
-          sup'  <- renderScriptArg sup
+          base' <- renderExpIn ctx base
+          sub'  <- renderScriptArg ctx sub
+          sup'  <- renderScriptArg ctx sup
           pure $ renderScriptBase base base' <> "_" <> sub' <> "^" <> sup'
 
     EOver _ base over
       | Just accent <- accentName over -> do
-          base' <- renderExp base
+          base' <- renderExpIn ctx base
           pure $ accent <> " " <> renderAccentArg base base'
       | otherwise -> Nothing
 
     EUnder _ base under ->
       case largeOpName base of
         Just op -> do
-          under' <- renderLimitArg under
+          under' <- renderLimitArg ctx under
           pure $ op <> " from " <> under' <> " "
         Nothing -> Nothing
     EUnderover _ base under over ->
       case largeOpName base of
         Just op -> do
-          under' <- renderLimitArg under
-          over'  <- renderLimitArg over
+          under' <- renderLimitArg ctx under
+          over'  <- renderLimitArg ctx over
           pure $ op <> " from " <> under' <> " to " <> over' <> " "
         Nothing -> Nothing
     EArray aligns rows -> renderMatrix aligns rows
     EPhantom{}   -> Nothing
     _            -> Nothing
 
-renderDelimitedPart :: Either T.Text Exp -> Maybe T.Text
-renderDelimitedPart p =
-  case p of
-    Left t  -> Just $ " " <> delimToken DelimMiddle t <> " "
-    Right x -> renderExp x
+renderDelimitedBody :: AlignContext -> [Either T.Text Exp] -> Maybe T.Text
+renderDelimitedBody ctx xs = do
+  chunks <- mapM (renderDelimitedChunk ctx) xs
+  pure $ T.strip (mergeDelimitedChunks chunks)
 
-renderDelimitedBody :: [Either T.Text Exp] -> Maybe T.Text
-renderDelimitedBody xs = T.strip <$> (fmap T.concat $ mapM renderDelimitedPart xs)
+data DelimitedChunk = DelimRaw T.Text | DelimExp Exp T.Text
+
+renderDelimitedChunk :: AlignContext -> Either T.Text Exp -> Maybe DelimitedChunk
+renderDelimitedChunk ctx p =
+  case p of
+    Left t  -> Just $ DelimRaw (" " <> delimToken DelimMiddle t <> " ")
+    Right x -> DelimExp x <$> renderExpIn ctx x
+
+mergeDelimitedChunks :: [DelimitedChunk] -> T.Text
+mergeDelimitedChunks [] = ""
+mergeDelimitedChunks (c0:cs) = snd $ foldl' step (chunkExp c0, chunkText c0) cs
+ where
+  step (prevExp, acc) cur
+    | T.null curText = (prevExp, acc)
+    | otherwise =
+        case cur of
+          DelimRaw _ -> (Nothing, acc <> curText)
+          DelimExp curExp _ ->
+            let sep = case prevExp of
+                        Just pe -> if needsSeparator pe curExp then " " else ""
+                        Nothing -> ""
+            in (Just curExp, acc <> sep <> curText)
+   where
+    curText = chunkText cur
+
+  chunkText c =
+    case c of
+      DelimRaw t    -> t
+      DelimExp _ t  -> t
+
+  chunkExp c =
+    case c of
+      DelimRaw _   -> Nothing
+      DelimExp e _ -> Just e
 
 renderMatrix :: [Alignment] -> [[[Exp]]] -> Maybe T.Text
-renderMatrix aligns rows
-  | not (all (== AlignCenter) aligns) = Nothing
-  | otherwise = do
-      rows' <- mapM renderMatrixRow rows
-      pure $ "matrix { " <> T.intercalate " ## " rows' <> " }"
+renderMatrix aligns rows = do
+  rows' <- mapM (renderMatrixRow aligns) rows
+  pure $ "matrix { " <> T.intercalate " ## " rows' <> " }"
 
-renderMatrixRow :: [[Exp]] -> Maybe T.Text
-renderMatrixRow cells = do
-  cells' <- mapM renderMatrixCell cells
+renderMatrixRow :: [Alignment] -> [[Exp]] -> Maybe T.Text
+renderMatrixRow aligns cells = do
+  cells' <- sequence
+    [ renderMatrixCellWithAlign (columnAlign aligns i) c
+    | (i, c) <- zip [(0 :: Int)..] cells
+    ]
   pure $ T.intercalate " # " cells'
 
-renderMatrixCell :: [Exp] -> Maybe T.Text
-renderMatrixCell [] = Just "{}"
-renderMatrixCell xs = do
-  rendered <- renderExps xs
+renderMatrixCell :: AlignContext -> [Exp] -> Maybe T.Text
+renderMatrixCell _ [] = Just "{}"
+renderMatrixCell ctx xs = do
+  rendered <- renderExpsIn ctx xs
   let stripped = T.strip rendered
   pure $ if T.null stripped then "{}" else stripped
+
+renderMatrixCellWithAlign :: Alignment -> [Exp] -> Maybe T.Text
+renderMatrixCellWithAlign align xs = do
+  cell <- renderMatrixCell (alignmentContext align) xs
+  pure $ case align of
+    AlignLeft  -> "alignl " <> cell
+    AlignRight -> "alignr " <> cell
+    _          -> cell
+
+columnAlign :: [Alignment] -> Int -> Alignment
+columnAlign aligns i =
+  case drop i aligns of
+    (a : _) -> a
+    []      -> AlignCenter
+
+renderStyled :: AlignContext -> TextType -> [Exp] -> Maybe T.Text
+renderStyled ctx sty xs = do
+  body <- renderExpsIn ctx xs
+  pure $ case sty of
+    TextItalic       -> "ital " <> styleArg body
+    TextBold         -> "bold " <> styleArg body
+    TextScript       -> "ital " <> styleArg body
+    TextFraktur      -> "ital " <> styleArg body
+    TextDoubleStruck -> "ital " <> styleArg body
+    _                -> body
+ where
+  styleArg t
+    | T.null t    = "{}"
+    | T.length t == 1 = t
+    | otherwise   = "{" <> t <> "}"
+
+alignmentContext :: Alignment -> AlignContext
+alignmentContext a =
+  case a of
+    AlignLeft  -> AlignLeftCtx
+    AlignRight -> AlignRightCtx
+    _          -> AlignDefault
+
+maybeCenterFractionArg :: AlignContext -> T.Text -> T.Text
+maybeCenterFractionArg ctx t
+  | ctx == AlignLeftCtx || ctx == AlignRightCtx = "{alignc " <> asArg t <> "}"
+  | otherwise = t
+ where
+  asArg x =
+    let s = T.strip x
+    in if T.null s
+          then "{}"
+          else if T.length s == 1
+                  then s
+                  else if T.head s == '{' && T.last s == '}'
+                          then s
+                  else "{" <> s <> "}"
+
+renderSpace :: Rational -> T.Text
+renderSpace w
+  | w <= 0    = ""
+  | w >= 2    = "~~ "
+  | w >= 1    = "~ "
+  | otherwise = " "
 
 renderIdentifier :: T.Text -> T.Text
 renderIdentifier ident =
@@ -239,19 +433,19 @@ renderScriptBase e rendered0 =
      then rendered
      else "{" <> rendered <> "}"
 
-renderScriptArg :: Exp -> Maybe T.Text
-renderScriptArg e = do
-  rendered0 <- renderExp e
+renderScriptArg :: AlignContext -> Exp -> Maybe T.Text
+renderScriptArg ctx e = do
+  rendered0 <- renderExpIn ctx e
   let rendered = T.strip rendered0
   pure $ if isAtomic e
             then rendered
             else "{" <> rendered <> "}"
 
-renderLimitArg :: Exp -> Maybe T.Text
-renderLimitArg e =
+renderLimitArg :: AlignContext -> Exp -> Maybe T.Text
+renderLimitArg ctx e =
   case e of
-    EGrouped xs -> renderExps xs
-    _           -> T.strip <$> renderExp e
+    EGrouped xs -> renderExpsIn ctx xs
+    _           -> T.strip <$> renderExpIn ctx e
 
 renderAccentArg :: Exp -> T.Text -> T.Text
 renderAccentArg e rendered0 =
@@ -342,7 +536,7 @@ delimToken side raw =
     _   -> raw
 
 renderSymbol :: TeXSymbolType -> T.Text -> T.Text
-renderSymbol _ s =
+renderSymbol t s =
   case s of
     "∫" -> "int "
     "∑" -> "sum "
@@ -391,7 +585,10 @@ renderSymbol _ s =
     "∞" -> "infinity"
     "∅" -> "emptyset"
     "+" -> " + "
-    "-" -> " - "
+    "-" | t == Bin  -> " - "
+    "-"             -> "-"
+    "−" | t == Bin  -> " - "
+    "−"             -> "-"
     "=" -> " = "
     "," -> ", "
     ";" -> "; "

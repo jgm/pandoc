@@ -72,7 +72,7 @@ tests =
   , testCase "integral with infinite upper limit" $
       star "\\int_{0}^{\\infty} e^{-x}\\,dx"
       @?=
-      "int from 0 to infinity e^{{−x}} dx"
+      "int from 0 to infinity e^{{- x}} dx"
   , testCase "sum with lower and upper limits" $
       star "\\sum_{i=1}^{n} i"
       @?=
@@ -100,7 +100,39 @@ tests =
   , testCase "logic and calculus symbol mapping" $
       star "\\forall x \\exists y, \\nabla f = 0, \\partial_t u"
       @?=
-      "forall x exists y, nabla f = 0, partial_tu"
+      "forall x exists y, nabla f = 0, partial_t u"
+  , testCase "greek identifier spacing in products" $
+      star "E_{k+1}=E_{k+\\frac12}-\\frac{\\dot{Q}_{\\text{dis},k}\\Delta t}{\\eta_{\\text{dis}}},"
+      @?=
+      "E_{{k + 1}} = E_{{k + {1 over 2}}} - {{{dot Q}_{{\"dis\", k}} %DELTA t} over %ieta_\"dis\"},"
+  , testCase "math operators rendered as functions" $
+      star "E_{k+1}\\leftarrow\\min\\!\\left(E^{\\text{cap}}_{\\text{s}},\\max(0,E_{k+1})\\right)."
+      @?=
+      "E_{{k + 1}} leftarrow func min left ( E_\"s\"^\"cap\", func max(0, E_{{k + 1}}) right )."
+  , testCase "nested function with left delimiter spacing" $
+      star "P_{\\text{ch}, k}=\\max\\!\\left(0,\\min\\!\\left(P'_{\\text{pv}, k},\\,P^{\\text{cap}}_{\\text{ch}},\\,P_{\\text{ch,head}, k}\\right)\\right)."
+      @?=
+      "P_{{\"ch\", k}} = func max left ( 0, func min left ( P_{{\"pv\", k}}^′,  P_\"ch\"^\"cap\",  P_{{\"ch,head\", k}} right ) right )."
+  , testCase "quad spacing command" $
+      star "a,\\quad b"
+      @?=
+      "a, ~ b"
+  , testCase "qquad spacing command" $
+      star "a,\\qquad b"
+      @?=
+      "a, ~~ b"
+  , testCase "greek token separator before scripted identifier" $
+      star "f_{\\text{eff}}=(1-\\lambda)f_{\\text{m}}+\\lambda f_{\\text{l}}."
+      @?=
+      "f_\"eff\" = (1 - %ilambda) f_\"m\" + %ilambda f_\"l\"."
+  , testCase "mathcal styled token before left delimiter" $
+      star "\\min\\ \\mathcal{J}\\left(P^{\\text{cap}}_{\\text{pv}},N_{\\text{u}},P^{\\text{cap}}_{\\text{eb}}\\right)"
+      @?=
+      "func min ital J left ( P_\"pv\"^\"cap\", N_\"u\", P_\"eb\"^\"cap\" right )"
+  , testCase "leading binary operator gets neutral lhs" $
+      star "\\times\\Delta t"
+      @?=
+      "{} times %DELTA t"
   , testCase "matrix environment" $
       star "\\begin{matrix}a&b\\\\c&d\\end{matrix}"
       @?=
@@ -121,13 +153,24 @@ tests =
       star "\\begin{Vmatrix}a&b\\\\c&d\\end{Vmatrix}"
       @?=
       "left ldline matrix { a # b ## c # d } right rdline"
-  , testCase "fallback to TeX for non-centered array alignment" $
-      case readTeX "\\begin{array}{lr}a&b\\\\c&d\\end{array}" of
-        Left err -> assertFailure ("readTeX failed: " ++ unpack err)
-        Right exps ->
-          writeStarMath DisplayBlock exps @?= writeTeX exps
+  , testCase "array with left/right alignment" $
+      star "\\begin{array}{lr}a&b\\\\c&d\\end{array}"
+      @?=
+      "matrix { alignl a # alignr b ## alignl c # alignr d }"
+  , testCase "aligned array keeps fractions centered" $
+      star "\\begin{array}{l}\\frac{AAA}{B}\\end{array}"
+      @?=
+      "matrix { alignl {{alignc {AAA}} over {alignc B}} }"
+  , testCase "cases environment" $
+      star "\\begin{cases}a, & x>0\\\\ b, & x\\le 0\\end{cases}"
+      @?=
+      "left lbrace matrix { alignl a, # alignl x>0 ## alignl b, # alignl x <= 0 } right none"
+  , testCase "cases with negative log fraction" $
+      star "t_{\\text{pb,disc}}=\\begin{cases}\\dfrac{C_{\\text{tot}}}{B}, & r=0,\\\\\\dfrac{-\\ln\\!\\left(1-rC_{\\text{tot}}/B\\right)}{\\ln(1+r)}, & r>0\\text{ and }1-rC_{\\text{tot}}/B>0,\\\\\\infty, & \\text{otherwise}.\\end{cases}"
+      @?=
+      "t_\"pb,disc\" = left lbrace matrix { alignl {{alignc {C_\"tot\"}} over {alignc B}}, # alignl r = 0, ## alignl {{alignc {- func ln left ( 1 - rC_\"tot\" / B right )}} over {alignc {func ln(1 + r)}}}, # alignl r>0\" and \"1 - rC_\"tot\" / B>0, ## alignl infinity, # alignl \"otherwise\". } right none"
   , testCase "fallback to TeX for unsupported forms" $
-      case readTeX "\\begin{cases}a&b\\\\c&d\\end{cases}" of
+      case readTeX "\\phantom{x}+1" of
         Left err -> assertFailure ("readTeX failed: " ++ unpack err)
         Right exps ->
           writeStarMath DisplayBlock exps @?= writeTeX exps
