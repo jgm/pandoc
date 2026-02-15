@@ -82,10 +82,15 @@ toTable
   -> [B.TableBody]
   -> B.TableFoot
   -> Table
-toTable attr caption colSpecs  thead tbodies tfoot =
+toTable attr caption colSpecs thead' tbodies' tfoot' =
   Table attr caption colSpecs' rowHeads thGrid tbGrids tfGrid
   where
-    colSpecs' = listArray (ColIndex 1, ColIndex $ length colSpecs) colSpecs
+    -- normalize in case it's invalid shape:
+    thead = B.normalizeTableHead numcols thead'
+    tbodies = map (B.normalizeTableBody numcols) tbodies'
+    tfoot = B.normalizeTableFoot numcols tfoot'
+    numcols = length colSpecs
+    colSpecs' = listArray (ColIndex 1, ColIndex numcols) colSpecs
     rowHeads = case listToMaybe tbodies of
       Nothing -> RowHeadColumns 0
       Just (TableBody _attr rowHeadCols _headerRows _rows) -> rowHeadCols
