@@ -282,8 +282,9 @@ Pandoc’s website contains a full [User’s
 Guide](https://pandoc.org/MANUAL.html). It is also available
 [here](MANUAL.txt) as pandoc-flavored Markdown. The website also
 contains some [examples of the use of
-pandoc](https://pandoc.org/demos.html) and a limited [online
-demo](https://pandoc.org/try).
+pandoc](https://pandoc.org/demos.html), a limited [online
+demo](https://pandoc.org/try), and a [WebAssembly-based online
+demo](https://pandoc.org/app).
 
 ## Contributing
 
