@@ -4,6 +4,7 @@ module Text.Pandoc.Writers.StarMath
   ) where
 
 import qualified Data.Text as T
+import Data.List (foldl')
 import Text.TeXMath (DisplayType, writeTeX)
 import Text.TeXMath.Types
   ( Exp(..)
