@@ -49,6 +49,7 @@ import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
 import qualified Tests.Writers.Powerpoint
 import qualified Tests.Writers.RST
+import qualified Tests.Writers.StarMath
 import qualified Tests.Writers.AnnotatedTable
 import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Markua
@@ -84,6 +85,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "FB2" Tests.Writers.FB2.tests
           , testGroup "PowerPoint" Tests.Writers.Powerpoint.tests
           , testGroup "Ms" Tests.Writers.Ms.tests
+          , testGroup "StarMath" Tests.Writers.StarMath.tests
           , testGroup "AnnotatedTable" Tests.Writers.AnnotatedTable.tests
           , testGroup "BBCode" Tests.Writers.BBCode.tests
           ]
