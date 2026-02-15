@@ -4,6 +4,7 @@ module Text.Pandoc.Writers.StarMath
   ) where
 
 import qualified Data.Text as T
+import qualified Data.List as List
 import Text.TeXMath (DisplayType, writeTeX)
 import Text.TeXMath.Types
   ( Exp(..)
@@ -38,7 +39,7 @@ renderExpsIn ctx exps = do
 
 mergePieces :: [(Exp, T.Text)] -> T.Text
 mergePieces [] = ""
-mergePieces ((e0, t0) : rest) = snd $ foldl' step (e0, t0) rest
+mergePieces ((e0, t0) : rest) = snd $ List.foldl' step (e0, t0) rest
  where
   step (prevE, acc) (curE, curT) =
     if T.null curT
@@ -227,7 +228,7 @@ renderDelimitedChunk ctx p =
 
 mergeDelimitedChunks :: [DelimitedChunk] -> T.Text
 mergeDelimitedChunks [] = ""
-mergeDelimitedChunks (c0:cs) = snd $ foldl' step (chunkExp c0, chunkText c0) cs
+mergeDelimitedChunks (c0:cs) = snd $ List.foldl' step (chunkExp c0, chunkText c0) cs
  where
   step (prevExp, acc) cur
     | T.null curText = (prevExp, acc)
