@@ -205,11 +205,11 @@ popStyle =     keepingTheValue (
            >>^ fst
 
 --
-getCurrentListLevel :: ODTReaderSafe _x ListLevel
+getCurrentListLevel :: ODTReaderSafe a ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
 
 --
-getListContinuationStartCounters :: ODTReaderSafe _x (M.Map ListLevel Int)
+getListContinuationStartCounters :: ODTReaderSafe a (M.Map ListLevel Int)
 getListContinuationStartCounters = getExtraState >>^ listContinuationStartCounters
 
 
@@ -278,7 +278,7 @@ getHeaderAnchor = proc title -> do
 --------------------------------------------------------------------------------
 
 --
-readStyleByName :: ODTReader _x (StyleName, Style)
+readStyleByName :: ODTReader a (StyleName, Style)
 readStyleByName =
   findAttr NsText "style-name" >>? keepingTheValue getStyleByName >>^ liftE
   where
@@ -559,14 +559,14 @@ matchingElement ns name reader = (ns, name, asResultAccumulator reader)
 --
 matchChildContent'   :: (Monoid result)
                      => [ElementMatcher result]
-                     ->  ODTReaderSafe _x result
+                     ->  ODTReaderSafe a result
 matchChildContent' ls = returnV mempty >>> matchContent' ls
 
 --
 matchChildContent    :: (Monoid result)
                      => [ElementMatcher result]
                      ->  ODTReaderSafe  (result, XML.Content) result
-                     ->  ODTReaderSafe _x result
+                     ->  ODTReaderSafe a result
 matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 
 --------------------------------------------
@@ -920,7 +920,7 @@ _ANCHOR_PREFIX_ :: T.Text
 _ANCHOR_PREFIX_ = "anchor"
 
 --
-readAnchorAttr :: ODTReader _x Anchor
+readAnchorAttr :: ODTReader a Anchor
 readAnchorAttr = findAttrText NsText "name"
 
 -- | Beware: may fail
@@ -961,7 +961,7 @@ read_reference_start = matchingElement NsText "reference-mark-start"
                      $ maybeAddAnchorFrom readAnchorAttr
 
 -- | Beware: may fail
-findAnchorRef :: ODTReader _x Anchor
+findAnchorRef :: ODTReader a Anchor
 findAnchorRef = (      findAttrText NsText "ref-name"
                   >>?^ (_ANCHOR_PREFIX_,)
                 ) >>?! getPrettyAnchor
@@ -996,7 +996,7 @@ read_reference_ref = matchingElement NsText "reference-ref"
 -- Entry point
 ----------------------
 
-read_text :: ODTReaderSafe _x Pandoc
+read_text :: ODTReaderSafe a Pandoc
 read_text = matchChildContent' [ read_header
                                , read_paragraph
                                , read_list
@@ -1014,7 +1014,7 @@ post_process' (Table attr _ specs th tb tf : Div ("", ["caption"], _) blks : xs)
   = Table attr (Caption Nothing blks) specs th tb tf : post_process' xs
 post_process' bs = bs
 
-read_body :: ODTReader _x (Pandoc, MediaBag)
+read_body :: ODTReader a (Pandoc, MediaBag)
 read_body = executeInSub NsOffice "body"
           $ executeInSub NsOffice "text"
           $ liftAsSuccess
