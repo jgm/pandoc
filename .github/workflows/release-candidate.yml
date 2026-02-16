@@ -131,7 +131,7 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v6
-    - uses: wimpysworld/nothing-but-nix@v9
+    - uses: wimpysworld/nothing-but-nix@v10
       with:
        hatchet-protocol: 'rampage'
     - uses: cachix/install-nix-action@v31
