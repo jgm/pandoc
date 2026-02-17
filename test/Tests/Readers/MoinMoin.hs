@@ -36,13 +36,9 @@ tests =
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
 
-  , testCase "italic then bold"
-    $ "''hello'' '''world'''" `readsTo`
-      [Para [Emph [Str "hello"], Space,Strong [Str "world"]]]
-
-  , testCase "bold then italic"
-    $ "'''hello''' ''world''" `readsTo`
-      [Para [Strong [Str "hello"], Space,Emph [Str "world"]]]
+  , testCase "italic and bold" $
+    "'''''hello world'''''" `readsTo`
+    [Para [Strong [Emph [Str "hello", Space, Str "world"]]]]
 
   , testCase "heading 1"    $ "= 1 ="           `readsTo` [Header 1 ("",[],[]) [Str "1"]]
   , testCase "heading 2"    $ "== 2 =="         `readsTo` [Header 2 ("",[],[]) [Str "2"]]
