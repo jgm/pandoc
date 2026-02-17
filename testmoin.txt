@@ -7,13 +7,20 @@
  * [[http://jmtd.net|jmtd.net]]
  * another bullet
 
- ''mostly'' meta '''indeed'''. This is __useful__.
+''mostly'' meta '''indeed'''. This is __useful__.
 
 what does `monospace` (look) like? different to ?
 
 what goes ^up^, must ] come ,,down,,.
 
 what --(happened in)-- there?
+
+This is ~+larger+~ text, and this is ~-smaller-~.
+
+HelpOnEditing/SubPages should be a single link.
+/SubPage should be a link.
+Wiki''''''Name should result in plain string WikiName.
+Same with !WikiName.
 
 ----
 
