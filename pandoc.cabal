@@ -868,6 +868,7 @@ test-suite test-pandoc
                   Tests.Readers.JATS
                   Tests.Readers.Jira
                   Tests.Readers.Markdown
+                  Tests.Readers.MoinMoin
                   Tests.Readers.Org
                   Tests.Readers.Org.Block
                   Tests.Readers.Org.Block.CodeBlock
