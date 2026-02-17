@@ -52,6 +52,20 @@ tests =
 
   -- XXX: add tests for annotations
   , testCase "strikeout" $ "--(delete)--" `readsTo` [Para [Strikeout [Str "delete"]]]
+  , testCase "larger"    $ "~+larger+~"   `readsTo` [Para [Str "larger"]]
+  , testCase "smaller"   $ "~-smaller-~"  `readsTo` [Para [Str "smaller"]]
+
+  , testGroup "links"
+    [ testCase "CamelCase" $ "FooBar"     `readsTo` [Para [Link ("",[],[]) [Str "FooBar"] ("FooBar","")]]
+    , testCase "/SubCase1" $ "/SubCase1"  `readsTo` [Para [Link ("",[],[]) [Str "/SubCase1"] ("/SubCase1","")]]
+    , testCase "Sub/Case2" $ "Sub/Case2"  `readsTo` [Para [Link ("",[],[]) [Str "Sub/Case2"] ("Sub/Case2","")]]
+    , testCase "bracket1"  $ "[[foo]]"    `readsTo` [Para [Link ("",[],[]) [Str "foo"] ("foo","")]]
+    , testCase "labelled"  $ "[[foo|bar]]"`readsTo` [Para [Link ("",[],[]) [Str "bar"] ("foo","")]]
+    , testCase "banglink"  $ "!NotLink"  `readsTo` [Para [Str "!NotLink"]]
+    , testCase "notalink"  $ "Not''''''Link" `readsTo` [Para [Str "NotLink"]]
+    , testCase "singular1" $ "SinGular''''''s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular","")]]
+    , testCase "singular2" $ "SinGular``s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular","")]]
+    ]
 
   ]
 

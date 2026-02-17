@@ -29,27 +29,13 @@ Partial conversion from MoinMoin-formatted text (plus some pandoc-isms
 like smart punctuation) to Pandoc. Based on the Markdown reader.
 
 TODO:
-[X] subscript: ,,sub,,
-[X] strikeout: --(stroke)--
-[X] larger: ~+larger+~ [ignore]
-  * [ ] add attribute
-[X] smaller: +-smaller-+ [ignore]
-  * [ ] add attribute
 [ ] table of contents: <<TableOfContents()>> or <<TableOfContents(2)>>
 [ ] moin 1.6 double bracket links:
-   [X] [[FrontPage]],
-   [ ] [[FrontPage|named link]],
    [ ] [[#anchorname]],
    [ ] [[#anchorname|description]],
    [ ] [[PageName#anchorname]],
    [ ] [[PageName#anchorname|description]],
    [ ] [[attachment:filename.txt]]
-[X] HelpOnEditing/SubPages should be a single link
-[X] /SubPage should be a link
-[ ] Wiki''''''Name should result in plain string WikiName
-[X] Same with !WikiName
-[ ] WikiName''''''s - the s should not be in the link
-[ ] WikiName``s - the s should not be in the link
 [ ] {{http://static.moinmo.in/logos/moinmoin.png}} should be an image
 [X] camel-case links assume ascii letters
 [ ] indented blockquotes
