@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.MoinMoin
-   Copyright   : © 2026 Jonathan Dowland
+   Copyright   : © 2026 Jonathan Dowland, © 2009 Simon Michael
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jonathan Dowland <jon@dow.land>
