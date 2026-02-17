@@ -107,8 +107,8 @@ inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
       <|> camelCaseLink
       <|> str
-      <|> italic
       <|> bold
+      <|> italic
       <|> underline
       <|> superscript
       <|> subscript
