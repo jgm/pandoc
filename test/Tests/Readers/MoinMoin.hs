@@ -26,20 +26,23 @@ nullDoc = Pandoc nullMeta []
 runMM :: String -> Pandoc
 runMM = fromRight nullDoc . runPure . readMoinMoin def . toSources . T.pack
 
+readsTo :: String -> [Block] -> Assertion
+readsTo s b = runMM s @?= Pandoc nullMeta b
+
 tests :: [TestTree]
 tests =
-  [ testCase "basic"     $ runMM "hi" @?= Pandoc nullMeta [Para [Str "hi"]]
-  , testCase "bold"      $ runMM "'''hi'''" @?= Pandoc nullMeta [Para [Strong [Str "hi"]]]
-  , testCase "italic"    $ runMM "''hi''" @?= Pandoc nullMeta [Para [Emph [Str "hi"]]]
-  , testCase "underline" $ runMM "__hi__" @?= Pandoc nullMeta [Para [Underline [Str "hi"]]]
+  [ testCase "basic"     $ "hi"       `readsTo` [Para [Str "hi"]]
+  , testCase "bold"      $ "'''hi'''" `readsTo` [Para [Strong [Str "hi"]]]
+  , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
+  , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
 
   , testCase "italic then bold"
-    $ runMM "''hello'' '''world'''" @?=
-      Pandoc nullMeta [Para [Emph [Str "hello"], Space,Strong [Str "world"]]]
+    $ "''hello'' '''world'''" `readsTo`
+      [Para [Emph [Str "hello"], Space,Strong [Str "world"]]]
 
   , testCase "bold then italic"
-    $ runMM "'''hello''' ''world''" @?=
-      Pandoc nullMeta [Para [Strong [Str "hello"], Space,Emph [Str "world"]]]
+    $ "'''hello''' ''world''" `readsTo`
+      [Para [Strong [Str "hello"], Space,Emph [Str "world"]]]
   ]
 
 main :: IO ()
