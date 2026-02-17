@@ -43,6 +43,13 @@ tests =
   , testCase "bold then italic"
     $ "'''hello''' ''world''" `readsTo`
       [Para [Strong [Str "hello"], Space,Emph [Str "world"]]]
+
+  , testCase "heading 1"    $ "= 1 ="           `readsTo` [Header 1 ("",[],[]) [Str "1"]]
+  , testCase "heading 2"    $ "== 2 =="         `readsTo` [Header 2 ("",[],[]) [Str "2"]]
+  , testCase "heading 3"    $ "=== 3 ==="       `readsTo` [Header 3 ("",[],[]) [Str "3"]]
+  , testCase "heading 4"    $ "==== 4 ===="     `readsTo` [Header 4 ("",[],[]) [Str "4"]]
+  , testCase "heading 5"    $ "===== 5 ====="   `readsTo` [Header 5 ("",[],[]) [Str "5"]]
+  , testCase "no heading 6" $ "====== 6 ======" `readsTo` [Para [Str "======",Space,Str "6",Space,Str "======"]]
   ]
 
 main :: IO ()
