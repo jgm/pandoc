@@ -1,4 +1,4 @@
-{- 
+{-
 Copyright (C) 2009 Simon Michael <simon@joyful.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -19,32 +19,39 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {- |
    Module      : Text.Pandoc.Readers.MoinMoin
    Copyright   : Copyright (C) 2009-2011 Simon Michael, ranft, John MacFarlane
-   License     : GNU GPL, version 2 or above 
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
 Partial conversion from MoinMoin-formatted text (plus some pandoc-isms
-like smart punctuation) to Pandoc. Based on the Markdown reader. 
+like smart punctuation) to Pandoc. Based on the Markdown reader.
 
 TODO:
-[ ] subscript: ,,sub,,
-[ ] strikeout: --(stroke)--
-[ ] larger: ~+larger+~ [ignore]
-[ ] smaller: +-smaller-+ [ignore]
+[X] subscript: ,,sub,,
+[X] strikeout: --(stroke)--
+[X] larger: ~+larger+~ [ignore]
+  * [ ] add attribute
+[X] smaller: +-smaller-+ [ignore]
+  * [ ] add attribute
 [ ] table of contents: <<TableOfContents()>> or <<TableOfContents(2)>>
-[ ] moin 1.6 double bracket links: [[FrontPage]], [[FrontPage|named link]],
-  [[#anchorname]], [[#anchorname|description]], [[PageName#anchorname]],
-  [[PageName#anchorname|description]], [[attachment:filename.txt]]
-[ ] HelpOnEditing/SubPages should be a single link
-[ ] /SubPage should be a link
+[ ] moin 1.6 double bracket links:
+   [X] [[FrontPage]],
+   [ ] [[FrontPage|named link]],
+   [ ] [[#anchorname]],
+   [ ] [[#anchorname|description]],
+   [ ] [[PageName#anchorname]],
+   [ ] [[PageName#anchorname|description]],
+   [ ] [[attachment:filename.txt]]
+[X] HelpOnEditing/SubPages should be a single link
+[X] /SubPage should be a link
 [ ] Wiki''''''Name should result in plain string WikiName
-[ ] Same with !WikiName
+[X] Same with !WikiName
 [ ] WikiName''''''s - the s should not be in the link
 [ ] WikiName``s - the s should not be in the link
 [ ] {{http://static.moinmo.in/logos/moinmoin.png}} should be an image
-[ ] camel-case links assume ascii letters
+[X] camel-case links assume ascii letters
 [ ] indented blockquotes
 [ ] definition lists
 [ ] nested/multiply-indented lists, blocks, code blocks
@@ -90,7 +97,7 @@ import Control.Monad ( when )
 import Data.Char ( isUpper )
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared 
+import Text.Pandoc.Shared
 import Text.ParserCombinators.Parsec hiding ( label )
 
 -- | Parse MoinMoin string and return Pandoc document.
@@ -121,7 +128,7 @@ specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
 parseMoinMoin :: GenParser Char ParserState Pandoc
 parseMoinMoin = do
   processingInstructions
-  blocks <- parseBlocks 
+  blocks <- parseBlocks
   return $ Pandoc (Meta [] [] [] {-title author date-}) $ filter (/= Null) blocks
 
 processingInstructions :: GenParser Char a ()
@@ -132,7 +139,7 @@ comment = try $ do
   pos <- getPosition
   when (sourceColumn pos /= 0) $ fail ""
   string "##"
-  manyTill anyChar newline  
+  manyTill anyChar newline
   return ()
 
 --
@@ -189,12 +196,12 @@ hrule = try $ do
 -- code blocks
 --
 
-codeBlockStart :: GenParser Char st [String] 
+codeBlockStart :: GenParser Char st [String]
 codeBlockStart = try $ do
   string "{{{"
   classes <- option [] codeBlockClasses
   optional newline
-  return classes 
+  return classes
 
 codeBlockClasses :: GenParser Char st [String]
 codeBlockClasses = try $ do
@@ -242,7 +249,7 @@ bulletListStart = try $ do
   spaceChar
   skipSpaces
 
-anyOrderedListStart :: GenParser Char ParserState (Int, ListNumberStyle, ListNumberDelim) 
+anyOrderedListStart :: GenParser Char ParserState (Int, ListNumberStyle, ListNumberDelim)
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
   nonindentSpaces
@@ -285,7 +292,7 @@ rawListItem = try $ do
   blanks <- many blankline
   return $ concat result ++ blanks
 
--- continuation of a list item - indented and separated by blankline 
+-- continuation of a list item - indented and separated by blankline
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
 listContinuation :: GenParser Char ParserState [Char]
@@ -304,7 +311,7 @@ listContinuationLine = try $ do
   return $ result ++ "\n"
 
 listItem :: GenParser Char ParserState [Block]
-listItem = try $ do 
+listItem = try $ do
   first <- rawListItem
   continuations <- many listContinuation
   -- parsing with ListItemState forces markers at beginning of lines to
@@ -335,7 +342,7 @@ bulletList = try $ do
 --
 
 para :: GenParser Char ParserState Block
-para = try $ do 
+para = try $ do
   result <- many1 inline
   newline
   blanklines <|> do lookAhead ((codeBlockStart >> return "") <|> {- blockQuote <|> -} (header >> return ""))
@@ -344,7 +351,7 @@ para = try $ do
 plain :: GenParser Char ParserState Block
 plain = many1 inline >>~ spaces >>= return . Plain . normalizeSpaces
 
--- 
+--
 -- inline
 --
 
@@ -371,18 +378,18 @@ inlineParsers = [
                 ]
 
 symbol :: GenParser Char ParserState Inline
-symbol = do 
+symbol = do
   result <- oneOf specialChars
   return $ Str [result]
 
 -- parses inline code, between n `s and n `s
 code :: GenParser Char ParserState Inline
-code = try $ do 
+code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> return " ")) 
-                      (try (skipSpaces >> count (length starts) (char '`') >> 
+                       (char '\n' >> return " "))
+                      (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
   return $ Code nullAttr $ removeLeadingTrailingSpace $ concat result
 
@@ -391,21 +398,21 @@ emph = (enclosed (string "''") (string "''") inline) >>= return . Emph . normali
 
 strong :: GenParser Char ParserState Inline
 strong = enclosed (string "'''") (string "'''") inline >>= return . Strong . normalizeSpaces
-         
+
 
 strikeout :: GenParser Char ParserState Inline
 strikeout = failIfStrict >> enclosed (string "--(") (try $ string ")--") inline >>=
             return . Strikeout . normalizeSpaces
 
 superscript :: GenParser Char ParserState Inline
-superscript = failIfStrict >> enclosed (char '^') (char '^') 
+superscript = failIfStrict >> enclosed (char '^') (char '^')
               (notFollowedBy' whitespace >> inline) >>= -- may not contain Space
               return . Superscript
 
 subscript :: GenParser Char ParserState Inline
 subscript = failIfStrict >> enclosed (string ",,") (string ",,")
             (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
-            return . Subscript 
+            return . Subscript
 
 whitespace :: GenParser Char ParserState Inline
 whitespace = do
@@ -429,12 +436,12 @@ endline = try $ do
   notFollowedBy' listStart
   notFollowedBy (char '=')
   -- st <- getState
-  -- if stateStrict st 
+  -- if stateStrict st
   --   then do notFollowedBy (char '=')  -- header
-  --   else return () 
+  --   else return ()
   -- parse potential list-starts differently if in a list:
   -- if stateParserContext st == ListItemState
-  --    then notFollowedBy' (bulletListStart <|> 
+  --    then notFollowedBy' (bulletListStart <|>
   --                         (anyOrderedListStart >> return ()))
   --    else return ()
   return Space
@@ -479,7 +486,7 @@ endline = try $ do
 --   return (intercalate "%20" $ words $ removeTrailingSpace src, tit)
 
 -- linkTitle :: GenParser Char st String
--- linkTitle = try $ do 
+-- linkTitle = try $ do
 --   (many1 spaceChar >> option '\n' newline) <|> newline
 --   skipSpaces
 --   delim <- oneOf "'\""
@@ -617,7 +624,7 @@ indentSpaces :: GenParser Char ParserState [Char]
 indentSpaces = try $ do
   state <- getState
   let tabStop = stateTabStop state
-  try (count tabStop (char ' ')) <|> 
+  try (count tabStop (char ' ')) <|>
     (many (char ' ') >> string "\t") <?> "indentation"
 
 nonindentSpaces :: GenParser Char ParserState [Char]
@@ -625,7 +632,7 @@ nonindentSpaces = do
   state <- getState
   let tabStop = stateTabStop state
   sps <- many (char ' ')
-  if length sps < tabStop 
+  if length sps < tabStop
      then return sps
      else unexpected "indented line"
 
