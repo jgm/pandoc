@@ -130,9 +130,12 @@ many2 p = do
 
 camelWord :: PandocMonad m => MoinParser m String
 camelWord = do
-  f    <- satisfy isUpper
-  rest <- many1 (satisfy (\c -> isAlphaNum c && not (isUpper c)))
-  return (f:rest)
+  slash <- optionMaybe (char '/')
+  f     <- satisfy isUpper
+  rest  <- many1 (satisfy (\c -> isAlphaNum c && not (isUpper c)))
+  return $ case slash of
+    Nothing -> f:rest
+    Just s  -> s:f:rest
 
 camelCaseLink :: PandocMonad m => MoinParser m B.Inlines
 camelCaseLink = try $ do
@@ -202,7 +205,7 @@ externalLink = do
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\_^,~-+()"
+specialChars = "'[]<=&*{}|\":\\_^,~-+()/"
 
 -- from Readers.Mediawiki
 spaceChars :: [Char]
