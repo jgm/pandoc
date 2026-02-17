@@ -21,10 +21,26 @@ import Data.Either (fromRight)
 
 -- @?= imposes Eq for which PandocError doesn't have an instance
 -- so we remove the Either layer, replacing errors with nullDoc.
+nullDoc :: Pandoc
 nullDoc = Pandoc nullMeta []
+runMM :: String -> Pandoc
 runMM = fromRight nullDoc . runPure . readMoinMoin def . toSources . T.pack
 
 tests :: [TestTree]
 tests =
-  [ testCase "zomg" $ runMM "hi" @?= Pandoc nullMeta [Para [Str "hi"]]
+  [ testCase "basic"     $ runMM "hi" @?= Pandoc nullMeta [Para [Str "hi"]]
+  , testCase "bold"      $ runMM "'''hi'''" @?= Pandoc nullMeta [Para [Strong [Str "hi"]]]
+  , testCase "italic"    $ runMM "''hi''" @?= Pandoc nullMeta [Para [Emph [Str "hi"]]]
+  , testCase "underline" $ runMM "__hi__" @?= Pandoc nullMeta [Para [Underline [Str "hi"]]]
+
+  , testCase "italic then bold"
+    $ runMM "''hello'' '''world'''" @?=
+      Pandoc nullMeta [Para [Emph [Str "hello"], Space,Strong [Str "world"]]]
+
+  , testCase "bold then italic"
+    $ runMM "'''hello''' ''world''" @?=
+      Pandoc nullMeta [Para [Strong [Str "hello"], Space,Emph [Str "world"]]]
   ]
+
+main :: IO ()
+main = defaultMain $ testGroup "." tests
