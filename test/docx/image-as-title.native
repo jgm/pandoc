@@ -1,0 +1,37 @@
+[ Para
+     [ Image
+         ( ""
+         , []
+         , [ ( "width" , "6.268055555555556in" )
+           , ( "height" , "6.268055555555556in" )
+           ]
+         )
+         []
+         ( "media/image1.png" , "" )
+     ]
+ , Para
+     [ Str "An"
+     , Space
+     , Str "Image"
+     , Space
+     , Str "as"
+     , Space
+     , Str "a"
+     , Space
+     , Str "title"
+     , Space
+     , Str "should"
+     , Space
+     , Str "be"
+     , Space
+     , Str "downgraded"
+     , Space
+     , Str "to"
+     , Space
+     , Str "a"
+     , Space
+     , Str "normal"
+     , Space
+     , Str "paragraph!"
+     ]
+ ]
