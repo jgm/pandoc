@@ -5364,6 +5364,15 @@ Or, without the `bracketed_spans` extension (but with `native_spans`):
 
 This will work in all output formats that support highlighting.
 
+## Word-like comments
+
+To make comments in `markdown` which will then be treated as Word comments when converted to `docx`:
+
+    
+    [Comment text.]{.comment-start id="0"
+    author="Author Name" date="2016-05-09T16:13:00Z"}Text on which 
+    there will be a comment []{.comment-end id="0"}
+
 
 ## Math
 
