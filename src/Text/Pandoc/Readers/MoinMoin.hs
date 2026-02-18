@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts           #-}
+-- ^^ needed temp for enclosed'
 {- |
    Module      : Text.Pandoc.Readers.MoinMoin
    Copyright   : Copyright © 2026 Jonathan Dowland
@@ -160,8 +162,18 @@ formatter delim inliner =
 
 italic      :: PandocMonad m => MoinParser m B.Inlines
 italic      = formatter ("''") B.emph
+
+-- this has broken "''''' hello world'''''"
 bold        :: PandocMonad m => MoinParser m B.Inlines
-bold        = formatter ("'''") B.strong
+bold        = do
+  inner <- enclosed' delim delim inline
+  if null inner
+    then return (B.fromList [])
+    else (return . B.strong . mconcat) inner
+  where delim = string ("'''")
+        enclosed' start end parser = try $
+          start >> manyTill parser end
+
 -- monospace: B.code (Code Attr Text) needs different handling
 -- code: as monospace
 -- however, B.code :: Text -> Inlines

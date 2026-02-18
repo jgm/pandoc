@@ -36,6 +36,7 @@ tests =
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
 
+  -- broken
   , testCase "italic and bold" $
     "'''''hello world'''''" `readsTo`
     [Para [Strong [Emph [Str "hello", Space, Str "world"]]]]
