@@ -110,6 +110,7 @@ inline =  whitespace
       <|> camelCaseLink
       <|> str
       <|> bold
+      <|> monospace
       <|> italic
       <|> underline
       <|> superscript
@@ -165,7 +166,7 @@ italic      = formatter ("''") B.emph
 
 -- this has broken "''''' hello world'''''"
 bold        :: PandocMonad m => MoinParser m B.Inlines
-bold        = do
+bold        = try $ do
   inner <- enclosed' delim delim inline
   if null inner
     then return (B.fromList [])
@@ -174,9 +175,14 @@ bold        = do
         enclosed' start end parser = try $
           start >> manyTill parser end
 
--- monospace: B.code (Code Attr Text) needs different handling
--- code: as monospace
--- however, B.code :: Text -> Inlines
+monospace :: PandocMonad m => MoinParser m B.Inlines
+monospace = try $ do
+  char '`'
+  inner <- manyTill anyChar (char '`')
+  if null inner
+    then return (B.fromList [])
+    else (return . B.code . T.pack) inner
+
 underline   :: PandocMonad m => MoinParser m B.Inlines
 underline   = formatter ("__") B.underline
 superscript :: PandocMonad m => MoinParser m B.Inlines
@@ -217,7 +223,7 @@ externalLink = do
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\_^,~-+()/"
+specialChars = "'[]<=&*{}|\":\\_^,~-+()/`"
 
 -- from Readers.Mediawiki
 spaceChars :: [Char]
