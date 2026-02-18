@@ -10,6 +10,8 @@ import Text.Parsec
 import Text.Parsec.Char
 import Data.Char -- isUpper etc
 
+import Text.Show.Pretty
+
 sampleMW = T.pack "\
 \= sample mediawiki doc =\n\
 \\n\
@@ -40,7 +42,7 @@ main = do
 
   sampleMM <- TIO.readFile "testmoin.txt"
 
-  (putStrLn . show . parseMM) sampleMM
+  (putStrLn . ppShow . parseMM) sampleMM
   putStrLn "\n##################################\n"
 
   result <- runIO $
