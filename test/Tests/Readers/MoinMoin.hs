@@ -40,6 +40,9 @@ tests =
     "'''''hello world'''''" `readsTo`
     [Para [Strong [Emph [Str "hello", Space, Str "world"]]]]
 
+  -- Pandoc's "enclosed" fails this
+  , testCase "boldSpace" $ "''' hi'''" `readsTo` [Para [Strong [Space,Str "hi"]]]
+
   , testCase "heading 1"    $ "= 1 ="           `readsTo` [Header 1 ("",[],[]) [Str "1"]]
   , testCase "heading 2"    $ "== 2 =="         `readsTo` [Header 2 ("",[],[]) [Str "2"]]
   , testCase "heading 3"    $ "=== 3 ==="       `readsTo` [Header 3 ("",[],[]) [Str "3"]]
