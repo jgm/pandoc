@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.MoinMoin
-   Copyright   : Copyright (C) 2026 Jonathan Dowland
+   Copyright   : Copyright © 2026 Jonathan Dowland
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jonathan Dowland <jmtd@debian.org>
