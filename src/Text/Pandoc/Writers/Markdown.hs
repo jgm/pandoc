@@ -376,15 +376,10 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
   | isEnabled Ext_alerts opts
   , (cls:_) <- classes
   , cls `elem` ["note", "tip", "warning", "caution", "important"]
-  , (Div ("", ["title"], []) _ : Para ils : bs') <- bs
-   = blockToMarkdown' opts $ BlockQuote $
-       (Para (RawInline (Format "markdown") (case cls of
-         "note" -> "[!NOTE]\n"
-         "tip" -> "[!TIP]\n"
-         "warning" -> "[!WARNING]\n"
-         "caution" -> "[!CAUTION]\n"
-         "important" -> "[!IMPORTANT]\n"
-         _ -> "[!NOTE]\n") : ils)) : bs'
+  , (Div ("", ["title"], []) _ : bs') <- bs = do
+    contents <- blockListToMarkdown opts bs'
+    let alertLabel = literal $ "[!" <> T.toUpper cls <> "]"
+    pure $ text "> " <> alertLabel $$ prefixed "> " contents $$ blankline
   | otherwise = do
     contents <- blockListToMarkdown opts bs
     variant <- asks envVariant
