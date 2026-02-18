@@ -63,8 +63,8 @@ tests =
     , testCase "labelled"  $ "[[foo|bar]]"`readsTo` [Para [Link ("",[],[]) [Str "bar"] ("foo","")]]
     , testCase "banglink"  $ "!NotLink"  `readsTo` [Para [Str "!NotLink"]]
     , testCase "notalink"  $ "Not''''''Link" `readsTo` [Para [Str "NotLink"]]
-    , testCase "singular1" $ "SinGular''''''s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular","")]]
-    , testCase "singular2" $ "SinGular``s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular","")]]
+    , testCase "singular1" $ "SinGular''''''s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular",""), Str "s"]]
+    , testCase "singular2" $ "SinGular``s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular",""), Str "s"]]
     ]
 
   ]
