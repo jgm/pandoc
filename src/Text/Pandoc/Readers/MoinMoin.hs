@@ -93,7 +93,7 @@ guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 -- from Readers.Mediawiki
 para :: PandocMonad m => MoinParser m B.Blocks
 para = do
-  contents <- B.trimInlines . mconcat <$> many1 inline
+  contents <- mconcat <$> many1 inline
   return $ B.para contents
 
 bulletList :: PandocMonad m => MoinParser m B.Blocks
