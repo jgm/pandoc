@@ -32,6 +32,7 @@ readsTo s b = runMM s @?= Pandoc nullMeta b
 tests :: [TestTree]
 tests =
   [ testCase "basic"     $ "hi"       `readsTo` [Para [Str "hi"]]
+  , testCase "newline"   $ "hi\nthere"`readsTo` [Para [Str "hi",Space,Str "there"]]:
   , testCase "bold"      $ "'''hi'''" `readsTo` [Para [Strong [Str "hi"]]]
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
@@ -77,7 +78,7 @@ tests =
 
   , testGroup "blocks"
     [ testCase "comment1"    $ "##hi" `readsTo` []
-    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello"], Para [Str "world"]]
+    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello", Str "world"]]
     , testCase "notcomment1" $ " ##hi" `readsTo` [Para [Space,Str "##hi"]]
     ]
   ]
