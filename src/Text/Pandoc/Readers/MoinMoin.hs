@@ -235,11 +235,13 @@ spaceChars = " \n\t"
 ------------------------------------------------------------------------------
 -- debug functions for use in GHCi
 
-p1 :: MoinParser PandocPure B.Inlines -> T.Text -> Either ParseError B.Inlines
+p1 :: Monoid a
+   => MoinParser PandocPure a -> T.Text -> Either ParseError a
 p1 p' = fromRight (error "unhandled PandocError")
       . runPure
       . runParserT p' MoinState "?"
       . toSources
 
-pp :: MoinParser PandocPure B.Inlines -> T.Text -> Either ParseError B.Inlines
+pp :: Monoid a
+   => MoinParser PandocPure a -> T.Text -> Either ParseError a
 pp = p1 . fmap mconcat . many
