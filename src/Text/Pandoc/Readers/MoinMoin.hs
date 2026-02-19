@@ -72,7 +72,7 @@ processingInstruction = do
 -- technically a processing instruction but can occur anywhere
 -- in a page
 comment :: PandocMonad m => MoinParser m B.Blocks
-comment = do
+comment = try $ do
   string "##"
   manyUntil anyChar newline
   return mempty
@@ -242,7 +242,7 @@ externalLink = do
 
 -- from Readers.Mediawiki
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\_^,~-+()/`"
+specialChars = "'[]<=&*{}|\":\\_^,~-+()/`#"
 
 -- from Readers.Mediawiki
 spaceChars :: [Char]
