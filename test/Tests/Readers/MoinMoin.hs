@@ -71,6 +71,10 @@ tests =
     , testCase "singular2" $ "SinGular``s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular",""), Str "s"]]
     ]
 
+  , testGroup "blocks"
+    [ testCase "comment1"    $ "#hi" `readsTo` []
+    , testCase "notcomment1" $ " #hi" `readsTo` [Para [Space,Str "#hi"]]
+    ]
   ]
 
 main :: IO ()

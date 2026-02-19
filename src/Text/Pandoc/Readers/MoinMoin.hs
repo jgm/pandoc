@@ -69,10 +69,17 @@ processingInstruction = do
   manyUntil anyChar newline
   return ()
 
+comment :: PandocMonad m => MoinParser m B.Blocks
+comment = do
+  string "##"
+  manyUntil anyChar newline
+  return mempty
+
 block :: PandocMonad m => MoinParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
      <|> header
+     <|> comment
      <|> bulletList
      <|> para
   return res
