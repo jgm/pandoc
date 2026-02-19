@@ -72,8 +72,9 @@ tests =
     ]
 
   , testGroup "blocks"
-    [ testCase "comment1"    $ "#hi" `readsTo` []
-    , testCase "notcomment1" $ " #hi" `readsTo` [Para [Space,Str "#hi"]]
+    [ testCase "comment1"    $ "##hi" `readsTo` []
+    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello"], Para [Str "world"]]
+    , testCase "notcomment1" $ " ##hi" `readsTo` [Para [Space,Str "##hi"]]
     ]
   ]
 

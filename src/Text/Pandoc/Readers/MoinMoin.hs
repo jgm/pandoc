@@ -69,6 +69,8 @@ processingInstruction = do
   manyUntil anyChar newline
   return ()
 
+-- technically a processing instruction but can occur anywhere
+-- in a page
 comment :: PandocMonad m => MoinParser m B.Blocks
 comment = do
   string "##"
