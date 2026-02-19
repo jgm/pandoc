@@ -59,6 +59,10 @@ tests =
   , testCase "larger"    $ "~+larger+~"   `readsTo` [Para [Str "larger"]]
   , testCase "smaller"   $ "~-smaller-~"  `readsTo` [Para [Str "smaller"]]
 
+  , testCase "inlineComment" $ "hello/*comment*/world" `readsTo` [Para [Str "helloworld"]]
+  , testCase "inlineCommentNewlines" $
+    "hello/*comment\nmore\n*/world" `readsTo` [Para [Str "helloworld"]]
+
   , testGroup "links"
     [ testCase "CamelCase" $ "FooBar"     `readsTo` [Para [Link ("",[],[]) [Str "FooBar"] ("FooBar","")]]
     , testCase "/SubCase1" $ "/SubCase1"  `readsTo` [Para [Link ("",[],[]) [Str "/SubCase1"] ("/SubCase1","")]]

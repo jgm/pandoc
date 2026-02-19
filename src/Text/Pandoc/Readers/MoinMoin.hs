@@ -129,6 +129,7 @@ inline =  whitespace
       <|> larger
       <|> stroke
       <|> externalLink
+      <|> inlineComment
       <|> special
 
 -- from Readers.Mediawiki
@@ -211,6 +212,12 @@ larger = enclosed (string "~+") (string "+~") inline >>=
 stroke :: PandocMonad m => MoinParser m B.Inlines
 stroke = enclosed (string "--(") (string ")--") inline >>=
     return . B.strikeout . mconcat
+
+inlineComment :: PandocMonad m => MoinParser m B.Inlines
+inlineComment = do
+  string "/*"
+  manyTill anyChar (string "*/")
+  return mempty
 
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars
