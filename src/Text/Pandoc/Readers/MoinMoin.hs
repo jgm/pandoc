@@ -205,6 +205,8 @@ stroke = enclosed (string "--(") (string ")--") inline >>=
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars
 
+-- MoinMoin < 1.6.0 (~2007-12) supported a single-bracket
+-- external link syntax. We don't attempt to support that.
 externalLink :: PandocMonad m => MoinParser m B.Inlines
 externalLink = do
   string "[["
