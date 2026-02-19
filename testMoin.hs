@@ -42,6 +42,7 @@ main = do
 
   sampleMM <- TIO.readFile "testmoin.txt"
 
+  -- or use writeNative
   (putStrLn . ppShow . parseMM) sampleMM
   putStrLn "\n##################################\n"
 
