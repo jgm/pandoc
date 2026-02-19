@@ -32,7 +32,7 @@ readsTo s b = runMM s @?= Pandoc nullMeta b
 tests :: [TestTree]
 tests =
   [ testCase "basic"     $ "hi"       `readsTo` [Para [Str "hi"]]
-  , testCase "newline"   $ "hi\nthere"`readsTo` [Para [Str "hi",Space,Str "there"]]:
+  , testCase "newline"   $ "hi\nthere"`readsTo` [Para [Str "hi",Space,Str "there"]]
   , testCase "bold"      $ "'''hi'''" `readsTo` [Para [Strong [Str "hi"]]]
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
