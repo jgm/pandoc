@@ -484,7 +484,6 @@ link :: GenParser Char ParserState Inline
 link = choice [uriLink
               ,emailAddressLink
               ,localPageCamelCaseLink
-              ,moin15BracketLink
               ,moin16BracketLink
               ]
 
@@ -503,17 +502,6 @@ localPageCamelCaseLink = try $ do
   (p,_) <- localPageCamelCase
   return $ Link [Str p] (p, "")
 
-moin15BracketLink :: GenParser Char ParserState Inline
-moin15BracketLink = try $ do
-  (target,label) <- singleBracketed $ choice [
-                                     uriSpaceLabel
-                                    ,uriNoLabel
-                                    ,localPageInQuotes
-                                    ,localPageWithColonLabel
-                                    ,localPageCamelCase
-                                    ]
-  return $ Link [Str label] (target, "")
-
 moin16BracketLink :: GenParser Char ParserState Inline
 moin16BracketLink = try $ do
   (target,label) <- doubleBracketed $ choice [
@@ -524,13 +512,6 @@ moin16BracketLink = try $ do
                                     -- ,localPageCamelCase
                                     ]
   return $ Link [Str label] (target, "")
-
-uriSpaceLabel :: GenParser Char ParserState (String,String)
-uriSpaceLabel = try $ do
-  (_, uri_escaped) <- uri
-  many1 space
-  label <- many1 $ noneOf "]"
-  return (uri_escaped, label)
 
 uriPipeLabel :: GenParser Char ParserState (String,String)
 uriPipeLabel = try $ do
@@ -587,13 +568,6 @@ lowerChar = oneOf "abcdefghijklmnopqrstuvwxyz"
 --   char '!'
 --   (Link lab src) <- link
 --   return $ Image lab src
-
-singleBracketed :: (GenParser Char st a) -> GenParser Char st a
-singleBracketed parser = do
-  string "["
-  contents <- parser
-  string "]"
-  return contents
 
 doubleBracketed :: (GenParser Char st a) -> GenParser Char st a
 doubleBracketed parser = do
