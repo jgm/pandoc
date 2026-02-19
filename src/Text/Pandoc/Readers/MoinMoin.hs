@@ -20,11 +20,12 @@ import Control.Monad.Except (throwError)
 import Data.Char -- isUpper, isAlphaNum
 import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
-import Text.Pandoc.Class (runPure) -- debug
+import Text.Pandoc.Class (runPure, PandocPure (..)) -- debug
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing
 import qualified Text.Pandoc.Builder as B
 import qualified Data.Text as T
+import Data.Either (fromRight)
 
 -- | Read MoinMoin from an input string and return a Pandoc document.
 readMoinMoin :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
@@ -231,7 +232,14 @@ specialChars = "'[]<=&*{}|\":\\_^,~-+()/`"
 spaceChars :: [Char]
 spaceChars = " \n\t"
 
--- debug function to run the inline parser in GHCi
-debugParse :: PandocMonad m => T.Text -> m (Either ParseError B.Inlines)
-debugParse t =
-  runParserT (mconcat <$> many inline) MoinState "srcname" (toSources t)
+------------------------------------------------------------------------------
+-- debug functions for use in GHCi
+
+p1 :: MoinParser PandocPure B.Inlines -> T.Text -> Either ParseError B.Inlines
+p1 p' = fromRight (error "unhandled PandocError")
+      . runPure
+      . runParserT p' MoinState "?"
+      . toSources
+
+pp :: MoinParser PandocPure B.Inlines -> T.Text -> Either ParseError B.Inlines
+pp = p1 . fmap mconcat . many
