@@ -225,6 +225,7 @@ endline :: PandocMonad m => MoinParser m B.Inlines
 endline = try $ do
   newline
   notFollowedBy blankline
+  notFollowedBy (string "##")
   (eof >> return mempty)
     <|> (skipMany spaceChar >> return B.softbreak)
 

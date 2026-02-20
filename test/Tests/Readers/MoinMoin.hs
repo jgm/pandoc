@@ -79,7 +79,7 @@ tests =
   , testGroup "blocks"
     [ testCase "comment1"    $ "##hi" `readsTo` []
     -- processing instruction comment lines cause paragraph breaks
-    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello",SoftBreak,Str "world"]]
+    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello"],Para [Str "world"]]
     , testCase "notcomment1" $ "\n#hi" `readsTo` [Para [Str "#hi"]]
     , testCase "notcomment2" $ ".##hi" `readsTo` [Para [Str ".##hi"]]
     ]
