@@ -32,7 +32,7 @@ readsTo s b = runMM s @?= Pandoc nullMeta b
 tests :: [TestTree]
 tests =
   [ testCase "basic"     $ "hi"       `readsTo` [Para [Str "hi"]]
-  , testCase "newline"   $ "hi\nthere"`readsTo` [Para [Str "hi",Space,Str "there"]]
+  , testCase "endline"   $ "hi\nthere"`readsTo` [Para [Str "hi",SoftBreak,Str "there"]]
   , testCase "bold"      $ "'''hi'''" `readsTo` [Para [Strong [Str "hi"]]]
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
@@ -79,7 +79,7 @@ tests =
   , testGroup "blocks"
     [ testCase "comment1"    $ "##hi" `readsTo` []
     -- processing instruction comment lines cause paragraph breaks
-    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello"], Para [Str "world"]]
+    , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello",SoftBreak,Str "world"]]
     , testCase "notcomment1" $ "\n#hi" `readsTo` [Para [Str "#hi"]]
     , testCase "notcomment2" $ ".##hi" `readsTo` [Para [Str ".##hi"]]
     ]

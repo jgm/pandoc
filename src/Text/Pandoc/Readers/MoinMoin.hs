@@ -130,6 +130,7 @@ inline =  whitespace
       <|> stroke
       <|> externalLink
       <|> inlineComment
+      <|> endline
       <|> special
 
 -- from Readers.Mediawiki
@@ -218,6 +219,14 @@ inlineComment = do
   string "/*"
   manyTill anyChar (string "*/")
   return mempty
+
+-- a newline that does not break a Para (etc)
+endline :: PandocMonad m => MoinParser m B.Inlines
+endline = try $ do
+  newline
+  notFollowedBy blankline
+  (eof >> return mempty)
+    <|> (skipMany spaceChar >> return B.softbreak)
 
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars
