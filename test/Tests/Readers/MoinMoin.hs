@@ -83,6 +83,11 @@ tests =
     , testCase "notcomment1" $ "\n#hi" `readsTo` [Para [Str "#hi"]]
     , testCase "notcomment2" $ ".##hi" `readsTo` [Para [Str ".##hi"]]
     ]
+  , testGroup "emptyDelims"
+    [ testCase "empty bold"   $ "''''''" `readsTo` [Para []]
+    , testCase "empty italic" $ "''''" `readsTo` [Para []]
+    , testCase "empty code"   $ "``" `readsTo` [Para []]
+    ]
   ]
 
 main :: IO ()
