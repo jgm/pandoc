@@ -3,7 +3,7 @@
 -- ^^ needed temp for enclosed'
 {- |
    Module      : Text.Pandoc.Readers.MoinMoin
-   Copyright   : Copyright © 2026 Jonathan Dowland
+   Copyright   : Copyright © 2026 Jonathan Dowland, © 2009-2011 Simon Michael, © 22006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jonathan Dowland <jmtd@debian.org>
