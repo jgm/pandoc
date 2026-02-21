@@ -94,11 +94,8 @@ header :: PandocMonad m => MoinParser m B.Blocks
 header = try $ do
   guardColumnOne
   lev <- length <$> many1 (char '=')
-  -- XXX: MoinMoin flattens higher levels to 5, so
-  -- ====== 6 ====== => <h5>
-  guard $ lev <= 5
   contents <- B.trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  return $ B.header lev contents
+  return $ B.header (min 5 lev) contents
 
 -- from Readers.Mediawiki
 guardColumnOne :: PandocMonad m => MoinParser m ()

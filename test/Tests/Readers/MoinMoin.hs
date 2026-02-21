@@ -56,7 +56,7 @@ tests =
   , testCase "heading 3"    $ "=== 3 ==="       `readsTo` [Header 3 ("",[],[]) [Str "3"]]
   , testCase "heading 4"    $ "==== 4 ===="     `readsTo` [Header 4 ("",[],[]) [Str "4"]]
   , testCase "heading 5"    $ "===== 5 ====="   `readsTo` [Header 5 ("",[],[]) [Str "5"]]
-  , testCase "no heading 6" $ "====== 6 ======" `readsTo` [Para [Str "======",Space,Str "6",Space,Str "======"]]
+  , testCase "no heading 6" $ "====== 6 ======" `readsTo` [Header 5 ("",[],[]) [Str "6"]]
 
   , testGroup "toc" $
     [ testCase "tocPresent" $ "<<TableOfContents()>>"  `hasMeta` [("toc",MetaBool True)]
