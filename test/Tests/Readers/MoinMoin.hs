@@ -86,6 +86,10 @@ tests =
     , testCase "notalink"  $ "Not''''''Link" `readsTo` [Para [Str "NotLink"]]
     , testCase "singular1" $ "SinGular''''''s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular",""), Str "s"]]
     , testCase "singular2" $ "SinGular``s" `readsTo` [Para [Link ("",[],[]) [Str "SinGular"] ("SinGular",""), Str "s"]]
+    , testCase "anchor1"   $ "[[#foo]]"   `readsTo` [Para [Link ("",[],[]) [Str "#foo"] ("#foo","")]]
+    , testCase "anchor2"   $ "[[#foo|bar]]"`readsTo` [Para [Link ("",[],[]) [Str "bar"] ("#foo","")]]
+    , testCase "anchor3"   $ "[[foo#bar]]"`readsTo` [Para [Link ("",[],[]) [Str "foo#bar"] ("foo#bar","")]]
+    , testCase "anchor4"   $ "[[foo#bar|baz]]"`readsTo` [Para [Link ("",[],[]) [Str "baz"] ("foo#bar","")]]
     ]
 
   , testGroup "blocks"
