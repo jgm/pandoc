@@ -14,7 +14,7 @@ import Text.Show.Pretty
 
 sampleMW = T.pack "\
 \= sample mediawiki doc =\n\
-\\n\
+\__TOC__\n\
 \This is a ''sample'' CamelCase document.\n\
 \[https://jmtd.net jon's homepage]\n\
 \\n\
@@ -32,7 +32,7 @@ parseMM = fromRight (error "?") . runPure . readMoinMoin def
 
 main = do
   -- what structure do we get from a Mediawiki doc?
-  -- (putStrLn . show) parsedMW
+  -- (putStrLn . ppShow) parsedMW
   -- putStrLn "##################################"
 
   -- what happens to definition list in markdown output?

@@ -4,6 +4,8 @@
 
 == Jon Dowland ==
 
+<<TableOfContents()>>
+
  * [[http://jmtd.net|jmtd.net]]
  * another bullet
 
