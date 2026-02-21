@@ -29,22 +29,15 @@ Partial conversion from MoinMoin-formatted text (plus some pandoc-isms
 like smart punctuation) to Pandoc. Based on the Markdown reader.
 
 TODO:
-[ ] table of contents: <<TableOfContents()>> or <<TableOfContents(2)>>
 [ ] moin 1.6 double bracket links:
-   [ ] [[#anchorname]],
-   [ ] [[#anchorname|description]],
-   [ ] [[PageName#anchorname]],
-   [ ] [[PageName#anchorname|description]],
    [ ] [[attachment:filename.txt]]
 [ ] {{http://static.moinmo.in/logos/moinmoin.png}} should be an image
-[X] camel-case links assume ascii letters
 [ ] indented blockquotes
 [ ] definition lists
 [ ] nested/multiply-indented lists, blocks, code blocks
 [ ] tables
 [ ] images
 [ ] <<Anchor(anchorname)>> inserts a link anchor
-[ ] <<BR>> a hard break
 [ ] <<FootNote(Note)>> a note
 [ ] <<Include(HelpOnMagros)>> - just ignore this
 [ ] <<MailTo(user AT example DOT com)>> treat as email link; pandoc has obfuscation
