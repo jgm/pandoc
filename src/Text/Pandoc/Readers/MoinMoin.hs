@@ -94,6 +94,8 @@ header :: PandocMonad m => MoinParser m B.Blocks
 header = try $ do
   guardColumnOne
   lev <- length <$> many1 (char '=')
+  -- XXX: MoinMoin flattens higher levels to 5, so
+  -- ====== 6 ====== => <h5>
   guard $ lev <= 5
   contents <- B.trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
   return $ B.header lev contents
@@ -237,7 +239,14 @@ endline = try $ do
 -- What we're doing here is not (yet) that.
 tableOfContents :: PandocMonad m => MoinParser m B.Inlines
 tableOfContents = try $ do
-  string "<<TableOfContents()>>"
+  string "<<TableOfContents("
+  -- XXX: MoinMoin accepts and ignores levels >5
+  lvl <- optionMaybe (oneOf "12345")
+  case lvl of
+    Nothing -> return ()
+    Just l  -> updateState $ \st -> st
+      { mmMeta = B.setMeta "toclevel" [l] (mmMeta st) }
+  string ")>>"
   updateState $ \st -> st { mmMeta = B.setMeta "toc" True (mmMeta st) }
   return mempty
 

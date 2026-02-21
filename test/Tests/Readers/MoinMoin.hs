@@ -30,10 +30,10 @@ runMM = fromRight nullDoc . runPure . readMoinMoin def . toSources . T.pack
 readsTo :: String -> [Block] -> Assertion
 readsTo s b = runMM s @?= Pandoc nullMeta b
 
-hasMeta :: String -> Meta -> Assertion
+hasMeta :: String -> [(T.Text,MetaValue)] -> Assertion
 hasMeta s cmp = let
   (Pandoc meta blocks) = runMM s
-  in meta @?= cmp
+  in meta @?= (Meta $ M.fromList cmp)
 
 tests :: [TestTree]
 tests =
@@ -59,9 +59,9 @@ tests =
   , testCase "no heading 6" $ "====== 6 ======" `readsTo` [Para [Str "======",Space,Str "6",Space,Str "======"]]
 
   , testGroup "toc" $
-    [ testCase "tocPresent" $ "<<TableOfContents()>>" `hasMeta`
-      (Meta (M.singleton "toc" (MetaBool True)))
-      --[("toc",MetaBool True)]
+    [ testCase "tocPresent" $ "<<TableOfContents()>>"  `hasMeta` [("toc",MetaBool True)]
+    , testCase "tocAbsent"  $ "<<TableOFCoNtEnts()>>"  `hasMeta` []
+    , testCase "tocLevel1"  $ "<<TableOfContents(1)>>" `hasMeta` [("toc",MetaBool True),("toclevel",MetaString "1")]
     ]
 
   , testCase "superscript"    $ "^2^" `readsTo` [Para [Superscript [Str "2"]]]
