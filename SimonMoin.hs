@@ -37,7 +37,6 @@ TODO:
 [ ] nested/multiply-indented lists, blocks, code blocks
 [ ] tables
 [ ] images
-[ ] <<Anchor(anchorname)>> inserts a link anchor
 [ ] <<FootNote(Note)>> a note
 [ ] <<Include(HelpOnMagros)>> - just ignore this
 [ ] <<MailTo(user AT example DOT com)>> treat as email link; pandoc has obfuscation
