@@ -31,12 +31,14 @@ import Data.Either (fromRight)
 readMoinMoin :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
 readMoinMoin opts s = do
   let sources = toSources s
-  parsed <- readWithM parseMoinMoin MoinState sources
+  parsed <- readWithM parseMoinMoin defaultMoinState sources
   case parsed of
     Left  err -> throwError err
     Right res -> return res
 
-data MoinState = MoinState -- context that needs to be passed around the parser
+data MoinState = MoinState { mmMeta :: Meta } deriving Show
+defaultMoinState = MoinState nullMeta
+
 type MoinParser m = ParsecT Sources MoinState m
 
 parseMoinMoin :: PandocMonad m => MoinParser m Pandoc
@@ -46,7 +48,8 @@ parseMoinMoin = do
   spaces
   eof
 
-  let meta = nullMeta
+  st <- getState
+  let meta = mmMeta st
 
   -- reportLogMessages -- could not deduce 'HasLogMessages MoinState'
   return $ Pandoc meta (B.toList blocks)
@@ -131,6 +134,7 @@ inline =  whitespace
       <|> externalLink
       <|> inlineComment
       <|> endline
+      <|> tableOfContents
       <|> special
 
 -- from Readers.Mediawiki
@@ -229,6 +233,14 @@ endline = try $ do
   (eof >> return mempty)
     <|> (skipMany spaceChar >> return B.softbreak)
 
+-- MoinMoin behaviour: insert the TOC at the point of the token.
+-- What we're doing here is not (yet) that.
+tableOfContents :: PandocMonad m => MoinParser m B.Inlines
+tableOfContents = try $ do
+  string "<<TableOfContents()>>"
+  updateState $ \st -> st { mmMeta = B.setMeta "toc" True (mmMeta st) }
+  return mempty
+
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars
 
@@ -265,7 +277,7 @@ p1 :: Monoid a
    => MoinParser PandocPure a -> T.Text -> Either ParseError a
 p1 p' = fromRight (error "unhandled PandocError")
       . runPure
-      . runParserT p' MoinState "?"
+      . runParserT p' defaultMoinState "?"
       . toSources
 
 pp :: Monoid a

@@ -17,6 +17,7 @@ import Text.Pandoc.Sources -- toSources
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Data.Text as T
+import qualified Data.Map.Strict as M
 import Data.Either (fromRight)
 
 -- @?= imposes Eq for which PandocError doesn't have an instance
@@ -28,6 +29,11 @@ runMM = fromRight nullDoc . runPure . readMoinMoin def . toSources . T.pack
 
 readsTo :: String -> [Block] -> Assertion
 readsTo s b = runMM s @?= Pandoc nullMeta b
+
+hasMeta :: String -> Meta -> Assertion
+hasMeta s cmp = let
+  (Pandoc meta blocks) = runMM s
+  in meta @?= cmp
 
 tests :: [TestTree]
 tests =
@@ -51,6 +57,12 @@ tests =
   , testCase "heading 4"    $ "==== 4 ===="     `readsTo` [Header 4 ("",[],[]) [Str "4"]]
   , testCase "heading 5"    $ "===== 5 ====="   `readsTo` [Header 5 ("",[],[]) [Str "5"]]
   , testCase "no heading 6" $ "====== 6 ======" `readsTo` [Para [Str "======",Space,Str "6",Space,Str "======"]]
+
+  , testGroup "toc" $
+    [ testCase "tocPresent" $ "<<TableOfContents()>>" `hasMeta`
+      (Meta (M.singleton "toc" (MetaBool True)))
+      --[("toc",MetaBool True)]
+    ]
 
   , testCase "superscript"    $ "^2^" `readsTo` [Para [Superscript [Str "2"]]]
   , testCase "subscript"      $ ",,low,," `readsTo` [Para [Subscript [Str "low"]]]
