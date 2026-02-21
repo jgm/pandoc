@@ -135,6 +135,7 @@ inline =  whitespace
       <|> endline
       <|> tableOfContents
       <|> lineBreak
+      <|> anchor
       <|> special
 
 -- from Readers.Mediawiki
@@ -249,7 +250,13 @@ tableOfContents = try $ do
   return mempty
 
 lineBreak :: PandocMonad m => MoinParser m B.Inlines
-lineBreak = string "<<BR>>" >> return B.linebreak
+lineBreak = try $ string "<<BR>>" >> return B.linebreak
+
+anchor :: PandocMonad m => MoinParser m B.Inlines
+anchor = try $ do
+  string "<<Anchor("
+  name <- manyTill anyChar (try $ string ")>>")
+  return $ B.spanWith (T.pack name,[],[]) (B.fromList [])
 
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars

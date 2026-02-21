@@ -65,6 +65,8 @@ tests =
     ]
 
   , testCase "LineBreak"      $ "<<BR>>" `readsTo` [Para [LineBreak]]
+  , testCase "anchor" $ "<<Anchor(foo)>>" `readsTo` [Para [Span ("foo",[],[]) []]]
+
   , testCase "superscript"    $ "^2^" `readsTo` [Para [Superscript [Str "2"]]]
   , testCase "subscript"      $ ",,low,," `readsTo` [Para [Subscript [Str "low"]]]
 
