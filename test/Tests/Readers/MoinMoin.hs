@@ -64,6 +64,7 @@ tests =
     , testCase "tocLevel1"  $ "<<TableOfContents(1)>>" `hasMeta` [("toc",MetaBool True),("toclevel",MetaString "1")]
     ]
 
+  , testCase "LineBreak"      $ "<<BR>>" `readsTo` [Para [LineBreak]]
   , testCase "superscript"    $ "^2^" `readsTo` [Para [Superscript [Str "2"]]]
   , testCase "subscript"      $ ",,low,," `readsTo` [Para [Subscript [Str "low"]]]
 

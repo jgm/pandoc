@@ -134,6 +134,7 @@ inline =  whitespace
       <|> inlineComment
       <|> endline
       <|> tableOfContents
+      <|> lineBreak
       <|> special
 
 -- from Readers.Mediawiki
@@ -246,6 +247,9 @@ tableOfContents = try $ do
   string ")>>"
   updateState $ \st -> st { mmMeta = B.setMeta "toc" True (mmMeta st) }
   return mempty
+
+lineBreak :: PandocMonad m => MoinParser m B.Inlines
+lineBreak = string "<<BR>>" >> return B.linebreak
 
 special :: PandocMonad m => MoinParser m B.Inlines
 special = B.str . T.singleton <$> oneOf specialChars
