@@ -1141,10 +1141,17 @@ metadataElement version md mbCoverImage currentTime =
         schemeToOnix "Legal deposit number" = "17"
         schemeToOnix "URN"                  = "22"
         schemeToOnix "OCLC"                 = "23"
+        schemeToOnix "Co-publisher’s ISBN-13" = "24"
         schemeToOnix "ISMN-13"              = "25"
         schemeToOnix "ISBN-A"               = "26"
         schemeToOnix "JP"                   = "27"
         schemeToOnix "OLCC"                 = "28"
+        schemeToOnix "JP Magazine ID"       = "29"
+        schemeToOnix "UPC-12+5"             = "30"
+        schemeToOnix "BNF Control number"   = "31"
+        schemeToOnix "ISSN-13"              = "34"
+        schemeToOnix "ARK"                  = "35"
+        schemeToOnix "Digital file internal version number" = "36"
         schemeToOnix _                      = "01"
 
 showDateTimeISO8601 :: UTCTime -> Text
