@@ -86,6 +86,7 @@ block = do
      <|> header
      <|> comment
      <|> bulletList
+     <|> parser
      <|> para
   return res
 
@@ -116,6 +117,24 @@ bulletListItem = try $ do
   char '*'
   spaces
   B.plain . B.trimInlines . mconcat <$> manyTill inline newline
+
+-- block-level MoinMoin 'Parser'.
+-- Not to be confused with 'code' (inline)
+parser :: PandocMonad m => MoinParser m B.Blocks
+parser = try $ do
+  notFollowedBy code -- if the inline 'code' parser could handle this, then it should.
+  string "{{{" -- TODO: >3 delimiters are accepted, as are {{{unique ... unique}}}
+  -- TODO: optional #!, name-of-parser, many1 spaceNotNL, parser-args, many spaceNotNL, newline
+  many spaceNotNL
+  char '\n'
+  pre <- manyTillChar anyChar closer
+  return $ B.codeBlock pre
+  where
+    spaceNotNL = satisfy (\c -> isSpace c && not (c == '\n'))
+    closer = try $ do
+      char '\n'
+      many spaceNotNL
+      string "}}}"
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace

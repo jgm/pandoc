@@ -106,6 +106,12 @@ tests =
     , testCase "comment2"    $ "hello\n##hi\nworld" `readsTo` [Para [Str "hello"],Para [Str "world"]]
     , testCase "notcomment1" $ "\n#hi" `readsTo` [Para [Str "#hi"]]
     , testCase "notcomment2" $ ".##hi" `readsTo` [Para [Str ".##hi"]]
+    , testGroup "parser"
+      [ testCase "parser1" $ "{{{\nhi\n}}}"         `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parser2" $ "{{{        \nhi\n}}}" `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parser3" $ "{{{\nhi\n        }}}" `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parser4" $ "{{{\nhi\nthere\n}}}"  `readsTo` [CodeBlock nullAttr "hi\nthere"]
+      ]
     ]
   , testGroup "emptyDelims"
     [ testCase "empty bold"   $ "''''''" `readsTo` [Para []]
