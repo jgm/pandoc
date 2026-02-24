@@ -434,7 +434,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "backgroundTransition" ("fade" :: Doc Text) .
                          defField "viewDistance" ("3" :: Doc Text) .
                          defField "mobileViewDistance" ("2" :: Doc Text) .
-                         defField "scrollProgress" True .
+                         (case lookupMeta "scrollProgress" meta of
+                            Just (MetaBool False) -> id
+                            Just (MetaBool True)  ->
+                              defField "scrollProgress" True
+                            _  -> defField "scrollProgressAuto" True) .
                          defField "scrollActivationWidth" ("0" :: Doc Text) .
                          defField "scrollSnap" ("mandatory" :: Doc Text) .
                          defField "scrollLayout" ("full" :: Doc Text) .

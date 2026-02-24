@@ -243,7 +243,13 @@ $if(view)$
         // Enable scroll view
         view: '$view/nowrap$',
         // see https://revealjs.com/scroll-view/#scrollbar
+$if(scrollProgressAuto)$
+        scrollProgress: 'auto',
+$elseif(scrollProgress)$
         scrollProgress: $scrollProgress$,
+$else$
+        scrollProgress: false,
+$endif$
         // see https://revealjs.com/scroll-view/#url-activation
         scrollActivationWidth: $scrollActivationWidth$,
         // see https://revealjs.com/scroll-view/#scroll-snapping
