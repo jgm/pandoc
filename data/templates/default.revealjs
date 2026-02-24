@@ -245,11 +245,15 @@ $if(view)$
         // see https://revealjs.com/scroll-view/#scrollbar
         scrollProgress: $scrollProgress$,
         // see https://revealjs.com/scroll-view/#url-activation
-        scrollActivationWidth: '$scrollActivationWidth$',
+        scrollActivationWidth: $scrollActivationWidth$,
         // see https://revealjs.com/scroll-view/#scroll-snapping
-        scrollSnap: '$scrollSnap$',
+$if(scrollSnap)$
+        scrollSnap: '$scrollSnap/nowrap$',
+$else$
+        scrollSnap: false,
+$endif$
         // Experimental. see https://revealjs.com/scroll-view/#scroll-snapping
-        scrollLayout: '$scrollLayout$',
+        scrollLayout: '$scrollLayout/nowrap$',
 $endif$
 $if(parallaxBackgroundImage)$
 

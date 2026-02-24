@@ -1,0 +1,8 @@
+$if(view)$
+        scrollActivationWidth: $scrollActivationWidth$,
+$if(scrollSnap)$
+        scrollSnap: '$scrollSnap/nowrap$',
+$else$
+        scrollSnap: false,
+$endif$
+$endif$
