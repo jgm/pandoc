@@ -7170,8 +7170,10 @@ The following fields are recognized:
   ~ Either a string value or an object with fields `text` and
     `scheme`.  Valid values for `scheme` are `ISBN-10`,
     `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
-    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
-    `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC number`,
+    `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`, `JP e-code`,
+    `OLCC number`, `JP Magazine ID`, `UPC-12+5`, `BNF Control number`,
+    `ISSN-13`, `ARK`, `Digital file internal version number`
 
 `title`
   ~ Either a string value, or an object with fields `file-as` and
