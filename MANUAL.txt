@@ -7173,7 +7173,7 @@ The following fields are recognized:
     `ISBN-13`, `Legal deposit number`, `URN`, `OCLC number`,
     `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`, `JP e-code`,
     `OLCC number`, `JP Magazine ID`, `UPC-12+5`, `BNF Control number`,
-    `ISSN-13`, `ARK`, `Digital file internal version number`
+    `ISSN-13`, `ARK`, `Digital file internal version number`.
 
 `title`
   ~ Either a string value, or an object with fields `file-as` and
