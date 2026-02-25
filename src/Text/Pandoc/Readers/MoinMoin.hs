@@ -123,18 +123,24 @@ bulletListItem = try $ do
 parser :: PandocMonad m => MoinParser m B.Blocks
 parser = try $ do
   notFollowedBy code -- if the inline 'code' parser could handle this, then it should.
-  string "{{{" -- TODO: >3 delimiters are accepted, as are {{{unique ... unique}}}
+
+  open <- many (char '{') -- TODO: delims can have pre/suffixes e.g. {{{unique ... unique}}}
+  let len = length open
+  guard (len >= 3)
+
   -- TODO: optional #!, name-of-parser, many1 spaceNotNL, parser-args, many spaceNotNL, newline
   many spaceNotNL
   char '\n'
-  pre <- manyTillChar anyChar closer
+  pre <- manyTillChar anyChar (closer len)
   return $ B.codeBlock pre
+
   where
     spaceNotNL = satisfy (\c -> isSpace c && not (c == '\n'))
-    closer = try $ do
+    closer n = try $ do
       char '\n'
       many spaceNotNL
-      string "}}}"
+      delim <- many (char '}')
+      guard (length delim == n)
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace

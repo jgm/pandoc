@@ -107,10 +107,12 @@ tests =
     , testCase "notcomment1" $ "\n#hi" `readsTo` [Para [Str "#hi"]]
     , testCase "notcomment2" $ ".##hi" `readsTo` [Para [Str ".##hi"]]
     , testGroup "parser"
-      [ testCase "parser1" $ "{{{\nhi\n}}}"         `readsTo` [CodeBlock nullAttr "hi"]
-      , testCase "parser2" $ "{{{        \nhi\n}}}" `readsTo` [CodeBlock nullAttr "hi"]
-      , testCase "parser3" $ "{{{\nhi\n        }}}" `readsTo` [CodeBlock nullAttr "hi"]
-      , testCase "parser4" $ "{{{\nhi\nthere\n}}}"  `readsTo` [CodeBlock nullAttr "hi\nthere"]
+      [ testCase "parser1"         $ "{{{\nhi\n}}}"         `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parserChompHead" $ "{{{        \nhi\n}}}" `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parserChomptail" $ "{{{\nhi\n        }}}" `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parserMultiLine" $ "{{{\nhi\nthere\n}}}"  `readsTo` [CodeBlock nullAttr "hi\nthere"]
+      , testCase "parser4delims"   $ "{{{{\nhi\n}}}}"       `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parserInnerDelim"$ "{{{{\n{{{hi}}}\n}}}}" `readsTo` [CodeBlock nullAttr "{{{hi}}}"]
       ]
     ]
   , testGroup "emptyDelims"
