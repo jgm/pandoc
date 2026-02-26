@@ -98,6 +98,8 @@ tests =
     , testCase "anchor2"   $ "[[#foo|bar]]"`readsTo` [Para [Link ("",[],[]) [Str "bar"] ("#foo","")]]
     , testCase "anchor3"   $ "[[foo#bar]]"`readsTo` [Para [Link ("",[],[]) [Str "foo#bar"] ("foo#bar","")]]
     , testCase "anchor4"   $ "[[foo#bar|baz]]"`readsTo` [Para [Link ("",[],[]) [Str "baz"] ("foo#bar","")]]
+    , testCase "bareUri"   $ "http://example.com" `readsTo` [Para [Link nullAttr [Str "http://example.com"] ("http://example.com","")]]
+    , testCase "bareEmail" $ "jon@example.com"    `readsTo` [Para [Link nullAttr [Str "jon@example.com"] ("mailto:jon@example.com","")]]
     ]
 
   , testGroup "blocks"

@@ -145,6 +145,8 @@ parser = try $ do
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
       <|> camelCaseLink
+      <|> emailAddressLink
+      <|> uriLink
       <|> str
       <|> bold
       <|> monospace
@@ -190,6 +192,16 @@ camelCaseLink = try $ do
   let title = ""
   let label = B.str tsrc
   return $ B.link tsrc title label
+
+emailAddressLink :: PandocMonad m => MoinParser m B.Inlines
+emailAddressLink = try $ do
+  (e, escaped_mailto_uri) <- emailAddress
+  return $ B.link escaped_mailto_uri "" $ B.str e
+
+uriLink :: PandocMonad m => MoinParser m B.Inlines
+uriLink = try $ do
+  (u, uri_escaped) <- uri
+  return $ B.link u "" $ B.str uri_escaped
 
 -- from Readers.Mediawiki
 str :: PandocMonad m => MoinParser m B.Inlines
