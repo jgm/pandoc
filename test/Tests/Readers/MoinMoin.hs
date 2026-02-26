@@ -43,6 +43,7 @@ tests =
   , testCase "italic"    $ "''hi''"   `readsTo` [Para [Emph [Str "hi"]]]
   , testCase "underline" $ "__hi__"   `readsTo` [Para [Underline [Str "hi"]]]
   , testCase "monospace" $ "`hi`"     `readsTo` [Para [Code nullAttr "hi"]]
+  , testCase "notMono"   $ "`h\ni`"   `readsTo` [Para [Str "`h",SoftBreak,Str "i`"]]
 
   , testCase "code1"     $ "{{{hi}}}" `readsTo` [Para [Code nullAttr "hi"]]
   , testCase "code2"     $ "{{{ hi }}}" `readsTo` [Para [Code nullAttr " hi "]]

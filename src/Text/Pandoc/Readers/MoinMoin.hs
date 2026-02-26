@@ -233,7 +233,7 @@ bold        = try $ do
 monospace :: PandocMonad m => MoinParser m B.Inlines
 monospace = try $ do
   char '`'
-  inner <- manyTill anyChar (char '`')
+  inner <- manyTill (noneOf "`\n") (char '`')
   if null inner
     then return (B.fromList [])
     else (return . B.code . T.pack) inner
