@@ -102,24 +102,6 @@ specialChars = "\\[]*_~`<>$!^-.&'\"\8216\8217\8220\8221"
 --
 -- document structure
 --
-
-parseMoinMoin :: GenParser Char ParserState Pandoc
-parseMoinMoin = do
-  processingInstructions
-  blocks <- parseBlocks
-  return $ Pandoc (Meta [] [] [] {-title author date-}) $ filter (/= Null) blocks
-
-processingInstructions :: GenParser Char a ()
-processingInstructions = many (char '#' >> manyTill anyChar newline) >> return ()
-
-comment :: GenParser Char a ()
-comment = try $ do
-  pos <- getPosition
-  when (sourceColumn pos /= 0) $ fail ""
-  string "##"
-  manyTill anyChar newline
-  return ()
-
 --
 -- parsing blocks
 --
@@ -141,19 +123,7 @@ block = do
           , nullBlock
           ]) <?> "block"
 
---
--- header blocks
---
 
-header :: GenParser Char ParserState Block
-header = try $ do
-  level <- many1 (char '=') >>= return . length
-  skipSpaces
-  text <- manyTill inline headerEnd >>= return . normalizeSpaces
-  return (Header level text) <?> "header"
-
-headerEnd :: GenParser Char st [Char]
-headerEnd = try $ skipSpaces >> skipMany (char '=') >> blanklines
 
 --
 -- hrule block
@@ -371,27 +341,6 @@ code = try $ do
                       notFollowedBy (char '`')))
   return $ Code nullAttr $ removeLeadingTrailingSpace $ concat result
 
-emph :: GenParser Char ParserState Inline
-emph = (enclosed (string "''") (string "''") inline) >>= return . Emph . normalizeSpaces
-
-strong :: GenParser Char ParserState Inline
-strong = enclosed (string "'''") (string "'''") inline >>= return . Strong . normalizeSpaces
-
-
-strikeout :: GenParser Char ParserState Inline
-strikeout = failIfStrict >> enclosed (string "--(") (try $ string ")--") inline >>=
-            return . Strikeout . normalizeSpaces
-
-superscript :: GenParser Char ParserState Inline
-superscript = failIfStrict >> enclosed (char '^') (char '^')
-              (notFollowedBy' whitespace >> inline) >>= -- may not contain Space
-              return . Superscript
-
-subscript :: GenParser Char ParserState Inline
-subscript = failIfStrict >> enclosed (string ",,") (string ",,")
-            (notFollowedBy' whitespace >> inline) >>=  -- may not contain Space
-            return . Subscript
-
 whitespace :: GenParser Char ParserState Inline
 whitespace = do
   sps <- many1 (oneOf spaceChars)
@@ -473,21 +422,10 @@ endline = try $ do
 --   return $ decodeCharacterReferences tit
 
 link :: GenParser Char ParserState Inline
-link = choice [uriLink
-              ,emailAddressLink
+link = choice [
               ,localPageCamelCaseLink
               ,moin16BracketLink
               ]
-
-uriLink :: GenParser Char ParserState Inline
-uriLink = try $ do
-  (u, uri_escaped) <- uri
-  return $ Link [Code nullAttr u] (uri_escaped, "")
-
-emailAddressLink :: GenParser Char ParserState Inline
-emailAddressLink = try $ do
-  (e, escaped_mailto_uri) <- emailAddress
-  return $ Link [Str e] (escaped_mailto_uri, "")
 
 localPageCamelCaseLink :: GenParser Char ParserState Inline
 localPageCamelCaseLink = try $ do
