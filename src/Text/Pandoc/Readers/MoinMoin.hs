@@ -123,11 +123,10 @@ bulletListItem = try $ do
 parser :: PandocMonad m => MoinParser m B.Blocks
 parser = try $ do
   open  <- many (char '{')
-  open2 <- many (oneOf ('_':['a'..'z']++['A'..'Z']++['0'..'9']))
+  open2 <- many (satisfy isWordChar)
   let len = length open
   guard (len >= 3)
 
-  -- TODO: optional #!, name-of-parser, many1 spaceNotNL, parser-args, many spaceNotNL, newline
   many spaceNotNL
   char '\n'
 
@@ -141,6 +140,19 @@ parser = try $ do
       char '\n'
       many spaceNotNL
       string delim
+
+-- intended to be equivalent to Python2 re '\w' with re.UNICODE set
+isWordChar :: Char -> Bool
+isWordChar c = isAlphaNum c || c  == '_'
+
+parserHashBang :: PandocMonad m => MoinParser m (String, Maybe String)
+parserHashBang = do
+  string "#!"
+  parserName <- many (satisfy isWordChar) -- can be empty
+  parserArgs <- optionMaybe $ try $ do
+    many space
+    many1 (satisfy (/='\n'))
+  return (parserName, parserArgs)
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
