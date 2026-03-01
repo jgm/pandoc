@@ -145,14 +145,49 @@ parser = try $ do
 isWordChar :: Char -> Bool
 isWordChar c = isAlphaNum c || c  == '_'
 
-parserHashBang :: PandocMonad m => MoinParser m (String, Maybe String)
-parserHashBang = do
+-- Moin supports (at least) creole, csv (table builder), docbook, highlight, html,
+-- wiki, rst, text (plain: <pre>) and xslt. The following names are deprecated
+-- shorthand for highlight (the name is converted to the argument to highlight):
+-- C++, diff, IRC(irssi), java, pascal, python:
+--
+-- for now we only support wiki (moin native format) and plain text.
+data ParserSpec = ParserWiki [String]
+                | ParserText
+                | ParserUnsupported
+                deriving (Show)
+
+parserHashBang :: PandocMonad m => MoinParser m ParserSpec
+parserHashBang = try $ do
   string "#!"
-  parserName <- many (satisfy isWordChar) -- can be empty
+  parserName <- many (satisfy isWordChar)
   parserArgs <- optionMaybe $ try $ do
-    many space
+    many1 space
     many1 (satisfy (/='\n'))
-  return (parserName, parserArgs)
+
+  return $ case parserName of
+    "wiki" -> ParserWiki (unmangleWikiArgs parserArgs)
+    "text" -> ParserText
+    ""     -> ParserText
+    _      -> ParserUnsupported
+
+unmangleWikiArgs :: Maybe String -> [String]
+unmangleWikiArgs Nothing = []
+unmangleWikiArgs (Just x) = let
+  stripped = T.strip (T.pack x)
+  split = T.splitOn "/" stripped
+  in map T.unpack split
+
+test_unmangleWikiArgs_simple     =  unmangleWikiArgs (Just "foo/bar") == ["foo","bar"]
+test_unmangleWikiArgs_prespace   =  unmangleWikiArgs (Just "       foo/bar") == ["foo","bar"]
+test_unmangleWikiArgs_postspace  =  unmangleWikiArgs (Just "foo/bar   ") == ["foo","bar"]
+test_unmangleWikiArgs_nowt       =  unmangleWikiArgs Nothing == []
+
+tests = and
+ [ test_unmangleWikiArgs_simple
+ , test_unmangleWikiArgs_prespace
+ , test_unmangleWikiArgs_postspace
+ , test_unmangleWikiArgs_nowt
+ ]
 
 inline :: PandocMonad m => MoinParser m B.Inlines
 inline =  whitespace
@@ -347,8 +382,7 @@ spaceChars = " \n\t"
 ------------------------------------------------------------------------------
 -- debug functions for use in GHCi
 
-p1 :: Monoid a
-   => MoinParser PandocPure a -> T.Text -> Either ParseError a
+p1 :: MoinParser PandocPure a -> T.Text -> Either ParseError a
 p1 p' = fromRight (error "unhandled PandocError")
       . runPure
       . runParserT p' defaultMoinState "?"
