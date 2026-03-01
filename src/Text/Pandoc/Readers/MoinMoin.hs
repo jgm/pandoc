@@ -118,6 +118,10 @@ bulletListItem = try $ do
   spaces
   B.plain . B.trimInlines . mconcat <$> manyTill inline newline
 
+-- could use Text.Pandoc.Parsing.spaceChar??
+spaceNotNL :: PandocMonad m => MoinParser m Char
+spaceNotNL = satisfy (\c -> isSpace c && not (c == '\n'))
+
 -- block-level MoinMoin 'Parser'.
 -- Not to be confused with 'code' (inline)
 parser :: PandocMonad m => MoinParser m B.Blocks
@@ -127,15 +131,20 @@ parser = try $ do
   let len = length open
   guard (len >= 3)
 
+  pspec <- optionMaybe (try parserHashBang)
   many spaceNotNL
   char '\n'
 
   let delim = open2 ++ (take len (repeat '}'))
-  pre <- manyTillChar anyChar (closer delim)
-  return $ B.codeBlock pre
 
-  where -- could use Text.Pandoc.Parsing.spaceChar?
-    spaceNotNL = satisfy (\c -> isSpace c && not (c == '\n'))
+  case pspec of
+    Just (ParserWiki args) -> do
+      inner <- manyTill block (closer delim)
+      (return . B.divWith nullAttr . mconcat) inner
+        -- Left "?" (line 1, column 3): unexpected end of input
+    _ -> manyTillChar anyChar (closer delim) >>= return . B.codeBlock
+
+  where
     closer delim = try $ do
       char '\n'
       many spaceNotNL
@@ -157,11 +166,11 @@ data ParserSpec = ParserWiki [String]
                 deriving (Show)
 
 parserHashBang :: PandocMonad m => MoinParser m ParserSpec
-parserHashBang = try $ do
+parserHashBang = do
   string "#!"
   parserName <- many (satisfy isWordChar)
   parserArgs <- optionMaybe $ try $ do
-    many1 space
+    many1 spaceNotNL
     many1 (satisfy (/='\n'))
 
   return $ case parserName of
