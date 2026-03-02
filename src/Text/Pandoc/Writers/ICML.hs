@@ -44,6 +44,7 @@ type Hyperlink = [(Int, Text)]
 data WriterState = WriterState{
     blockStyles  :: Set.Set Text
   , inlineStyles :: Set.Set Text
+  , objectStyles :: Set.Set Text
   , links        :: Hyperlink
   , listDepth    :: Int
   , maxListDepth :: Int
@@ -55,6 +56,7 @@ defaultWriterState :: WriterState
 defaultWriterState = WriterState{
     blockStyles  = Set.empty
   , inlineStyles = Set.empty
+  , objectStyles = Set.empty
   , links        = []
   , listDepth    = 1
   , maxListDepth = 0
@@ -147,9 +149,10 @@ writeICML opts doc = do
              meta
   (main, st) <- runStateT (blocksToICML opts [] blocks) defaultWriterState
   let context = defField "body" main
-              $ defField "charStyles" (charStylesToDoc st)
-              $ defField "parStyles"  (parStylesToDoc st)
-              $ defField "hyperlinks" (hyperlinksToDoc $ links st) metadata
+              $ defField "charStyles"   (charStylesToDoc st)
+              $ defField "parStyles"    (parStylesToDoc st)
+              $ defField "objectStyles" (objectStylesToDoc st)
+              $ defField "hyperlinks"   (hyperlinksToDoc $ links st) metadata
   return $ render colwidth $
     (if writerPreferAscii opts then fmap toEntities else id) $
     case writerTemplate opts of
@@ -271,6 +274,16 @@ charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
                          then monospacedFont
                          else empty
       in  inTags True "CharacterStyle" ([("Self", "CharacterStyle/"<>s), ("Name", s)] ++ attrs') props
+
+-- | Convert a WriterState with its object styles to the ICML listing of Object Styles.
+objectStylesToDoc :: WriterState -> Doc Text
+objectStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ objectStyles st
+  where
+    makeStyle s =
+      let attrs = []
+          props = inTags True "Properties" [] $
+                    inTags False "BasedOn" [("type", "string")] (text "$ID/None")
+      in  inTags True "ObjectStyle" ([("Self", "ObjectStyle/"<>s), ("Name", s)] ++ attrs) props
 
 -- | Escape colon characters as %3a
 escapeColons :: Text -> Text
@@ -673,4 +686,9 @@ imageICML opts style attr (src, _) = do
                 maybe [] (\aos -> [("AppliedObjectStyle", "ObjectStyle/" <> aos)]) applyObjectStyle
               )
               (props $$ image)
-  state $ \st -> (doc, st{ inlineStyles = Set.insert stlStr $ inlineStyles st } )
+  state $ \st -> (doc, st{
+      inlineStyles = Set.insert stlStr $ inlineStyles st,
+      objectStyles = case applyObjectStyle of
+          Just styleName -> Set.insert styleName $ objectStyles st
+          Nothing        -> objectStyles st
+    })
