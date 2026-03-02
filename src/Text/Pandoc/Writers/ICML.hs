@@ -601,6 +601,10 @@ styleToStrAttr style =
       attrs = [("AppliedCharacterStyle", stl)]
   in  (stlStr, attrs)
 
+-- | Key for specifying user-defined object (image) styles
+appliedObjectStyleKey :: Text
+appliedObjectStyleKey = "applied-object-style"
+
 -- | Assemble an ICML Image.
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m (Doc Text)
 imageICML opts style attr (src, _) = do
@@ -647,19 +651,26 @@ imageICML opts style attr (src, _) = do
                 then mempty
                 else  selfClosingTag "Link" [("Self", "ueb"),
                                              ("LinkResourceURI", src')]
-      image  = inTags True "Image"
-                   [("Self","ue6"), ("ItemTransform", scale<>" -"<>hw<>" -"<>hh)]
-                 $ vcat [
-                     inTags True "Properties" [] $ vcat [
-                         inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
-                       , selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0")
-                         , ("Right",  showFl $ ow*ow / imgWidth)
-                         , ("Bottom", showFl $ oh*oh / imgHeight)]
-                       , contents
-                       ]
-                   , link
-                   ]
-      doc    = inTags True "CharacterStyleRange" attrs
-                 $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),
-                     ("ItemTransform", scale<>" "<>hw<>" -"<>hh)] (props $$ image)
+      (_,_,kvs) = attr
+      applyObjectStyle = lookup appliedObjectStyleKey kvs
+      image = inTags True "Image"
+            [("Self","ue6"), ("ItemTransform", scale <> " -" <> hw <> " -" <> hh)]
+            $ vcat [
+                inTags True "Properties" [] $ vcat [
+                    inTags True "Profile" [("type","string")] $ text "$ID/Embedded",
+                    selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0"),
+                    ("Right", showFl $ ow * ow / imgWidth),
+                    ("Bottom", showFl $ oh * oh / imgHeight)],
+                    contents
+                ],
+                link
+            ]
+      doc   = inTags True "CharacterStyleRange" attrs
+          $ inTags True "Rectangle"
+              ([("Self","uec"),
+                ("StrokeWeight", "0"),
+                ("ItemTransform", scale <> " " <> hw <> " -" <> hh)] ++
+                maybe [] (\aos -> [("AppliedObjectStyle", "ObjectStyle/" <> aos)]) applyObjectStyle
+              )
+              (props $$ image)
   state $ \st -> (doc, st{ inlineStyles = Set.insert stlStr $ inlineStyles st } )
