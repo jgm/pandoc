@@ -615,8 +615,8 @@ styleToStrAttr style =
   in  (stlStr, attrs)
 
 -- | Key for specifying user-defined object (image) styles
-appliedObjectStyleKey :: Text
-appliedObjectStyleKey = "applied-object-style"
+objectStyleKey :: Text
+objectStyleKey = "object-style"
 
 -- | Assemble an ICML Image.
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m (Doc Text)
@@ -665,7 +665,7 @@ imageICML opts style attr (src, _) = do
                 else  selfClosingTag "Link" [("Self", "ueb"),
                                              ("LinkResourceURI", src')]
       (_,_,kvs) = attr
-      applyObjectStyle = lookup appliedObjectStyleKey kvs
+      applyObjectStyle = lookup objectStyleKey kvs
       image = inTags True "Image"
             [("Self","ue6"), ("ItemTransform", scale <> " -" <> hw <> " -" <> hh)]
             $ vcat [
