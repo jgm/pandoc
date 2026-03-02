@@ -163,7 +163,7 @@ isWordChar c = isAlphaNum c || c  == '_'
 data ParserSpec = ParserWiki [String]
                 | ParserText
                 | ParserUnsupported
-                deriving (Show)
+                deriving (Show, Eq)
 
 parserHashBang :: PandocMonad m => MoinParser m ParserSpec
 parserHashBang = do
@@ -178,6 +178,11 @@ parserHashBang = do
     "text" -> ParserText
     ""     -> ParserText
     _      -> ParserUnsupported
+
+test_parserHashBang_noNL_in_args1 = p1 parserHashBang "#!wiki\nremaining" == Right (ParserWiki [])
+
+test_parserHashBang_noNL_in_args2 = p1 (parserHashBang >> many anyChar) "#!wiki\nremaining"
+  == Right "\nremaining"
 
 unmangleWikiArgs :: Maybe String -> [String]
 unmangleWikiArgs Nothing = []
@@ -196,6 +201,8 @@ tests = and
  , test_unmangleWikiArgs_prespace
  , test_unmangleWikiArgs_postspace
  , test_unmangleWikiArgs_nowt
+ , test_parserHashBang_noNL_in_args1
+ , test_parserHashBang_noNL_in_args2
  ]
 
 inline :: PandocMonad m => MoinParser m B.Inlines
