@@ -7717,6 +7717,14 @@ custom-style `span`.
 For docx or odt output, you don't need to enable any extensions for
 custom styles to work.
 
+For icml output, you can also set an `object-style` in images:
+
+    ![Image with object style](myImage.jpg){object-style="fixedSizeImage"}
+
+In InDesign you'll see that object style given to the image,
+and you'll be able to customize it, or load its definition from
+a template of yours.
+
 [pandoc filters]: https://pandoc.org/filters.html
 
 ## Input
