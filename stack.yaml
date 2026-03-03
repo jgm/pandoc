@@ -28,7 +28,7 @@ extra-deps:
 - git: https://github.com/jgm/typst-hs
   commit: 1e2ecd62451ddfc9139c680a3aa5fe2637299a7f
 - git: https://github.com/jgm/asciidoc-hs
-  commit: 16775c344b62daf6cfdc162200afc77cfb387468
+  commit: da6d8d1a063385631bf43b1ce0249e7442e49251
 - git: https://github.com/jgm/djoths
   commit: adbed8db6660f72659803ffc6091b2117fa948fb
 
