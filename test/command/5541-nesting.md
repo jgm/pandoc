@@ -48,9 +48,6 @@
     <RootCellStyleGroup Self="pandoc_cell_styles">
       <CellStyle Self="CellStyle/Cell" AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]" Name="Cell" />
     </RootCellStyleGroup>
-    <RootObjectStyleGroup Self="pandoc_object_styles">
-      
-    </RootObjectStyleGroup>
   <Story Self="pandoc_story"
       TrackChanges="false"
       StoryTitle=""
