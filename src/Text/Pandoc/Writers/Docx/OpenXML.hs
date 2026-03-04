@@ -229,11 +229,11 @@ sectionSeparator = do
     Nothing -> pure
       Nothing
 
--- | Convert Pandoc document to rendered document contents plus two lists of
--- OpenXML elements (footnotes and comments).
+-- | Convert Pandoc document to rendered document contents plus three lists of
+-- OpenXML elements (footnotes, endnotes and comments).
 writeOpenXML :: PandocMonad m
              => WriterOptions -> Pandoc
-             -> WS m (Text, [Element], [Element])
+             -> WS m (Text, [Element], [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
@@ -264,6 +264,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   doc' <- setFirstPara >> blocksToOpenXML opts blocks
   let body = vcat $ map (literal . showContent) doc'
   notes' <- gets (reverse . stFootnotes)
+  endnotes' <- gets (reverse . stEndnotes)
   comments <- gets (reverse . stComments)
   let toComment (kvs, ils) = do
         annotation <- inlinesToOpenXML opts ils
@@ -322,7 +323,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
               $ metadata
   tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
   let rendered = render Nothing $ renderTemplate tpl context
-  return (rendered, notes', comments')
+  return (rendered, notes', endnotes', comments')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]
@@ -755,6 +756,11 @@ inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
   withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
     inlinesToOpenXML opts ils
+inlineToOpenXML' opts (Span ("",["endnote"],[]) ils) = do
+  modify $ \s -> s { stInEndnote = True }
+  endnote <- inlinesToOpenXML opts ils
+  modify $ \s -> s { stInEndnote = False }
+  return endnote
 inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-left-margin"],[]) ils) =
@@ -905,28 +911,39 @@ inlineToOpenXML' opts (Code attrs str) = do
         Skylighting _ -> highlighted
         _ -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
+  isEndnote <- gets stInEndnote
   notes <- gets stFootnotes
   notenum <- getUniqueId
-  footnoteStyle <- rStyleM "Footnote Reference"
+  footnoteStyle <- rStyleM $ if isEndnote
+      then "Endnote Reference"
+      else "Footnote Reference"
+  let noteRefNodeName = if isEndnote then "w:endnoteRef" else "w:footnoteRef"
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] footnoteStyle
-                   , mknode "w:footnoteRef" [] () ]
+                   , mknode noteRefNodeName [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
       insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs
 
+  let noteTextStyleName = if isEndnote then "Endnote Text" else "Footnote Text"
   contents <- local (\env -> env{ envListLevel = -1
                                 , envParaProperties = mempty
                                 , envTextProperties = mempty
                                 , envInNote = True })
-              (withParaPropM (pStyleM "Footnote Text") $
+              (withParaPropM (pStyleM noteTextStyleName) $
                blocksToOpenXML opts $ insertNoteRef bs)
-  let newnote = mknode "w:footnote" [("w:id", notenum)] contents
-  modify $ \s -> s{ stFootnotes = newnote : notes }
+  let noteNodeName = if isEndnote then "w:endnote" else "w:footnote"
+  let newnote = mknode noteNodeName [("w:id", notenum)] contents
+  modify $ \s -> if isEndnote
+      then s{ stEndnotes = newnote : notes }
+      else s{ stFootnotes = newnote : notes }
+  let noteReferenceNodeName = if isEndnote
+      then "w:endnoteReference"
+      else "w:footnoteReference"
   return [ Elem $ mknode "w:r" []
            [ mknode "w:rPr" [] footnoteStyle
-           , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
+           , mknode noteReferenceNodeName [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt

@@ -123,7 +123,7 @@ writeDocx opts doc = do
                             [ mknode "w:numRestart" [("w:val","eachSect")] () ]
                           ]
 
-  ((contents, footnotes, comments), st) <- runStateT
+  ((contents, footnotes, endnotes, comments), st) <- runStateT
                          (runReaderT
                           (writeOpenXML opts{ writerWrapText = WrapNone }
                                         doc')
@@ -143,6 +143,8 @@ writeDocx opts doc = do
                        (BL.fromStrict $ UTF8.fromText contents)
   let footnotesEntry = mkFootnotesEntry epochtime footnotes
   let footnoteRelEntry = mkFootnoteRelsEntry epochtime (stExternalLinks st)
+  let endnotesEntry = mkEndnotesEntry epochtime endnotes
+  let endnoteRelEntry = mkEndnoteRelsEntry epochtime (stExternalLinks st)
   let commentsEntry = mkCommentsEntry epochtime comments
   let styleEntry = mkStylesEntry epochtime styledoc styleMaps st opts
   numEntry <- mkNumberingEntry refArchive distArchive epochtime (stLists st)
@@ -165,6 +167,7 @@ writeDocx opts doc = do
   let archive = foldr addEntryToArchive emptyArchive $
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
+                  endnoteRelEntry : endnotesEntry :
                   commentsEntry :
                   docPropsEntry : customPropsEntry :
                   settingsEntry :
@@ -569,6 +572,8 @@ extractRelationships refArchive distArchive = do
                       "theme/theme1.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
                       "footnotes.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
+                      "endnotes.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
                       "comments.xml")
                     ]
@@ -591,6 +596,26 @@ mkFootnoteRelsEntry epochtime externalLinks =
         ,("Target",src)
         ,("TargetMode","External")] ()
   in toEntry "word/_rels/footnotes.xml.rels" epochtime
+       $ renderXml $ mknode "Relationships"
+           [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
+           linkrels
+
+-- | Create endnotes XML entry
+mkEndnotesEntry :: Integer -> [Element] -> Entry
+mkEndnotesEntry epochtime endnotes =
+  let notes = mknode "w:endnotes" stdAttributes endnotes
+  in toEntry "word/endnotes.xml" epochtime $ renderXml notes
+
+-- | Create endnote relationships entry
+mkEndnoteRelsEntry :: Integer -> M.Map Text Text -> Entry
+mkEndnoteRelsEntry epochtime externalLinks =
+  let linkrels = map toLinkRel $ M.toList externalLinks
+      toLinkRel (src, ident) = mknode "Relationship"
+        [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
+        ,("Id",ident)
+        ,("Target",src)
+        ,("TargetMode","External")] ()
+  in toEntry "word/_rels/endnotes.xml.rels" epochtime
        $ renderXml $ mknode "Relationships"
            [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
            linkrels
@@ -663,6 +688,8 @@ mkContentTypesEntry epochtime imgs headers footers refArchive =
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml")
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
+                  ,("/word/endnotes.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml")
                   ] ++
                   map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
@@ -836,7 +863,8 @@ collectReferenceEntries refArchive distArchive headers footers = do
                        , "word/_rels/" `isPrefixOf` eRelativePath e
                        , ".xml.rels" `isSuffixOf` eRelativePath e
                        , eRelativePath e /= "word/_rels/document.xml.rels"
-                       , eRelativePath e /= "word/_rels/footnotes.xml.rels" ]
+                       , eRelativePath e /= "word/_rels/footnotes.xml.rels"
+                       , eRelativePath e /= "word/_rels/endnotes.xml.rels" ]
   let otherMediaEntries = [ e | e <- zEntries refArchive
                           , "word/media/" `isPrefixOf` eRelativePath e ]
   return $ docPropsAppEntry : themeEntry : fontTableEntry : webSettingsEntry

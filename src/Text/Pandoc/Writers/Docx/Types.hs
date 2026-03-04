@@ -111,6 +111,7 @@ defaultWriterEnv = WriterEnv
 
 data WriterState = WriterState{
          stFootnotes      :: [Element]
+       , stEndnotes       :: [Element]
        , stComments       :: [([(Text, Text)], [Inline])]
        , stSectionIds     :: Set.Set Text
        , stExternalLinks  :: M.Map Text Text
@@ -126,6 +127,7 @@ data WriterState = WriterState{
                                    --   Should only be used once, for the first paragraph.
        , stInTable        :: Bool
        , stInList         :: Bool
+       , stInEndnote      :: Bool
        , stTocTitle       :: [Inline]
        , stDynamicParaProps :: Set.Set ParaStyleName
        , stDynamicTextProps :: Set.Set CharStyleName
@@ -137,6 +139,7 @@ data WriterState = WriterState{
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
         stFootnotes      = defaultFootnotes
+      , stEndnotes       = defaultEndnotes
       , stComments       = []
       , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
@@ -151,6 +154,7 @@ defaultWriterState = WriterState{
       , stNumIdUsed      = False
       , stInTable        = False
       , stInList         = False
+      , stInEndnote      = False
       , stTocTitle       = [Str "Table of Contents"]
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
@@ -179,6 +183,10 @@ defaultFootnotes = [ mknode "w:footnote"
                      [ mknode "w:p" []
                        [ mknode "w:r" []
                          [ mknode "w:continuationSeparator" [] ()]]]]
+
+-- TODO: verify whether Word behaves the same with endnotes as it does with footnotes.
+defaultEndnotes :: [Element]
+defaultEndnotes = []
 
 pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do
