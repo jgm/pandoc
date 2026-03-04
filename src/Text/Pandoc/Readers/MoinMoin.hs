@@ -167,6 +167,7 @@ isWordChar c = isAlphaNum c || c  == '_'
 -- for now we only support wiki (moin native format) and plain text.
 data ParserSpec = ParserWiki [String]
                 | ParserText
+                | ParserHighlight T.Text
                 | ParserUnsupported
                 deriving (Show, Eq)
 
@@ -179,10 +180,18 @@ parserHashBang = do
     many1 (satisfy (/='\n'))
 
   return $ case parserName of
-    "wiki" -> ParserWiki (unmangleWikiArgs parserArgs)
-    "text" -> ParserText
-    ""     -> ParserText
-    _      -> ParserUnsupported
+    "wiki"   -> ParserWiki (unmangleWikiArgs parserArgs)
+    "text"   -> ParserText
+    "haskell"-> ParserHighlight (mmLangTopdLang "haskell")
+    ""       -> ParserText
+    _        -> ParserUnsupported
+
+-- map language names as recognised by MoinMoin to equivalents as
+-- recognised by Pandoc
+mmLangTopdLang :: String -> T.Text
+mmLangTopdLang s = case s of
+  "haskell" -> "haskell"
+  _         -> "unknown"
 
 test_parserHashBang_noNL_in_args1 = p1 parserHashBang "#!wiki\nremaining" == Right (ParserWiki [])
 

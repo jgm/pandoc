@@ -116,7 +116,11 @@ tests =
       , testCase "parserMultiLine"  $ "{{{\nhi\nthere\n}}}"       `readsTo` [CodeBlock nullAttr "hi\nthere"]
       , testCase "parser4delims"    $ "{{{{\nhi\n}}}}"            `readsTo` [CodeBlock nullAttr "hi"]
       , testCase "parserInnerDelim" $ "{{{{\n{{{hi}}}\n}}}}"      `readsTo` [CodeBlock nullAttr "{{{hi}}}"]
-      , testCase "parserCustomDelim"$"{{{badidea\nhi\nbadidea}}}" `readsTo` [CodeBlock nullAttr "hi"]
+      , testCase "parserCustomDelim"$ "{{{badidea\nhi\nbadidea}}}"`readsTo` [CodeBlock nullAttr "hi"]
+      , testGroup "parserHighlight"
+        [ testCase "parserHaskell"  $ "{{{#!haskell\nx = 1\n}}}"  `readsTo` [CodeBlock ("",["haskell"],[]) "x = 1"]
+
+        ]
       ]
     ]
   , testGroup "emptyDelims"
