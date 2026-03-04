@@ -106,6 +106,7 @@ writeDocx opts doc = do
 
   -- Phase 5: Relationship extraction
   (baserels, headers, footers, newMaxRelId) <- extractRelationships opts refArchive distArchive
+  (baserels, headers, footers, newMaxRelId) <- extractRelationships opts refArchive distArchive
 
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
@@ -138,6 +139,7 @@ writeDocx opts doc = do
   -- e.g. deleting the reference to footnotes.xml or removing default entries
   -- for image content types.
   let contentTypesEntry = mkContentTypesEntry epochtime imgs headers footers endnotes refArchive
+  let contentTypesEntry = mkContentTypesEntry epochtime imgs headers footers endnotes refArchive
   let relEntry = mkDocumentRelsEntry epochtime baserels imgs (stExternalLinks st)
   let contentEntry = toEntry "word/document.xml" epochtime
                        (BL.fromStrict $ UTF8.fromText contents)
@@ -167,6 +169,12 @@ writeDocx opts doc = do
   let archive = foldr addEntryToArchive emptyArchive $
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
+                  commentsEntry : docPropsEntry : customPropsEntry : settingsEntry :
+                  imageEntries
+                  ++ refEntries
+                  ++ if (isEnabled Ext_endnotes opts)
+                      then [endnoteRelEntry, endnotesEntry]
+                      else []
                   commentsEntry : docPropsEntry : customPropsEntry : settingsEntry :
                   imageEntries
                   ++ refEntries
@@ -530,7 +538,9 @@ extractPageLayout refArchive distArchive = do
 -- | Parse and augment relationships from reference.docx
 extractRelationships :: PandocMonad m
                      => WriterOptions -> Archive -> Archive
+                     => WriterOptions -> Archive -> Archive
                      -> m ([Element], [Element], [Element], Int)
+extractRelationships opts refArchive distArchive = do
 extractRelationships opts refArchive distArchive = do
   let isImageNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
   let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
@@ -559,6 +569,7 @@ extractRelationships opts refArchive distArchive = do
           _ -> (maxId, rels)
 
   let (newMaxRelId, baserels) = foldr addBaseRel (maxRelId, parsedRels) $
+  let (newMaxRelId, baserels) = foldr addBaseRel (maxRelId, parsedRels) $
                     [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
                       "numbering.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
@@ -575,6 +586,8 @@ extractRelationships opts refArchive distArchive = do
                       "footnotes.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
                       "comments.xml")
+                    ] ++ [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
+                                                    "endnotes.xml") | isEnabled Ext_endnotes opts]
                     ] ++ [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
                                                     "endnotes.xml") | isEnabled Ext_endnotes opts]
 
@@ -653,8 +666,10 @@ mkContentTypesEntry :: Integer
                     -> [Element]  -- headers
                     -> [Element]  -- footers
                     -> [Element]  -- endnotes
+                    -> [Element]  -- endnotes
                     -> Archive    -- refArchive
                     -> Entry
+mkContentTypesEntry epochtime imgs headers footers endnotes refArchive =
 mkContentTypesEntry epochtime imgs headers footers endnotes refArchive =
   let mkOverrideNode (part', contentType') = mknode "Override"
            [("PartName", T.pack part')
@@ -665,8 +680,8 @@ mkContentTypesEntry epochtime imgs headers footers endnotes refArchive =
       mkMediaOverride imgpath =
           mkOverrideNode ("/" <> imgpath, getMimeTypeDef imgpath)
       endnotesOverride = if null endnotes
-          then [("/word/endnotes.xml",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml")]
+          then map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml")) endnotes
           else []
 
       overrides = map mkOverrideNode (
@@ -695,6 +710,7 @@ mkContentTypesEntry epochtime imgs headers footers endnotes refArchive =
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
                   ] ++
+                  endnotesOverride ++
                   endnotesOverride ++
                   map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
@@ -755,6 +771,7 @@ mkStylesEntry epochtime styledoc styleMaps st opts =
         (\sty -> not $ hasStyleName sty $ smCharStyle styleMaps)
         (Set.toList $ stDynamicTextProps st)
 
+      -- TODO: add styles for endnotes, when Ext_endnotes is enabled
       -- TODO: add styles for endnotes, when Ext_endnotes is enabled
       newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
