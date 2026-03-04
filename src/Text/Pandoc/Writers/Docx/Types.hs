@@ -185,8 +185,19 @@ defaultFootnotes = [ mknode "w:footnote"
                          [ mknode "w:continuationSeparator" [] ()]]]]
 
 -- TODO: verify whether Word behaves the same with endnotes as it does with footnotes.
+-- For now, let's do the same as for footnotes
 defaultEndnotes :: [Element]
-defaultEndnotes = []
+-- defaultEndnotes = []
+defaultEndnotes = [ mknode "w:endnote"
+                     [("w:type", "separator"), ("w:id", "-1")]
+                     [ mknode "w:p" []
+                       [mknode "w:r" []
+                        [ mknode "w:separator" [] ()]]]
+                   , mknode "w:endnote"
+                     [("w:type", "continuationSeparator"), ("w:id", "0")]
+                     [ mknode "w:p" []
+                       [ mknode "w:r" []
+                         [ mknode "w:continuationSeparator" [] ()]]]]
 
 pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do

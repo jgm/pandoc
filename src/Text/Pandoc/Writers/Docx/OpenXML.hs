@@ -756,11 +756,13 @@ inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
   withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
     inlinesToOpenXML opts ils
-inlineToOpenXML' opts (Span ("",["endnote"],[]) ils) = do
-  modify $ \s -> s { stInEndnote = True }
-  endnote <- inlinesToOpenXML opts ils
-  modify $ \s -> s { stInEndnote = False }
-  return endnote
+inlineToOpenXML' opts (Span ("",["endnote"],[]) ils) = if isEnabled Ext_endnotes opts
+  then (do
+      modify $ \s -> s { stInEndnote = isEnabled Ext_endnotes opts }
+      endnote <- inlinesToOpenXML opts ils
+      modify $ \s -> s { stInEndnote = False }
+      return endnote)
+  else inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-left-margin"],[]) ils) =
@@ -847,11 +849,13 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
               langmod $ inlinesToOpenXML opts ils
   wrapBookmark ident contents
 inlineToOpenXML' opts (Strong lst) =
-  withTextProp (mknode "w:bCs" [] ()) $ -- needed for LTR, #6911
+  withTextProp (mknode "w:bCs" [] ()) $ -- needed for LTR, #6911 -- needed for LTR, #6911
+   -- needed for LTR, #6911
   withTextProp (mknode "w:b" [] ()) $
   inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Emph lst) =
-  withTextProp (mknode "w:iCs" [] ()) $  -- needed for LTR, #6911
+  withTextProp (mknode "w:iCs" [] ()) $  -- needed for LTR, #6911  -- needed for LTR, #6911
+    -- needed for LTR, #6911
   withTextProp (mknode "w:i" [] ()) $
   inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Underline lst) =
@@ -912,7 +916,7 @@ inlineToOpenXML' opts (Code attrs str) = do
         _ -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   isEndnote <- gets stInEndnote
-  notes <- gets stFootnotes
+  notes <- gets $ if isEndnote then stEndnotes else stFootnotes
   notenum <- getUniqueId
   footnoteStyle <- rStyleM $ if isEndnote
       then "Endnote Reference"
