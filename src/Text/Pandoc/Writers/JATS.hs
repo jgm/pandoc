@@ -360,11 +360,21 @@ blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "tab
   return $ inTags True cls attr contents
 blockToJATS opts (Div (ident,_,kvs) bs) = do
   contents <- blocksToJATS opts bs
-  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
-             [("xml:lang",l) | ("lang",l) <- kvs] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
-                 "content-type", "orientation", "position"]]
-  return $ inTags True "boxed-text" attr contents
+  -- Attributes that are allowed on both @<p>@ and @<boxed-text>@ elements
+  let generic_attr = [("id", escapeNCName ident) | not (T.null ident)] ++
+                     [("xml:lang",l) | ("lang",l) <- kvs] ++
+                     [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
+                                                      "content-type"]]
+  let boxed_attr = [(k,v) | (k,v) <- kvs, k `elem` ["orientation", "position"]]
+  let attr = generic_attr <> boxed_attr
+  return $
+    if null attr
+    then contents
+    else -- The contents must be wrapped in an appropriate element.
+      let element = if null boxed_attr
+                    then "p"
+                    else "boxed-text"
+      in inTags True element (generic_attr <> boxed_attr) contents
 blockToJATS opts (Header _ _ title) = do
   title' <- inlinesToJATS opts (map fixLineBreak title)
   return $ inTagsSimple "title" title'
