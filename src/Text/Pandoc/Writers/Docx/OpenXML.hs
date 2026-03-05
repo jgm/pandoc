@@ -756,7 +756,7 @@ inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
   withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
     inlinesToOpenXML opts ils
-inlineToOpenXML' opts (Span ("",["endnote"],[]) ils) = if isEnabled Ext_endnotes opts
+inlineToOpenXML' opts (Span (_,["endnote"],_) ils) = if isEnabled Ext_endnotes opts
   then (do
       modify $ \s -> s { stInEndnote = isEnabled Ext_endnotes opts }
       endnote <- inlinesToOpenXML opts ils
