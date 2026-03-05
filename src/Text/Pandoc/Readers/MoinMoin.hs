@@ -142,6 +142,11 @@ parser = try $ do
       inner <- manyTill block (closer delim)
       (return . B.divWith nullAttr . mconcat) inner
         -- Left "?" (line 1, column 3): unexpected end of input
+
+    Just (ParserHighlight lang) -> do
+      let attr = ("", [lang], [])
+      manyTillChar anyChar (closer delim) >>= return . B.codeBlockWith attr
+
     _ -> manyTillChar anyChar (closer delim) >>= return . B.codeBlock
 
   where
@@ -332,6 +337,7 @@ endline = try $ do
   newline
   notFollowedBy blankline
   notFollowedBy (string "##")
+  notFollowedBy (string "}}}") -- to avoid breaking Parser
   (eof >> return mempty)
     <|> (skipMany spaceChar >> return B.softbreak)
 
