@@ -2060,6 +2060,9 @@ image = try $ do
                    _  -> B.imageWith attr' src
        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
+endnotePrefix :: Text
+endnotePrefix = "EN"
+
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
   guardEnabled Ext_footnotes
@@ -2082,7 +2085,10 @@ note = try $ do
           let adjustCite (Cite cs ils) =
                 Cite (map addCitationNoteNum cs) ils
               adjustCite x = x
-          return $ B.note $ walk adjustCite contents'
+          let isEndnoteEnabled = isEnabled Ext_endnotes $ stateOptions st
+          return $ if isEndnoteEnabled && endnotePrefix `T.isPrefixOf` ref
+            then B.spanWith ("", ["endnote"], []) $ B.note $ walk adjustCite contents'
+            else B.note $ walk adjustCite contents'
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)
 inlineNote = do
