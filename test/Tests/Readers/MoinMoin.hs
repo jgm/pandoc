@@ -119,7 +119,9 @@ tests =
       , testCase "parserCustomDelim"$ "{{{badidea\nhi\nbadidea}}}"`readsTo` [CodeBlock nullAttr "hi"]
       , testGroup "parserHighlight"
         [ testCase "parserHaskell"  $ "{{{#!haskell\nx = 1\n}}}"  `readsTo` [CodeBlock ("",["haskell"],[]) "x = 1"]
-
+        ]
+      , testGroup "parserWiki"
+        [ testCase "wikiClass" $ "{{{#!wiki red\nfoo\n}}}" `readsTo` [Div ("",["red"],[]) [Para [Str "foo"] ] ]
         ]
       ]
     ]

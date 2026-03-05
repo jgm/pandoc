@@ -140,8 +140,8 @@ parser = try $ do
   case pspec of
     Just (ParserWiki args) -> do
       inner <- manyTill block (closer delim)
-      (return . B.divWith nullAttr . mconcat) inner
-        -- Left "?" (line 1, column 3): unexpected end of input
+      let attr = ("", args, [])
+      (return . B.divWith attr . mconcat) inner
 
     Just (ParserHighlight lang) -> do
       let attr = ("", [lang], [])
@@ -165,7 +165,7 @@ isWordChar c = isAlphaNum c || c  == '_'
 -- C++, diff, IRC(irssi), java, pascal, python:
 --
 -- for now we only support wiki (moin native format) and plain text.
-data ParserSpec = ParserWiki [String]
+data ParserSpec = ParserWiki [T.Text]
                 | ParserText
                 | ParserHighlight T.Text
                 | ParserUnsupported
@@ -198,12 +198,9 @@ test_parserHashBang_noNL_in_args1 = p1 parserHashBang "#!wiki\nremaining" == Rig
 test_parserHashBang_noNL_in_args2 = p1 (parserHashBang >> many anyChar) "#!wiki\nremaining"
   == Right "\nremaining"
 
-unmangleWikiArgs :: Maybe String -> [String]
+unmangleWikiArgs :: Maybe String -> [T.Text]
 unmangleWikiArgs Nothing = []
-unmangleWikiArgs (Just x) = let
-  stripped = T.strip (T.pack x)
-  split = T.splitOn "/" stripped
-  in map T.unpack split
+unmangleWikiArgs (Just x) = (T.splitOn "/" . T.strip . T.pack) x
 
 test_unmangleWikiArgs_simple     =  unmangleWikiArgs (Just "foo/bar") == ["foo","bar"]
 test_unmangleWikiArgs_prespace   =  unmangleWikiArgs (Just "       foo/bar") == ["foo","bar"]
