@@ -534,7 +534,6 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList
     [ Ext_empty_paragraphs
-    , Ext_endnotes
     , Ext_native_numbering
     , Ext_styles
     , Ext_citations
