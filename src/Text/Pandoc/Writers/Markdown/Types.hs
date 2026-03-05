@@ -58,14 +58,16 @@ instance Default WriterEnv
                         , envEscapeSpaces    = False
                         }
 
-data WriterState = WriterState { stNotes   :: Notes
-                               , stPrevRefs :: Refs
-                               , stRefs    :: Refs
-                               , stKeys    :: M.Map Key
-                                                (M.Map (Target, Attr) Int)
-                               , stLastIdx  :: Int
-                               , stIds     :: Set.Set Text
-                               , stNoteNum :: Int
+data WriterState = WriterState { stNotes      :: Notes
+                               , stPrevRefs   :: Refs
+                               , stRefs       :: Refs
+                               , stKeys       :: M.Map Key
+                                                  (M.Map (Target, Attr) Int)
+                               , stLastIdx    :: Int
+                               , stIds        :: Set.Set Text
+                               , stNoteNum    :: Int
+                               , stEndnotes   :: Notes
+                               , stEndnoteNum :: Int
                                }
 
 instance Default WriterState
@@ -76,4 +78,6 @@ instance Default WriterState
                          , stLastIdx = 0
                          , stIds = Set.empty
                          , stNoteNum = 1
+                         , stEndnotes = []
+                         , stEndnoteNum = 1
                          }
