@@ -88,7 +88,7 @@ It can convert *from*
 - `native` (native Haskell)
 - `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
-- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `opml` ([OPML](https://opml.org/spec2.opml))
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `pod` (Perl’s [Plain Old
   Documentation](https://perldoc.perl.org/perlpod))
@@ -206,7 +206,7 @@ It can convert *to*
 - `native` (native Haskell)
 - `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
-- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `opml` ([OPML](https://opml.org/spec2.opml))
 - `opendocument` ([OpenDocument
   XML](https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/))
 - `org` ([Emacs Org mode](https://orgmode.org))
