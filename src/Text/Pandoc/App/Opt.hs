@@ -45,6 +45,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc),
+                            defaultEndnotesPrefix,
                             pattern DefaultHighlightingString)
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
@@ -156,6 +157,7 @@ data Opt = Opt
     , optFilters               :: [Filter] -- ^ Filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: Text
+    , optEndnotesPrefix        :: Text       -- ^ With endnotes extension, the endnotes refs' prefix
     , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
@@ -243,6 +245,7 @@ instance FromJSON Opt where
        <*> o .:? "filters" .!= optFilters defaultOpts
        <*> o .:? "email-obfuscation" .!= optEmailObfuscation defaultOpts
        <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
+       <*> o .:? "endnotes-prefix" .!= optEndnotesPrefix defaultOpts
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
        <*> o .:? "data-dir"
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
@@ -653,6 +656,9 @@ doOpt (k,v) = do
     "identifier-prefix" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIdentifierPrefix = x })
+    "endnotes-prefix" ->
+      parseJSON v >>= \x ->
+             return (\o -> o{ optEndnotesPrefix = x })
     "indented-code-classes" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIndentedCodeClasses = x })
@@ -820,6 +826,7 @@ defaultOpts = Opt
     , optFilters               = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
+    , optEndnotesPrefix        = defaultEndnotesPrefix
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc

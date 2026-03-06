@@ -882,11 +882,17 @@ options =
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
 
-     , Option "" ["id-prefix"]
-                  (ReqArg
-                   (\arg opt -> return opt { optIdentifierPrefix = T.pack arg })
+    , Option "" ["id-prefix"]
+                 (ReqArg
+                  (\arg opt -> return opt { optIdentifierPrefix = T.pack arg })
                    "STRING")
                   "" -- "Prefix to add to automatically generated HTML identifiers"
+
+    , Option "" ["endnotes-prefix"]
+                 (ReqArg
+                  (\arg opt -> return opt { optEndnotesPrefix = T.pack arg })
+                   "STRING")
+                  "" -- "Prefix to add to endnotes or to be used to discriminate between footnote and endnote refs (only with endnotes extension)"
 
     , Option "T" ["title-prefix"]
                  (ReqArg

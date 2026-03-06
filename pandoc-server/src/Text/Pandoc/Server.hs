@@ -304,6 +304,7 @@ server = convertBytes
                             optDefaultImageExtension opts
                         , readerTrackChanges = optTrackChanges opts
                         , readerStripComments = optStripComments opts
+                        , readerEndnotesPrefix = optEndnotesPrefix opts
                         }
 
     let writeropts = WriterOptions
@@ -326,6 +327,7 @@ server = convertBytes
              , writerDpi = optDpi opts
              , writerEmailObfuscation = optEmailObfuscation opts
              , writerIdentifierPrefix = optIdentifierPrefix opts
+             , writerEndnotesPrefix = optEndnotesPrefix opts
              , writerCiteMethod = optCiteMethod opts
              , writerHtmlQTags = optHtmlQTags opts
              , writerSlideLevel = optSlideLevel opts
