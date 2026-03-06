@@ -1268,6 +1268,16 @@ header when requesting a document from a URL:
     and Haddock output. This is useful for preventing duplicate
     identifiers when generating fragments to be included in other pages.
 
+`--endnotes-prefix=`*STRING*
+
+:   It's used with Markdown, only when the `endnotes` extension is enabled.
+    The Markdown reader uses it to discriminate between footnotes (normal 
+    notes) and endnotes, which internally are coded as notes embedded in a
+    `Span` with the class "endnote".
+    It's also used by the Markdown writer as a prefix for all the endnotes'
+    references.
+    Its default value is "EN".
+
 `-T` *STRING*, `--title-prefix=`*STRING*
 
 :   Specify *STRING* as a prefix at the beginning of the title
@@ -5922,6 +5932,59 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
     note.]
 
 Inline and regular footnotes may be mixed freely.
+
+## Endnotes
+
+You can use the following convention to specify endnotes: surround a
+footnote with a `Span` of class "endnote", like this:
+
+    Here' and endnote[[^1]]{.endnote}.
+
+    [^1]: This is the endnote text.
+
+When a reader or a writer does not know about this convention, those
+notes are just regular footnotes, just with a transparent `Span` wrapper
+around them. 
+
+### Extension: `endnotes` ###
+
+Enabling this extension tells some readers and writers to use that
+convention to distinguish endnotes from footnotes.
+
+The markdown reader lets you specify endnotes in a lighter way:
+
+    Here' and endnote[^EN1].
+
+    [^EN1]: This is the endnote text.
+
+because "EN" is the default prefix for endnotes; when the reader meets
+a note reference starting with "EN", it wraps the note in a `Span` with
+the "endnote" class.
+That prefix can be set with the `--endnotes-prefix` option.
+
+The markdown writer prepends the endnotes' references with that prefix.
+Moreover, it lists all the footnotes' texts followed by the endnotes'
+texts at the end of the document:
+
+    A document with an endnote[[^1]]{.endnote}, a footnote[^2],
+    and another endnote[[^3]]{.endnote}.
+
+    [^1]: First endnote.
+
+    [^2]: First footnote.
+
+    [^3]: Second endnote.
+
+When you convert it with `-t markdown+endnotes` it becomes:
+
+    A document with an endnote[^EN1], a footnote[^1],
+    and another endnote[^EN2].
+
+    [^1]: First footnote.
+
+    [^EN1]: First endnote.
+
+    [^EN2]: Second endnote.
 
 ## Citation syntax
 
