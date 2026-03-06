@@ -340,6 +340,11 @@ isEndnoteSpan :: WriterOptions -> Attr -> Bool
 isEndnoteSpan opts (_, ["endnote"], _) = isEnabled Ext_endnotes opts
 isEndnoteSpan _ _                      = False
 
+attrWithoutEndnoteClass :: WriterOptions -> Attr -> Attr
+attrWithoutEndnoteClass opts attr = case (attr, isEnabled Ext_endnotes opts) of
+  ((ident, ["endnote"], attributes), True) -> (ident, [], attributes)
+  _ -> attr
+
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
 inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
@@ -364,12 +369,13 @@ inlineToMarkdown opts (Span attrs ils) = do
          $ case variant of
                 PlainText -> contents
                 Markua -> "`" <> contents <> "`" <> attrsToMarkua opts attrs
-                _     | attrs == nullAttr -> contents
+                _     | nullAttr == attrWithoutEndnoteClass opts attrs -> contents
                       | isEnabled Ext_bracketed_spans opts ->
-                        let attrs' = if attrs /= nullAttr
-                                        then attrsToMarkdown opts attrs
+                        let attrs'  = attrWithoutEndnoteClass opts attrs
+                            attrs'' = if attrs' /= nullAttr
+                                        then attrsToMarkdown opts attrs'
                                         else empty
-                        in "[" <> contents <> "]" <> attrs'
+                        in "[" <> contents <> "]" <> attrs''
                       | isEnabled Ext_raw_html opts ||
                         isEnabled Ext_native_spans opts ->
                         tagWithAttrs "span" attrs <> contents <> literal "</span>"
