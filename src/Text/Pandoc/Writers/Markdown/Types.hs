@@ -66,6 +66,7 @@ data WriterState = WriterState { stNotes      :: Notes
                                , stLastIdx    :: Int
                                , stIds        :: Set.Set Text
                                , stNoteNum    :: Int
+                               , stInEndnote  :: Bool
                                , stEndnotes   :: Notes
                                , stEndnoteNum :: Int
                                }
@@ -78,6 +79,7 @@ instance Default WriterState
                          , stLastIdx = 0
                          , stIds = Set.empty
                          , stNoteNum = 1
+                         , stInEndnote = False
                          , stEndnotes = []
                          , stEndnoteNum = 1
                          }

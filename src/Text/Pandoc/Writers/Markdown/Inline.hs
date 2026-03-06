@@ -335,6 +335,11 @@ avoidBadWraps inListItem = go . toList
   toList (Concat a b) = a : toList b
   toList x = [x]
 
+-- check if the Attr of a Span makes the embedded Note an endnote
+isEndnoteSpan :: WriterOptions -> Attr -> Bool
+isEndnoteSpan opts (_, ["endnote"], _) = isEnabled Ext_endnotes opts
+isEndnoteSpan _ _                      = False
+
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
 inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
@@ -347,8 +352,10 @@ inlineToMarkdown opts (Span ("",["mark"],[]) ils)
     = do contents <- inlineListToMarkdown opts ils
          return $ "==" <> contents <> "=="
 inlineToMarkdown opts (Span attrs ils) = do
+  modify (\s -> s {stInEndnote = isEndnoteSpan opts attrs})
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts ils
+  modify (\s -> s {stInEndnote = False})
   return $ case attrs of
              (_,["csl-block"],_) -> (cr <>)
              (_,["csl-left-margin"],_) -> (cr <>)
@@ -723,12 +730,19 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
                             literal source <> ")" <> cr
                 _ -> "!" <> linkPart
 inlineToMarkdown opts (Note contents) = do
-  modify (\st -> st{ stNotes = contents : stNotes st })
+  inEndnote <- stInEndnote <$> get
+  if inEndnote
+      then modify (\st -> st{ stEndnotes = contents : stEndnotes st })
+      else modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = literal $ writerIdentifierPrefix opts <> tshow (stNoteNum st + length (stNotes st) - 1)
+  let ref = if inEndnote
+      then literal $ writerEndnotesPrefix opts
+                  <> writerIdentifierPrefix opts
+                  <> tshow (stEndnoteNum st + length (stEndnotes st) - 1)
+      else literal $ writerIdentifierPrefix opts <> tshow (stNoteNum st + length (stNotes st) - 1)
   if isEnabled Ext_footnotes opts
-     then return $ "[^" <> ref <> "]"
-     else return $ "[" <> ref <> "]"
+      then return $ "[^" <> ref <> "]"
+      else return $ "[" <> ref <> "]"
 
 makeMathPlainer :: [Inline] -> [Inline]
 makeMathPlainer = walk go
