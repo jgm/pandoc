@@ -764,6 +764,7 @@ library
                    Text.Pandoc.Readers.Mdoc.Lex,
                    Text.Pandoc.Readers.Mdoc.Macros,
                    Text.Pandoc.Readers.Mdoc.Standards,
+                   Text.Pandoc.Readers.MoinMoin.Highlight,
                    Text.Pandoc.Readers.Typst.Parsing,
                    Text.Pandoc.Readers.Typst.Math,
                    Text.Pandoc.Readers.ODT.Base,

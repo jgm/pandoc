@@ -18,11 +18,13 @@ module Text.Pandoc.Readers.MoinMoin( readMoinMoin ) where
 import Control.Monad (guard)
 import Control.Monad.Except (throwError)
 import Data.Char -- isUpper, isAlphaNum
+import Data.Maybe (fromMaybe)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Class (runPure, PandocPure (..)) -- debug
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing
+import Text.Pandoc.Readers.MoinMoin.Highlight
 import qualified Text.Pandoc.Builder as B
 import qualified Data.Text as T
 import Data.Either (fromRight)
@@ -179,19 +181,24 @@ parserHashBang = do
     many1 spaceNotNL
     many1 (satisfy (/='\n'))
 
-  return $ case parserName of
-    "wiki"   -> ParserWiki (unmangleWikiArgs parserArgs)
-    "text"   -> ParserText
-    "haskell"-> ParserHighlight (mmLangTopdLang "haskell")
-    ""       -> ParserText
-    _        -> ParserUnsupported
+  let tParserName = T.pack parserName
 
--- map language names as recognised by MoinMoin to equivalents as
--- recognised by Pandoc
-mmLangTopdLang :: String -> T.Text
-mmLangTopdLang s = case s of
-  "haskell" -> "haskell"
-  _         -> "unknown"
+  return $ case parserName of
+      "wiki"      -> ParserWiki (unmangleWikiArgs parserArgs)
+
+      "highlight" -> ParserHighlight (highlightArgs parserArgs)
+      -- these are pre Moin-1.9 shortcuts to highlight
+      "diff"      -> ParserHighlight "diff"
+      "cplusplus" -> ParserHighlight "cpp"
+      "python"    -> ParserHighlight "python"
+      "java"      -> ParserHighlight "java"
+      -- no sensible Pandoc highlighter to map these to
+      "pascal"    -> ParserHighlight "default"
+      "irc"       -> ParserHighlight "default"
+
+      "text"      -> ParserText
+      ""          -> ParserText
+      _           -> ParserUnsupported
 
 test_parserHashBang_noNL_in_args1 = p1 parserHashBang "#!wiki\nremaining" == Right (ParserWiki [])
 
@@ -201,6 +208,10 @@ test_parserHashBang_noNL_in_args2 = p1 (parserHashBang >> many anyChar) "#!wiki\
 unmangleWikiArgs :: Maybe String -> [T.Text]
 unmangleWikiArgs Nothing = []
 unmangleWikiArgs (Just x) = (T.splitOn "/" . T.strip . T.pack) x
+
+highlightArgs :: Maybe String -> T.Text
+highlightArgs Nothing  = "default"
+highlightArgs (Just a) = (fromMaybe "default" . mmLangTopdLang . T.pack) a
 
 test_unmangleWikiArgs_simple     =  unmangleWikiArgs (Just "foo/bar") == ["foo","bar"]
 test_unmangleWikiArgs_prespace   =  unmangleWikiArgs (Just "       foo/bar") == ["foo","bar"]

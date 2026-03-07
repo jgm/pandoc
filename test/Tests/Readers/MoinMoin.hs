@@ -118,7 +118,12 @@ tests =
       , testCase "parserInnerDelim" $ "{{{{\n{{{hi}}}\n}}}}"      `readsTo` [CodeBlock nullAttr "{{{hi}}}"]
       , testCase "parserCustomDelim"$ "{{{badidea\nhi\nbadidea}}}"`readsTo` [CodeBlock nullAttr "hi"]
       , testGroup "parserHighlight"
-        [ testCase "parserHaskell"  $ "{{{#!haskell\nx = 1\n}}}"  `readsTo` [CodeBlock ("",["haskell"],[]) "x = 1"]
+        [ testCase "parserHaskell1"  $ "{{{#!highlight haskell\nx = 1\n}}}"  `readsTo` [CodeBlock ("",["haskell"],[]) "x = 1"]
+        , testCase "parserHaskell2"  $ "{{{#!highlight hs\nx = 1\n}}}"  `readsTo` [CodeBlock ("",["haskell"],[]) "x = 1"]
+        , testCase "hlightShortcut1" $ "{{{#!java\nfoo\n}}}" `readsTo` [CodeBlock ("",["java"],[]) "foo"]
+        , testCase "hlightShortcut2" $ "{{{#!irc\nfoo\n}}}" `readsTo` [CodeBlock ("",["default"],[]) "foo"]
+        , testCase "hlightEmpty"     $ "{{{#!highlight\nfoo\n}}}" `readsTo` [CodeBlock ("",["default"],[]) "foo"]
+
         ]
       , testGroup "parserWiki"
         [ testCase "wikiClass" $ "{{{#!wiki red\nfoo\n}}}" `readsTo` [Div ("",["red"],[]) [Para [Str "foo"] ] ]
