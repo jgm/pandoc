@@ -237,6 +237,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
         , readerAbbreviations = abbrevs
         , readerExtensions = readerExts
         , readerStripComments = optStripComments opts
+        , readerEndnotesPrefix = optEndnotesPrefix opts
         }
 
   metadataFromFile <- getMetadataFromFiles readerNameBase readerOpts

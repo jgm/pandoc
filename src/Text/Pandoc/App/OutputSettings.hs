@@ -253,6 +253,7 @@ optToOutputSettings scriptingEngine opts = do
         , writerColumns          = optColumns opts
         , writerEmailObfuscation = optEmailObfuscation opts
         , writerIdentifierPrefix = optIdentifierPrefix opts
+        , writerEndnotesPrefix   = optEndnotesPrefix opts
         , writerHtmlQTags        = optHtmlQTags opts
         , writerTopLevelDivision = optTopLevelDivision opts
         , writerSlideLevel       = optSlideLevel opts
