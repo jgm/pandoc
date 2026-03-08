@@ -1,0 +1,22 @@
+== 2022 ==
+
+git pull firstrepo master
+git push origin
+cabal install --overwrite-policy=always
+
+cabal build
+
+cabal install -fembed_data_files
+
+== 2026 ==
+
+--cabal update--
+
+stack setup
+stack upgrade
+stack setup
+stack build
+stack install
+
+copy to ~/.local/bin/pandoc
+
