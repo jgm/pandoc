@@ -585,7 +585,7 @@ library
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.4,
                  network               >= 2.6      && < 3.3,
-                 tls                   >= 2.0.1    && < 2.2
+                 tls                   >= 2.0.1    && < 2.3
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
