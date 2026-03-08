@@ -45,6 +45,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
+import Text.Pandoc.Writers.StarMath (writeStarMath)
 import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
@@ -299,11 +300,15 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
 transformPicMath _ (Math t math) = do
   entries <- gets stEntries
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
-  case writeMathML dt <$> readTeX math of
+  case readTeX math of
        Left  _ -> return $ Math t math
-       Right r -> do
+       Right exps -> do
          let conf = XL.useShortEmptyTags (const False) XL.defaultConfigPP
-         let mathml = XL.ppcTopElement conf r
+         let starMath =
+               writeStarMath dt exps <> "\n" <> starMathCommentFromTeX math
+         let mathmlElement =
+               addStarMathAnnotation starMath (writeMathML dt exps)
+         let mathml = XL.ppcTopElement conf mathmlElement
          epochtime <- floor `fmap` lift P.getPOSIXTime
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
@@ -327,6 +332,47 @@ transformPicMath _ (Math t math) = do
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ x = return x
+
+starMathCommentFromTeX :: T.Text -> T.Text
+starMathCommentFromTeX tex =
+  case T.lines normalized of
+    []       -> "%% TeX:"
+    (l : ls) ->
+      T.intercalate "\n" (("%% TeX: " <> l) : map ("%% " <>) ls)
+ where
+  normalized = T.replace "\r\n" "\n" (T.replace "\r" "\n" tex)
+
+addStarMathAnnotation :: T.Text -> XL.Element -> XL.Element
+addStarMathAnnotation starMath e =
+  case XL.elContent e of
+    [XL.Elem sem] | XL.qName (XL.elName sem) == "semantics" ->
+      e { XL.elContent = [XL.Elem (withAnnotation sem)] }
+    _ ->
+      e { XL.elContent = [XL.Elem (mkSemantics (XL.elContent e))] }
+ where
+  mkSemantics cs =
+    XL.Element (mkMathQName "semantics") [] (cs ++ [XL.Elem annotation]) Nothing
+
+  withAnnotation sem =
+    sem { XL.elContent =
+            filter (not . isStarMathAnnotation) (XL.elContent sem)
+            ++ [XL.Elem annotation] }
+
+  annotation =
+    XL.Element (mkMathQName "annotation")
+      [XL.Attr (XL.QName "encoding" Nothing Nothing) "StarMath 5.0"]
+      [XL.Text (XL.CData XL.CDataText (T.unpack starMath) Nothing)]
+      Nothing
+
+  isStarMathAnnotation (XL.Elem el) =
+    XL.qName (XL.elName el) == "annotation" &&
+    any (\a -> XL.qName (XL.attrKey a) == "encoding"
+               && XL.attrVal a == "StarMath 5.0")
+        (XL.elAttribs el)
+  isStarMathAnnotation _ = False
+
+  mkMathQName n =
+    XL.QName n (XL.qURI $ XL.elName e) (XL.qPrefix $ XL.elName e)
 
 documentSettings :: Bool -> B.ByteString
 documentSettings isTextMode = fromStringLazy $ render Nothing

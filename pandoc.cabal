@@ -682,6 +682,7 @@ library
                    Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.CslJson,
                    Text.Pandoc.Writers.Math,
+                   Text.Pandoc.Writers.StarMath,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Writers.AnnotatedTable,
@@ -849,6 +850,7 @@ test-suite test-pandoc
                   tasty-hunit       >= 0.9     && < 0.11,
                   tasty-quickcheck  >= 0.8     && < 0.12,
                   text              >= 1.1.1.0 && < 2.2,
+                  texmath           >= 0.13.1   && < 0.14,
                   temporary         >= 1.1     && < 1.4,
                   time              >= 1.5     && < 1.16,
                   xml               >= 1.3.12  && < 1.4,
@@ -913,6 +915,7 @@ test-suite test-pandoc
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
                   Tests.Writers.Ms
+                  Tests.Writers.StarMath
                   Tests.Writers.AnnotatedTable
                   Tests.Writers.BBCode
 
