@@ -376,6 +376,46 @@ lineBlockDirective body = do
   return $ B.lineBlock lines'
 
 --
+-- raw directive
+--
+-- See https://docutils.sourceforge.io/docs/ref/rst/directives.html#raw-data-pass-through
+
+rawDirective :: PandocMonad m
+                 => Text
+                 -> [(Text, Text)]
+                 -> Text
+                 -> RSTParser m Blocks
+rawDirective top fields body = do
+  -- Ignore the format for now and just include all the time
+  let format = maybe "" T.unpack $ trim top
+
+  let f = maybe "" lookup "file" fields >>= safeRead
+  -- There are a few more optional fields that I'm ignoring for now: uri, encoding, and classes
+  let uri = maybe "" lookup "uri" fields >>= safeRead
+  let encoding = maybe "" lookup "encoding" fields >>= safeRead
+  let classes =  maybe [] T.words (lookup "class" fields)
+
+  -- The guards should be 'fail if body and f' and 'fail if not body and not f'
+  guard $ (T.null (trim body) && null f)
+  guard $ (not $ T.null (trim body) && not $ null f)
+
+  case f of
+    -- just include the file
+    Just file ->
+      -- not sure how necessary toStream is since we're not using start-lines and end-lines from includedirective
+      let toStream t =
+            Sources [(initialPos file,
+                       (t) <>
+                         "\n")]  -- see #7436
+      currentDir <- takeDirectory . sourceName <$> getPosition
+      -- need to parse as RAW blocks here
+      return insertIncludedFile parseBlocks toStream [currentDir] file
+    -- else read the body as a raw block
+    Nothing -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
+
+
+
+--
 -- paragraph block
 --
 
@@ -782,7 +822,7 @@ directive' = do
         "list-table" -> listTableDirective top fields body'
         "csv-table" -> csvTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
-        "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
+        "raw" -> rawDirective top fields body'
         "role" -> addNewRole top $ map (second trim) fields
         "container" -> B.divWith
                          (name, "container" : T.words top ++ classes, []) <$>
