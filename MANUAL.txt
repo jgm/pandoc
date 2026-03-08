@@ -512,7 +512,7 @@ header when requesting a document from a URL:
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
-[OPML]: http://dev.opml.org/spec2.html
+[OPML]: https://opml.org/spec2.opml
 [OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
 [Plain Old Documentation]: https://perldoc.perl.org/perlpod
