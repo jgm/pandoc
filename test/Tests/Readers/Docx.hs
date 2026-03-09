@@ -215,6 +215,10 @@ tests = [ testGroup "document"
             "text in shape format"
             "docx/text_in_shape_format.docx"
             "docx/text_in_shape_format.native"
+          , testCompare
+            "image inside textbox content"
+            "docx/textbox_image.docx"
+            "docx/textbox_image.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -473,6 +477,9 @@ tests = [ testGroup "document"
           [ testMediaBag
             "image extraction"
             "docx/image.docx"
+          , testMediaBag
+            "image inside textbox content populates media bag"
+            "docx/textbox_image.docx"
           ]
         , testGroup "custom styles"
           [ testCompare

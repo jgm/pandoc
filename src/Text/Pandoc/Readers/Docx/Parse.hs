@@ -160,21 +160,26 @@ unwrapElement ns element
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
   | isElem ns "w" "p" element
-  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>=
-                       findChildrenByName ns "mc" "AlternateContent" >>=
-                       findChildrenByName ns "mc" "Fallback" >>=
-                       findChildrenByName ns "w" "pict" >>=
-                       (\e -> findChildrenByName ns "v" "shape" e <>
-                              findChildrenByName ns "v" "rect" e) >>=
-                       findChildrenByName ns "v" "textbox" >>=
-                       findChildrenByName ns "w" "txbxContent"
-  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214
+  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>= findTextboxes
+  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214, #11053
   | isElem ns "w" "r" element
   , Just fallback <- findChildByName ns "mc" "AlternateContent" element >>=
                      findChildByName ns "mc" "Fallback"
   = [element{ elContent = concatMap (unwrapContent ns) (elContent fallback) }]
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
+  where
+    findTextboxes run =
+      findTextboxContent =<<
+        ( findChildrenByName ns "w" "pict" run <>
+          (findChildrenByName ns "mc" "AlternateContent" run >>=
+           findChildrenByName ns "mc" "Fallback" >>=
+           findChildrenByName ns "w" "pict") )
+    findTextboxContent pict =
+      (findChildrenByName ns "v" "shape" pict <>
+       findChildrenByName ns "v" "rect" pict) >>=
+      findChildrenByName ns "v" "textbox" >>=
+      findChildrenByName ns "w" "txbxContent"
 
 unwrapContent :: NameSpaces -> Content -> [Content]
 unwrapContent ns (Elem element) = map Elem $ unwrapElement ns element
