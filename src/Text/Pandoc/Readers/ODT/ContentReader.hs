@@ -797,11 +797,17 @@ fixRelativeLink uri =
 endnote :: Blocks -> Inlines
 endnote blocks = spanWith ("", ["endnote"], []) $ note blocks
 
+whichnote :: Bool -> T.Text -> (Blocks -> Inlines)
+whichnote True "endnote" = endnote
+whichnote _ _ = note
+
 read_note        :: InlineMatcher
 read_note         = matchingElement NsText "note"
-                    $ liftA note -- use endnote if readEndnotes is True and the text:note-class attribute is "endnote"
+                    $ liftA3 whichnote readingEndnotes noteClass
                     $ matchChildContent' [ read_note_body ]
-                      
+                  where
+                    noteClass = findAttrTextWithDefault NsText "note-class" ""
+                    readingEndnotes = getExtraState >>^ readEndnotes
 
 read_note_body   :: BlockMatcher
 read_note_body    = matchingElement NsText "note-body"

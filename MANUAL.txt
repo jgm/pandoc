@@ -5941,13 +5941,14 @@ around them.
 Enabling this extension tells some readers and writers to use that
 convention to distinguish endnotes from footnotes.
 
-This extension is supported by the docx reader: when you convert 
-with `-f docx+endnotes`, the endnotes of the docx file will become
+This extension is supported by the docx and odt readers:
+when you convert with `-f docx+endnotes` or `-f odt+endnotes`,
+the endnotes of the docx or odt file will become
 notes embedded in a span with class "endnote".
 
-It is also supported by the docx writer: when you convert with
-`-t docx+endnotes`, all the notes embedded in a span of class "endnote"
-will be endnotes in the docx file.
+It is also supported by the docx and odt writers: when you convert
+with `-t docx+endnotes` or `-t odt+endnotes`, all the notes embedded
+in a span of class "endnote" will be endnotes in the docx or odt file.
 
 ## Citation syntax
 
