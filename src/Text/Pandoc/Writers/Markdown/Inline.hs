@@ -340,9 +340,9 @@ isEndnoteSpan :: WriterOptions -> Attr -> Bool
 isEndnoteSpan opts (_, ["endnote"], _) = isEnabled Ext_endnotes opts
 isEndnoteSpan _ _                      = False
 
-attrWithoutEndnoteClass :: WriterOptions -> Attr -> Attr
-attrWithoutEndnoteClass opts attr = case (attr, isEnabled Ext_endnotes opts) of
-  ((ident, ["endnote"], attributes), True) -> (ident, [], attributes)
+attrWithoutEndnoteClass :: WriterOptions -> Attr -> [Inline] -> Attr
+attrWithoutEndnoteClass opts attr ils = case (attr, isEnabled Ext_endnotes opts, ils) of
+  ((ident, ["endnote"], attributes), True, [Note _]) -> (ident, [], attributes)
   _ -> attr
 
 -- | Convert Pandoc inline element to markdown.
@@ -369,9 +369,9 @@ inlineToMarkdown opts (Span attrs ils) = do
          $ case variant of
                 PlainText -> contents
                 Markua -> "`" <> contents <> "`" <> attrsToMarkua opts attrs
-                _     | nullAttr == attrWithoutEndnoteClass opts attrs -> contents
+                _     | nullAttr == attrWithoutEndnoteClass opts attrs ils -> contents
                       | isEnabled Ext_bracketed_spans opts ->
-                        let attrs'  = attrWithoutEndnoteClass opts attrs
+                        let attrs'  = attrWithoutEndnoteClass opts attrs ils
                             attrs'' = if attrs' /= nullAttr
                                         then attrsToMarkdown opts attrs'
                                         else empty
