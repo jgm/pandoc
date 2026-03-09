@@ -52,6 +52,41 @@ tests = [ testGroup "basic"
             "some text" =?> para "some text"
           , "emphasized" =:
             "\\emph{emphasized}" =?> para (emph "emphasized")
+          , "BibTeX command" =:
+            "\\BibTeX" =?> para "BibTeX"
+          , "LaTeXe command" =:
+            "\\LaTeXe" =?> para "LaTeX2ε"
+          , "XeTeX command" =:
+            "\\XeTeX" =?> para "XeTeX"
+          , "XeLaTeX command" =:
+            "\\XeLaTeX" =?> para "XeLaTeX"
+          , "LuaTeX command" =:
+            "\\LuaTeX" =?> para "LuaTeX"
+          , "LuaLaTeX command" =:
+            "\\LuaLaTeX" =?> para "LuaLaTeX"
+          , "classic BibTeX logo macro is normalized" =:
+            T.unlines
+              [ "\\def\\BibTeX{{\\rm B\\kern-.05em{\\sc i\\kern-.025em b}\\kern-.08em"
+              , "    T\\kern-.1667em\\lower.7ex\\hbox{E}\\kern-.125emX}}"
+              , "\\BibTeX"
+              ] =?> para "BibTeX"
+          , "custom BibTeX redefinition is preserved" =:
+            T.unlines
+              [ "\\renewcommand{\\BibTeX}{BIB}"
+              , "\\BibTeX"
+              ] =?> para "BIB"
+          , "multicols swallows column count" =:
+            T.unlines
+              [ "\\begin{multicols}{3}"
+              , "Hi"
+              , "\\end{multicols}"
+              ] =?> para "Hi"
+          , "multicols* swallows column count" =:
+            T.unlines
+              [ "\\begin{multicols*}{2}"
+              , "Hi"
+              , "\\end{multicols*}"
+              ] =?> para "Hi"
           ]
 
         , testGroup "headers"
@@ -67,6 +102,32 @@ tests = [ testGroup "basic"
           , "link" =:
             "\\section{text \\href{/url}{link}}" =?>
               headerWith ("text-link",[],[]) 1 ("text" <> space <> link "/url" "" "link")
+          , "@startsection redefinition preserves heading semantics" =:
+            T.unlines
+              [ "\\makeatletter"
+              , "\\renewcommand{\\section}{\\@startsection{section}{1}{0mm}%"
+              , "  {-1ex plus -.5ex minus -.2ex}%"
+              , "  {0.5ex plus .2ex}%"
+              , "  {\\normalfont\\large\\bfseries}}"
+              , "\\makeatother"
+              , ""
+              , "\\section{Document classes}"
+              ] =?> headerWith ("document-classes",[],[]) 1 "Document classes"
+          , "@startsection in document preamble preserves heading semantics" =:
+            T.unlines
+              [ "\\documentclass{article}"
+              , "\\makeatletter"
+              , "\\renewcommand{\\section}{\\@startsection{section}{1}{0mm}%"
+              , "  {-1ex plus -.5ex minus -.2ex}%"
+              , "  {0.5ex plus .2ex}%"
+              , "  {\\normalfont\\large\\bfseries}}"
+              , "\\makeatother"
+              , "\\begin{document}"
+              , "\\section{Document classes}"
+              , "Text."
+              , "\\end{document}"
+              ] =?> (headerWith ("document-classes",[],[]) 1 "Document classes"
+                      <> para "Text.")
           ]
 
         , testGroup "math"

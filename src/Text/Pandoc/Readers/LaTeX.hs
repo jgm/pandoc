@@ -753,6 +753,7 @@ opt = do
 preamble :: PandocMonad m => LP m Blocks
 preamble = mconcat <$> many preambleBlock
   where preambleBlock =  (mempty <$ spaces1)
+                     <|> swallowSectionRedefinition
                      <|> macroDef (rawBlock "latex")
                      <|> filecontents
                      <|> (mempty <$ blockCommand)
@@ -760,6 +761,25 @@ preamble = mconcat <$> many preambleBlock
                      <|> (do notFollowedBy (begin_ "document")
                              anyTok
                              return mempty)
+
+swallowSectionRedefinition :: PandocMonad m => LP m Blocks
+swallowSectionRedefinition = try $ withVerbatimMode $ do
+  Tok _ (CtrlSeq mtype) _ <- controlSeq "renewcommand" <|>
+                             controlSeq "DeclareRobustCommand"
+  Tok _ (CtrlSeq name) _ <- do
+    optional (symbol '*')
+    anyControlSeq <|>
+      (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
+  guard $ name `elem`
+    [ "part", "chapter", "section", "subsection", "subsubsection"
+    , "paragraph", "subparagraph", "frametitle", "framesubtitle"
+    ]
+  when (mtype /= "DeclareRobustCommand") $
+    void $ optional $ try bracketedToks
+  optional $ try bracketedToks
+  contents <- bracedOrToken
+  guard $ "startsection" `T.isInfixOf` T.strip (untokenize contents)
+  return mempty
 
 rule :: PandocMonad m => LP m Blocks
 rule = do
@@ -1121,6 +1141,8 @@ environments = M.union (tableEnvironments block inline) $
    -- other
    , ("CSLReferences", braced >> braced >> env "CSLReferences" blocks)
    , ("otherlanguage", env "otherlanguage" otherlanguageEnv)
+   , ("multicols", env "multicols" (braced *> blocks))
+   , ("multicols*", env "multicols*" (braced *> blocks))
    ]
 
 otherlanguageEnv :: PandocMonad m => LP m Blocks

@@ -682,7 +682,6 @@ library
                    Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.CslJson,
                    Text.Pandoc.Writers.Math,
-                   Text.Pandoc.Writers.StarMath,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Writers.AnnotatedTable,
@@ -915,7 +914,6 @@ test-suite test-pandoc
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
                   Tests.Writers.Ms
-                  Tests.Writers.StarMath
                   Tests.Writers.AnnotatedTable
                   Tests.Writers.BBCode
 

@@ -45,7 +45,6 @@ import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
-import Text.Pandoc.Writers.StarMath (writeStarMath)
 import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath

@@ -25,8 +25,8 @@ macroDef constructor = do
       guardDisabled Ext_latex_macros)
      <|> return mempty
   where commandDef = do
-          nameMacroPairs <- newcommand <|>
-            checkGlobal (letmacro <|> edefmacro <|> defmacro <|> newif)
+          nameMacroPairs <- filter (not . shouldIgnoreLogoRedefinition) <$>
+            (newcommand <|> checkGlobal (letmacro <|> edefmacro <|> defmacro <|> newif))
           guardDisabled Ext_latex_macros <|>
             mapM_ insertMacro nameMacroPairs
         environmentDef = do
@@ -185,12 +185,65 @@ newcommand = do
                    [ Tok pos Symbol "}", Tok pos Symbol "}" ])
               _                     -> contents'
     let macro = Macro GroupScope ExpandWhenUsed argspecs optarg contents
-    (do lookupMacro name
-        case mtype of
-          "providecommand" -> return []
-          "renewcommand" -> return [(name, macro)]
-          _ -> [] <$ report (MacroAlreadyDefined txt pos))
-      <|> pure [(name, macro)]
+    if shouldIgnoreSectionRedefinition mtype name contents
+       then return []
+       else
+         (do lookupMacro name
+             case mtype of
+               "providecommand" -> return []
+               "renewcommand" -> return [(name, macro)]
+               _ -> [] <$ report (MacroAlreadyDefined txt pos))
+         <|> pure [(name, macro)]
+
+shouldIgnoreSectionRedefinition :: Text -> Text -> [Tok] -> Bool
+shouldIgnoreSectionRedefinition mtype name contents =
+  mtype == "renewcommand"
+  && name `elem`
+       [ "part", "chapter", "section", "subsection", "subsubsection"
+       , "paragraph", "subparagraph", "frametitle", "framesubtitle"
+       ]
+  && ("@startsection" `T.isInfixOf` contentsText
+      || "\\startsection" `T.isInfixOf` contentsText
+      || "startsection" `T.isInfixOf` contentsText)
+ where
+  contentsText = T.strip (untokenize contents)
+
+shouldIgnoreLogoRedefinition :: (Text, Macro) -> Bool
+shouldIgnoreLogoRedefinition (name, Macro _ _ _ _ contents) =
+  looksLikeLogoRedefinition name contents
+
+looksLikeLogoRedefinition :: Text -> [Tok] -> Bool
+looksLikeLogoRedefinition name contents =
+  name `elem` logoNames
+  && any (`T.isInfixOf` body) typographyPrimitives
+  && any (`T.isInfixOf` body) (logoMarkers name)
+ where
+  body = T.toLower (T.strip (untokenize contents))
+  logoNames =
+    [ "TeX", "LaTeX", "BibTeX"
+    , "XeTeX", "XeLaTeX", "LuaTeX", "LuaLaTeX"
+    ]
+  typographyPrimitives =
+    [ "\\kern", "\\lower", "\\hbox", "\\sc", "\\rm"
+    , "\\raise", "\\font", "\\mathchoice"
+    ]
+
+logoMarkers :: Text -> [Text]
+logoMarkers "TeX" =
+  [ "t\\kern", "tex", "\\hbox{e}", "\\lower" ]
+logoMarkers "LaTeX" =
+  [ "latex", "{a}", "l\\kern", "tex" ]
+logoMarkers "BibTeX" =
+  [ "bib", "b\\kern", "{\\sc i", "\\hbox{e}", "tex" ]
+logoMarkers "XeTeX" =
+  [ "xetex", "xe", "tex" ]
+logoMarkers "XeLaTeX" =
+  [ "xelatex", "xela", "latex", "tex" ]
+logoMarkers "LuaTeX" =
+  [ "luatex", "lua", "tex" ]
+logoMarkers "LuaLaTeX" =
+  [ "lualatex", "luala", "latex", "tex" ]
+logoMarkers _ = []
 
 newenvironment :: PandocMonad m => LP m (Maybe (Text, Macro, Macro))
 newenvironment = do

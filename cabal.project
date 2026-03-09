@@ -2,6 +2,7 @@ packages: .
           pandoc-lua-engine
           pandoc-server
           pandoc-cli
+          ../texmath
 constraints: skylighting-format-blaze-html >= 0.1.2,
              skylighting-format-context >= 0.1.0.2
 
