@@ -70,20 +70,20 @@ makeFigure x = x
 readODT' :: ReaderOptions
          -> B.ByteString
          -> Either PandocError (Pandoc, MediaBag)
-readODT' _ bytes = bytesToODT bytes-- of
+readODT' opts bytes = bytesToODT opts bytes-- of
 --                    Right (pandoc, mediaBag) -> Right (pandoc , mediaBag)
 --                    Left  err                -> Left err
 
 --
-bytesToODT :: B.ByteString -> Either PandocError (Pandoc, MediaBag)
-bytesToODT bytes = case toArchiveOrFail bytes of
-  Right archive -> archiveToODT archive
+bytesToODT :: ReaderOptions -> B.ByteString -> Either PandocError (Pandoc, MediaBag)
+bytesToODT opts bytes = case toArchiveOrFail bytes of
+  Right archive -> archiveToODT opts archive
   Left err      -> Left $ PandocParseError
                         $ "Could not unzip ODT: " <> T.pack err
 
 --
-archiveToODT :: Archive -> Either PandocError (Pandoc, MediaBag)
-archiveToODT archive = do
+archiveToODT :: ReaderOptions -> Archive -> Either PandocError (Pandoc, MediaBag)
+archiveToODT opts archive = do
   let onFailure msg Nothing = Left $ PandocParseError msg
       onFailure _   (Just x) = Right x
   contentEntry <- onFailure "Could not find content.xml"
@@ -101,7 +101,7 @@ archiveToODT archive = do
         let (dir, name) = splitFileName fp
         in  (dir == "Pictures/") || (dir /= "./" && name == "content.xml")
   let media = filteredFilesFromArchive archive filePathIsODTMedia
-  let startState = readerState styles media
+  let startState = readerState opts styles media
   either (\_ -> Left $ PandocParseError "Could not convert opendocument") Right
     (runConverter' read_body startState contentElem)
 
