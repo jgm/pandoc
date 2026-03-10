@@ -9,7 +9,7 @@ constraints: skylighting-format-blaze-html >= 0.1.2,
 source-repository-package
   type: git
   location: https://github.com/jgm/asciidoc-hs
-  tag: da6d8d1a063385631bf43b1ce0249e7442e49251
+  tag: 2ff7f6d5049deefeb76acdb66beaca22a0762f4a
 
 source-repository-package
   type: git
