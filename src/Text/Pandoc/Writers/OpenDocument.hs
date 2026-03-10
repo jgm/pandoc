@@ -64,6 +64,7 @@ data ReferenceType
 
 data WriterState =
     WriterState { stNotes          :: [Doc Text]
+                , stEndnotes       :: [Doc Text]
                 , stTableStyles    :: [Doc Text]
                 , stParaStyles     :: [Doc Text]
                 , stListStyles     :: [(Int, [Doc Text])]
@@ -72,6 +73,7 @@ data WriterState =
                 , stTextStyleAttr  :: Set.Set TextStyle
                 , stIndentPara     :: Int
                 , stInDefinition   :: Bool
+                , stInEndnote      :: Bool
                 , stTight          :: Bool
                 , stFirstPara      :: Bool
                 , stImageId        :: Int
@@ -83,6 +85,7 @@ data WriterState =
 defaultWriterState :: WriterState
 defaultWriterState =
     WriterState { stNotes          = []
+                , stEndnotes       = []
                 , stTableStyles    = []
                 , stParaStyles     = []
                 , stListStyles     = []
@@ -90,6 +93,7 @@ defaultWriterState =
                 , stTextStyleAttr  = Set.empty
                 , stIndentPara     = 0
                 , stInDefinition   = False
+                , stInEndnote      = False
                 , stTight          = False
                 , stFirstPara      = False
                 , stImageId        = 1
@@ -636,6 +640,11 @@ inlineToOpenDocument o ils
     Span ("", ["mark"], []) xs ->
       inTags False "text:span" [("text:style-name","Highlighted")] <$>
         inlinesToOpenDocument o xs
+    Span (_, ["endnote"], _) xs | isEnabled Ext_endnotes o -> do
+      modify (\st -> st{ stInEndnote = True })
+      s <- inlinesToOpenDocument o xs
+      modify (\st -> st{ stInEndnote = False })
+      return s
     Span attr xs  -> mkSpan attr xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
@@ -701,15 +710,21 @@ inlineToOpenDocument o ils
         if T.null ident
           then i
           else fmap mkBookmarkedSpan i
-      mkNote     l = do
-        n <- length <$> gets stNotes
-        let footNote t = inTags False "text:note"
-                         [ ("text:id"        , "ftn" <> tshow n)
-                         , ("text:note-class", "footnote"     )] $
+      mkNote l = do
+        inEndnote <- gets stInEndnote
+        nFootnote <- length <$> gets stNotes
+        nEndnote  <- length <$> gets stEndnotes
+        let n         = if inEndnote then nEndnote else nFootnote
+            idn       = nFootnote + nEndnote
+            noteClass = if inEndnote then "endnote" else "footnote"
+            pStyleName = if inEndnote then "Endnote" else "Footnote"
+            footNote t = inTags False "text:note"
+                         [ ("text:id"        , "ftn" <> tshow idn)
+                         , ("text:note-class", noteClass       )] $
                          inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
         nn <- footNote <$> withAlteredTextStyles (const mempty)
-                            (withParagraphStyle o "Footnote" l)
+                            (withParagraphStyle o pStyleName l)
         addNote nn
         return nn
 

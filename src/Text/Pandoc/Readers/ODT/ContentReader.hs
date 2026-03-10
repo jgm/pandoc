@@ -44,6 +44,7 @@ import Text.Pandoc.Builder hiding (underline)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
+import Text.Pandoc.Options (isEnabled, ReaderOptions)
 import qualified Text.Pandoc.UTF8 as UTF8
 
 import Text.Pandoc.Readers.Docx.Combine (combineBlocks)
@@ -96,11 +97,13 @@ data ReaderState
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
                  , odtMediaBag      :: MediaBag
+                   -- | Read endnotes as Note inside a Span of class "endnote"
+                 , readEndnotes     :: Bool
                  }
   deriving ( Show )
 
-readerState :: Styles -> Media -> ReaderState
-readerState styles media = ReaderState styles [] 0 M.empty Nothing M.empty media mempty
+readerState :: ReaderOptions -> Styles -> Media -> ReaderState
+readerState opts styles media = ReaderState styles [] 0 M.empty Nothing M.empty media mempty (isEnabled Ext_endnotes opts)
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -788,13 +791,23 @@ fixRelativeLink uri =
           _ -> uri
 
 -------------------------
--- Footnotes
+-- Footnotes and Endnotes
 -------------------------
+
+endnote :: Blocks -> Inlines
+endnote blocks = spanWith ("", ["endnote"], []) $ note blocks
+
+whichnote :: Bool -> T.Text -> (Blocks -> Inlines)
+whichnote True "endnote" = endnote
+whichnote _ _ = note
 
 read_note        :: InlineMatcher
 read_note         = matchingElement NsText "note"
-                    $ liftA note
+                    $ liftA3 whichnote readingEndnotes noteClass
                     $ matchChildContent' [ read_note_body ]
+                  where
+                    noteClass = findAttrTextWithDefault NsText "note-class" ""
+                    readingEndnotes = getExtraState >>^ readEndnotes
 
 read_note_body   :: BlockMatcher
 read_note_body    = matchingElement NsText "note-body"

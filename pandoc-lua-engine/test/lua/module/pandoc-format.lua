@@ -24,6 +24,7 @@ return {
         'citations',
         'east_asian_line_breaks',
         'empty_paragraphs',
+        'endnotes',
         'gfm_auto_identifiers',
         'native_numbering',
         'styles',

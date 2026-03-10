@@ -5923,6 +5923,33 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
+## Endnotes
+
+You can use the following convention to specify endnotes: surround a
+footnote with a `Span` of class "endnote", like this:
+
+    Here' and endnote[[^1]]{.endnote}.
+
+    [^1]: This is the endnote text.
+
+When a reader or a writer does not know about this convention, those
+notes are just regular footnotes, just with a transparent `Span` wrapper
+around them. 
+
+### Extension: `endnotes` ###
+
+Enabling this extension tells some readers and writers to use that
+convention to distinguish endnotes from footnotes.
+
+This extension is supported by the docx and odt readers:
+when you convert with `-f docx+endnotes` or `-f odt+endnotes`,
+the endnotes of the docx or odt file will become
+notes embedded in a span with class "endnote".
+
+It is also supported by the docx and odt writers: when you convert
+with `-t docx+endnotes` or `-t odt+endnotes`, all the notes embedded
+in a span of class "endnote" will be endnotes in the docx or odt file.
+
 ## Citation syntax
 
 ### Extension: `citations` ###
