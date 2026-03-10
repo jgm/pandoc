@@ -249,6 +249,7 @@ inline =  whitespace
       <|> lineBreak
       <|> anchor
       <|> code
+      <|> include
       <|> special
 
 -- from Readers.Mediawiki
@@ -409,6 +410,16 @@ externalLink = do
     unlabelledLink = do
       src <- manyTillChar (noneOf "|") (string "]]")
       return (src,src)
+
+-- the full syntax of this macro has comma-separated options, a modifier to switch
+-- from page names to regexps, etc., but we're not using any of that so we take a
+-- shortcut. Full details:
+-- <https://moinmo.in/HelpOnMacros/Include>
+include :: PandocMonad m => MoinParser m B.Inlines
+include = try $ do
+  string "<<Include("
+  manyTillChar (noneOf "\n") (try $ string ")>>") >>=
+    return . B.rawInline "moinmoin"
 
 -- from Readers.Mediawiki
 specialChars :: [Char]

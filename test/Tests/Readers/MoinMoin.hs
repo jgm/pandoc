@@ -135,6 +135,9 @@ tests =
     , testCase "empty italic" $ "''''" `readsTo` [Para []]
     , testCase "empty code"   $ "``" `readsTo` [Para []]
     ]
+  , testGroup "includes"
+    [ testCase "basicInclude" $ "<<Include(foo)>>" `readsTo` [Para [RawInline "moinmoin" "foo"]]
+    ]
   ]
 
 main :: IO ()
