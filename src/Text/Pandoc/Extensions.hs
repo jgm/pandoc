@@ -68,6 +68,7 @@ data Extension =
     | Ext_element_citations   -- ^ Use element-citation elements for JATS citations
     | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_empty_paragraphs -- ^ Allow empty paragraphs
+    | Ext_endnotes            -- ^ Endnotes support when footnotes are embedded in a Span.endnote
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
     | Ext_example_lists       -- ^ Markdown-style numbered examples
@@ -532,6 +533,7 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList
     [ Ext_empty_paragraphs
+    , Ext_endnotes
     , Ext_native_numbering
     , Ext_styles
     , Ext_citations

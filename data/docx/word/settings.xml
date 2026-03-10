@@ -16,6 +16,10 @@
     <w:footnote w:id="-1" />
     <w:footnote w:id="0" />
   </w:footnotePr>
+  <w:endnotePr>
+    <w:endnote w:id="-1" />
+    <w:endnote w:id="0" />
+  </w:endnotePr>
   <w:rsids>
   </w:rsids>
   <m:mathPr>
