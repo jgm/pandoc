@@ -188,6 +188,7 @@ readers = [("native"       , TextReader readNative)
           ,("mdoc"         , TextReader readMdoc)
           ,("pod"          , TextReader readPod)
           ,("xml"          , TextReader readXML)
+          ,("moinmoin"     , TextReader readMoinMoin)
           ]
 
 -- | Retrieve reader, extensions based on format spec (format+extensions).
