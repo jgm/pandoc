@@ -219,6 +219,10 @@ tests = [ testGroup "document"
             "image inside textbox content"
             "docx/textbox_image.docx"
             "docx/textbox_image.native"
+          , testCompare
+            "image inside textbox content with duplicate encoding"
+            "docx/textbox_image_duplicate_encoding.docx"
+            "docx/textbox_image_duplicate_encoding.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -480,6 +484,9 @@ tests = [ testGroup "document"
           , testMediaBag
             "image inside textbox content populates media bag"
             "docx/textbox_image.docx"
+          , testMediaBag
+            "image inside textbox content with duplicate encoding populates media bag"
+            "docx/textbox_image_duplicate_encoding.docx"
           ]
         , testGroup "custom styles"
           [ testCompare

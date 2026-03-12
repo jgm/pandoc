@@ -169,12 +169,18 @@ unwrapElement ns element
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
   where
+    -- Search textbox content in the run's effective children.
+    -- If AlternateContent is present, use only the fallback branch,
+    -- matching the w:r unwrapping logic and avoiding duplicate textbox
+    -- extraction when both direct and fallback encodings are present.
+    findRunFallback run =
+      findChildByName ns "mc" "AlternateContent" run >>=
+      findChildByName ns "mc" "Fallback"
     findTextboxes run =
       findTextboxContent =<<
-        ( findChildrenByName ns "w" "pict" run <>
-          (findChildrenByName ns "mc" "AlternateContent" run >>=
-           findChildrenByName ns "mc" "Fallback" >>=
-           findChildrenByName ns "w" "pict") )
+      case findRunFallback run of
+        Just fallback -> findChildrenByName ns "w" "pict" fallback
+        Nothing -> findChildrenByName ns "w" "pict" run
     findTextboxContent pict =
       (findChildrenByName ns "v" "shape" pict <>
        findChildrenByName ns "v" "rect" pict) >>=
