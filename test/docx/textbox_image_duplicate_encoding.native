@@ -1,0 +1,30 @@
+[ Para
+    [ Str "The"
+    , Space
+    , Str "image"
+    , Space
+    , Str "is"
+    , Space
+    , Str "below."
+    ]
+, Para
+    [ Image
+        ( ""
+        , []
+        , [ ( "width" , "4.543038057742782in" )
+          , ( "height" , "2.9166666666666665in" )
+          ]
+        )
+        []
+        ( "media/image1.png" , "" )
+    ]
+, Para
+    [ Str "The"
+    , Space
+    , Str "image"
+    , Space
+    , Str "is"
+    , Space
+    , Str "above."
+    ]
+]
