@@ -7,7 +7,10 @@
 <<TableOfContents()>>
 
  * [[http://jmtd.net|jmtd.net]]
- * another bullet
+ * another bullet,
+   a line continuation
+   * a sub-list!
+ * a last bullte
 
 ''mostly'' meta '''indeed'''. This is __useful__.
 
