@@ -540,22 +540,18 @@ filePathToRelType path docXmlPath =
   then Just InDocument
   else Nothing
 
-relElemToRelationship :: FilePath -> DocumentLocation -> Element
+relElemToRelationship :: DocumentLocation -> Element
                       -> Maybe Relationship
-relElemToRelationship fp relType element | qName (elName element) == "Relationship" =
+relElemToRelationship relType element | qName (elName element) == "Relationship" =
   do
     relId <- findAttr (QName "Id" Nothing Nothing) element
     target <- findAttr (QName "Target" Nothing Nothing) element
-    -- target may be relative (media/image1.jpeg) or absolute
-    -- (/word/media/image1.jpeg); we need to relativize it (see #7374)
-    let frontOfFp = T.pack $ takeWhile (/= '_') fp
-    let target' = fromMaybe target $
-           T.stripPrefix frontOfFp $ T.dropWhile (== '/') target
-    return $ Relationship relType relId target'
-relElemToRelationship _ _ _ = Nothing
+    -- target may be relative (media/image1.jpeg) or absolute (/word/media/image1.jpg)
+    return $ Relationship relType relId target
+relElemToRelationship _ _ = Nothing
 
 extractTarget :: Element -> Maybe Target
-extractTarget element = do (Relationship _ _ target) <- relElemToRelationship "word/" InDocument element
+extractTarget element = do (Relationship _ _ target) <- relElemToRelationship InDocument element
                            return target
 
 filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
@@ -563,7 +559,7 @@ filePathToRelationships ar docXmlPath fp
   | Just relType <- filePathToRelType fp docXmlPath
   , Just entry <- findEntryByPath fp ar
   , Just relElems <- parseXMLFromEntry entry =
-  mapMaybe (relElemToRelationship fp relType) $ elChildren relElems
+  mapMaybe (relElemToRelationship relType) $ elChildren relElems
 filePathToRelationships _ _ _ = []
 
 archiveToRelationships :: Archive -> FilePath -> [Relationship]
@@ -934,11 +930,23 @@ expandDrawingId s = do
   case target of
     Just filepath -> do
       media <- asks envMedia
-      let filepath' = case filepath of
-                        ('/':rest) -> rest
-                        _ -> "word/" ++ filepath
+      -- the mediaName is the name we store it under in the mediabag.
+      -- This is derived from the path, which might be absolute, e.g. /media/foo.jpg,
+      -- or relative, media/foo.jpg (interpreted as /word/media/foo.jpg).
+      -- The mediaName will strip off any leading `/` or `word/`.
+      -- We assume here that the media will not be stored *both* in
+      -- /media and in /word/media, which would lead to a name conflict
+      -- given the scheme here for generating a mediaName.
+      let (filepath', mediaName) =
+            case filepath of
+               ('/':rest)  -- absolute path e.g. /media/foo.jpg
+                  -> (rest, case stripPrefix "word/" rest of
+                              Just rest' -> rest'
+                              Nothing -> rest)
+               _  -- rel path to word, e.g. media/foo.jpg
+                 -> ("word/" ++ filepath, filepath)
       case lookup filepath' media of
-        Just bs -> return (filepath, bs)
+        Just bs -> return (mediaName, bs)
         Nothing -> throwError DocxError
     Nothing -> throwError DocxError
 
