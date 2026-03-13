@@ -36,6 +36,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , CaptionPosition (..)
                            , def
                            , isEnabled
+                           , defaultEndnotesPrefix
                            , defaultMathJaxURL
                            , defaultWebTeXURL
                            , defaultKaTeXURL
@@ -74,10 +75,14 @@ data ReaderOptions = ReaderOptions{
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
                                              -- (only implemented in commonmark)
+       , readerEndnotesPrefix        :: Text -- ^ Endnotes' prefix when endnotes extension is enabled
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance HasSyntaxExtensions ReaderOptions where
   getExtensions opts = readerExtensions opts
+
+defaultEndnotesPrefix :: Text
+defaultEndnotesPrefix = "EN"
 
 instance Default ReaderOptions
   where def = ReaderOptions{
@@ -90,6 +95,7 @@ instance Default ReaderOptions
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
                , readerStripComments         = False
+               , readerEndnotesPrefix        = defaultEndnotesPrefix
                }
 
 defaultAbbrevs :: Set.Set Text
@@ -390,6 +396,7 @@ data WriterOptions = WriterOptions
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
   , writerLinkImages        :: Bool           -- ^ Use links rather than embedding ODT images
+  , writerEndnotesPrefix    :: Text           -- ^ Prefix for endnotes refs when endnotes extension is enabled
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -432,6 +439,7 @@ instance Default WriterOptions where
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
                       , writerLinkImages       = False
+                      , writerEndnotesPrefix   = defaultEndnotesPrefix
                       }
 
 instance HasSyntaxExtensions WriterOptions where
