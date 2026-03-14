@@ -160,8 +160,10 @@ unwrapElement ns element
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
   | isElem ns "w" "p" element
-  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>= findTextboxes
-  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214, #11053
+  , _:_ <- findChildrenByName ns "w" "r" element >>= findTextboxes
+  = let result = splitP (elContent element) [] -- handle #9214, #11053
+    in [element{ elName = QName "textbox-image" Nothing Nothing
+              , elContent = map Elem result }]
   | isElem ns "w" "r" element
   , Just fallback <- findChildByName ns "mc" "AlternateContent" element >>=
                      findChildByName ns "mc" "Fallback"
@@ -169,6 +171,26 @@ unwrapElement ns element
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
   where
+    -- Split a w:p's children around textbox-bearing runs, preserving order.
+    -- Non-textbox content is grouped into a copy of the original w:p;
+    -- textbox content is unwrapped into sibling elements in place.
+    splitP [] acc = [wrapP acc | hasContent acc]
+    splitP (c:cs) acc
+      | Elem el <- c
+      , isElem ns "w" "r" el
+      , tbs@(_:_) <- findTextboxes el
+      = [wrapP acc | hasContent acc]
+        ++ concatMap (unwrapElement ns) (concatMap elChildren tbs)
+        ++ splitP cs []
+      | otherwise
+      = splitP cs (acc ++ [c])
+    wrapP cs = element{ elContent = concatMap (unwrapContent ns) cs }
+    hasContent = any (\case Elem el -> isElem ns "w" "r" el
+                                                  && any (isContentElem . elName)
+                                                         (elChildren el)
+                            _ -> False)
+    isContentElem n = qName n `elem`
+      ["t", "drawing", "pict", "br", "tab", "sym", "fldChar", "instrText"]
     -- Search textbox content in the run's effective children.
     -- If AlternateContent is present, use only the fallback branch,
     -- matching the w:r unwrapping logic and avoiding duplicate textbox
@@ -475,9 +497,17 @@ archiveToDocument zf = do
   return $ Document namespaces body
 
 elemToBody :: NameSpaces -> Element -> D Body
-elemToBody ns element | isElem ns "w" "body" element =
-  Body . addCaptioned <$> mapD (elemToBodyPart ns) (elChildren element)
-elemToBody _ _ = throwError WrongElem
+elemToBody ns element
+  | isElem ns "w" "body" element =
+      Body . addCaptioned <$> concatMapM (elemToBodyParts ns) (elChildren element)
+  | otherwise = throwError WrongElem
+  where
+    elemToBodyParts ns' el
+      | qName (elName el) == "textbox-image"
+      = addSplitGroupCaptioned . splitMixedParagraphs
+          <$> mapD (elemToBodyPart ns') (elChildren el)
+      | otherwise
+      = ((:[]) <$> elemToBodyPart ns' el) `catchError` (\_ -> return [])
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
 archiveToStyles = archiveToStyles' getStyleId getStyleId
@@ -802,6 +832,28 @@ addCaptioned (x : Paragraph parstyle parparts : xs)
   , isCaptionable x
     = Captioned parstyle parparts x : addCaptioned xs
 addCaptioned (x:xs) = x : addCaptioned xs
+
+-- Split paragraphs that contain both a Drawing and text into two body parts,
+-- so that the captioning logic can combine them.
+splitMixedParagraphs :: [BodyPart] -> [BodyPart]
+splitMixedParagraphs [] = []
+splitMixedParagraphs (Paragraph ps parts : rest)
+  | (drawings@(_:_), texts@(_:_)) <- partition isDrawingPart parts
+  = Paragraph ps drawings : Paragraph ps texts : splitMixedParagraphs rest
+  where isDrawingPart Drawing{} = True
+        isDrawingPart _         = False
+splitMixedParagraphs (x:xs) = x : splitMixedParagraphs xs
+
+-- For textbox-image groups: combine image + any adjacent text into Captioned
+addSplitGroupCaptioned :: [BodyPart] -> [BodyPart]
+addSplitGroupCaptioned [] = []
+addSplitGroupCaptioned (Paragraph parstyle parparts : x : xs)
+  | isCaptionable x
+  = Captioned parstyle parparts x : addSplitGroupCaptioned xs
+addSplitGroupCaptioned (x : Paragraph parstyle parparts : xs)
+  | isCaptionable x
+  = Captioned parstyle parparts x : addSplitGroupCaptioned xs
+addSplitGroupCaptioned (x:xs) = x : addSplitGroupCaptioned xs
 
 isCaptionable :: BodyPart -> Bool
 isCaptionable (Paragraph _ [Drawing{}]) = True
