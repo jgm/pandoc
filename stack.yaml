@@ -23,8 +23,9 @@ extra-deps:
 - pandoc-lua-marshal-0.3.2.1
 - typst-symbols-0.1.9.1
 - citeproc-0.13
-- texmath-0.13.1
 - skylighting-format-blaze-html-0.1.2
+- git: https://github.com/jgm/texmath
+  commit: 790307f492f33b6fc56b0346d26b2fcba04aa7bb
 - git: https://github.com/jgm/typst-hs
   commit: 1e2ecd62451ddfc9139c680a3aa5fe2637299a7f
 - git: https://github.com/jgm/djoths

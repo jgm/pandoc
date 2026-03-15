@@ -21,6 +21,11 @@ source-repository-package
   location: https://github.com/jgm/djoths
   tag: adbed8db6660f72659803ffc6091b2117fa948fb
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath
+  tag: 790307f492f33b6fc56b0346d26b2fcba04aa7bb
+
 package pandoc
   flags: +embed_data_files +http
 
