@@ -12,7 +12,7 @@ $if(subject)$
   pdfsubject={$subject$},
 $endif$
 $if(keywords)$
-  pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
+  pdfkeywords={$for(keywords)$\xmpquote{$keywords$}$sep$, $endfor$},
 $endif$
 $if(colorlinks)$
   colorlinks=true,
