@@ -1073,8 +1073,7 @@ para = try $ do
                    <* lookAhead header)
               <|> (guardEnabled Ext_lists_without_preceding_blankline
                     -- Avoid creating a paragraph in a nested list.
-                    <* notFollowedBy' inList
-                    <* lookAhead listStart)
+                    <* notFollowedBy' (inList <* lookAhead listStart))
               <|> do guardEnabled Ext_native_divs
                      inHtmlBlock <- stateInHtmlBlock <$> getState
                      case inHtmlBlock of
