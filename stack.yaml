@@ -24,14 +24,10 @@ extra-deps:
 - typst-symbols-0.1.9.1
 - citeproc-0.13
 - skylighting-format-blaze-html-0.1.2
-- git: https://github.com/jgm/texmath
-  commit: 790307f492f33b6fc56b0346d26b2fcba04aa7bb
-- git: https://github.com/jgm/typst-hs
-  commit: 1e2ecd62451ddfc9139c680a3aa5fe2637299a7f
-- git: https://github.com/jgm/djoths
-  commit: adbed8db6660f72659803ffc6091b2117fa948fb
-- git: https://github.com/jgm/asciidoc-hs
-  commit: 2ff7f6d5049deefeb76acdb66beaca22a0762f4a
+- djot-0.1.4
+- asciidoc-0.1.0.2
+- texmath-0.13.1.1
+- typst-0.9.0.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
