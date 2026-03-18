@@ -70,8 +70,8 @@ if arch(wasm32)
 
   source-repository-package
     type: git
-    location: https://github.com/vincenthz/hs-memory.git
-    tag: memory-v0.18.0
+    location: https://github.com/jappeace/ram.git
+    tag:  6e49475ae7b4b3545923407388690234d838dc45
     post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/memory.patch"
 
   source-repository-package
