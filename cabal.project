@@ -4,7 +4,8 @@ packages: .
           pandoc-cli
 constraints: skylighting-format-blaze-html >= 0.1.2,
              skylighting-format-context >= 0.1.0.2,
-             auto-update >= 0.2.6
+             auto-update >= 0.2.6,
+             crypton >= 1.1.1
 
 package pandoc
   flags: +embed_data_files +http

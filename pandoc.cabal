@@ -584,11 +584,11 @@ library
      cpp-options:   -DPANDOC_HTTP_SUPPORT
      build-depends:
                  crypton-connection    >= 0.3.1    && < 0.5,
-                 crypton-x509-system   >= 1.6.7    && < 1.9,
+                 crypton-x509-system   >= 1.6.7    && < 1.10,
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.5,
                  network               >= 2.6      && < 3.3,
-                 tls                   >= 2.0.1    && < 2.3
+                 tls                   >= 2.0.1    && < 2.4
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
