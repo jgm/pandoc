@@ -1,5 +1,9 @@
 # Revision history for pandoc
 
+## pandoc 3.9.0.2 (2026-03-19)
+
+  * Typst template: fix regression introduced in 3.9.0.1 (#11538).
+
 ## pandoc 3.9.0.1 (2026-03-17)
 
   * WASM GUI:
