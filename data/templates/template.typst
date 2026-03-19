@@ -73,50 +73,48 @@
     }
   }
 
-#let has-title-block = title != none or (authors != none and authors != ()) or
-                       date != none or abstract != none
-#if has-title-block {
-  place(top, float: true, scope: "parent", clearance: 4mm, block(below: 1em, width: 100%)[
-    #if title != none {
-      align(center, block[
-          #text(weight: "bold", size: 1.5em, hyphenate: false)[#title #if thanks != none {
-              footnote(thanks, numbering: "*")
-              counter(footnote).update(n => n - 1)
-            }]
-          #(
-            if subtitle != none {
-              parbreak()
-              text(weight: "bold", size: 1.25em, hyphenate: false)[#subtitle]
-            }
-           )])
-    }
+  if title != none {
+    place(top, float: true, scope: "parent", clearance: 4mm, block(below: 1em, width: 100%)[
+      #if title != none {
+        align(center, block[
+            #text(weight: "bold", size: 1.5em, hyphenate: false)[#title #if thanks != none {
+                footnote(thanks, numbering: "*")
+                counter(footnote).update(n => n - 1)
+              }]
+            #(
+              if subtitle != none {
+                parbreak()
+                text(weight: "bold", size: 1.25em, hyphenate: false)[#subtitle]
+              }
+             )])
+      }
 
-    #if authors != none and authors != [] {
-      let count = authors.len()
-      let ncols = calc.min(count, 3)
-      grid(
-        columns: (1fr,) * ncols,
-        row-gutter: 1.5em,
-        ..authors.map(author => align(center)[
-          #author.name \
-          #author.affiliation \
-          #author.email
-        ])
-      )
-    }
+      #if authors != none and authors != [] {
+        let count = authors.len()
+        let ncols = calc.min(count, 3)
+        grid(
+          columns: (1fr,) * ncols,
+          row-gutter: 1.5em,
+          ..authors.map(author => align(center)[
+            #author.name \
+            #author.affiliation \
+            #author.email
+          ])
+        )
+      }
 
-    #if date != none {
-      align(center)[#block(inset: 1em)[
-          #date
-        ]]
-    }
+      #if date != none {
+        align(center)[#block(inset: 1em)[
+            #date
+          ]]
+      }
 
-    #if abstract != none {
-      block(inset: 2em)[
-        #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
-      ]
-    }
-  ])
-}
+      #if abstract != none {
+        block(inset: 2em)[
+          #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+        ]
+      }
+    ])
+  }
   doc
 }
