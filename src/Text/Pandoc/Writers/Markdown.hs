@@ -578,7 +578,10 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
      _ | variant == Markua -> blankline <> attrsToMarkua opts attribs <> cr <> backticks <> cr <>
                                 literal str <> cr <> backticks <> cr <> blankline
-       | otherwise -> nest (writerTabStop opts) (literal str) <> blankline
+       | otherwise -> -- don't use nest: see #11542
+           let addIndent "" = "\n"
+               addIndent x  = (T.replicate (writerTabStop opts) " ") <> x <> "\n"
+          in  literal (mconcat $ map addIndent (T.lines str)) $$ blankline
    where
      endlineLen c = maybe 3 ((+1) . maximum) $ nonEmpty
                         [T.length ln
@@ -862,8 +865,10 @@ definitionListItemToMarkdown opts (label, defs) = do
                         _ -> ":"
        let leadingChars = case tabStop of
                             -- Always use two leading characters for Markua
-                            n | n >= 2 && variant /= Markua -> n
-                            _ -> 2
+                            n | variant == Markua -> 2
+                              | isEnabled Ext_four_space_rule opts
+                              , n >= 2 -> n
+                              | otherwise -> 2
        let sps = literal $ T.replicate (leadingChars - 1) " "
        let isTight = case defs of
                         ((Plain _ : _): _) -> True
