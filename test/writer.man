@@ -359,27 +359,40 @@ Multiple definitions, tight:
 .TP
 apple
 red fruit
+.RS
 computer
+.RE
 .TP
 orange
 orange fruit
+.RS
 bank
+.RE
 .PP
 Multiple definitions, loose:
 .TP
 apple
 red fruit
+.RS
+.PP
 computer
+.RE
 .TP
 orange
 orange fruit
+.RS
+.PP
 bank
+.RE
 .PP
 Blank line after term, indented marker, alternate markers:
 .TP
 apple
 red fruit
+.RS
+.PP
 computer
+.RE
 .TP
 orange
 orange fruit

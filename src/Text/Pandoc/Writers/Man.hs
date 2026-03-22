@@ -241,7 +241,7 @@ definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts label
   contents <- if null defs
                  then return empty
-                 else liftM vcat $ forM defs $ \case
+                 else case mconcat defs of
                           (x:xs) -> do
                             first' <- blockToMan opts $
                                       case x of
