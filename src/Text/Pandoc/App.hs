@@ -50,6 +50,7 @@ import System.Exit (exitSuccess)
 import System.FilePath ( takeBaseName, takeExtension, takeDirectory)
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
+import Data.Version (showVersion)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
@@ -357,6 +358,7 @@ configureCommonState datadir opts = do
   setOutputFile (optOutputFile opts)
   setNoCheckCertificate (optNoCheckCertificate opts)
 
+  setRequestHeader "User-Agent" ("pandoc/" <> T.pack (showVersion pandocVersion))
   mapM_ (uncurry setRequestHeader) (optRequestHeaders opts)
 
   case lookupMetaString "lang" (optMetadata opts) of
