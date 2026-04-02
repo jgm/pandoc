@@ -5181,10 +5181,10 @@ will be interpreted as Markdown. For example:
       \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
       ```
 
-Note:  the `yaml_metadata_block` extension works with
-`commonmark` as well as `markdown` (and it is enabled by default
-in `gfm` and `commonmark_x`).  However, in these formats the
-following restrictions apply:
+Note:  the `yaml_metadata_block` extension works not just with
+`markdown` but with `commonmark` (and it is enabled by default in
+`gfm` and `commonmark_x`). However, in `commonmark`, `gfm`,
+and `commonmark_x`, the following restrictions apply:
 
 - The YAML metadata block must occur at the beginning of the
   document (and there can be only one).  If multiple files are
