@@ -492,7 +492,7 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
   let label' = render Nothing label
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return $ literal src
-     _  -> return $ literal $ if isURI src
+     _  -> return $ literal $ if isURI (T.takeWhile (/= '#') src) -- see #11562
        then "[" <> src <> " " <> label' <> "]"
        else
          if src == label'
