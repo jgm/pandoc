@@ -129,10 +129,10 @@ blockToMediaWiki (Para inlines) = do
   contents <- inlineListToMediaWiki inlines
   let contents' = render Nothing contents
   let initEsc = if startsWithListMarker contents'
-                   then literal "\\"
+                   then literal "<nowiki></nowiki>"
                    else mempty
   return $ if tags
-              then  literal "<p>" <> contents <> literal "</p>"
+              then literal "<p>" <> contents <> literal "</p>"
               else initEsc <> contents $$
                    if null lev then blankline else mempty
 
