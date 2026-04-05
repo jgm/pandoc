@@ -911,13 +911,10 @@ header when requesting a document from a URL:
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
     Note that if you are producing a PDF via `ms` and using
-    (the default) `pdfroff` as a `--pdf-engine`, the table
-    of contents will appear at the beginning of the
-    document, before the title.  If you would prefer it to
-    be at the end of the document, use the option
-    `--pdf-engine-opt=--no-toc-relocation`. If `groff` is
-    used as the `--pdf-engine`, the table of contents will
-    always appear at the end of the document.
+    (the default) `groff` as a `--pdf-engine`, the table of
+    contents will appear at the end of the document. If you would
+    prefer it to be at the beginning of the document, before the
+    title, you can use `--pdf-engine=pdfroff`.
 
 `--toc-depth=`*NUMBER*
 
@@ -1539,7 +1536,7 @@ header when requesting a document from a URL:
         `pagedjs-cli`;
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS)
-    - `-t ms`:  `pdfroff`
+    - `-t ms`:  `groff`
     - `-t typst`: `typst`
 
     This option is normally intended to be used when a PDF

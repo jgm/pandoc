@@ -219,8 +219,8 @@ engines = map ("html",) htmlEngines ++
           map ("html5",) htmlEngines ++
           map ("latex",) latexEngines ++
           map ("beamer",) latexEngines ++
-          [ ("ms", "pdfroff")
-          , ("ms", "groff")
+          [ ("ms", "groff")
+          , ("ms", "pdfroff")
           , ("typst", "typst")
           , ("context", "context")
           ]
