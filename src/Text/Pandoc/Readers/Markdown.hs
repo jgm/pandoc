@@ -1607,7 +1607,7 @@ exampleRef = do
   guardEnabled Ext_example_lists
   try $ do
     char '@'
-    lab <- mconcat . map T.pack <$>
+    lab <- T.pack . concat <$>
                       many (many1 alphaNum <|>
                             try (do c <- char '_' <|> char '-'
                                     cs <- many1 alphaNum
