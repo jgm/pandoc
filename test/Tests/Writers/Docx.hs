@@ -353,4 +353,25 @@ tests = [ testGroup "inlines"
               assertBool "Language from metadata did not override reference docx (expected fr-FR)"
                 (any ("fr-FR" `isInfixOf`) (getLangLines stylesXml))
           ]
+        , testGroup "paragraph styles"
+          [ testCase "FirstParagraph after heading with footnote (#11573)" $ do
+              let opts = def
+              bs <- runIOorExplode $ do
+                setVerbosity ERROR
+                let doc = Pandoc mempty
+                          [ Header 3 ("heading-with-note", [], [])
+                              [Note [Para [Str "note"]], Str "Heading"]
+                          , Para [Str "Para", Space, Str "after."]
+                          ]
+                writeDocx opts doc
+              let archive = toArchive bs
+              entry <- case findEntryByPath "word/document.xml" archive of
+                Nothing -> assertFailure "Missing word/document.xml in output docx"
+                Just e -> return e
+              let docXml = show (fromEntry entry)
+              assertBool
+                ("Expected FirstParagraph style after heading with footnote, got: "
+                  ++ docXml)
+                ("FirstParagraph" `isInfixOf` docXml)
+          ]
         ]
