@@ -1886,7 +1886,7 @@ wikilink constructor = do
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
-    guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+    guard $ T.all (\c -> c /= '\n' && c /= '\r' && c /= '\f' && c /= '\t') url
     return . pure . constructor attr url "" $
        B.text $ fromEntities title
 
