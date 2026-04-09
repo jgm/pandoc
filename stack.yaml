@@ -28,6 +28,8 @@ extra-deps:
 - asciidoc-0.1.0.2
 - texmath-0.13.1.1
 - typst-0.9.0.1
+- git: https://github.com/jgm/doclayout.git
+  commit: ef7f18308a61787244a80885d907fcd2c16604d4
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
