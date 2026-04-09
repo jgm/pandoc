@@ -284,7 +284,7 @@ oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
                => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
 oneOfStrings' _ [] = Prelude.fail "no strings to match"
 oneOfStrings' matches strs =
-  TL.toStrict . TB.toLazyText <$> try (go (TB.fromText mempty) strs)
+  TL.toStrict . TB.toLazyText <$> try (go mempty strs)
  where
    go acc strs' = do
      c <- anyChar
