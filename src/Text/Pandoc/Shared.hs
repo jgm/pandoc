@@ -730,11 +730,12 @@ formatCode attr = B.fromList . walk fmt . B.toList
 -- | Render HTML tags.
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link", "col",
-                                                       "use", "path", "rect"]
-                            , optRawTag   = matchTags ["script", "style"] }
-              where matchTags tags = flip elem tags . T.toLower
+               renderOptions{ optMinimize = \t -> T.toLower t `Set.member` minimizeTags
+                            , optRawTag   = \t -> T.toLower t `Set.member` rawTags }
+  where
+    minimizeTags = Set.fromList ["hr","br","img","meta","link","col",
+                                 "use","path","rect"]
+    rawTags = Set.fromList ["script","style"]
 
 --
 -- File handling
