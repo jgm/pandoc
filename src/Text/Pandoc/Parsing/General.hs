@@ -484,8 +484,10 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
                               xs <- many (satisfy isEmailChar)
                               return (x:xs)
        isEmailChar c     = isAlphaNum c || isEmailPunct c
-       isEmailPunct c    = T.any (== c) "!\"#$%&'*+-/=?^_{|}~;"
+       isEmailPunct c    = c `Set.member` emailPunctChars
 
+emailPunctChars :: Set.Set Char
+emailPunctChars = Set.fromList "!\"#$%&'*+-/=?^_{|}~;"
 
 uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Text
 uriScheme = oneOfStringsCI (Set.toList schemes)
