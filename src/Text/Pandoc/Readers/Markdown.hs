@@ -1931,7 +1931,7 @@ wrapSpan (ident, classes, kvs) =
 
 isSmallCapsFontVariant :: Text -> Bool
 isSmallCapsFontVariant s =
-  T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+  T.toLower (T.filter (\c -> c /= ' ' && c /= '\t' && c /= ';') s) ==
   "font-variant:small-caps"
 
 regLink :: PandocMonad m
