@@ -1167,7 +1167,7 @@ rawTeXBlock = do
                 many1 ((<>) <$> rawLaTeXBlock <*> spnl'))
   return $ case B.toList result of
                 [RawBlock _ cs]
-                  | T.all (`elem` [' ','\t','\n']) cs -> return mempty
+                  | T.all (\c -> c == ' ' || c == '\t' || c == '\n') cs -> return mempty
                 -- don't create a raw block for suppressed macro defs
                 _ -> return result
 
