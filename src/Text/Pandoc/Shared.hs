@@ -237,20 +237,23 @@ camelCaseStrToHyphenated (a:rest) = toLower a:camelCaseStrToHyphenated rest
 toRomanNumeral :: Int -> T.Text
 toRomanNumeral x
   | x >= 4000 || x < 0 = "?"
-  | x >= 1000 = "M" <> toRomanNumeral (x - 1000)
-  | x >= 900  = "CM" <> toRomanNumeral (x - 900)
-  | x >= 500  = "D" <> toRomanNumeral (x - 500)
-  | x >= 400  = "CD" <> toRomanNumeral (x - 400)
-  | x >= 100  = "C" <> toRomanNumeral (x - 100)
-  | x >= 90   = "XC" <> toRomanNumeral (x - 90)
-  | x >= 50   = "L"  <> toRomanNumeral (x - 50)
-  | x >= 40   = "XL" <> toRomanNumeral (x - 40)
-  | x >= 10   = "X" <> toRomanNumeral (x - 10)
-  | x == 9    = "IX"
-  | x >= 5    = "V" <> toRomanNumeral (x - 5)
-  | x == 4    = "IV"
-  | x >= 1    = "I" <> toRomanNumeral (x - 1)
-  | otherwise = ""
+  | otherwise = T.pack (go x)
+  where
+    go n
+      | n >= 1000 = 'M'       : go (n - 1000)
+      | n >= 900  = 'C' : 'M' : go (n - 900)
+      | n >= 500  = 'D'       : go (n - 500)
+      | n >= 400  = 'C' : 'D' : go (n - 400)
+      | n >= 100  = 'C'       : go (n - 100)
+      | n >= 90   = 'X' : 'C' : go (n - 90)
+      | n >= 50   = 'L'       : go (n - 50)
+      | n >= 40   = 'X' : 'L' : go (n - 40)
+      | n >= 10   = 'X'       : go (n - 10)
+      | n == 9    = "IX"
+      | n >= 5    = 'V'       : go (n - 5)
+      | n == 4    = "IV"
+      | n >= 1    = 'I'       : go (n - 1)
+      | otherwise = []
 
 -- | Convert tabs to spaces. Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
