@@ -43,7 +43,6 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
-import Text.Pandoc.Error
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -352,13 +351,9 @@ checkNotes :: PandocMonad m => MarkdownParser m ()
 checkNotes = do
   st <- getState
   let notesUsed = stateNoteRefs st
-  let notesDefined = M.keys (stateNotes' st)
-  mapM_ (\n -> unless (n `Set.member` notesUsed) $
-                case M.lookup n (stateNotes' st) of
-                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
-                   Nothing -> throwError $
-                     PandocShouldNeverHappenError "note not found")
-         notesDefined
+  forM_ (M.toList (stateNotes' st)) $ \(n, (pos, _)) ->
+    unless (n `Set.member` notesUsed) $
+      report (NoteDefinedButNotUsed n pos)
 
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
