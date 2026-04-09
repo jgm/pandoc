@@ -755,8 +755,9 @@ fromParsecError (Sources inputs) err' = PandocParseError msg
       ((pos,txt):_) ->
         let ls = T.lines txt <> [""]
             ln = (errLine - sourceLine pos) + 1
-         in if length ls > ln && ln >= 1
-               then T.concat ["\n", ls !! (ln - 1)
-                             ,"\n", T.replicate (errColumn - 1) " "
-                             ,"^"]
-               else ""
+         in case drop (ln - 1) ls of
+               (l:_) | ln >= 1 ->
+                 T.concat ["\n", l
+                          ,"\n", T.replicate (errColumn - 1) " "
+                          ,"^"]
+               _ -> ""
