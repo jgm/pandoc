@@ -263,7 +263,7 @@ tabFilter tabStop = T.unlines . map go . T.lines
          in  if T.null s2
                 then s1
                 else s1 <> T.replicate
-                       (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
+                       (tabStop - (T.length s1 `mod` tabStop)) " "
                        <> go (T.drop 1 s2)
 
 --
