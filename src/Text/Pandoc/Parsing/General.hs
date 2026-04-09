@@ -688,7 +688,7 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
   where
     ident' = fromMaybe ident (lookup "id" kvs)
     cls'   = maybe cls T.words $ lookup "class" kvs
-    kvs'   = filter (\(k,_) -> k /= "id" || k /= "class") kvs
+    kvs'   = filter (\(k,_) -> k /= "id" && k /= "class") kvs
 
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
                    => ParsecT a st m b -- ^ parser to apply
