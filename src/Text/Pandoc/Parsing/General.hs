@@ -400,15 +400,13 @@ enclosed start end parser = try $
 -- | Parse string, case insensitive.
 stringAnyCase :: (Stream s m Char, UpdateSourcePos s Char)
               => Text -> ParsecT s st m Text
-stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack
-
-stringAnyCase' :: (Stream s m Char, UpdateSourcePos s Char)
-               => String -> ParsecT s st m String
-stringAnyCase' [] = string ""
-stringAnyCase' (x:xs) = do
-  firstChar <- char (toUpper x) <|> char (toLower x)
-  rest <- stringAnyCase' xs
-  return (firstChar:rest)
+stringAnyCase t = TL.toStrict . TB.toLazyText <$> go (T.unpack t)
+  where
+    go [] = string "" $> mempty
+    go (x:xs) = do
+      c <- char (toUpper x) <|> char (toLower x)
+      rest <- go xs
+      pure $ TB.singleton c <> rest
 
 -- TODO rewrite by just adding to Sources stream?
 -- | Parse contents of 'str' using 'parser' and return result.
