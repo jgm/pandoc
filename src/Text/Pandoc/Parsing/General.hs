@@ -534,7 +534,7 @@ uri = try $ do
            <|> entity
            <|> try (punct <* lookAhead (void wordChar <|> void percentEscaped))
     uriChunkBetween l r = try $ do chunk <- between (char l) (char r) uriChunk
-                                   return (T.pack $ [l] ++ chunk ++ [r])
+                                   return $ T.singleton l <> T.pack chunk <> T.singleton r
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end
