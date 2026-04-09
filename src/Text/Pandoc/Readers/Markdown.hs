@@ -781,7 +781,7 @@ lhsCodeBlockBirdWith c = try $ do
   when (sourceColumn pos /= 1) $ Prelude.fail "Not in first column"
   lns <- many1 $ birdTrackLine c
   -- if (as is normal) there is always a space after >, drop it
-  let lns' = if all (\ln -> T.null ln || T.take 1 ln == " ") lns
+  let lns' = if all (\ln -> T.null ln || T.head ln == ' ') lns
                 then map (T.drop 1) lns
                 else lns
   blanklines
