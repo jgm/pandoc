@@ -46,6 +46,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
+import Text.Pandoc.Readers.Docx.Combine (combineBlocks)
+
 import Text.Pandoc.Readers.ODT.Base
 import Text.Pandoc.Readers.ODT.Namespaces
 import Text.Pandoc.Readers.ODT.StyleReader
@@ -205,11 +207,11 @@ popStyle =     keepingTheValue (
            >>^ fst
 
 --
-getCurrentListLevel :: ODTReaderSafe _x ListLevel
+getCurrentListLevel :: ODTReaderSafe a ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
 
 --
-getListContinuationStartCounters :: ODTReaderSafe _x (M.Map ListLevel Int)
+getListContinuationStartCounters :: ODTReaderSafe a (M.Map ListLevel Int)
 getListContinuationStartCounters = getExtraState >>^ listContinuationStartCounters
 
 
@@ -278,7 +280,7 @@ getHeaderAnchor = proc title -> do
 --------------------------------------------------------------------------------
 
 --
-readStyleByName :: ODTReader _x (StyleName, Style)
+readStyleByName :: ODTReader a (StyleName, Style)
 readStyleByName =
   findAttr NsText "style-name" >>? keepingTheValue getStyleByName >>^ liftE
   where
@@ -327,6 +329,7 @@ withNewStyle a = proc x -> do
   where
     isCodeStyle :: StyleName -> Bool
     isCodeStyle "Source_Text" = True
+    isCodeStyle "Source_20_Text" = True
     isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
@@ -415,7 +418,7 @@ getParaModifier listLevel props
      = False
 
 --
-constructPara :: ODTReaderSafe Blocks Blocks -> ODTReaderSafe Blocks Blocks
+constructPara :: ODTReaderSafe a Blocks -> ODTReaderSafe a Blocks
 constructPara reader = proc blocks -> do
   fStyle <- readStyleByName -< blocks
   case fStyle of
@@ -546,6 +549,14 @@ newtype FirstMatch a = FirstMatch (Alt Maybe a)
 firstMatch :: a -> FirstMatch a
 firstMatch = FirstMatch . Alt . Just
 
+newtype CombiningBlocks = CombiningBlocks { unCombiningBlocks :: Blocks }
+
+instance Semigroup CombiningBlocks where
+  CombiningBlocks l <> CombiningBlocks r = CombiningBlocks (combineBlocks l r)
+
+instance Monoid CombiningBlocks where
+  mempty = CombiningBlocks mempty
+
 --
 matchingElement :: (Monoid e)
                 => Namespace -> ElementName
@@ -559,14 +570,20 @@ matchingElement ns name reader = (ns, name, asResultAccumulator reader)
 --
 matchChildContent'   :: (Monoid result)
                      => [ElementMatcher result]
-                     ->  ODTReaderSafe _x result
+                     ->  ODTReaderSafe a result
 matchChildContent' ls = returnV mempty >>> matchContent' ls
+
+--
+matchSmushedChildBlocks' :: [ElementMatcher CombiningBlocks] ->  ODTReaderSafe a Blocks
+matchSmushedChildBlocks' ls = liftA unCombiningBlocks
+                              $ returnV mempty
+                                >>> matchContent' ls
 
 --
 matchChildContent    :: (Monoid result)
                      => [ElementMatcher result]
                      ->  ODTReaderSafe  (result, XML.Content) result
-                     ->  ODTReaderSafe _x result
+                     ->  ODTReaderSafe a result
 matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 
 --------------------------------------------
@@ -634,26 +651,38 @@ read_span         = matchingElement NsText "span"
                                         ] read_plain_text
 
 --
-read_paragraph   :: BlockMatcher
-read_paragraph    = matchingElement NsText "p"
-                    $ constructPara
-                    $ liftA para
-                    $ withNewStyle
-                    $ matchChildContent [ read_span
-                                        , read_spaces
-                                        , read_line_break
-                                        , read_tab
-                                        , read_link
-                                        , read_note
-                                        , read_citation
-                                        , read_bookmark
-                                        , read_bookmark_start
-                                        , read_reference_start
-                                        , read_bookmark_ref
-                                        , read_reference_ref
-                                        , read_frame
-                                        , read_text_seq
-                                        ] read_plain_text
+read_paragraph   :: ElementMatcher CombiningBlocks
+read_paragraph    = matchingElement NsText "p" $
+                      liftA CombiningBlocks $ proc blocks -> do
+                        fStyle <- readStyleByName -< blocks
+                        case fStyle of
+                          Right style | isPreformattedStyle style -> do
+                            liftA (codeBlock . stringify) $ matchParagraphContent -< blocks
+                          _ ->
+                            constructPara $ liftA para $ withNewStyle matchParagraphContent -< blocks
+                        where
+                          isPreformattedStyle :: (StyleName, Style) -> Bool
+                          isPreformattedStyle ("Preformatted_20_Text", _) = True
+                          isPreformattedStyle (_, Style { styleParentName = Just "Preformatted_20_Text" }) = True
+                          isPreformattedStyle _ = False
+
+
+matchParagraphContent :: ODTReaderSafe a Inlines
+matchParagraphContent = matchChildContent [ read_span
+                                          , read_spaces
+                                          , read_line_break
+                                          , read_tab
+                                          , read_link
+                                          , read_note
+                                          , read_citation
+                                          , read_bookmark
+                                          , read_bookmark_start
+                                          , read_reference_start
+                                          , read_bookmark_ref
+                                          , read_reference_ref
+                                          , read_frame
+                                          , read_text_seq
+                                          ] read_plain_text
 
 
 ----------------------
@@ -661,7 +690,7 @@ read_paragraph    = matchingElement NsText "p"
 ----------------------
 
 --
-read_header      :: BlockMatcher
+read_header      :: ElementMatcher CombiningBlocks
 read_header       = matchingElement NsText "h"
                     $  proc blocks -> do
   level    <- ( readAttrWithDefault NsText "outline-level" 1
@@ -683,15 +712,16 @@ read_header       = matchingElement NsText "h"
               ) -< blocks
   anchor   <- getHeaderAnchor -< children
   let idAttr = (anchor, [], []) -- no classes, no key-value pairs
-  arr (uncurry3 headerWith) -< (idAttr, level, children)
+  arr (CombiningBlocks . uncurry3 headerWith) -< (idAttr, level, children)
 
 ----------------------
 -- Lists
 ----------------------
 
 --
-read_list        :: BlockMatcher
+read_list        :: ElementMatcher CombiningBlocks
 read_list         = matchingElement NsText "list"
+                    $ liftA CombiningBlocks
                     $ constructList
                     $ matchChildContent' [ read_list_item
                                          , read_list_header
@@ -706,26 +736,26 @@ read_list_header  = read_list_element "list-header"
 read_list_element               :: ElementName -> ElementMatcher [Blocks]
 read_list_element listElement   = matchingElement NsText listElement
                                   $ liftA (compactify.(:[]))
-                                    ( matchChildContent' [ read_paragraph
-                                                         , read_header
-                                                         , read_list
-                                                         , read_section
-                                                         ]
+                                    ( matchSmushedChildBlocks' [ read_paragraph
+                                                               , read_header
+                                                               , read_list
+                                                               , read_section
+                                                               ]
                                     )
 
 ----------------------
 -- Sections
 ----------------------
 
-read_section :: ElementMatcher Blocks
+read_section :: ElementMatcher CombiningBlocks
 read_section = matchingElement NsText "section"
-                 $ liftA (divWith nullAttr)
-                 $ matchChildContent' [ read_paragraph
-                                      , read_header
-                                      , read_list
-                                      , read_table
-                                      , read_section
-                                      ]
+                 $ liftA (CombiningBlocks . divWith nullAttr)
+                 $ matchSmushedChildBlocks' [ read_paragraph
+                                            , read_header
+                                            , read_list
+                                            , read_table
+                                            , read_section
+                                            ]
 
 
 ----------------------
@@ -768,7 +798,7 @@ read_note         = matchingElement NsText "note"
 
 read_note_body   :: BlockMatcher
 read_note_body    = matchingElement NsText "note-body"
-                    $ matchChildContent' [ read_paragraph ]
+                    $ matchSmushedChildBlocks' [ read_paragraph ]
 
 -------------------------
 -- Citations
@@ -792,9 +822,9 @@ read_citation     = matchingElement NsText "bibliography-mark"
 ----------------------
 
 --
-read_table        :: BlockMatcher
+read_table        :: ElementMatcher CombiningBlocks
 read_table         = matchingElement NsTable "table"
-                     $ liftA table'
+                     $ liftA (CombiningBlocks . table')
                      $ (matchChildContent' [read_table_header]) &&&
                        (matchChildContent' [read_table_row])
 
@@ -829,9 +859,9 @@ read_table_cell    = matchingElement NsTable "table-cell"
                      $ liftA3 cell'
                        (readAttrWithDefault NsTable "number-rows-spanned" 1 >>^ RowSpan)
                        (readAttrWithDefault NsTable "number-columns-spanned" 1 >>^ ColSpan)
-                     $ matchChildContent' [ read_paragraph
-                                          , read_list
-                                          ]
+                     $ matchSmushedChildBlocks' [ read_paragraph
+                                                , read_list
+                                                ]
   where
     cell' rowSpan colSpan blocks = map (cell AlignDefault rowSpan colSpan) $ compactify [blocks]
 
@@ -899,7 +929,7 @@ read_frame_mathml =
 
 read_frame_text_box :: ODTReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_text_box = proc box -> do
-    paragraphs <- executeIn (matchChildContent' [ read_paragraph ]) -< box
+    paragraphs <- executeIn (matchSmushedChildBlocks' [ read_paragraph ]) -< box
     arr read_img_with_caption -< toList paragraphs
 
 read_img_with_caption :: [Block] -> FirstMatch Inlines
@@ -920,7 +950,7 @@ _ANCHOR_PREFIX_ :: T.Text
 _ANCHOR_PREFIX_ = "anchor"
 
 --
-readAnchorAttr :: ODTReader _x Anchor
+readAnchorAttr :: ODTReader a Anchor
 readAnchorAttr = findAttrText NsText "name"
 
 -- | Beware: may fail
@@ -961,7 +991,7 @@ read_reference_start = matchingElement NsText "reference-mark-start"
                      $ maybeAddAnchorFrom readAnchorAttr
 
 -- | Beware: may fail
-findAnchorRef :: ODTReader _x Anchor
+findAnchorRef :: ODTReader a Anchor
 findAnchorRef = (      findAttrText NsText "ref-name"
                   >>?^ (_ANCHOR_PREFIX_,)
                 ) >>?! getPrettyAnchor
@@ -996,13 +1026,13 @@ read_reference_ref = matchingElement NsText "reference-ref"
 -- Entry point
 ----------------------
 
-read_text :: ODTReaderSafe _x Pandoc
-read_text = matchChildContent' [ read_header
-                               , read_paragraph
-                               , read_list
-                               , read_section
-                               , read_table
-                               ]
+read_text :: ODTReaderSafe a Pandoc
+read_text = matchSmushedChildBlocks' [ read_header
+                                     , read_paragraph
+                                     , read_list
+                                     , read_section
+                                     , read_table
+                                     ]
             >>^ doc
 
 post_process :: Pandoc -> Pandoc
@@ -1014,7 +1044,7 @@ post_process' (Table attr _ specs th tb tf : Div ("", ["caption"], _) blks : xs)
   = Table attr (Caption Nothing blks) specs th tb tf : post_process' xs
 post_process' bs = bs
 
-read_body :: ODTReader _x (Pandoc, MediaBag)
+read_body :: ODTReader a (Pandoc, MediaBag)
 read_body = executeInSub NsOffice "body"
           $ executeInSub NsOffice "text"
           $ liftAsSuccess

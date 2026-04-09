@@ -576,27 +576,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 <sec id="html-blocks">
   <title>HTML Blocks</title>
   <p>Simple block on one line:</p>
-  <boxed-text>
-    <p>foo</p>
-  </boxed-text>
+  <p>foo</p>
   <p>And nested without indentation:</p>
-  <boxed-text>
-    <boxed-text>
-      <boxed-text>
-        <p>foo</p>
-      </boxed-text>
-    </boxed-text>
-    <boxed-text>
-      <p>bar</p>
-    </boxed-text>
-  </boxed-text>
+  <p>foo</p>
+  <p>bar</p>
   <p>Interpreted markdown in a table:</p>
   <p>This is <italic>emphasized</italic></p>
   <p>And this is <bold>strong</bold></p>
   <p>Here’s a simple block:</p>
-  <boxed-text>
-    <p>foo</p>
-  </boxed-text>
+  <p>foo</p>
   <p>This should be a code block, though:</p>
   <preformat>&lt;div&gt;
     foo
@@ -604,13 +592,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>As should this:</p>
   <preformat>&lt;div&gt;foo&lt;/div&gt;</preformat>
   <p>Now, nested:</p>
-  <boxed-text>
-    <boxed-text>
-      <boxed-text>
-        <p>foo</p>
-      </boxed-text>
-    </boxed-text>
-  </boxed-text>
+  <p>foo</p>
   <p>This should just be an HTML comment:</p>
   <p>Multiline:</p>
   <p>Code block:</p>

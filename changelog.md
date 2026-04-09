@@ -1,5 +1,199 @@
 # Revision history for pandoc
 
+## pandoc 3.9.0.2 (2026-03-19)
+
+  * Typst template: fix regression introduced in 3.9.0.1 (#11538).
+
+## pandoc 3.9.0.1 (2026-03-17)
+
+  * WASM GUI:
+
+    + Don't block everything while pandoc.wasm loads.
+    + Fix bug with Unicode filenames (#11447).
+    + Catch errors loading pandoc.
+
+  * Docx reader:
+
+    + Recognize media inside textboxes (#11053, Raymond Berger).
+    + Properly handle media stored with packaged-rooted paths
+      such as `/media` (#11518).  This can be produced by the online version of Word.
+      With this change, media stored at an absolute path will be stored
+      with its original name and not given a SHA1-based name.
+    + Preserve non-textbox content when unwrapping textboxes (#11510, #6893,
+      #11412, #5394, #9633). Treat text inside a textbox containing an image
+      as a figure caption.
+
+  * Typst reader:
+
+    + Handle bibliography command (#11460). If this is present, a
+      bibliography section is added to the document and the bibliography
+      paths are added to `bibliography` in the metadata. This sets things
+      up for using `--citeproc`.
+
+  * Textile reader:
+
+    + Handle block content in cells (#11455).
+
+  * Docx reader:
+
+    + Support `w:gridBefore` table row property (#11464, Jan Tojnar).
+
+  * LaTeX reader:
+
+    + Support `\footnotemark` and `\footnotetext` (#11450).
+      These commands allow separating the footnote mark from its content, useful
+      in tables, minipages, and other contexts where \footnote cannot be used
+      directly.
+    + Support supertabular environment (#11523, bodigrim).
+
+  * ODT Reader:
+
+    + Fix relative linked images (#11369, Tuong Nguyen Manh).
+    + Recognize `Preformatted_20_Text` style Jan Tojnar
+      This is used by LibreOffice, and we will switch to that as well.
+    + Add block smushing logic (Jan Tojnar).
+    + Support Preformatted Text style (#4841, Jan Tojnar).
+
+  * Markdown reader:
+
+    + Fix bug with `lists_without_preceding_blankline` (#11534).
+
+  * Typst writer:
+
+    + Don't add a carriage return after `\` for hard break (#11446).
+      They are not necessary.  Note that they can still be included
+      if you use `--wrap=preserve` and add a newline in your source document.
+    + Improve handling of data: URIs in images. Instead of using an
+      SVG with a link containing the data URI (the solution of #10460),
+      we can now simply produce a `bytes` object with the requisite bytes.
+      Typst figures out the format automatically.
+    + Fix escaping of quotes (#11463).
+    + Include alt attributes on images (mcanouil).
+    + Properly escape `.` after bracketed argument (#11511).
+
+  * Docx writer:
+
+    + Don't depend on `extractTarget` from Docx reader.
+    + Fix section breaks with `--top-level-division` (#11482, #10578).
+
+  * EPUB writer:
+
+    + Add cover metadata for EPUB3 (#11479). This allows
+      file managers to show cover thumbnails for EPUB3 files as well.
+    + Update allowed values for EPUB3 metadata `identifier.scheme` (#11481,
+      Pascal Wagler).
+
+  * ODT writer:
+
+    + Rename inline source class to match LibreOffice (#3390, Jan Tojnar).
+      Rename the text style we use to represent `Code` inlines from
+      `Source_20_Text` to `Source_Text`. This is the same name LibreOffice
+      Writer uses so it will be recognized by the Character Styles section
+      of the Styles menu.
+    + Remove font size from inline source class (Jan Tojnar). This matches
+      what LibreOffice Writer is doing. Also fixes literals inside
+      headings being too small.
+    + Modernize `Preformatted Text` & `Source Text` styles (Jan Tojnar).
+      Presumably, `font-family-generic` and `font-pitch` will allow to find a
+      replacement on systems that do not have `Courier New`.
+
+  * Markdown writer:
+
+    + Fix rendering of alerts (#11479). We only properly handled the case
+      where the alert started with a paragraph, but it can start with a list
+      or other block type.
+    + Escape literal `&` that would trigger entity (#11490).
+
+  * HTML writer:
+
+    + For revealjs, default `scrollProgress` to `auto` (Christophe Dervieux).
+
+  * PPTX writer:
+
+    + Register content type for embedded fonts (#11492).
+
+  * MediaWiki writer:
+
+    + Use appropriate syntax for external images (#11494).
+      Note that they will only be rendered as images if an option
+      `$wgAllowExternalImages` is enabled in the MediaWiki instance.
+
+  * ICML writer:
+
+    + Support for image object styles (#11498, massifrg).
+      This change allows users to style images in InDesign bysetting the
+      `object-style` attribute in a pandoc Image, which is mapped to the
+      AppliedObjectStyle attribute in the Rectangle element around an Image
+      element in the resulting ICML.
+
+  * JATS writer:
+
+    + Improve representation of Divs (Albert Krewinkel).  The writer now
+      checks if the element used to represent (non-special) Divs has any
+      `<boxed-text>` specific attributes. If it does, the writer keeps
+      wrapping the Div contents in a `<boxed-text>`, as it did before.
+      Otherwise, the writer falls back to the more appropriate `<p>` element
+      or simply unwraps the Div if the wrapping element wouldn't have any
+      attributes. The new behavior gives better semantic results in most cases,
+      as `<boxed-text>` should be used for text that "is outside the flow of the
+      narrative text", which doesn't apply to most divs.
+      "Special" divs, like those used to mark sections, are not
+      affected by this change.
+
+  * Text.Pandoc.Writers.GridTable:
+
+    + Normalize tables (#8102). Previously, if an invalid table was passed to
+      `toTable`, an array index error could be raised. Normalizing the table
+      forces it into a shape that won't allow this error.
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Add new function `pandoc.types.Sources` (#11441).
+
+  * LaTeX template: properly handle keywords with commas.
+    These need to be put in an `\xmpquote{..}` command. Closes #11528.
+
+  * HTML styles template:  avoid duplicate code selector.
+    Consolidate two clauses. Closes #11484.
+
+  * Revealjs template: fix type rendering of scroll-view options
+    (Christophe Dervieux, #11486).
+
+  * Typst template:
+
+    + Use both place and block for title (Gordon Woodhull).
+      Otherwise the title will be confined to the left column
+    + Put title block in a conditional (#11529). This avoids an
+      empty block for documents that lack metadata information.
+      The empty block causes problems if `#set page` is used, as
+      it will cause a page break.
+
+  * Beamer template: add `logooption` variable (#11452, Sidney Mau).
+
+  * Text.Pandoc.ImageSize:
+
+    + Correctly handle percentage width, height on SVG (#11530).
+      Previously we were getting image size of 0 when a percentage
+      was specified for width or height on SVG.  With this change,
+      we simply ignore these percentages (becaues ImageSize doesn't
+      know the size of the containing element).
+
+  * Re-add `-threaded` to compile options in pandoc-cli.
+
+  * Use released djot, asciidoc, texmath, typst.
+
+  * Allow crypton 1.1, tls 2.2, http-client-tls 0.4.
+
+  * Require auto-update >= 0.2.6 to fix server on macOS (#11488).
+
+  * pandoc-cli.cabal: bump base min bound to 4.18 (same as pandoc).
+
+  * MANUAL.txt:
+
+    + Note that JSON may be used in YAML metadata blocks (#11525).
+    + Update link for ICML in manual.
+    + Fix outdated OPML spec URL in MANUAL.txt (#11504, Peter Briggs).
+
 ## pandoc 3.9 (2026-02-03)
 
   * Add support for compiling pandoc to WASM. (To build, `make

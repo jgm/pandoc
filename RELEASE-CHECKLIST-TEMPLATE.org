@@ -1,4 +1,5 @@
 #+STARTUP: content
+#+PROPERTY: :header-args: :results verbatim
 ** pandoc RELEASE_VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%3Aopen%20label%3A%22priority%3Ahigh%22%20][priority-high]] tag
 *** TODO Release any prerelease packages in [[./cabal.project]]

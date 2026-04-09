@@ -215,6 +215,18 @@ tests = [ testGroup "document"
             "text in shape format"
             "docx/text_in_shape_format.docx"
             "docx/text_in_shape_format.native"
+          , testCompare
+            "image inside textbox content"
+            "docx/textbox_image.docx"
+            "docx/textbox_image.native"
+          , testCompare
+            "image inside textbox content with duplicate encoding"
+            "docx/textbox_image_duplicate_encoding.docx"
+            "docx/textbox_image_duplicate_encoding.native"
+          , testCompare
+            "image with textbox caption in same paragraph"
+            "docx/image_with_textbox_caption.docx"
+            "docx/image_with_textbox_caption.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -473,6 +485,15 @@ tests = [ testGroup "document"
           [ testMediaBag
             "image extraction"
             "docx/image.docx"
+          , testMediaBag
+            "image inside textbox content populates media bag"
+            "docx/textbox_image.docx"
+          , testMediaBag
+            "image inside textbox content with duplicate encoding populates media bag"
+            "docx/textbox_image_duplicate_encoding.docx"
+          , testMediaBag
+            "image with textbox caption in same paragraph populates media bag"
+            "docx/image_with_textbox_caption.docx"
           ]
         , testGroup "custom styles"
           [ testCompare

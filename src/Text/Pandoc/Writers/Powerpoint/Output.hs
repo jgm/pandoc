@@ -2689,12 +2689,16 @@ presentationToContentTypes p@(Presentation _ slides) = do
   mediaInfos <- mconcat . M.elems <$> gets stMediaIds
   filePaths <- patternsToFilePaths $ inheritedPatterns p
   let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
+      fontFps = filter (match (compile "ppt/fonts/*")) filePaths
   let defaults = [ DefaultContentType "xml" "application/xml"
                  , DefaultContentType "rels" "application/vnd.openxmlformats-package.relationships+xml"
                  ]
       mediaDefaults = nub $
                       mapMaybe mediaContentType mediaInfos <>
                       mapMaybe mediaFileContentType mediaFps
+      fontDefaults = [ DefaultContentType "fntdata" "application/x-fontdata"
+                     | any (\fp -> takeExtension fp == ".fntdata") fontFps
+                     ]
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
       createdOverrides = mapMaybe pathToOverride [ "docProps/core.xml"
@@ -2708,7 +2712,7 @@ presentationToContentTypes p@(Presentation _ slides) = do
                        relativePaths
   speakerNotesOverrides <- mapMaybe pathToOverride <$> getSpeakerNotesFilePaths
   return $ ContentTypes
-    (defaults <> mediaDefaults)
+    (defaults <> mediaDefaults <> fontDefaults)
     (inheritedOverrides <> createdOverrides <> slideOverrides <> speakerNotesOverrides)
 
 presML :: T.Text

@@ -605,8 +605,10 @@ isOrderedListMarker t = not (T.null ds) && rest == "."
 escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
   (case T.uncons t of
-    Just (c, _)
+    Just (c, rest)
       | c == ';' -> char '\\' -- see #9252
+      | c == '.'
+      , not (T.null rest) -> char '\\' -- see #11511
       | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>

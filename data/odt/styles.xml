@@ -250,18 +250,35 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       <style:paragraph-properties fo:margin-top="0in"
       fo:margin-bottom="0in" style:contextual-spacing="false" />
       <style:text-properties style:font-name="Courier New"
-      fo:font-size="10pt" style:font-name-asian="Courier New"
+      fo:font-family="&apos;Courier New&apos;"
+      style:font-family-generic="modern"
+      style:font-pitch="fixed"
+      fo:font-size="10pt"
+      style:font-name-asian="Courier New"
+      style:font-family-asian="&apos;Courier New&apos;"
+      style:font-family-generic-asian="modern"
+      style:font-pitch-asian="fixed"
       style:font-size-asian="10pt"
       style:font-name-complex="Courier New"
+      style:font-family-complex="&apos;Courier New&apos;"
+      style:font-family-generic-complex="modern"
+      style:font-pitch-complex="fixed"
       style:font-size-complex="10pt"
       fo:language="zxx" />
     </style:style>
-    <style:style style:name="Source_Text" style:family="text">
+    <style:style style:name="Source_20_Text" style:display-name="Source Text" style:family="text">
       <style:text-properties style:font-name="Courier New"
-      fo:font-size="10pt" style:font-name-asian="Courier New"
-      style:font-size-asian="10pt"
+      fo:font-family="&apos;Courier New&apos;"
+      style:font-family-generic="modern"
+      style:font-pitch="fixed"
+      style:font-name-asian="Courier New"
+      style:font-family-asian="&apos;Courier New&apos;"
+      style:font-family-generic-asian="modern"
+      style:font-pitch-asian="fixed"
       style:font-name-complex="Courier New"
-      style:font-size-complex="10pt"
+      style:font-family-complex="&apos;Courier New&apos;"
+      style:font-family-generic-complex="modern"
+      style:font-pitch-complex="fixed"
       fo:language="zxx" />
     </style:style>
     <style:style style:name="Highlighted" style:family="text">

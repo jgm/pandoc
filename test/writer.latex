@@ -65,6 +65,10 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \VerbatimFootnotes % allow verbatim text in footnotes
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
 \hypersetup{
   pdftitle={Pandoc Test Suite},
   pdfauthor={John MacFarlane; Anonymous},

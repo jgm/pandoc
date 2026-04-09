@@ -43,7 +43,6 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
-import Text.Pandoc.Error
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -352,13 +351,9 @@ checkNotes :: PandocMonad m => MarkdownParser m ()
 checkNotes = do
   st <- getState
   let notesUsed = stateNoteRefs st
-  let notesDefined = M.keys (stateNotes' st)
-  mapM_ (\n -> unless (n `Set.member` notesUsed) $
-                case M.lookup n (stateNotes' st) of
-                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
-                   Nothing -> throwError $
-                     PandocShouldNeverHappenError "note not found")
-         notesDefined
+  forM_ (M.toList (stateNotes' st)) $ \(n, (pos, _)) ->
+    unless (n `Set.member` notesUsed) $
+      report (NoteDefinedButNotUsed n pos)
 
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -781,7 +776,7 @@ lhsCodeBlockBirdWith c = try $ do
   when (sourceColumn pos /= 1) $ Prelude.fail "Not in first column"
   lns <- many1 $ birdTrackLine c
   -- if (as is normal) there is always a space after >, drop it
-  let lns' = if all (\ln -> T.null ln || T.take 1 ln == " ") lns
+  let lns' = if all (\ln -> T.null ln || T.head ln == ' ') lns
                 then map (T.drop 1) lns
                 else lns
   blanklines
@@ -1073,8 +1068,7 @@ para = try $ do
                    <* lookAhead header)
               <|> (guardEnabled Ext_lists_without_preceding_blankline
                     -- Avoid creating a paragraph in a nested list.
-                    <* notFollowedBy' inList
-                    <* lookAhead listStart)
+                    <* notFollowedBy' (inList <* listStart))
               <|> do guardEnabled Ext_native_divs
                      inHtmlBlock <- stateInHtmlBlock <$> getState
                      case inHtmlBlock of
@@ -1168,7 +1162,7 @@ rawTeXBlock = do
                 many1 ((<>) <$> rawLaTeXBlock <*> spnl'))
   return $ case B.toList result of
                 [RawBlock _ cs]
-                  | T.all (`elem` [' ','\t','\n']) cs -> return mempty
+                  | T.all (\c -> c == ' ' || c == '\t' || c == '\n') cs -> return mempty
                 -- don't create a raw block for suppressed macro defs
                 _ -> return result
 
@@ -1608,7 +1602,7 @@ exampleRef = do
   guardEnabled Ext_example_lists
   try $ do
     char '@'
-    lab <- mconcat . map T.pack <$>
+    lab <- T.pack . concat <$>
                       many (many1 alphaNum <|>
                             try (do c <- char '_' <|> char '-'
                                     cs <- many1 alphaNum
@@ -1887,7 +1881,7 @@ wikilink constructor = do
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
-    guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+    guard $ T.all (\c -> c /= '\n' && c /= '\r' && c /= '\f' && c /= '\t') url
     return . pure . constructor attr url "" $
        B.text $ fromEntities title
 
@@ -1932,7 +1926,7 @@ wrapSpan (ident, classes, kvs) =
 
 isSmallCapsFontVariant :: Text -> Bool
 isSmallCapsFontVariant s =
-  T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+  T.toLower (T.filter (\c -> c /= ' ' && c /= '\t' && c /= ';') s) ==
   "font-variant:small-caps"
 
 regLink :: PandocMonad m

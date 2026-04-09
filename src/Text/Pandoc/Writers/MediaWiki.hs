@@ -106,16 +106,22 @@ blockToMediaWiki (SimpleFigure attr txt (src, tit)) = do
                     then ""
                     else "alt=" <> capt'
                else "alt=" <> tit
-  return $ literal ("[[" <>
-            T.intercalate "|"
-            (filter (not . T.null) ["File:" <> src
-                                 , "thumb"
-                                 , "none"
-                                 , img
-                                 , opt
-                                 , capt'
-                                 ]) <>
-            "]]") <> cr
+  let separator = "<nowiki></nowiki>"
+  -- External images (URIs) cannot use [[File:...]] syntax;
+  -- they must be rendered as bare URLs. MediaWiki will auto-embed
+  -- them when $wgAllowExternalImages is enabled.
+  return $ if isURI src
+           then literal (separator <> src <> separator) <> cr
+           else literal ("[[" <>
+                  T.intercalate "|"
+                  (filter (not . T.null) ["File:" <> src
+                                       , "thumb"
+                                       , "none"
+                                       , img
+                                       , opt
+                                       , capt'
+                                       ]) <>
+                  "]]") <> cr
 
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
@@ -123,10 +129,10 @@ blockToMediaWiki (Para inlines) = do
   contents <- inlineListToMediaWiki inlines
   let contents' = render Nothing contents
   let initEsc = if startsWithListMarker contents'
-                   then literal "\\"
+                   then literal "<nowiki></nowiki>"
                    else mempty
   return $ if tags
-              then  literal "<p>" <> contents <> literal "</p>"
+              then literal "<p>" <> contents <> literal "</p>"
               else initEsc <> contents $$
                    if null lev then blankline else mempty
 
@@ -486,7 +492,7 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
   let label' = render Nothing label
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return $ literal src
-     _  -> return $ literal $ if isURI src
+     _  -> return $ literal $ if isURI (T.takeWhile (/= '#') src) -- see #11562
        then "[" <> src <> " " <> label' <> "]"
        else
          if src == label'
@@ -496,21 +502,28 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
        where src' = fromMaybe src $ T.stripPrefix "/" src
 
 inlineToMediaWiki (Image attr alt (source, tit)) = do
-  img  <- imageToMediaWiki attr
-  alt' <- inlineListToMediaWiki alt
-  let altText = render Nothing alt'
-  let txt = if T.null altText
-               then if T.null tit
-                       then ""
-                       else tit
-               else altText
-  return $ literal $ "[[" <>
-           T.intercalate "|"
-           (filter (not . T.null)
-            [ "File:" <> source
-            , img
-            , txt
-            ]) <> "]]"
+  let separator = "<nowiki></nowiki>"
+  -- External images (URIs) cannot use [[File:...]] syntax;
+  -- they must be rendered as bare URLs. MediaWiki will auto-embed
+  -- them when $wgAllowExternalImages is enabled.
+  if isURI source
+     then return $ literal $ separator <> source <> separator
+     else do
+       img  <- imageToMediaWiki attr
+       alt' <- inlineListToMediaWiki alt
+       let altText = render Nothing alt'
+       let txt = if T.null altText
+                    then if T.null tit
+                            then ""
+                            else tit
+                    else altText
+       return $ literal $ "[[" <>
+                T.intercalate "|"
+                (filter (not . T.null)
+                 [ "File:" <> source
+                 , img
+                 , txt
+                 ]) <> "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents

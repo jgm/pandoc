@@ -4,7 +4,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
   brew_script:
     - brew update
     - brew install ghc@9.10 cabal-install

@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: 2025-02-02
+date: 2026-03-19
 ---
 
 # Synopsis
@@ -513,7 +513,7 @@ header when requesting a document from a URL:
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
-[OPML]: http://dev.opml.org/spec2.html
+[OPML]: https://opml.org/spec2.opml
 [OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
 [Plain Old Documentation]: https://perldoc.perl.org/perlpod
@@ -912,13 +912,10 @@ header when requesting a document from a URL:
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
     Note that if you are producing a PDF via `ms` and using
-    (the default) `pdfroff` as a `--pdf-engine`, the table
-    of contents will appear at the beginning of the
-    document, before the title.  If you would prefer it to
-    be at the end of the document, use the option
-    `--pdf-engine-opt=--no-toc-relocation`. If `groff` is
-    used as the `--pdf-engine`, the table of contents will
-    always appear at the end of the document.
+    (the default) `groff` as a `--pdf-engine`, the table of
+    contents will appear at the end of the document. If you would
+    prefer it to be at the beginning of the document, before the
+    title, you can use `--pdf-engine=pdfroff`.
 
 `--toc-depth=`*NUMBER*
 
@@ -1540,7 +1537,7 @@ header when requesting a document from a URL:
         `pagedjs-cli`;
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS)
-    - `-t ms`:  `pdfroff`
+    - `-t ms`:  `groff`
     - `-t typst`: `typst`
 
     This option is normally intended to be used when a PDF
@@ -4598,19 +4595,19 @@ A definition begins with a colon or tilde, which may be indented one
 or two spaces.
 
 A term may have multiple definitions, and each definition may
-consist of one or more block elements (paragraph, code block,
-list, etc.), each indented four spaces or one tab stop.  The
-body of the definition (not including the first line)
-should be indented four spaces. However, as with
-other Markdown lists, you can "lazily" omit indentation except
-at the beginning of a paragraph or other block element:
+consist of one or more indented block elements (paragraph, code block,
+list, etc.). The blocks in the definition shoud be indented to the column
+of the first non-space content after the `:` or `~` marker, or
+(if the `four_space_rule` extension is enabled) four spaces or
+one tab stop. As with other Markdown lists, you can "lazily" omit
+indentation in paragraph continuation lines:
 
     Term 1
 
-    :   Definition
+    : Definition
     with lazy continuation.
 
-        Second paragraph of the definition.
+      Second paragraph of the definition.
 
 If you leave space before the definition (as in the example above),
 the text of the definition will be treated as a paragraph.  In some
@@ -5075,6 +5072,7 @@ hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
 (`...`) at the bottom.  The initial line `---` must not be followed by a blank
 line. A YAML metadata block may occur anywhere in the document, but if
 it is not at the beginning, it must be preceded by a blank line.
+(Note that JSON may be used as well, because JSON is a subset of YAML.)
 
 Note that, because of the way pandoc concatenates input files
 when several are provided, you may also keep the metadata in a
@@ -5181,10 +5179,10 @@ will be interpreted as Markdown. For example:
       \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
       ```
 
-Note:  the `yaml_metadata_block` extension works with
-`commonmark` as well as `markdown` (and it is enabled by default
-in `gfm` and `commonmark_x`).  However, in these formats the
-following restrictions apply:
+Note:  the `yaml_metadata_block` extension works not just with
+`markdown` but with `commonmark` (and it is enabled by default in
+`gfm` and `commonmark_x`). However, in `commonmark`, `gfm`,
+and `commonmark_x`, the following restrictions apply:
 
 - The YAML metadata block must occur at the beginning of the
   document (and there can be only one).  If multiple files are
@@ -7171,8 +7169,10 @@ The following fields are recognized:
   ~ Either a string value or an object with fields `text` and
     `scheme`.  Valid values for `scheme` are `ISBN-10`,
     `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
-    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
-    `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC number`,
+    `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`, `JP e-code`,
+    `OLCC number`, `JP Magazine ID`, `UPC-12+5`, `BNF Control number`,
+    `ISSN-13`, `ARK`, `Digital file internal version number`.
 
 `title`
   ~ Either a string value, or an object with fields `file-as` and
@@ -7715,6 +7715,14 @@ custom-style `span`.
 
 For docx or odt output, you don't need to enable any extensions for
 custom styles to work.
+
+For icml output, you can also set an `object-style` in images:
+
+    ![Image with object style](myImage.jpg){object-style="fixedSizeImage"}
+
+In InDesign you'll see that object style given to the image,
+and you'll be able to customize it, or load its definition from
+a template of yours.
 
 [pandoc filters]: https://pandoc.org/filters.html
 

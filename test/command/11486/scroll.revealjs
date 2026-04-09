@@ -1,0 +1,15 @@
+$if(view)$
+        scrollActivationWidth: $scrollActivationWidth$,
+$if(scrollSnap)$
+        scrollSnap: '$scrollSnap/nowrap$',
+$else$
+        scrollSnap: false,
+$endif$
+$if(scrollProgressAuto)$
+        scrollProgress: 'auto',
+$elseif(scrollProgress)$
+        scrollProgress: $scrollProgress$,
+$else$
+        scrollProgress: false,
+$endif$
+$endif$

@@ -14,7 +14,7 @@ Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan ) where
-import Control.Monad ( liftM, zipWithM, forM, unless )
+import Control.Monad ( liftM, zipWithM, unless )
 import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
 import Control.Monad.Trans (MonadTrans(lift))
 import Data.List (intersperse)
@@ -241,7 +241,7 @@ definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts label
   contents <- if null defs
                  then return empty
-                 else liftM vcat $ forM defs $ \case
+                 else case mconcat defs of
                           (x:xs) -> do
                             first' <- blockToMan opts $
                                       case x of

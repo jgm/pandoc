@@ -114,7 +114,7 @@ type StyleReaderSafe a b  = XMLReaderSafe FontPitches a b
 -- the fonts:
 
 -- | A reader for font pitches
-fontPitchReader :: XMLReader _s _x FontPitches
+fontPitchReader :: XMLReader s a FontPitches
 fontPitchReader = executeInSub NsOffice "font-face-decls" (
                           withEveryL NsStyle "font-face" (liftAsSuccess (
                               findAttr' NsStyle "name"
@@ -129,7 +129,7 @@ fontPitchReader = executeInSub NsOffice "font-face-decls" (
 
 -- | A wrapper around the font pitch reader that lifts the result into the
 -- state.
-readFontPitches :: StyleReader x x
+readFontPitches :: StyleReader a a
 readFontPitches = producingExtraState () () fontPitchReader
 
 
@@ -141,7 +141,7 @@ readFontPitches = producingExtraState () () fontPitchReader
 --   and use the pitch from there.
 -- * Return the result in a Maybe
 --
-findPitch :: XMLReaderSafe FontPitches _x (Maybe FontPitch)
+findPitch :: XMLReaderSafe FontPitches a (Maybe FontPitch)
 findPitch =     ( lookupAttr NsStyle "font-pitch"
                   `ifFailedDo`     findAttr NsStyle "font-name"
                                >>? (     keepingTheValue getExtraState
@@ -416,7 +416,7 @@ instance Read ListItemNumberFormat where
 --------------------------------------------------------------------------------
 
 --
-readAllStyles :: StyleReader _x Styles
+readAllStyles :: StyleReader a Styles
 readAllStyles = (      readFontPitches
                   >>?! (     readAutomaticStyles
                          &&& readStyles ))
@@ -424,7 +424,7 @@ readAllStyles = (      readFontPitches
  -- all top elements are always on the same hierarchy level
 
 --
-readStyles :: StyleReader _x Styles
+readStyles :: StyleReader a Styles
 readStyles = executeInSub NsOffice "styles" $ liftAsSuccess
   $ liftA3 Styles
     ( tryAll NsStyle "style"         readStyle        >>^ M.fromList )
@@ -432,7 +432,7 @@ readStyles = executeInSub NsOffice "styles" $ liftAsSuccess
     ( tryAll NsStyle "default-style" readDefaultStyle >>^ M.fromList )
 
 --
-readAutomaticStyles :: StyleReader _x Styles
+readAutomaticStyles :: StyleReader a Styles
 readAutomaticStyles = executeInSub NsOffice "automatic-styles" $ liftAsSuccess
   $ liftA3 Styles
     ( tryAll NsStyle "style"         readStyle        >>^ M.fromList )
@@ -440,12 +440,12 @@ readAutomaticStyles = executeInSub NsOffice "automatic-styles" $ liftAsSuccess
     ( returnV M.empty                                                )
 
 --
-readDefaultStyle :: StyleReader _x (StyleFamily, StyleProperties)
+readDefaultStyle :: StyleReader a (StyleFamily, StyleProperties)
 readDefaultStyle =      lookupAttr NsStyle "family"
                    >>?! keepingTheValue readStyleProperties
 
 --
-readStyle :: StyleReader _x (StyleName,Style)
+readStyle :: StyleReader a (StyleName,Style)
 readStyle =      findAttr NsStyle "name"
             >>?! keepingTheValue
                    ( liftA4 Style
@@ -456,13 +456,13 @@ readStyle =      findAttr NsStyle "name"
                    )
 
 --
-readStyleProperties :: StyleReaderSafe _x StyleProperties
+readStyleProperties :: StyleReaderSafe a StyleProperties
 readStyleProperties = liftA2 SProps
                        ( readTextProperties >>> choiceToMaybe )
                        ( readParaProperties >>> choiceToMaybe )
 
 --
-readTextProperties :: StyleReader _x TextProperties
+readTextProperties :: StyleReader a TextProperties
 readTextProperties =
   executeInSub NsStyle "text-properties" $ liftAsSuccess
     ( liftA6 PropT
@@ -477,15 +477,15 @@ readTextProperties =
         isFontBold = ("normal",False):("bold",True)
                     :map ((,True) . tshow) ([100,200..900]::[Int])
 
-readUnderlineMode     :: StyleReaderSafe _x (Maybe UnderlineMode)
+readUnderlineMode     :: StyleReaderSafe a (Maybe UnderlineMode)
 readUnderlineMode     = readLineMode "text-underline-mode"
                                      "text-underline-style"
 
-readStrikeThroughMode :: StyleReaderSafe _x (Maybe UnderlineMode)
+readStrikeThroughMode :: StyleReaderSafe a (Maybe UnderlineMode)
 readStrikeThroughMode = readLineMode "text-line-through-mode"
                                      "text-line-through-style"
 
-readLineMode :: Text -> Text -> StyleReaderSafe _x (Maybe UnderlineMode)
+readLineMode :: Text -> Text -> StyleReaderSafe a (Maybe UnderlineMode)
 readLineMode modeAttr styleAttr = proc x -> do
   isUL <- searchAttr  NsStyle styleAttr False isLinePresent -< x
   mode <- lookupAttr' NsStyle  modeAttr                     -< x
@@ -501,7 +501,7 @@ readLineMode modeAttr styleAttr = proc x -> do
                     ]
 
 --
-readParaProperties :: StyleReader _x ParaProperties
+readParaProperties :: StyleReader a ParaProperties
 readParaProperties =
    executeInSub NsStyle "paragraph-properties" $ liftAsSuccess
      ( liftA3 PropP
@@ -527,7 +527,7 @@ readParaProperties =
 ----
 
 --
-readListStyle :: StyleReader _x (StyleName, ListStyle)
+readListStyle :: StyleReader a (StyleName, ListStyle)
 readListStyle =
        findAttr NsStyle "name"
   >>?! keepingTheValue
@@ -540,13 +540,13 @@ readListStyle =
 --
 readListLevelStyles :: Namespace -> ElementName
                     -> ListLevelType
-                    -> StyleReaderSafe _x (SM.SetMap Int ListLevelStyle)
+                    -> StyleReaderSafe a (SM.SetMap Int ListLevelStyle)
 readListLevelStyles namespace elementName levelType =
   tryAll namespace elementName (readListLevelStyle levelType)
     >>^ SM.fromList
 
 --
-readListLevelStyle :: ListLevelType -> StyleReader _x (Int, ListLevelStyle)
+readListLevelStyle :: ListLevelType -> StyleReader a (Int, ListLevelStyle)
 readListLevelStyle levelType =      readAttr NsText "level"
                                >>?! keepingTheValue
                                     ( liftA5 toListLevelStyle

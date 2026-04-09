@@ -374,7 +374,9 @@ svgSize opts img = do
   let dpi = fromIntegral $ writerDpi opts
   let dirToInt dir = do
         dim <- findAttrBy (== QName dir Nothing Nothing) doc >>= lengthToDim
-        return $ inPixel opts dim
+        case dim of
+           Percent _ -> mzero
+           _ -> pure $ inPixel opts dim
   w <- dirToInt "width" <|> (fst <$> viewboxSize)
   h <- dirToInt "height" <|> (snd <$> viewboxSize)
   return ImageSize {

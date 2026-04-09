@@ -1209,7 +1209,7 @@ getTypeAndGenre = do
              | otherwise         -> "article-journal"
            "book"                -> "book"
            "booklet"             -> "pamphlet"
-           "bookinbook"          -> "chapter"
+           "bookinbook"          -> "book"
            "collection"          -> "book"
            "dataset"             -> "dataset"
            "electronic"          -> "webpage"

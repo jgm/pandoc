@@ -160,21 +160,54 @@ unwrapElement ns element
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
   | isElem ns "w" "p" element
-  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>=
-                       findChildrenByName ns "mc" "AlternateContent" >>=
-                       findChildrenByName ns "mc" "Fallback" >>=
-                       findChildrenByName ns "w" "pict" >>=
-                       (\e -> findChildrenByName ns "v" "shape" e <>
-                              findChildrenByName ns "v" "rect" e) >>=
-                       findChildrenByName ns "v" "textbox" >>=
-                       findChildrenByName ns "w" "txbxContent"
-  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214
+  , _:_ <- findChildrenByName ns "w" "r" element >>= findTextboxes
+  = let result = splitP (elContent element) [] -- handle #9214, #11053
+    in [element{ elName = QName "textbox-image" Nothing Nothing
+              , elContent = map Elem result }]
   | isElem ns "w" "r" element
   , Just fallback <- findChildByName ns "mc" "AlternateContent" element >>=
                      findChildByName ns "mc" "Fallback"
   = [element{ elContent = concatMap (unwrapContent ns) (elContent fallback) }]
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
+  where
+    -- Split a w:p's children around textbox-bearing runs, preserving order.
+    -- Non-textbox content is grouped into a copy of the original w:p;
+    -- textbox content is unwrapped into sibling elements in place.
+    splitP [] acc = [wrapP acc | hasContent acc]
+    splitP (c:cs) acc
+      | Elem el <- c
+      , isElem ns "w" "r" el
+      , tbs@(_:_) <- findTextboxes el
+      = [wrapP acc | hasContent acc]
+        ++ concatMap (unwrapElement ns) (concatMap elChildren tbs)
+        ++ splitP cs []
+      | otherwise
+      = splitP cs (acc ++ [c])
+    wrapP cs = element{ elContent = concatMap (unwrapContent ns) cs }
+    hasContent = any (\case Elem el -> isElem ns "w" "r" el
+                                                  && any (isContentElem . elName)
+                                                         (elChildren el)
+                            _ -> False)
+    isContentElem n = qName n `elem`
+      ["t", "drawing", "pict", "br", "tab", "sym", "fldChar", "instrText"]
+    -- Search textbox content in the run's effective children.
+    -- If AlternateContent is present, use only the fallback branch,
+    -- matching the w:r unwrapping logic and avoiding duplicate textbox
+    -- extraction when both direct and fallback encodings are present.
+    findRunFallback run =
+      findChildByName ns "mc" "AlternateContent" run >>=
+      findChildByName ns "mc" "Fallback"
+    findTextboxes run =
+      findTextboxContent =<<
+      case findRunFallback run of
+        Just fallback -> findChildrenByName ns "w" "pict" fallback
+        Nothing -> findChildrenByName ns "w" "pict" run
+    findTextboxContent pict =
+      (findChildrenByName ns "v" "shape" pict <>
+       findChildrenByName ns "v" "rect" pict) >>=
+      findChildrenByName ns "v" "textbox" >>=
+      findChildrenByName ns "w" "txbxContent"
 
 unwrapContent :: NameSpaces -> Content -> [Content]
 unwrapContent ns (Elem element) = map Elem $ unwrapElement ns element
@@ -464,9 +497,17 @@ archiveToDocument zf = do
   return $ Document namespaces body
 
 elemToBody :: NameSpaces -> Element -> D Body
-elemToBody ns element | isElem ns "w" "body" element =
-  Body . addCaptioned <$> mapD (elemToBodyPart ns) (elChildren element)
-elemToBody _ _ = throwError WrongElem
+elemToBody ns element
+  | isElem ns "w" "body" element =
+      Body . addCaptioned <$> concatMapM (elemToBodyParts ns) (elChildren element)
+  | otherwise = throwError WrongElem
+  where
+    elemToBodyParts ns' el
+      | qName (elName el) == "textbox-image"
+      = addSplitGroupCaptioned . splitMixedParagraphs
+          <$> mapD (elemToBodyPart ns') (elChildren el)
+      | otherwise
+      = ((:[]) <$> elemToBodyPart ns' el) `catchError` (\_ -> return [])
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
 archiveToStyles = archiveToStyles' getStyleId getStyleId
@@ -529,22 +570,18 @@ filePathToRelType path docXmlPath =
   then Just InDocument
   else Nothing
 
-relElemToRelationship :: FilePath -> DocumentLocation -> Element
+relElemToRelationship :: DocumentLocation -> Element
                       -> Maybe Relationship
-relElemToRelationship fp relType element | qName (elName element) == "Relationship" =
+relElemToRelationship relType element | qName (elName element) == "Relationship" =
   do
     relId <- findAttr (QName "Id" Nothing Nothing) element
     target <- findAttr (QName "Target" Nothing Nothing) element
-    -- target may be relative (media/image1.jpeg) or absolute
-    -- (/word/media/image1.jpeg); we need to relativize it (see #7374)
-    let frontOfFp = T.pack $ takeWhile (/= '_') fp
-    let target' = fromMaybe target $
-           T.stripPrefix frontOfFp $ T.dropWhile (== '/') target
-    return $ Relationship relType relId target'
-relElemToRelationship _ _ _ = Nothing
+    -- target may be relative (media/image1.jpeg) or absolute (/word/media/image1.jpg)
+    return $ Relationship relType relId target
+relElemToRelationship _ _ = Nothing
 
 extractTarget :: Element -> Maybe Target
-extractTarget element = do (Relationship _ _ target) <- relElemToRelationship "word/" InDocument element
+extractTarget element = do (Relationship _ _ target) <- relElemToRelationship InDocument element
                            return target
 
 filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
@@ -552,7 +589,7 @@ filePathToRelationships ar docXmlPath fp
   | Just relType <- filePathToRelType fp docXmlPath
   , Just entry <- findEntryByPath fp ar
   , Just relElems <- parseXMLFromEntry entry =
-  mapMaybe (relElemToRelationship fp relType) $ elChildren relElems
+  mapMaybe (relElemToRelationship relType) $ elChildren relElems
 filePathToRelationships _ _ _ = []
 
 archiveToRelationships :: Archive -> FilePath -> [Relationship]
@@ -796,6 +833,28 @@ addCaptioned (x : Paragraph parstyle parparts : xs)
     = Captioned parstyle parparts x : addCaptioned xs
 addCaptioned (x:xs) = x : addCaptioned xs
 
+-- Split paragraphs that contain both a Drawing and text into two body parts,
+-- so that the captioning logic can combine them.
+splitMixedParagraphs :: [BodyPart] -> [BodyPart]
+splitMixedParagraphs [] = []
+splitMixedParagraphs (Paragraph ps parts : rest)
+  | (drawings@(_:_), texts@(_:_)) <- partition isDrawingPart parts
+  = Paragraph ps drawings : Paragraph ps texts : splitMixedParagraphs rest
+  where isDrawingPart Drawing{} = True
+        isDrawingPart _         = False
+splitMixedParagraphs (x:xs) = x : splitMixedParagraphs xs
+
+-- For textbox-image groups: combine image + any adjacent text into Captioned
+addSplitGroupCaptioned :: [BodyPart] -> [BodyPart]
+addSplitGroupCaptioned [] = []
+addSplitGroupCaptioned (Paragraph parstyle parparts : x : xs)
+  | isCaptionable x
+  = Captioned parstyle parparts x : addSplitGroupCaptioned xs
+addSplitGroupCaptioned (x : Paragraph parstyle parparts : xs)
+  | isCaptionable x
+  = Captioned parstyle parparts x : addSplitGroupCaptioned xs
+addSplitGroupCaptioned (x:xs) = x : addSplitGroupCaptioned xs
+
 isCaptionable :: BodyPart -> Bool
 isCaptionable (Paragraph _ [Drawing{}]) = True
 isCaptionable (Tbl{}) = True
@@ -923,11 +982,23 @@ expandDrawingId s = do
   case target of
     Just filepath -> do
       media <- asks envMedia
-      let filepath' = case filepath of
-                        ('/':rest) -> rest
-                        _ -> "word/" ++ filepath
+      -- the mediaName is the name we store it under in the mediabag.
+      -- This is derived from the path, which might be absolute, e.g. /media/foo.jpg,
+      -- or relative, media/foo.jpg (interpreted as /word/media/foo.jpg).
+      -- The mediaName will strip off any leading `/` or `word/`.
+      -- We assume here that the media will not be stored *both* in
+      -- /media and in /word/media, which would lead to a name conflict
+      -- given the scheme here for generating a mediaName.
+      let (filepath', mediaName) =
+            case filepath of
+               ('/':rest)  -- absolute path e.g. /media/foo.jpg
+                  -> (rest, case stripPrefix "word/" rest of
+                              Just rest' -> rest'
+                              Nothing -> rest)
+               _  -- rel path to word, e.g. media/foo.jpg
+                 -> ("word/" ++ filepath, filepath)
       case lookup filepath' media of
-        Just bs -> return (filepath, bs)
+        Just bs -> return (mediaName, bs)
         Nothing -> throwError DocxError
     Nothing -> throwError DocxError
 

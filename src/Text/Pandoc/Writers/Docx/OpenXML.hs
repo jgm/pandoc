@@ -20,7 +20,7 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx.OpenXML ( writeOpenXML, maxListLevel ) where
 
-import Control.Monad ((>=>), when, unless)
+import Control.Monad (when, unless)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Crypto.Hash (hashWith, SHA1(SHA1))
@@ -329,14 +329,6 @@ blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]
 blocksToOpenXML opts =
   fmap concat . mapM (blockToOpenXML opts)
   . separateTables . filter (not . isForeignRawBlock)
-  >=>
-  \case
-    a@(x:xs) -> do
-      sep <- sectionSeparator
-      if Just x == sep
-        then pure xs
-        else pure a
-    [] -> pure []
 
 isForeignRawBlock :: Block -> Bool
 isForeignRawBlock (RawBlock format _) = format /= "openxml"
@@ -414,9 +406,19 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
                 Nothing -> return []
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
-  addSectionBreak <- sectionSeparator >>= \case
-    Just sep | isSection -> pure (sep:)
-    _  -> pure id
+  -- Add section break before section-level headers, but not for the first one
+  -- to avoid a blank first page (#10578, #11482).
+  addSectionBreak <- if isSection
+    then do
+      isFirst <- gets stFirstSectionHeader
+      if isFirst
+        then do
+          modify $ \s -> s { stFirstSectionHeader = False }
+          pure id
+        else sectionSeparator >>= \case
+          Just sep -> pure (sep:)
+          Nothing  -> pure id
+    else pure id
   addSectionBreak <$>
     if T.null ident
        then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
@@ -905,6 +907,7 @@ inlineToOpenXML' opts (Code attrs str) = do
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId
+  oldFirstPara <- gets stFirstPara
   footnoteStyle <- rStyleM "Footnote Reference"
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] footnoteStyle
@@ -920,6 +923,7 @@ inlineToOpenXML' opts (Note bs) = do
                                 , envInNote = True })
               (withParaPropM (pStyleM "Footnote Text") $
                blocksToOpenXML opts $ insertNoteRef bs)
+  modify $ \s -> s{ stFirstPara = oldFirstPara }
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ Elem $ mknode "w:r" []

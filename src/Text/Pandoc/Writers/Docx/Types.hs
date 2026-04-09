@@ -121,6 +121,7 @@ data WriterState = WriterState{
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
+       , stFirstSectionHeader :: Bool  -- ^ True until first section header is processed
        , stNumIdUsed      :: Bool  -- ^ True if the current numId (envListNumId) has been used.
                                    --   Should only be used once, for the first paragraph.
        , stInTable        :: Bool
@@ -146,6 +147,7 @@ defaultWriterState = WriterState{
       , stDelId          = 1
       , stStyleMaps      = StyleMaps M.empty M.empty
       , stFirstPara      = False
+      , stFirstSectionHeader = True
       , stNumIdUsed      = False
       , stInTable        = False
       , stInList         = False

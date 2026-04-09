@@ -88,7 +88,7 @@ It can convert *from*
 - `native` (native Haskell)
 - `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
-- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `opml` ([OPML](https://opml.org/spec2.opml))
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `pod` (Perl’s [Plain Old
   Documentation](https://perldoc.perl.org/perlpod))
@@ -174,7 +174,7 @@ It can convert *to*
   markup](https://www.w3.org/TR/html-polyglot/))
 - `html4` ([XHTML](https://www.w3.org/TR/xhtml1/) 1.0 Transitional)
 - `icml` ([InDesign
-  ICML](https://manualzz.com/doc/9627253/adobe-indesign-cs6-idml-cookbook))
+  ICML](https://web.archive.org/web/20211006210211/https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
 - `ipynb` ([Jupyter
   notebook](https://nbformat.readthedocs.io/en/latest/))
 - `jats_archiving` ([JATS](https://jats.nlm.nih.gov) XML, Archiving and
@@ -206,7 +206,7 @@ It can convert *to*
 - `native` (native Haskell)
 - `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
-- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `opml` ([OPML](https://opml.org/spec2.opml))
 - `opendocument` ([OpenDocument
   XML](https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/))
 - `org` ([Emacs Org mode](https://orgmode.org))
@@ -282,8 +282,9 @@ Pandoc’s website contains a full [User’s
 Guide](https://pandoc.org/MANUAL.html). It is also available
 [here](MANUAL.txt) as pandoc-flavored Markdown. The website also
 contains some [examples of the use of
-pandoc](https://pandoc.org/demos.html) and a limited [online
-demo](https://pandoc.org/try).
+pandoc](https://pandoc.org/demos.html), a limited [online
+demo](https://pandoc.org/try), and a [WebAssembly-based online
+demo](https://pandoc.org/app).
 
 ## Contributing
 

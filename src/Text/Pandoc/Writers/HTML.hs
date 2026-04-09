@@ -49,7 +49,7 @@ import Text.Pandoc.URI (urlEncode)
 import Numeric (showHex)
 import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
-import Text.DocTemplates (FromContext (lookupContext), Context (..))
+import Text.DocTemplates (FromContext (lookupContext), Context (..), Val(..))
 import qualified Text.DocTemplates.Internal as DT
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
@@ -434,7 +434,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "backgroundTransition" ("fade" :: Doc Text) .
                          defField "viewDistance" ("3" :: Doc Text) .
                          defField "mobileViewDistance" ("2" :: Doc Text) .
-                         defField "scrollProgress" True .
+                         (case (lookupContext "scrollProgress" metadata
+                                   :: Maybe (Val Text)) of
+                            Just (BoolVal False) -> id
+                            Just (BoolVal True) -> defField "scrollProgress" True
+                            _  -> defField "scrollProgressAuto" True) .
                          defField "scrollActivationWidth" ("0" :: Doc Text) .
                          defField "scrollSnap" ("mandatory" :: Doc Text) .
                          defField "scrollLayout" ("full" :: Doc Text) .

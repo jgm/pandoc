@@ -2,6 +2,7 @@
 
 - Aaron Wolen
 - Adelar da Silva Queiróz
+- Agriya Khetarpal
 - Agustín Martín Barbero
 - Akash Patel
 - Akos Marton
@@ -338,6 +339,7 @@
 - Pavol Otto
 - Per Christian Gaustad
 - Pete Ryland
+- Peter Briggs
 - Peter Fabinksi
 - Peter Wang
 - Philip Pesca
@@ -383,6 +385,7 @@
 - Shim Myeongseob
 - Shin Sang-jae
 - Sidarth Kapur
+- Sidney Mau
 - Sidharth Kapur
 - Simon Hengel
 - Simon Schuster
@@ -528,3 +531,4 @@
 - wiefling
 - willj-dev
 - wuffi
+- λx.x
