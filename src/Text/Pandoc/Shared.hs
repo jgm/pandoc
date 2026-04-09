@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -140,23 +141,27 @@ splitTextBy isSep t
 -- /not/ indices but text widths, which will be different for East Asian
 -- characters, emojis, etc.
 splitTextByIndices :: [Int] -> T.Text -> [T.Text]
-splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns)) . T.unpack
+splitTextByIndices ns = splitByRelWidths (zipWith (-) ns (0:ns))
  where
-  splitTextByRelIndices [] cs = [T.pack cs]
-  splitTextByRelIndices (x:xs) cs =
-    let (first, rest) = splitAt' x cs
-     in T.pack first : splitTextByRelIndices xs rest
+  splitByRelWidths [] t = [t]
+  splitByRelWidths (w:ws) t =
+    let (first, rest) = splitAtWidth w t
+     in first : splitByRelWidths ws rest
 
--- | Returns a pair whose first element is a prefix of @t@ and that has
--- width @n@, and whose second is the remainder of the string.
+-- | Split a @Text@ at a given display width, where width is determined
+-- by 'charWidth' (East Asian characters, emojis, etc. count as 2).
 --
 -- Note: Do *not* replace this with 'T.splitAt', which is not sensitive
 -- to character widths!
-splitAt' :: Int {-^ n -} -> [Char] {-^ t -} -> ([Char],[Char])
-splitAt' _ []          = ([],[])
-splitAt' n xs | n <= 0 = ([],xs)
-splitAt' n (x:xs)      = (x:ys,zs)
-  where (ys,zs) = splitAt' (n - charWidth x) xs
+splitAtWidth :: Int -> T.Text -> (T.Text, T.Text)
+splitAtWidth n t
+  | n <= 0    = (T.empty, t)
+  | otherwise = T.splitAt (go 0 0 t) t
+  where
+    go !idx !w t'
+      | w >= n    = idx
+      | T.null t' = idx
+      | otherwise = go (idx + 1) (w + charWidth (T.head t')) (T.tail t')
 
 --
 -- Text processing
