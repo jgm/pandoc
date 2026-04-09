@@ -74,6 +74,9 @@ escapeText opts = T.pack . go' . T.unpack
     | isEnabled Ext_smart opts = '\\':'-':go('-':cs)
   go ('.':'.':'.':cs)
     | isEnabled Ext_smart opts = '\\':'.':'.':'.':go cs
+  go (':':':':':':cs)
+    | isEnabled Ext_fenced_divs opts -- see #11571
+    = '\\':':':':':':': (takeWhile (==':') cs ++ go cs)
   go (c:'_':d:cs)
     | isAlphaNum c
     , isAlphaNum d =
