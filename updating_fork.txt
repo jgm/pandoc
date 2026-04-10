@@ -20,3 +20,18 @@ stack install
 
 copy to ~/.local/bin/pandoc
 
+● D'après les logs, le binaire a été installé ici :                                                          
+                                                                                                           
+  /home/alan/src/pandoc/.stack-work/install/x86_64-linux-tinfo6/39facb83e47fd854833cddc51836d26465fe362d2857e
+  8000a1554652b7242d9/9.10.3/bin/pandoc                                                                      
+                                                                                                             
+  Pour l'utiliser plus facilement, vous pouvez soit :                                                        
+  - stack exec pandoc -- --version pour l'exécuter via stack                                               
+  - stack install pour le copier dans ~/.local/bin/pandoc     
+  
+
+
+ /home/alan/src/pandoc/.stack-work/install/x86_64-linux-tinfo6/39facb83e47fd854833cddc51836d26465fe362d2857e8000a1554652b7242d9/9.10.3/bin/pandoc
+ 
+ 
+ 
