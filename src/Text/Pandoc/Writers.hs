@@ -75,6 +75,7 @@ module Text.Pandoc.Writers
     , writeTEI
     , writeTexinfo
     , writeTextile
+    , writeTxt2Tags
     , writeTypst
     , writeXML
     , writeXWiki
