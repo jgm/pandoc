@@ -422,6 +422,12 @@ blockHandlers = M.fromList
                    _ -> Just . B.text <$> lift (translateTerm References)
       let hdr = maybe mempty (B.header 1) mbTitle
       pure $ hdr <> B.divWith ("refs", [], []) mempty)
+  ,("rotate", \_ _ fields -> do
+      body <- getField "body" fields >>= pWithContents pBlocks
+      let kvs = case M.lookup "angle" fields of
+                    Just (VAngle ang) -> [("angle", T.pack $ show ang)]
+                    _ -> []
+      pure $ B.divWith ("", ["rotate"], kvs) body)
   ]
 
 inlineHandlers :: PandocMonad m =>
@@ -568,6 +574,12 @@ inlineHandlers = M.fromList
   ,("block", \_ mbident fields ->
       maybe id (\ident -> B.spanWith (ident, [], [])) mbident
         <$> (getField "body" fields >>= pWithContents pInlines))
+  ,("rotate", \_ _ fields -> do
+      body <- getField "body" fields >>= pWithContents pInlines
+      let kvs = case M.lookup "angle" fields of
+                    Just (VAngle ang) -> [("angle", T.pack $ show ang)]
+                    _ -> []
+      pure $ B.spanWith ("", ["rotate"], kvs) body)
   ]
 
 getInlineBody :: PandocMonad m => M.Map Identifier Val -> P m (Seq Content)
