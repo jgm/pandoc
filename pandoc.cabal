@@ -922,6 +922,7 @@ test-suite test-pandoc
                   Tests.Writers.Ms
                   Tests.Writers.AnnotatedTable
                   Tests.Writers.BBCode
+                  Tests.Writers.Txt2Tags
 
 benchmark benchmark-pandoc
   import:          common-executable
