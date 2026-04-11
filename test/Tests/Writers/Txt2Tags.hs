@@ -82,7 +82,7 @@ tests =
         =?> "quoted\n"
     ]
   , testGroup "horizontal rule"
-    [ "hr" =: horizontalRule =?> "\n---\n"
+    [ "hr" =: horizontalRule =?> "\n--------------------\n"
     ]
   , testGroup "tables"
     [ "table with headers"
