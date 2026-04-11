@@ -114,7 +114,7 @@ blockToTxt2Tags opts b@(RawBlock f str)
   , isEnabled Ext_raw_html opts = return $ "\"\"\"\n" <> str <> "\n\"\"\"\n"
   | otherwise = "" <$ report (BlockNotRendered b)
 
-blockToTxt2Tags _ HorizontalRule = return "\n---\n"
+blockToTxt2Tags _ HorizontalRule = return "\n--------------------\n"
 
 blockToTxt2Tags opts (Header level _ inlines) = do
   -- Formatting is not allowed in headers, so strip it
