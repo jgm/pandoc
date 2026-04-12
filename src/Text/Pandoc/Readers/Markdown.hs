@@ -2160,36 +2160,36 @@ divFenced = do
     skipMany spaceChar
     skipMany (char ':')
     blankline
-    csvEnabled <- option False (True <$ guardEnabled Ext_csv_tables)
-    if csvEnabled && "table" `elem` classes
-      then do
-        let csvEnd = try $ string ":::" >> skipMany (char ':') >> blanklines
-        contents <- T.unlines <$> manyTill anyLine csvEnd
-        case parseCSV defaultCSVOptions contents of
-          Left _   -> mzero
-          Right [] -> return mempty
-          Right (hdr:rows) ->
-            let numCols = length hdr
-                widths  = replicate numCols ColWidthDefault
-                aligns  = replicate numCols AlignDefault
-                toCell t = B.simpleCell (B.plain (B.text (T.strip t)))
-                toRow cells = Row nullAttr (map toCell cells)
-                hdrRows = [toRow hdr | not (null hdr)]
-            in  return $ return $
-                  B.table (B.simpleCaption mempty)
-                          (zip aligns widths)
-                          (TableHead nullAttr hdrRows)
-                          [TableBody nullAttr 0 [] (map toRow rows)]
-                          (TableFoot nullAttr [])
-      else do
-        guardEnabled Ext_fenced_divs
-        updateState $ \st ->
-          st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
-        bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
-        divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
-        updateState $ \st ->
-          st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
-        return $ B.divWith attribs <$> bs
+    let csvBranch = do
+          guardEnabled Ext_csv_tables
+          guard ("table" `elem` classes)
+          contents <- T.unlines <$> manyTill anyLine divFenceEnd
+          case parseCSV defaultCSVOptions contents of
+            Left _   -> mzero
+            Right [] -> return mempty
+            Right (hdr:rows) ->
+              let numCols = length hdr
+                  widths  = replicate numCols ColWidthDefault
+                  aligns  = replicate numCols AlignDefault
+                  toCell t = B.simpleCell (B.plain (B.text (T.strip t)))
+                  toRow cells = Row nullAttr (map toCell cells)
+                  hdrRows = [toRow hdr | not (null hdr)]
+              in  return $ return $
+                    B.table (B.simpleCaption mempty)
+                            (zip aligns widths)
+                            (TableHead nullAttr hdrRows)
+                            [TableBody nullAttr 0 [] (map toRow rows)]
+                            (TableFoot nullAttr [])
+        divBranch = do
+          guardEnabled Ext_fenced_divs
+          updateState $ \st ->
+            st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
+          bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
+          divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
+          updateState $ \st ->
+            st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
+          return $ B.divWith attribs <$> bs
+    csvBranch <|> divBranch
 
 divFenceEnd :: PandocMonad m => MarkdownParser m ()
 divFenceEnd = try $ do
