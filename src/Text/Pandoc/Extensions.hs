@@ -59,6 +59,7 @@ data Extension =
     | Ext_blank_before_header     -- ^ Require blank line before a header
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
+    | Ext_csv_tables          -- ^ CSV tables in ::: fenced blocks
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
                                   --   East Asian wide characters. Note: this extension
@@ -224,6 +225,7 @@ pandocExtensions = extensionsFromList
   , Ext_grid_tables
   , Ext_pipe_tables
   , Ext_citations
+  , Ext_csv_tables
   , Ext_raw_tex
   , Ext_raw_html
   , Ext_tex_math_dollars

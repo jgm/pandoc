@@ -41,7 +41,9 @@ import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
+import Text.Pandoc.CSV (defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition as Pandoc
+
 import Text.Pandoc.Emoji (emojiToInline)
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
@@ -2149,23 +2151,46 @@ divHtml = do
 
 divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 divFenced = do
-  guardEnabled Ext_fenced_divs
+  guardEnabled Ext_fenced_divs <|> guardEnabled Ext_csv_tables
   try $ do
     openpos <- getPosition
     string ":::"
     skipMany (char ':')
     skipMany spaceChar
-    attribs <- attributes <|> ((\x -> ("",[x],[])) <$> many1Char nonspaceChar)
+    attribs@(_, classes, _) <- attributes <|> ((\x -> ("",[x],[])) <$> many1Char nonspaceChar)
     skipMany spaceChar
     skipMany (char ':')
     blankline
-    updateState $ \st ->
-      st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
-    bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
-    divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
-    updateState $ \st ->
-      st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
-    return $ B.divWith attribs <$> bs
+    csvEnabled <- option False (True <$ guardEnabled Ext_csv_tables)
+    if csvEnabled && "table" `elem` classes
+      then do
+        let csvEnd = try $ string ":::" >> skipMany (char ':') >> blanklines
+        contents <- T.unlines <$> manyTill anyLine csvEnd
+        case parseCSV defaultCSVOptions contents of
+          Left _   -> mzero
+          Right [] -> return mempty
+          Right (hdr:rows) ->
+            let numCols = length hdr
+                widths  = replicate numCols ColWidthDefault
+                aligns  = replicate numCols AlignDefault
+                toCell t = B.simpleCell (B.plain (B.text (T.strip t)))
+                toRow cells = Row nullAttr (map toCell cells)
+                hdrRows = [toRow hdr | not (null hdr)]
+            in  return $ return $
+                  B.table (B.simpleCaption mempty)
+                          (zip aligns widths)
+                          (TableHead nullAttr hdrRows)
+                          [TableBody nullAttr 0 [] (map toRow rows)]
+                          (TableFoot nullAttr [])
+      else do
+        guardEnabled Ext_fenced_divs
+        updateState $ \st ->
+          st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
+        bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
+        divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
+        updateState $ \st ->
+          st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
+        return $ B.divWith attribs <$> bs
 
 divFenceEnd :: PandocMonad m => MarkdownParser m ()
 divFenceEnd = try $ do
