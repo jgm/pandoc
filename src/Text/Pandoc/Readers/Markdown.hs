@@ -43,7 +43,6 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.CSV (defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition as Pandoc
-
 import Text.Pandoc.Emoji (emojiToInline)
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
