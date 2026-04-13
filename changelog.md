@@ -22,6 +22,7 @@
     + Preserve non-textbox content when unwrapping textboxes (#11510, #6893,
       #11412, #5394, #9633). Treat text inside a textbox containing an image
       as a figure caption.
+    + Support `w:gridBefore` table row property (#11464, Jan Tojnar).
 
   * Typst reader:
 
@@ -33,10 +34,6 @@
   * Textile reader:
 
     + Handle block content in cells (#11455).
-
-  * Docx reader:
-
-    + Support `w:gridBefore` table row property (#11464, Jan Tojnar).
 
   * LaTeX reader:
 
