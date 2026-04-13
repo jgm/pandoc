@@ -83,7 +83,7 @@ import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Citeproc (ItemId(..), Reference(..), CitationItem(..))
+import Citeproc (ItemId(..), Val(TextVal,FancyVal), Reference(..), CitationItem(..))
 import qualified Citeproc
 import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
@@ -536,8 +536,13 @@ handleCitation :: PandocMonad m
                => Citeproc.Citation T.Text
                -> DocxContext m [Citation]
 handleCitation citation = do
+  let getItemId item =
+        case citationItemData item >>= M.lookup "citation-key" . referenceVariables of
+          Just (TextVal k) -> ItemId k
+          Just (FancyVal k) -> ItemId k
+          _ -> citationItemId item
   let toPandocCitation item =
-        Citation{ citationId = unItemId (Citeproc.citationItemId item)
+        Citation{ citationId = unItemId (getItemId item)
                 , citationPrefix = maybe [] (toList . text) $
                                      Citeproc.citationItemPrefix item
                 , citationSuffix = (toList . text) $
@@ -554,8 +559,7 @@ handleCitation citation = do
   let refs = mapMaybe (\item -> fmap (\itemData -> text <$>
                                         -- see #10366, sometimes itemData has a different
                                         -- id and we need to use the same one:
-                                        itemData{ referenceId =
-                                                    Citeproc.citationItemId item })
+                                        itemData{ referenceId = getItemId item })
                                   (Citeproc.citationItemData item)) items
   modify $ \st ->
     st{ docxReferences = foldr
