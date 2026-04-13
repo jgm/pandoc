@@ -1234,7 +1234,7 @@ elemToExtent el =
     (Just w, Just h) -> Just (w, h)
     _                -> Nothing
  where
-  getDim at = filterElementName (\n -> qName n `elem` ["extent", "ext"]) el
+  getDim at = filterElementName (\n -> qName n == "extent") el
               >>= findAttr (QName at Nothing Nothing) >>= safeRead
 
 
