@@ -2076,7 +2076,11 @@ note = try $ do
           let adjustCite (Cite cs ils) =
                 Cite (map addCitationNoteNum cs) ils
               adjustCite x = x
-          return $ B.note $ walk adjustCite contents'
+          let opts = stateOptions st
+          return $ if isEnabled Ext_endnotes opts
+                      && readerEndnotesPrefix opts `T.isPrefixOf` ref
+            then B.spanWith ("", ["endnote"], []) $ B.note $ walk adjustCite contents'
+            else B.note $ walk adjustCite contents'
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)
 inlineNote = do

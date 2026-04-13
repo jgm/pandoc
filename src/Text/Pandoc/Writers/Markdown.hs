@@ -287,15 +287,24 @@ keyToMarkdown opts (label', (src, tit), attr) = do
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m (Doc Text)
 notesToMarkdown opts notes = do
   n <- gets stNoteNum
-  notes' <- zipWithM (noteToMarkdown opts) [n..] notes
+  notes' <- zipWithM (noteToMarkdown opts "") [n..] notes
   modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
   return $ vsep notes'
 
+-- | Return markdown representation of endnotes when Ext_endnotes is enabled.
+endnotesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m (Doc Text)
+endnotesToMarkdown opts notes = do
+  n <- gets stEndnoteNum
+  let prefix = writerEndnotesPrefix opts
+  notes' <- zipWithM (noteToMarkdown opts prefix) [n..] notes
+  modify $ \st -> st { stEndnoteNum = stEndnoteNum st + length notes }
+  return $ vsep notes'
+
 -- | Return markdown representation of a note.
-noteToMarkdown :: PandocMonad m => WriterOptions -> Int -> [Block] -> MD m (Doc Text)
-noteToMarkdown opts num blocks = do
+noteToMarkdown :: PandocMonad m => WriterOptions -> Text -> Int -> [Block] -> MD m (Doc Text)
+noteToMarkdown opts prefix num blocks = do
   contents  <- blockListToMarkdown opts blocks
-  let num' = literal $ writerIdentifierPrefix opts <> tshow num
+  let num' = literal $ prefix <> writerIdentifierPrefix opts <> tshow num
   let marker = if isEnabled Ext_footnotes opts
                   then literal "[^" <> num' <> literal "]:"
                   else literal "[" <> num' <> literal "]"
@@ -337,17 +346,20 @@ notesAndRefs :: PandocMonad m => WriterOptions -> MD m (Doc Text)
 notesAndRefs opts = do
   notes' <- gets stNotes >>= notesToMarkdown opts . reverse
   modify $ \s -> s { stNotes = [] }
+  notes'' <- gets stEndnotes >>= endnotesToMarkdown opts . reverse
+  modify $ \s -> s { stEndnotes = [] }
+  let allNotes = notes' <> (if isEmpty notes' then empty else blankline) <> notes''
   refs' <- gets stRefs >>= refsToMarkdown opts . reverse
   modify $ \s -> s { stPrevRefs = stPrevRefs s ++ stRefs s
                    , stRefs = []}
 
   let endSpacing =
         if | writerReferenceLocation opts == EndOfDocument -> empty
-           | isEmpty notes' && isEmpty refs' -> empty
+           | isEmpty allNotes && isEmpty refs' -> empty
            | otherwise -> blankline
 
   return $
-    (if isEmpty notes' then empty else blankline <> notes') <>
+    (if isEmpty allNotes then empty else blankline <> allNotes) <>
     (if isEmpty refs' then empty else blankline <> refs') <>
     endSpacing
 
