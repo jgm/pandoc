@@ -26,7 +26,8 @@ foo
 <div typst:text:fill="purple">foo</div>
 ^D
 #block[
-#set text(fill: purple); foo
+#set text(fill: purple);
+foo
 ]
 ```
 
@@ -63,7 +64,7 @@ foo
 </table>
 ^D
 #figure(
-  align(center)[#set text(fill: orange); #table(
+  align(center)[#set text(fill: orange);#table(
     columns: 2,
     align: (auto,auto,),
     [A], [B],
@@ -98,7 +99,8 @@ foo
   align(center)[#table(
     columns: 2,
     align: (auto,auto,),
-    [A], [#set text(fill: fuchsia); B],
+    [A], [#set text(fill: fuchsia);
+    B],
   )]
   , kind: table
   )
@@ -114,7 +116,8 @@ foo
   align(center)[#table(
     columns: 2,
     align: (auto,center,),
-    [A], table.cell(align: center)[#set text(fill: maroon); B],
+    [A], table.cell(align: center)[#set text(fill: maroon);
+    B],
   )]
   , kind: table
   )
@@ -169,7 +172,7 @@ foo
 ^D
 Paragraph before.
 
-#{set text(size: 3em); table(
+#{set text(size: 3em);table(
   columns: 3,
   align: (auto,auto,auto,),
   [A], [B], [C],
@@ -195,7 +198,7 @@ Paragraph after.
 Paragraph before.
 
 #figure(
-  align(center)[#set text(size: 3em); #table(
+  align(center)[#set text(size: 3em);#table(
     columns: 3,
     align: (auto,auto,auto,),
     [A], [B], [C],

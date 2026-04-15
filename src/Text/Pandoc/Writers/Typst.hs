@@ -164,10 +164,10 @@ toTypstTextElement typstTextAttrs content = "#text" <> toTypstPropsListParens ty
 
 toTypstSetText :: [(Text, Text)] -> Doc Text
 toTypstSetText [] = ""
-toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; "
+toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> ";"
 
 toTypstPoundSetText :: [(Text, Text)] -> Doc Text
-toTypstPoundSetText [] = ""
+toTypstPoundSetText [] = mempty
 toTypstPoundSetText typstTextAttrs = "#" <> toTypstSetText typstTextAttrs
 
 toTypstBracesSetText :: [(Text, Text)] -> Doc Text -> Doc Text
@@ -313,7 +313,7 @@ blockToTypst block =
                      ColSpan n -> [ "colspan: " <> tshow n ]) ++
                   map formatTypstProp typstAttrs2
             cellContents <- blocksToTypst bs
-            let contents2 = brackets (toTypstPoundSetText typstTextAttrs <> cellContents)
+            let contents2 = brackets (toTypstPoundSetText typstTextAttrs $$ cellContents)
             pure $ if null cellattrs
                       then contents2
                       else "table.cell" <>
@@ -395,7 +395,8 @@ blockToTypst block =
       let allTypstTextAttrs = typstTextAttrs ++ langAttrs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText allTypstTextAttrs <> contents
+        $$ toTypstPoundSetText allTypstTextAttrs
+        $$ contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
