@@ -12,6 +12,11 @@ source-repository-package
   location: https://github.com/jgm/doclayout.git
   tag: ef7f18308a61787244a80885d907fcd2c16604d4
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/typst-hs.git
+  tag: 97e075131fc794f7370648eb231fdfdc712b5dbd
+
 package pandoc
   flags: +embed_data_files +http
 
