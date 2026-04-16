@@ -1359,6 +1359,30 @@ window.pandocApp = function() {
           typstOptions.standalone = true;
           delete typstOptions['output-file'];
 
+          // Auto-inject embed_images filter for PDF via Typst.
+          // Otherwise conversion fails because we can't write the images in a
+          // temporary directory in the WASM sandbox. See jgm/pandoc#11584.
+          const embedImagesLua = `function Pandoc (doc)
+  doc = pandoc.mediabag.fill(doc)
+  return doc:walk {
+    Image = function (img)
+      local mimetype, contents = pandoc.mediabag.lookup(img.src)
+      if mimetype and contents then
+        img.src = pandoc.mediabag.make_data_uri(mimetype, contents)
+        return img
+      end
+    end
+  }
+end
+`;
+          const embedImagesFile = new File(
+            [new Blob([embedImagesLua], { type: 'text/plain' })],
+            '_embed_images.lua'
+          );
+          files['_embed_images.lua'] = embedImagesFile;
+          const existingFilters = typstOptions.filters || [];
+          typstOptions.filters = ['_embed_images.lua', ...existingFilters];
+
           const typstResult = await window.pandocModule.convert(typstOptions, stdin, files);
           if (typstResult.stderr && typstResult.stderr.includes('ERROR')) {
             throw new Error(typstResult.stderr);
