@@ -198,6 +198,7 @@ litBetween op cl = try $ do
 litCharNoSpace :: PandocMonad m => MarkdownParser m Text
 litCharNoSpace = T.singleton <$> escapedChar''
        <|> characterReference
+       <|> (snd <$> withRaw attributes)
        <|> T.singleton <$> noneOf "\n \r\t"
  where
    escapedChar'' = do
