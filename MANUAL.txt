@@ -435,6 +435,24 @@ header when requesting a document from a URL:
 
         eval "$(pandoc --bash-completion)"
 
+`--sandbox[=true|false]`
+
+:   Run pandoc in a sandbox, limiting IO operations in readers
+    and writers to reading the files specified on the command line.
+    Note that this option does not limit IO operations by
+    filters or in the production of PDF documents.  But it does
+    offer security against, for example, disclosure of files
+    through the use of `include` directives.  Anyone using
+    pandoc on untrusted user input should use this option.
+
+    Note: some readers and writers (e.g., `docx`) need access to data
+    files.  If these are stored on the file system, then pandoc
+    will not be able to find them when run in `--sandbox` mode
+    and will raise an error. For these applications, we
+    recommend using a pandoc binary compiled with the `embed_data_files`
+    option, which causes the data files to be baked into the binary
+    instead of being stored on the file system.
+
 `--verbose`
 
 :   Give verbose debugging output.
@@ -833,24 +851,6 @@ header when requesting a document from a URL:
     string value `"false"`. Either `:` or `=` may be used to
     separate *KEY* from *VAL*. If the variable already has a
     value, this value will be replaced.
-
-`--sandbox[=true|false]`
-
-:   Run pandoc in a sandbox, limiting IO operations in readers
-    and writers to reading the files specified on the command line.
-    Note that this option does not limit IO operations by
-    filters or in the production of PDF documents.  But it does
-    offer security against, for example, disclosure of files
-    through the use of `include` directives.  Anyone using
-    pandoc on untrusted user input should use this option.
-
-    Note: some readers and writers (e.g., `docx`) need access to data
-    files.  If these are stored on the file system, then pandoc
-    will not be able to find them when run in `--sandbox` mode
-    and will raise an error. For these applications, we
-    recommend using a pandoc binary compiled with the `embed_data_files`
-    option, which causes the data files to be baked into the binary
-    instead of being stored on the file system.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
