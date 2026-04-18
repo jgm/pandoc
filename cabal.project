@@ -15,7 +15,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs.git
-  tag: 97e075131fc794f7370648eb231fdfdc712b5dbd
+  tag: bd0f68d0d03063bbd902b271f89fbc156b1da2dd
 
 package pandoc
   flags: +embed_data_files +http

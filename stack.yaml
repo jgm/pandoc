@@ -27,7 +27,8 @@ extra-deps:
 - djot-0.1.4
 - asciidoc-0.1.0.2
 - texmath-0.13.1.1
-- typst-0.9.0.1
+- git: https://github.com/jgm/typst-hs.git
+  commit: bd0f68d0d03063bbd902b271f89fbc156b1da2dd
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

@@ -60,7 +60,7 @@ import qualified System.FilePath.Posix as Posix
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
            => ReaderOptions -> a -> m Pandoc
-readTypst _opts inp = do
+readTypst opts inp = do
   let sources = toSources inp
   let inputName = case sources of
         Sources ((pos, _):_) -> sourceName pos
@@ -73,7 +73,7 @@ readTypst _opts inp = do
                   currentUTCTime = getCurrentTime,
                   lookupEnvVar = fmap (fmap T.unpack) . lookupEnv . T.pack,
                   checkExistence = fileExists }
-      res <- evaluateTypst ops inputName parsed
+      res <- evaluateTypst ops (readerTypstInputs opts) inputName parsed
       case res of
         Left e -> throwError $ PandocParseError $ tshow e
         Right content -> do

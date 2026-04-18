@@ -74,6 +74,7 @@ data ReaderOptions = ReaderOptions{
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
                                              -- (only implemented in commonmark)
+       , readerTypstInputs           :: [(Text, Text)] -- ^ parameters specified using --typst-input
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance HasSyntaxExtensions ReaderOptions where
@@ -90,6 +91,7 @@ instance Default ReaderOptions
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
                , readerStripComments         = False
+               , readerTypstInputs           = []
                }
 
 defaultAbbrevs :: Set.Set Text

@@ -765,6 +765,13 @@ header when requesting a document from a URL:
     space, and the period will not produce sentence-ending space
     in formats like LaTeX.  The strings may not contain spaces.
 
+`--typst-input=`*KEY*[`=`*VAL*]
+
+:   Set a parameter value that will be made available to the typst
+    parser in `sys.inputs`, like `--input` in the `typst` CLI.
+    Either `:` or `=` may be used to separate *KEY* from *VAL*.
+    Values containing spaces must be quoted.
+
 `--trace[=true|false]`
 
 :   Print diagnostic output tracing parser progress to stderr.
@@ -816,7 +823,7 @@ header when requesting a document from a URL:
     `-V keyword=Joe -V author=Sue` makes `author` contain a list
     of strings: `Joe` and `Sue`.
 
-`--variable-json=`*KEY*[`=`:*JSON*]
+`--variable-json=`*KEY*[`=`*JSON*]
 
 :   Set the template variable *KEY* to the value specified by a JSON
     string (this may be a boolean, a string, a list, or a mapping;
