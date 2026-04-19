@@ -48,7 +48,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
-import Data.Char (isDigit)
+import Data.Char (isAlphaNum, isDigit)
 import Data.Maybe (fromMaybe)
 import Unicode.Char (isXIDContinue)
 import qualified Data.ByteString as B
@@ -434,6 +434,36 @@ isSpacey SoftBreak = True
 isSpacey LineBreak = True
 isSpacey _ = False
 
+normalizeDeprecatedMathSymbolNames :: Text -> Text
+normalizeDeprecatedMathSymbolNames = go False
+ where
+  go inString txt
+    | T.null txt = ""
+    | inString =
+        case T.uncons txt of
+          Just ('\\', rest) ->
+            case T.uncons rest of
+              Just (c, rest') -> T.pack ['\\', c] <> go True rest'
+              Nothing         -> "\\"
+          Just ('"', rest) -> "\"" <> go False rest
+          Just (c, rest)   -> T.singleton c <> go True rest
+          Nothing          -> ""
+    | otherwise =
+        case T.uncons txt of
+          Just ('"', rest) -> "\"" <> go True rest
+          Just (c, rest)
+            | isMathNameChar c ->
+                let (name, rest') = T.span isMathNameChar txt
+                in normalize name <> go False rest'
+            | otherwise -> T.singleton c <> go False rest
+          Nothing -> ""
+
+  normalize "sect.big" = "inter.big"
+  normalize "sect" = "inter"
+  normalize x = x
+
+  isMathNameChar c = isAlphaNum c || c == '.'
+
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
 inlineToTypst inline =
   case inline of
@@ -454,12 +484,13 @@ inlineToTypst inline =
       case res of
           Left il -> inlineToTypst il
           Right r ->
+            let r' = normalizeDeprecatedMathSymbolNames r in
             (case extractLabel str of -- #10805
               Nothing -> id
               Just lab -> (<> (toLabel FreestandingLabel lab))) <$>
              case mathType of
-               InlineMath -> return $ "$" <> literal r <> "$"
-               DisplayMath -> return $ "$ " <> literal r <> " $"
+               InlineMath -> return $ "$" <> literal r' <> "$"
+               DisplayMath -> return $ "$ " <> literal r' <> " $"
     Code (ident,cls,kvs) code -> do
       opts <- gets stOptions
       let defaultHighlightedCode =
