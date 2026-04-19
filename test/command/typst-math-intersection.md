@@ -1,10 +1,13 @@
 ```
 % pandoc -f latex -t typst
 $\cap$
-$$\bigcap_{i=1}^n A_i$$
 ^D
 $inter$
-
-$ inter.big_(i = 1)^n A_i $
 ```
 
+```
+% pandoc -f latex -t typst
+$$\bigcap_{i=1}^n A_i$$
+^D
+$ inter.big_(i = 1)^n A_i $
+```
