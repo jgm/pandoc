@@ -1299,7 +1299,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\cap"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "inter"
+                                  , Code ( "" , [] , [] ) "sect"
                                   ]
                               ]
                           ]
@@ -3919,7 +3919,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\bigcap"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "inter.big"
+                                  , Code ( "" , [] , [] ) "sect.big"
                                   ]
                               ]
                           ]

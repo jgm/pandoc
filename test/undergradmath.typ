@@ -167,7 +167,7 @@ Getting script letters is @unavailable.
   columns: 3,
   column-gutter: 1em,
   cell($union$, `union`), cell($RR$, [`RR`, `bb(R)`]), cell($forall$, `forall`),
-  cell($inter$, `inter`), cell($bb(Z)$, [`ZZ`, `bb(Z)`]), cell($exists$, `exists`),
+  cell($sect$, `sect`), cell($bb(Z)$, [`ZZ`, `bb(Z)`]), cell($exists$, `exists`),
   cell($subset$, `subset`), cell($bb(Q)$, [`QQ`, `bb(Q)`]), cell($not$, `not`),
   cell($subset.eq$, `subset.eq`), cell($bb(N)$, [`NN`, `bb(N)`]), cell($or$, `or`),
   cell($supset$, `supset`), cell($bb(C)$, [`CC`, `bb(C)`]), cell($and$, `and`),
@@ -294,7 +294,7 @@ These do the same.
 #align(center, table(
   columns: 3,
   cell($integral$, `integral`), cell($integral.triple$, `integral.triple`), cell($union.big$, `union.big`),
-  cell($integral.double$, `integral.double`), cell($integral.cont$, `integral.cont`), cell($inter.big$, `inter.big`),
+  cell($integral.double$, `integral.double`), cell($integral.cont$, `integral.cont`), cell($sect.big$, `sect.big`),
 ))
 
 = Fences
