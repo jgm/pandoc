@@ -3547,6 +3547,31 @@ Returns:
 
 - new Row object ([Row])
 
+### TableBody {#pandoc.TableBody}
+
+`TableBody ([body[, head[, row_head_columns[, attr]]]])`
+
+Creates a table body.
+
+Parameters:
+
+`body`
+: list of table rows ({[Row],\...})
+
+`head`
+: intermediate head ({[Row],\...})
+
+`row_head_columns`
+: number of columns taken up by the row head of each row of the
+  TableBody ([integer]{unknown-type="integer"})
+
+`attr`
+: table body attributes ([Attr])
+
+Returns:
+
+- new TableBody object ([TableBody])
+
 ### TableFoot {#pandoc.TableFoot}
 
 `TableFoot ([rows[, attr]])`

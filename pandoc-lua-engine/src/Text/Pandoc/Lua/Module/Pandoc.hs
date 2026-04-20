@@ -154,6 +154,7 @@ otherConstructors =
   , mkCitation
   , mkListAttributes
   , mkRow
+  , mkTableBody
   , mkTableFoot
   , mkTableHead
   , mkSimpleTable
