@@ -2667,10 +2667,10 @@ can be used as the `format` value in `pandoc.write`. (table)
 Parameters:
 
 `blocks`
-:   document contents ([Blocks])
+: document contents ([Blocks])
 
 `meta`
-:   document metadata ([Meta])
+: document metadata ([Meta])
 
 Returns:
 
@@ -2683,7 +2683,7 @@ Returns:
 Parameters:
 
 `meta`
-:   table containing meta information (table)
+: table containing meta information (table)
 
 Returns:
 
@@ -2700,7 +2700,7 @@ all non-list keys.
 Parameters:
 
 `content`
-:   block content ([Blocks])
+: block content ([Blocks])
 
 Returns:
 
@@ -2713,7 +2713,7 @@ Returns:
 Parameters:
 
 `bool`
-:   true or false (boolean)
+: true or false (boolean)
 
 Returns:
 
@@ -2730,7 +2730,7 @@ all non-list keys.
 Parameters:
 
 `inlines`
-:   inline elements ([Inlines])
+: inline elements ([Inlines])
 
 Returns:
 
@@ -2747,7 +2747,7 @@ keys.
 Parameters:
 
 `values`
-:   value, or list of values ([MetaValue]\|{[MetaValue],\...})
+: value, or list of values ([MetaValue]\|{[MetaValue],\...})
 
 Returns:
 
@@ -2764,7 +2764,7 @@ discards all other keys.
 Parameters:
 
 `key_value_map`
-:   a string-indexed map of meta values (table)
+: a string-indexed map of meta values (table)
 
 Returns:
 
@@ -2781,7 +2781,7 @@ completeness.
 Parameters:
 
 `s`
-:   string value (string)
+: string value (string)
 
 Returns:
 
@@ -2796,7 +2796,7 @@ Creates a block quote element
 Parameters:
 
 `content`
-:   block content ([Blocks])
+: block content ([Blocks])
 
 Returns:
 
@@ -2811,7 +2811,7 @@ Creates a bullet list.
 Parameters:
 
 `items`
-:   list items ({[Blocks],\...})
+: list items ({[Blocks],\...})
 
 Returns:
 
@@ -2826,10 +2826,10 @@ Creates a code block element.
 Parameters:
 
 `text`
-:   code string (string)
+: code string (string)
 
 `attr`
-:   element attributes ([Attr])
+: element attributes ([Attr])
 
 Returns:
 
@@ -2844,8 +2844,8 @@ Creates a definition list, containing terms and their explanation.
 Parameters:
 
 `content`
-:   definition items ([{{Inlines,
-    {Blocks,\...}},\...}]{unknown-type="{{Inlines, {Blocks,...}},...}"})
+: definition items ([{{Inlines,
+  {Blocks,\...}},\...}]{unknown-type="{{Inlines, {Blocks,...}},...}"})
 
 Returns:
 
@@ -2860,10 +2860,10 @@ Creates a div element
 Parameters:
 
 `content`
-:   block content ([Blocks])
+: block content ([Blocks])
 
 `attr`
-:   element attributes ([Attr])
+: element attributes ([Attr])
 
 Returns:
 
@@ -2878,13 +2878,13 @@ Creates a [Figure] element.
 Parameters:
 
 `content`
-:   figure block content ([Blocks])
+: figure block content ([Blocks])
 
 `caption`
-:   figure caption ([Caption])
+: figure caption ([Caption])
 
 `attr`
-:   element attributes ([Attr])
+: element attributes ([Attr])
 
 Returns:
 
@@ -2899,13 +2899,13 @@ Creates a header element.
 Parameters:
 
 `level`
-:   heading level ([integer]{unknown-type="integer"})
+: heading level ([integer]{unknown-type="integer"})
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 `attr`
-:   element attributes ([Attr])
+: element attributes ([Attr])
 
 Returns:
 
@@ -2930,7 +2930,7 @@ Creates a line block element.
 Parameters:
 
 `content`
-:   lines ({[Inlines],\...})
+: lines ({[Inlines],\...})
 
 Returns:
 
@@ -2945,10 +2945,10 @@ Creates an ordered list.
 Parameters:
 
 `items`
-:   list items ({[Blocks],\...})
+: list items ({[Blocks],\...})
 
 `listAttributes`
-:   list parameters ([ListAttributes])
+: list parameters ([ListAttributes])
 
 Returns:
 
@@ -2963,7 +2963,7 @@ Creates a para element.
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -2978,7 +2978,7 @@ Creates a plain element.
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -2993,10 +2993,10 @@ Creates a raw content block of the specified format.
 Parameters:
 
 `format`
-:   format of content (string)
+: format of content (string)
 
 `text`
-:   raw content (string)
+: raw content (string)
 
 Returns:
 
@@ -3011,22 +3011,22 @@ Creates a table element.
 Parameters:
 
 `caption`
-:   table caption ([Caption])
+: table caption ([Caption])
 
 `colspecs`
-:   column alignments and widths ({[ColSpec],\...})
+: column alignments and widths ({[ColSpec],\...})
 
 `head`
-:   table head ([TableHead])
+: table head ([TableHead])
 
 `bodies`
-:   table bodies ({[TableBody],\...})
+: table bodies ({[TableBody],\...})
 
 `foot`
-:   table foot ([TableFoot])
+: table foot ([TableFoot])
 
 `attr`
-:   element attributes ([Attr])
+: element attributes ([Attr])
 
 Returns:
 
@@ -3041,8 +3041,8 @@ Creates a [Blocks] list.
 Parameters:
 
 `block_like_elements`
-:   List where each element can be treated as a [Block] value, or
-    a single such value. ([Blocks])
+: List where each element can be treated as a [Block] value, or a
+  single such value. ([Blocks])
 
 Returns:
 
@@ -3057,10 +3057,10 @@ Creates a Cite inline element
 Parameters:
 
 `content`
-:   placeholder content ([Inlines])
+: placeholder content ([Inlines])
 
 `citations`
-:   List of Citations ({[Citation]{unknown-type="Citation"},\...})
+: List of Citations ({[Citation]{unknown-type="Citation"},\...})
 
 Returns:
 
@@ -3075,10 +3075,10 @@ Creates a Code inline element
 Parameters:
 
 `code`
-:   code string (string)
+: code string (string)
 
 `attr`
-:   additional attributes ([Attr])
+: additional attributes ([Attr])
 
 Returns:
 
@@ -3093,7 +3093,7 @@ Creates an inline element representing emphasized text.
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3108,16 +3108,16 @@ Creates an Image element
 Parameters:
 
 `caption`
-:   text used to describe the image ([Inlines])
+: text used to describe the image ([Inlines])
 
 `src`
-:   path to the image file (string)
+: path to the image file (string)
 
 `title`
-:   brief image description (string)
+: brief image description (string)
 
 `attr`
-:   image attributes ([Attr])
+: image attributes ([Attr])
 
 Returns:
 
@@ -3142,16 +3142,16 @@ Creates a link inline element, usually a hyperlink.
 Parameters:
 
 `content`
-:   text for this link ([Inlines])
+: text for this link ([Inlines])
 
 `target`
-:   the link target (string)
+: the link target (string)
 
 `title`
-:   brief link description (string)
+: brief link description (string)
 
 `attr`
-:   link attributes ([Attr])
+: link attributes ([Attr])
 
 Returns:
 
@@ -3166,10 +3166,10 @@ Creates a Math element, either inline or displayed.
 Parameters:
 
 `mathtype`
-:   rendering specifier ([MathType]{unknown-type="MathType"})
+: rendering specifier ([MathType]{unknown-type="MathType"})
 
 `text`
-:   math content (string)
+: math content (string)
 
 Returns:
 
@@ -3184,7 +3184,7 @@ Creates a Note inline element
 Parameters:
 
 `content`
-:   footnote block content ([Blocks])
+: footnote block content ([Blocks])
 
 Returns:
 
@@ -3200,10 +3200,10 @@ content.
 Parameters:
 
 `quotetype`
-:   type of quotes ([QuoteType]{unknown-type="QuoteType"})
+: type of quotes ([QuoteType]{unknown-type="QuoteType"})
 
 `content`
-:   inlines in quotes ([Inlines])
+: inlines in quotes ([Inlines])
 
 Returns:
 
@@ -3218,10 +3218,10 @@ Creates a raw inline element
 Parameters:
 
 `format`
-:   format of content (string)
+: format of content (string)
 
 `text`
-:   string content (string)
+: string content (string)
 
 Returns:
 
@@ -3236,7 +3236,7 @@ Creates text rendered in small caps
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3271,10 +3271,10 @@ Creates a Span inline element
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 `attr`
-:   additional attributes ([Attr])
+: additional attributes ([Attr])
 
 Returns:
 
@@ -3289,7 +3289,7 @@ Creates a Str inline element
 Parameters:
 
 `text`
-:    (string)
+:  (string)
 
 Returns:
 
@@ -3304,7 +3304,7 @@ Creates text which is struck out.
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3320,7 +3320,7 @@ bold font.
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3335,7 +3335,7 @@ Creates a Subscript inline element
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3350,7 +3350,7 @@ Creates a Superscript inline element
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3365,7 +3365,7 @@ Creates an Underline inline element
 Parameters:
 
 `content`
-:   inline content ([Inlines])
+: inline content ([Inlines])
 
 Returns:
 
@@ -3386,8 +3386,8 @@ Converts its argument into an [Inlines] list:
 Parameters:
 
 `inline_like_elements`
-:   List where each element can be treated as an [Inline] value,
-    or just a single such value. ([Inlines])
+: List where each element can be treated as an [Inline] value, or
+  just a single such value. ([Inlines])
 
 Returns:
 
@@ -3402,14 +3402,13 @@ Create a new set of attributes
 Parameters:
 
 `identifier`
-:   element identifier (string\|table\|[Attr])
+: element identifier (string\|table\|[Attr])
 
 `classes`
-:   element classes ({string,\...})
+: element classes ({string,\...})
 
 `attributes`
-:   table containing string keys and values
-    (table\|[AttributeList])
+: table containing string keys and values (table\|[AttributeList])
 
 Returns:
 
@@ -3424,10 +3423,10 @@ Creates a new Caption object.
 Parameters:
 
 `long`
-:   full caption ([Blocks])
+: full caption ([Blocks])
 
 `short`
-:   short summary caption ([Inlines])
+: short summary caption ([Inlines])
 
 Returns:
 
@@ -3444,21 +3443,21 @@ Create a new table cell.
 Parameters:
 
 `blocks`
-:   cell contents ([Blocks])
+: cell contents ([Blocks])
 
 `align`
-:   text alignment; defaults to `AlignDefault` ([Alignment])
+: text alignment; defaults to `AlignDefault` ([Alignment])
 
 `rowspan`
-:   number of rows occupied by the cell; defaults to `1`
-    ([integer]{unknown-type="integer"})
+: number of rows occupied by the cell; defaults to `1`
+  ([integer]{unknown-type="integer"})
 
 `colspan`
-:   number of columns occupied by the cell; defaults to `1`
-    ([integer]{unknown-type="integer"})
+: number of columns occupied by the cell; defaults to `1`
+  ([integer]{unknown-type="integer"})
 
 `attr`
-:   cell attributes ([Attr])
+: cell attributes ([Attr])
 
 Returns:
 
@@ -3471,7 +3470,7 @@ Returns:
 Parameters:
 
 `attribs`
-:   an attribute list (table\|[AttributeList])
+: an attribute list (table\|[AttributeList])
 
 Returns:
 
@@ -3486,23 +3485,23 @@ Creates a single citation.
 Parameters:
 
 `id`
-:   citation ID (e.g. BibTeX key) (string)
+: citation ID (e.g. BibTeX key) (string)
 
 `mode`
-:   citation rendering mode
-    ([CitationMode]{unknown-type="CitationMode"})
+: citation rendering mode
+  ([CitationMode]{unknown-type="CitationMode"})
 
 `prefix`
-:    ([Inlines])
+:  ([Inlines])
 
 `suffix`
-:    ([Inlines])
+:  ([Inlines])
 
 `note_num`
-:   note number ([integer]{unknown-type="integer"})
+: note number ([integer]{unknown-type="integer"})
 
 `hash`
-:   hash number ([integer]{unknown-type="integer"})
+: hash number ([integer]{unknown-type="integer"})
 
 Returns:
 
@@ -3517,14 +3516,14 @@ Creates a new ListAttributes object.
 Parameters:
 
 `start`
-:   number of the first list item
-    ([integer]{unknown-type="integer"})
+: number of the first list item
+  ([integer]{unknown-type="integer"})
 
 `style`
-:   style used for list numbering (string)
+: style used for list numbering (string)
 
 `delimiter`
-:   delimiter of list numbers (string)
+: delimiter of list numbers (string)
 
 Returns:
 
@@ -3539,10 +3538,10 @@ Creates a table row.
 Parameters:
 
 `cells`
-:   list of table cells in this row ({[Cell],\...})
+: list of table cells in this row ({[Cell],\...})
 
 `attr`
-:   row attributes ([Attr])
+: row attributes ([Attr])
 
 Returns:
 
@@ -3557,10 +3556,10 @@ Creates a table foot.
 Parameters:
 
 `rows`
-:   list of table rows ({[Row],\...})
+: list of table rows ({[Row],\...})
 
 `attr`
-:   table foot attributes ([Attr])
+: table foot attributes ([Attr])
 
 Returns:
 
@@ -3575,10 +3574,10 @@ Creates a table head.
 Parameters:
 
 `rows`
-:   list of table rows ({[Row],\...})
+: list of table rows ({[Row],\...})
 
 `attr`
-:   table head attributes ([Attr])
+: table head attributes ([Attr])
 
 Returns:
 
@@ -3610,19 +3609,19 @@ Usage:
 Parameters:
 
 `caption`
-:   table caption ([Inlines])
+: table caption ([Inlines])
 
 `align`
-:   column alignments ({[Alignment],\...})
+: column alignments ({[Alignment],\...})
 
 `widths`
-:   relative column widths ({number,\...})
+: relative column widths ({number,\...})
 
 `header`
-:   table header row ({[Blocks],\...})
+: table header row ({[Blocks],\...})
 
 `rows`
-:   table rows ({{[Blocks],\...},\...})
+: table rows ({{[Blocks],\...},\...})
 
 Returns:
 
@@ -4072,7 +4071,7 @@ the list of arguments from the global `arg`.
 Parameters:
 
 `args`
-:   list of command line arguments ({string,\...})
+: list of command line arguments ({string,\...})
 
 Returns:
 
@@ -4109,8 +4108,8 @@ without prompting for user input.
 Parameters:
 
 `env`
-:   Extra environment; the global environment is merged into this
-    table. (table)
+: Extra environment; the global environment is merged into this
+  table. (table)
 
 Returns:
 
@@ -4154,12 +4153,12 @@ Usage
 Parameters:
 
 `blocks`
-:   List of [Block] elements to be flattened. ([Blocks])
+: List of [Block] elements to be flattened. ([Blocks])
 
 `sep`
-:   List of [Inline] elements inserted as separator between two
-    consecutive blocks; defaults to `{pandoc.LineBreak()}`.
-    ([Inlines])
+: List of [Inline] elements inserted as separator between two
+  consecutive blocks; defaults to `{pandoc.LineBreak()}`.
+  ([Inlines])
 
 Returns:
 
@@ -4185,7 +4184,7 @@ Usage:
 Parameters:
 
 `doc`
-:   document ([Pandoc])
+: document ([Pandoc])
 
 Returns:
 
@@ -4209,10 +4208,10 @@ which case the documentation is returned as [Blocks].
 Parameters:
 
 `object`
-:   Retrieve documentation for this object (any)
+: Retrieve documentation for this object (any)
 
 `format`
-:   result format; defaults to `'ansi'` (string\|table)
+: result format; defaults to `'ansi'` (string\|table)
 
 Returns:
 
@@ -4234,10 +4233,10 @@ operator instead.
 Parameters:
 
 `element1`
-:   (any)
+: (any)
 
 `element2`
-:   (any)
+: (any)
 
 Returns:
 
@@ -4264,7 +4263,7 @@ Usage:
 Parameters:
 
 `simple_tbl`
-:   ([SimpleTable])
+: ([SimpleTable])
 
 Returns:
 
@@ -4287,14 +4286,14 @@ gaps, and so that the base level is the level specified.
 Parameters:
 
 `number_sections`
-:   whether section divs should get an additional `number`
-    attribute containing the section number. (boolean)
+: whether section divs should get an additional `number` attribute
+  containing the section number. (boolean)
 
 `baselevel`
-:   shift top-level headings to this level (integer\|nil)
+: shift top-level headings to this level (integer\|nil)
 
 `blocks`
-:   list of blocks to process ([Blocks])
+: list of blocks to process ([Blocks])
 
 Returns:
 
@@ -4314,7 +4313,7 @@ Returns nil instead of a string if the conversion failed.
 Parameters:
 
 `date`
-:   the date string (string)
+: the date string (string)
 
 Returns:
 
@@ -4348,7 +4347,7 @@ Usage:
 Parameters:
 
 `doc`
-:   document ([Pandoc])
+: document ([Pandoc])
 
 Returns:
 
@@ -4365,14 +4364,14 @@ Filter the given doc by passing it through a JSON filter.
 Parameters:
 
 `doc`
-:   the Pandoc document to filter ([Pandoc])
+: the Pandoc document to filter ([Pandoc])
 
 `filter`
-:   filter to run (string)
+: filter to run (string)
 
 `args`
-:   list of arguments passed to the filter. Defaults to
-    `{FORMAT}`. ({string,\...})
+: list of arguments passed to the filter. Defaults to `{FORMAT}`.
+  ({string,\...})
 
 Returns:
 
@@ -4391,13 +4390,13 @@ The filter will be run in the current Lua process.
 Parameters:
 
 `doc`
-:   the Pandoc document to filter ([Pandoc])
+: the Pandoc document to filter ([Pandoc])
 
 `filter`
-:   filepath of the filter to run (string)
+: filepath of the filter to run (string)
 
 `env`
-:   environment to load and run the filter in (table)
+: environment to load and run the filter in (table)
 
 Returns:
 
@@ -4414,7 +4413,7 @@ Computes the SHA1 hash of the given string input.
 Parameters:
 
 `input`
-:   (string)
+: (string)
 
 Returns:
 
@@ -4432,8 +4431,8 @@ string with all formatting removed.
 Parameters:
 
 `element`
-:   some pandoc AST element
-    ([Pandoc]\|[Block]\|[Inline]\|[Caption]\|[Cell]\|[MetaValue])
+: some pandoc AST element
+  ([Pandoc]\|[Block]\|[Inline]\|[Caption]\|[Cell]\|[MetaValue])
 
 Returns:
 
@@ -4456,7 +4455,7 @@ Usage:
 Parameters:
 
 `n`
-:   positive integer below 4000 (integer)
+: positive integer below 4000 (integer)
 
 Returns:
 
@@ -4481,7 +4480,7 @@ Usage:
 Parameters:
 
 `tbl`
-:   a table ([Block])
+: a table ([Block])
 
 Returns:
 
@@ -4516,7 +4515,7 @@ Usage:
 Parameters:
 
 `value`
-:   any Lua value (any)
+: any Lua value (any)
 
 Returns:
 
@@ -4533,8 +4532,7 @@ Creates a Version object.
 Parameters:
 
 `v`
-:   version description
-    ([Version]\|string\|{integer,\...}\|number)
+: version description ([Version]\|string\|{integer,\...}\|number)
 
 Returns:
 
@@ -4567,8 +4565,8 @@ Removes a single entry from the media bag.
 Parameters:
 
 `filepath`
-:   Filename of the item to deleted. The media bag will be left
-    unchanged if no entry with the given filename exists. (string)
+: Filename of the item to deleted. The media bag will be left
+  unchanged if no entry with the given filename exists. (string)
 
 *Since: 2.7.3*
 
@@ -4601,7 +4599,7 @@ Usage:
 Parameters:
 
 `source`
-:   path to a resource; either a local file path or URI (string)
+: path to a resource; either a local file path or URI (string)
 
 Returns:
 
@@ -4627,7 +4625,7 @@ processed again.
 Parameters:
 
 `doc`
-:   document from which to fill the mediabag ([Pandoc])
+: document from which to fill the mediabag ([Pandoc])
 
 Returns:
 
@@ -4652,14 +4650,14 @@ Usage:
 Parameters:
 
 `filepath`
-:   filename and path relative to the output folder. (string)
+: filename and path relative to the output folder. (string)
 
 `mimetype`
-:   the item's MIME type; use `nil` if the MIME type is unknown or
-    unavailable. (string\|nil)
+: the item's MIME type; use `nil` if the MIME type is unknown or
+  unavailable. (string\|nil)
 
 `contents`
-:   the binary contents of the file. (string)
+: the binary contents of the file. (string)
 
 *Since: 2.0*
 
@@ -4734,7 +4732,7 @@ Usage:
 Parameters:
 
 `filepath`
-:   name of the file to look up. (string)
+: name of the file to look up. (string)
 
 Returns:
 
@@ -4766,10 +4764,10 @@ Example:
 Parameters:
 
 `mime_type`
-:   MIME type of the data (string)
+: MIME type of the data (string)
 
 `raw_data`
-:   data to encode (string)
+: data to encode (string)
 
 Returns:
 
@@ -4790,10 +4788,10 @@ found in the mediabag.
 Parameters:
 
 `dir`
-:   path of the target directory (string)
+: path of the target directory (string)
 
 `fp`
-:   canonical name (relative path) of resource (string)
+: canonical name (relative path) of resource (string)
 
 *Since: 3.0*
 
@@ -5067,7 +5065,7 @@ have an effect when reading a format but not when writing it, or
 Parameters:
 
 `format`
-:   format name (string)
+: format name (string)
 
 Returns:
 
@@ -5086,7 +5084,7 @@ a fallback list of extensions even for unknown formats.
 Parameters:
 
 `format`
-:   format name (string)
+: format name (string)
 
 Returns:
 
@@ -5110,7 +5108,7 @@ global in custom readers and writers.
 Parameters:
 
 `format`
-:   format identifier (string)
+: format identifier (string)
 
 Returns:
 
@@ -5125,7 +5123,7 @@ Returns:
 Parameters:
 
 `path`
-:   file path, or list of paths (string\|{string,\...})
+: file path, or list of paths (string\|{string,\...})
 
 Returns:
 
@@ -5162,10 +5160,10 @@ SVG.
 Parameters:
 
 `image`
-:   image data (string)
+: image data (string)
 
 `opts`
-:   writer options ([WriterOptions]\|table)
+: writer options ([WriterOptions]\|table)
 
 Returns:
 
@@ -5185,7 +5183,7 @@ Formats recognized by pandoc include *png*, *gif*, *tiff*, *jpeg*,
 Parameters:
 
 `image`
-:   binary image data (string)
+: binary image data (string)
 
 Returns:
 
@@ -5229,10 +5227,10 @@ The special handling of AST elements can be disabled by setting
 Parameters:
 
 `str`
-:   JSON string (string)
+: JSON string (string)
 
 `pandoc_types`
-:   whether to use pandoc types when possible. (boolean)
+: whether to use pandoc types when possible. (boolean)
 
 Returns:
 
@@ -5254,7 +5252,7 @@ valid JSON string, but this is not checked.
 Parameters:
 
 `object`
-:   object to convert (any)
+: object to convert (any)
 
 Returns:
 
@@ -5281,7 +5279,7 @@ Reports a ScriptingInfo message to pandoc's logging system.
 Parameters:
 
 `message`
-:   the info message (string)
+: the info message (string)
 
 *Since: 3.2*
 
@@ -5298,7 +5296,7 @@ following thereafter.
 Parameters:
 
 `fn`
-:   function to be silenced (function)
+: function to be silenced (function)
 
 Returns:
 
@@ -5318,7 +5316,7 @@ will be printed to stderr unless logging verbosity has been set to
 Parameters:
 
 `message`
-:   the warning message (string)
+: the warning message (string)
 
 *Since: 3.2*
 
@@ -5353,7 +5351,7 @@ separator and everything after from the given path.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5375,10 +5373,10 @@ symlink. Types other than those will cause an error.
 Parameters:
 
 `path`
-:   file path to check (string)
+: file path to check (string)
 
 `type`
-:   the required type of the filesystem object (string)
+: the required type of the filesystem object (string)
 
 Returns:
 
@@ -5396,7 +5394,7 @@ Get the file name.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5413,7 +5411,7 @@ Checks whether a path is absolute, i.e. not fixed to a root.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5431,7 +5429,7 @@ Checks whether a path is relative or fixed to a root.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5449,7 +5447,7 @@ Join path elements back together by the directory separator.
 Parameters:
 
 `filepaths`
-:   path components ({string,\...})
+: path components ({string,\...})
 
 Returns:
 
@@ -5469,13 +5467,13 @@ For a worked example see [this blog post].
 Parameters:
 
 `path`
-:   path to be made relative (string)
+: path to be made relative (string)
 
 `root`
-:   root path (string)
+: root path (string)
 
 `unsafe`
-:   whether to allow `..` in the result. (boolean)
+: whether to allow `..` in the result. (boolean)
 
 Returns:
 
@@ -5499,7 +5497,7 @@ Normalizes a path.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5516,7 +5514,7 @@ Splits a path by the directory separator.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5536,7 +5534,7 @@ extension.
 Parameters:
 
 `filepath`
-:   path (string)
+: path (string)
 
 Returns:
 
@@ -5557,7 +5555,7 @@ character. Blank items are ignored on Windows, and converted to
 Parameters:
 
 `search_path`
-:   platform-specific search path (string)
+: platform-specific search path (string)
 
 Returns:
 
@@ -5616,10 +5614,10 @@ Usage:
 Parameters:
 
 `blocks`
-:   document blocks to process ([Blocks]\|[Pandoc])
+: document blocks to process ([Blocks]\|[Pandoc])
 
 `opts`
-:   options (table)
+: options (table)
 
 Returns:
 
@@ -5638,7 +5636,7 @@ blocks).
 Parameters:
 
 `blocks`
-:   document body ([Blocks]\|[Pandoc])
+: document body ([Blocks]\|[Pandoc])
 
 Returns:
 
@@ -5655,39 +5653,39 @@ Converts a [Pandoc] document into a [ChunkedDoc].
 Parameters:
 
 `doc`
-:   document to split ([Pandoc])
+: document to split ([Pandoc])
 
 `opts`
 
-:   Splitting options.
+: Splitting options.
 
-    The following options are supported:
+  The following options are supported:
 
-        `path_template`
-        :   template used to generate the chunks' filepaths
-            `%n` will be replaced with the chunk number (padded with
-            leading 0s to 3 digits), `%s` with the section number of
-            the heading, `%h` with the (stringified) heading text,
-            `%i` with the section identifier. For example,
-            `"section-%s-%i.html"` might be resolved to
-            `"section-1.2-introduction.html"`.
+      `path_template`
+      :   template used to generate the chunks' filepaths
+          `%n` will be replaced with the chunk number (padded with
+          leading 0s to 3 digits), `%s` with the section number of
+          the heading, `%h` with the (stringified) heading text,
+          `%i` with the section identifier. For example,
+          `"section-%s-%i.html"` might be resolved to
+          `"section-1.2-introduction.html"`.
 
-            Default is `"chunk-%n"` (string)
+          Default is `"chunk-%n"` (string)
 
-        `number_sections`
-        :   whether sections should be numbered; default is `false`
-            (boolean)
+      `number_sections`
+      :   whether sections should be numbered; default is `false`
+          (boolean)
 
-        `chunk_level`
-        :   The heading level the document should be split into
-            chunks. The default is to split at the top-level, i.e.,
-            `1`. (integer)
+      `chunk_level`
+      :   The heading level the document should be split into
+          chunks. The default is to split at the top-level, i.e.,
+          `1`. (integer)
 
-        `base_heading_level`
-        :   The base level to be used for numbering. Default is `nil`
-            (integer|nil)
+      `base_heading_level`
+      :   The base level to be used for numbering. Default is `nil`
+          (integer|nil)
 
-    (table)
+  (table)
 
 Returns:
 
@@ -5704,11 +5702,11 @@ Generates a table of contents for the given object.
 Parameters:
 
 `toc_source`
-:   list of command line arguments
-    ([Blocks]\|[Pandoc]\|[ChunkedDoc])
+: list of command line arguments
+  ([Blocks]\|[Pandoc]\|[ChunkedDoc])
 
 `opts`
-:   options ([WriterOptions])
+: options ([WriterOptions])
 
 Returns:
 
@@ -5743,14 +5741,14 @@ Example:
 Parameters:
 
 `inlines`
-:   base for identifier ([Inlines])
+: base for identifier ([Inlines])
 
 `used`
-:   set of identifiers (string keys, boolean values) that have
-    already been used. (table)
+: set of identifiers (string keys, boolean values) that have
+  already been used. (table)
 
 `exts`
-:   list of format extensions ({string,\...})
+: list of format extensions ({string,\...})
 
 Returns:
 
@@ -5805,16 +5803,16 @@ Executes a system command with the given arguments and `input` on
 Parameters:
 
 `command`
-:   command to execute (string)
+: command to execute (string)
 
 `args`
-:   command arguments ({string,\...})
+: command arguments ({string,\...})
 
 `input`
-:   input on stdin (string)
+: input on stdin (string)
 
 `opts`
-:   process options (table)
+: process options (table)
 
 Returns:
 
@@ -5837,10 +5835,10 @@ exists, it is overwritten.
 Parameters:
 
 `source`
-:   source file (string)
+: source file (string)
 
 `target`
-:   target destination (string)
+: target destination (string)
 
 *Since: 3.7.1*
 
@@ -5878,8 +5876,8 @@ List the contents of a directory.
 Parameters:
 
 `directory`
-:   Path of the directory whose contents should be listed.
-    Defaults to `.`. (string)
+: Path of the directory whose contents should be listed. Defaults
+  to `.`. (string)
 
 Returns:
 
@@ -5905,10 +5903,10 @@ necessary.
 Parameters:
 
 `dirname`
-:   name of the new directory (string)
+: name of the new directory (string)
 
 `create_parent`
-:   create parent directory if necessary (boolean)
+: create parent directory if necessary (boolean)
 
 *Since: 2.19*
 
@@ -5919,7 +5917,7 @@ Parameters:
 Parameters:
 
 `filepath`
-:   File to read (string)
+: File to read (string)
 
 Returns:
 
@@ -5947,10 +5945,10 @@ the source path to its destination before deleting the source.
 Parameters:
 
 `old`
-:   original path (string)
+: original path (string)
 
 `new`
-:   new path (string)
+: new path (string)
 
 *Since: 3.7.1*
 
@@ -5963,7 +5961,7 @@ Removes the directory entry for an existing file.
 Parameters:
 
 `filename`
-:   file to remove (string)
+: file to remove (string)
 
 *Since: 3.7.1*
 
@@ -5977,10 +5975,10 @@ delete the directory and its contents recursively.
 Parameters:
 
 `dirname`
-:   name of the directory to delete (string)
+: name of the directory to delete (string)
 
 `recursive`
-:   delete content recursively (boolean)
+: delete content recursively (boolean)
 
 *Since: 2.19*
 
@@ -5994,7 +5992,7 @@ The times are returned as strings using the ISO 8601 format.
 Parameters:
 
 `filepath`
-:   file or directory path (string)
+: file or directory path (string)
 
 Returns:
 
@@ -6017,11 +6015,11 @@ action.
 Parameters:
 
 `environment`
-:   Environment variables and their values to be set before
-    running `callback` (table)
+: Environment variables and their values to be set before running
+  `callback` (table)
 
 `callback`
-:   Action to execute in the custom environment (function)
+: Action to execute in the custom environment (function)
 
 Returns:
 
@@ -6039,16 +6037,16 @@ The directory is deleted after the callback returns.
 Parameters:
 
 `parent_dir`
-:   Parent directory to create the directory in. If this parameter
-    is omitted, the system's canonical temporary directory is
-    used. (string)
+: Parent directory to create the directory in. If this parameter
+  is omitted, the system's canonical temporary directory is used.
+  (string)
 
 `templ`
-:   Directory name template. (string)
+: Directory name template. (string)
 
 `callback`
-:   Function which takes the name of the temporary directory as
-    its first argument. (function)
+: Function which takes the name of the temporary directory as its
+  first argument. (function)
 
 Returns:
 
@@ -6068,11 +6066,11 @@ error occurs while running the callback action.
 Parameters:
 
 `directory`
-:   Directory in which the given `callback` should be executed
-    (string)
+: Directory in which the given `callback` should be executed
+  (string)
 
 `callback`
-:   Action to execute in the given directory (function)
+: Action to execute in the given directory (function)
 
 Returns:
 
@@ -6089,10 +6087,10 @@ Writes a string to a file.
 Parameters:
 
 `filepath`
-:   path to target file (string)
+: path to target file (string)
 
 `contents`
-:   file contents (string)
+: file contents (string)
 
 *Since: 3.7.1*
 
@@ -6110,20 +6108,18 @@ Parameters:
 
 `xdg_directory_type`
 
-:   The type of the XDG directory or search path. Must be one of
-    `config`, `data`, `cache`, `state`, `datadirs`, or
-    `configdirs`.
+: The type of the XDG directory or search path. Must be one of
+  `config`, `data`, `cache`, `state`, `datadirs`, or `configdirs`.
 
-    Matching is case-insensitive, and underscores and `XDG`
-    prefixes are ignored, so a value like `XDG_DATA_DIRS` is also
-    acceptable.
+  Matching is case-insensitive, and underscores and `XDG` prefixes
+  are ignored, so a value like `XDG_DATA_DIRS` is also acceptable.
 
-    The `state` directory might not be available, depending on the
-    version of the underlying Haskell library. (string)
+  The `state` directory might not be available, depending on the
+  version of the underlying Haskell library. (string)
 
 `filepath`
-:   relative path that is appended to the path; ignored if the
-    result is a list of search paths. (string)
+: relative path that is appended to the path; ignored if the
+  result is a list of search paths. (string)
 
 Returns:
 
@@ -6893,10 +6889,10 @@ Note that the default code page on Windows is available through
 Parameters:
 
 `s`
-:   string to be converted (string)
+: string to be converted (string)
 
 `encoding`
-:   target encoding (string)
+: target encoding (string)
 
 Returns:
 
@@ -6914,7 +6910,7 @@ characters.
 Parameters:
 
 `s`
-:   UTF-8 encoded string (string)
+: UTF-8 encoded string (string)
 
 Returns:
 
@@ -6931,7 +6927,7 @@ Returns a copy of a UTF-8 string, converted to lowercase.
 Parameters:
 
 `s`
-:   UTF-8 string to convert to lowercase (string)
+: UTF-8 string to convert to lowercase (string)
 
 Returns:
 
@@ -6948,7 +6944,7 @@ Returns a copy of a UTF-8 string, with characters reversed.
 Parameters:
 
 `s`
-:   UTF-8 string to revert (string)
+: UTF-8 string to revert (string)
 
 Returns:
 
@@ -6966,13 +6962,13 @@ rules.
 Parameters:
 
 `s`
-:   UTF-8 string (string)
+: UTF-8 string (string)
 
 `i`
-:   substring start position (integer)
+: substring start position (integer)
 
 `j`
-:   substring end position (integer)
+: substring end position (integer)
 
 Returns:
 
@@ -6992,7 +6988,7 @@ include numbers, parentheses, and plus/minus.
 Parameters:
 
 `input`
-:   string to convert to subscript characters (string)
+: string to convert to subscript characters (string)
 
 Returns:
 
@@ -7013,7 +7009,7 @@ include numbers, parentheses, and plus/minus.
 Parameters:
 
 `input`
-:   string to convert to superscript characters (string)
+: string to convert to superscript characters (string)
 
 Returns:
 
@@ -7038,10 +7034,10 @@ Note that the default code page on Windows is available through
 Parameters:
 
 `s`
-:   UTF-8 string (string)
+: UTF-8 string (string)
 
 `enc`
-:   target encoding (string)
+: target encoding (string)
 
 Returns:
 
@@ -7058,7 +7054,7 @@ Returns a copy of a UTF-8 string, converted to uppercase.
 Parameters:
 
 `s`
-:   UTF-8 string to convert to uppercase (string)
+: UTF-8 string to convert to uppercase (string)
 
 Returns:
 
@@ -7089,10 +7085,10 @@ aforementioned types, or a nested context.
 Parameters:
 
 `template`
-:   template to apply ([Template])
+: template to apply ([Template])
 
 `context`
-:   variable values (table)
+: variable values (table)
 
 Returns:
 
@@ -7117,12 +7113,12 @@ An error is raised if compilation fails.
 Parameters:
 
 `template`
-:   template string (string)
+: template string (string)
 
 `templates_path`
-:   parameter to determine a default path and extension for
-    partials; uses the data files templates path by default.
-    (string)
+: parameter to determine a default path and extension for
+  partials; uses the data files templates path by default.
+  (string)
 
 Returns:
 
@@ -7140,8 +7136,8 @@ error is thrown if no such template can be found.
 Parameters:
 
 `writer`
-:   name of the writer for which the template should be retrieved;
-    defaults to the global `FORMAT`. (string)
+: name of the writer for which the template should be retrieved;
+  defaults to the global `FORMAT`. (string)
 
 Returns:
 
@@ -7163,7 +7159,7 @@ an error if no file is found.
 Parameters:
 
 `filename`
-:   name of the template (string)
+: name of the template (string)
 
 Returns:
 
@@ -7182,13 +7178,13 @@ values.
 Parameters:
 
 `meta`
-:   document metadata ([Meta])
+: document metadata ([Meta])
 
 `blocks_writer`
-:   converter from [Blocks] to [Doc] values (function)
+: converter from [Blocks] to [Doc] values (function)
 
 `inlines_writer`
-:   converter from [Inlines] to [Doc] values (function)
+: converter from [Inlines] to [Doc] values (function)
 
 Returns:
 
@@ -7217,9 +7213,9 @@ Constructors for types that are not part of the pandoc AST.
 Parameters:
 
 `version_specifier`
-:   A version string like `'2.7.3'`, a Lua number like `2.0`, a
-    list of integers like `{2,7,3}`, or a Version object.
-    (string\|number\|{integer,\...}\|[Version])
+: A version string like `'2.7.3'`, a Lua number like `2.0`, a list
+  of integers like `{2,7,3}`, or a Version object.
+  (string\|number\|{integer,\...}\|[Version])
 
 Returns:
 
@@ -7251,7 +7247,7 @@ A Sources list can be converted to a string via the default
 Parameters:
 
 `srcs`
-:   sources (string\|{string,\...}\|table)
+: sources (string\|{string,\...}\|table)
 
 Returns:
 
@@ -7274,13 +7270,13 @@ Returns:
 Parameters:
 
 `self`
-:   version to check ([Version])
+: version to check ([Version])
 
 `reference`
-:   minimum version ([Version])
+: minimum version ([Version])
 
 `msg`
-:   alternative message (string)
+: alternative message (string)
 
 Returns:
 
