@@ -17,6 +17,7 @@ case "$MACHINE" in
   aarch64) ARCHITECTURE=arm64;;
   armv6l | armv7l) ARCHITECTURE=armhf;;
   riscv64) ARCHITECTURE=riscv64;;
+  loongarch64) ARCHITECTURE=loong64;;
   *)       ARCHITECTURE=unknown;;
 esac
 
