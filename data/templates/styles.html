@@ -210,3 +210,10 @@ $endif$
 $if(csl-css)$
 $styles.citations.html()$
 $endif$
+$for(counter-styles)$
+@counter-style $it.name$ {
+  system: extends $it.extends$;
+  prefix: "$it.prefix$";
+  suffix: "$it.suffix$";
+}
+$endfor$
