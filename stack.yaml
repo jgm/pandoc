@@ -30,9 +30,9 @@ extra-deps:
 - git: https://github.com/jgm/doclayout.git
   commit: ef7f18308a61787244a80885d907fcd2c16604d4
 - git: https://github.com/jgm/typst-symbols.git
-  tag: 6e97668c9f2ffea09f3187c34b7641038370fd21
+  commit: 6e97668c9f2ffea09f3187c34b7641038370fd21
 - git: https://github.com/jgm/texmath.git
-  tag: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
+  commit: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
