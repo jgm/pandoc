@@ -142,8 +142,9 @@ fixNesting el@(Elt name pos fields)
   | Just (VContent elts) <- M.lookup "body" fields
   = let elts' = fmap fixNesting elts
         fields' = M.insert "body" (VContent elts') fields
-        in if isInline el
-              then case getField "body" fields' of
+        in if isBlock el
+              then Elt name pos fields'
+              else case getField "body" fields' of
                         Just ([el'@(Elt name' pos' fields'')] :: Seq Content)
                           | isBlock el'
                           , not (isInline el')
@@ -154,7 +155,6 @@ fixNesting el@(Elt name pos fields)
                                                   (Elt name pos fields'')))
                                         fields'
                         _ -> Elt name pos fields'
-              else Elt name pos fields'
 fixNesting x = x
 
 pPandoc :: PandocMonad m => P m B.Pandoc
