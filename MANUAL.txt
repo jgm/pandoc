@@ -363,6 +363,7 @@ header when requesting a document from a URL:
     - `rtf` ([Rich Text Format])
     - `texinfo` ([GNU Texinfo])
     - `textile` ([Textile])
+    - `t2t` ([txt2tags])
     - `slideous` ([Slideous] HTML and JavaScript slide show)
     - `slidy` ([Slidy] HTML and JavaScript slide show)
     - `dzslides` ([DZSlides] HTML5 + JavaScript slide show)
