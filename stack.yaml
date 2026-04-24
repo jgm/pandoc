@@ -25,10 +25,9 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2
 - djot-0.1.4
 - asciidoc-0.1.0.2
+- doclayout-0.5.0.1
 - git: https://github.com/jgm/typst-hs.git
   commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
-- git: https://github.com/jgm/doclayout.git
-  commit: ef7f18308a61787244a80885d907fcd2c16604d4
 - git: https://github.com/jgm/typst-symbols.git
   commit: 6e97668c9f2ffea09f3187c34b7641038370fd21
 - git: https://github.com/jgm/texmath.git
