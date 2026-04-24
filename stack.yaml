@@ -21,14 +21,18 @@ extra-deps:
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
 - pandoc-lua-marshal-0.3.2.1
-- typst-symbols-0.1.9.1
 - citeproc-0.13
 - skylighting-format-blaze-html-0.1.2
 - djot-0.1.4
 - asciidoc-0.1.0.2
-- texmath-0.13.1.1
 - git: https://github.com/jgm/typst-hs.git
-  commit: bd0f68d0d03063bbd902b271f89fbc156b1da2dd
+  commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
+- git: https://github.com/jgm/doclayout.git
+  commit: ef7f18308a61787244a80885d907fcd2c16604d4
+- git: https://github.com/jgm/typst-symbols.git
+  tag: 6e97668c9f2ffea09f3187c34b7641038370fd21
+- git: https://github.com/jgm/texmath.git
+  tag: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

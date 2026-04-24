@@ -14,8 +14,18 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/typst-symbols.git
+  tag: 6e97668c9f2ffea09f3187c34b7641038370fd21
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/typst-hs.git
-  tag: bd0f68d0d03063bbd902b271f89fbc156b1da2dd
+  tag: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 
 package pandoc
   flags: +embed_data_files +http
