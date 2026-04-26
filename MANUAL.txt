@@ -1313,7 +1313,7 @@ header when requesting a document from a URL:
         To produce a custom `reference.docx`, first get a copy of
         the default `reference.docx`: `pandoc
         -o custom-reference.docx --print-default-data-file reference.docx`.
-        Then open `custom-reference.docx` in Word, modify the
+        Then open `custom-reference.docx` in Word, LibreOffice, etc. and modify the
         styles as you wish, and save the file.  For best
         results, do not make changes to this file other than
         modifying the styles used by pandoc:
