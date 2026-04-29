@@ -697,12 +697,14 @@ splitBlocks' cur acc (tbl@Table{} : blks) = do
   let (nts, blks') = span isNotesDiv blks
   case cur of
     [Header n _ _] | n == slideLevel || slideLevel == 0 ->
-                            splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
-    _ -> splitBlocks' []
-         (if any notText cur
-          then acc ++ ([cur | not (null cur)]) ++ [tbl : nts]
-          else acc ++ ([cur ++ [tbl] ++ nts]))
-         blks'
+                            -- Header + table: add to current and continue accumulating
+                            splitBlocks' (cur ++ [tbl] ++ nts) acc blks'
+    _ -> let (newCur, newAcc) = if any notText cur
+                                -- Current has notText: save current, table starts new
+                                then ([tbl] ++ nts, acc ++ ([cur | not (null cur)]))
+                                -- Current is text-only: add table to current and continue
+                                else (cur ++ [tbl] ++ nts, acc)
+         in splitBlocks' newCur newAcc blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
@@ -775,13 +777,22 @@ bodyBlocksToSlide _ (blk : blks) spkNotes = do
           if makesBlankSlide (blk : blks)
           then pure (mkSlide BlankSlide)
           else mkSlide . ContentSlide [] <$> blocksToShapes (blk : blks)
+        -- Check if there's a table in the content
+        hasTable = any isTable (blk : blks)
+          where
+            isTable Table{} = True
+            isTable _ = False
         in case break notText (blk : blks) of
           ([], _) -> contentOrBlankSlide
           (_, []) -> contentOrBlankSlide
-          (textBlocks, contentBlocks) -> do
-            textShapes <- blocksToShapes textBlocks
-            contentShapes <- blocksToShapes contentBlocks
-            return (mkSlide (ContentWithCaptionSlide [] textShapes contentShapes))
+          (textBlocks, contentBlocks)
+            -- When there's a table with surrounding text, use ContentSlide
+            -- to keep everything in one column with proper vertical stacking
+            | hasTable -> mkSlide . ContentSlide [] <$> blocksToShapes (blk : blks)
+            | otherwise -> do
+                textShapes <- blocksToShapes textBlocks
+                contentShapes <- blocksToShapes contentBlocks
+                return (mkSlide (ContentWithCaptionSlide [] textShapes contentShapes))
 bodyBlocksToSlide _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
