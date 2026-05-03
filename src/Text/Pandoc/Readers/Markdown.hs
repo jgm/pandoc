@@ -2086,7 +2086,7 @@ inlineNote = do
     char '^'
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
-    contents <- inBalancedBrackets inlines
+    contents <- withQuoteContext NoQuote $ inBalancedBrackets inlines
     notFollowedBy (char '(' <|> char '[' <|> ('{' <$ attributes))
       -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
