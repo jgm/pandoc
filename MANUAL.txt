@@ -838,7 +838,7 @@ header when requesting a document from a URL:
     a *list* value, the value will be added to the list. If it already
     has another kind of value, it will be made into a list containing
     the previous and the new value. For example,
-    `-V keyword=Joe -V author=Sue` makes `author` contain a list
+    `-V author=Joe -V author=Sue` makes `author` contain a list
     of strings: `Joe` and `Sue`.
 
 `--variable-json=`*KEY*[`=`*JSON*]
