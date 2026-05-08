@@ -5888,9 +5888,9 @@ followed immediately by attributes:
 
 Pandoc's Markdown allows footnotes, using the following syntax:
 
-    Here is a footnote reference,[^1] and another.[^longnote]
+    Here is a footnote reference,[^goo] and another.[^longnote]
 
-    [^1]: Here is the footnote.
+    [^goo]: Here is the footnote.
 
     [^longnote]: Here's one with multiple blocks.
 
