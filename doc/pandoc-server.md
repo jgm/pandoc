@@ -4,6 +4,10 @@ section: 1
 date: August 15, 2022
 ---
 
+# NAME
+
+pandoc-server - web server exposing pandoc API
+
 # SYNOPSIS
 
 `pandoc-server` [*options*]
