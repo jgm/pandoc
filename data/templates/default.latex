@@ -137,9 +137,12 @@ $endif$
 
 $endif$
 $endif$
+$if(suppress-bibliography)$
+$else$
 $if(biblatex)$
 \printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
 
+$endif$
 $endif$
 $for(include-after)$
 $include-after$
