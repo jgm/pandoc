@@ -67,7 +67,7 @@ import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Bits ((.|.))
+import Data.Bits ((.&.))
 import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, ord, readLitChar)
 import Data.List
@@ -807,7 +807,7 @@ testBitMask :: Text -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ T.unpack bitMaskS) :: [(Int, String)]) of
     []            -> False
-    ((n', _) : _) -> (n' .|. n) /= 0
+    ((n', _) : _) -> (n' .&. n) /= 0
 
 pHeading :: ParagraphStyle -> Maybe (ParaStyleName, Int)
 pHeading = getParStyleField headingLev . pStyle
