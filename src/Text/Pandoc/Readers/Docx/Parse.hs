@@ -764,9 +764,12 @@ elemToRow ns element | isElem ns "w" "tr" element =
     let cellElems = findChildrenByName ns "w" "tc" element
     let beforeCells = genericReplicate (fromMaybe 0 gridBefore) emptyCell
     cells <- mapD (elemToCell ns) cellElems
-    let hasTblHeader = maybe NoTblHeader (const HasTblHeader)
-          (properties
-           >>= findChildByName ns "w" "tblHeader")
+    let hasTblHeader =
+          case (properties >>= findChildByName ns "w" "tblHeader") of
+            Nothing -> NoTblHeader
+            Just he -> case findAttrByName ns "w" "val" he of
+              Just "0" -> NoTblHeader
+              _ -> HasTblHeader
     return $ Row hasTblHeader (beforeCells ++ cells)
 elemToRow _ _ = throwError WrongElem
 
