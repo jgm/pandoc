@@ -86,40 +86,41 @@ renderError e =
     PandocSyntaxMapError s -> s
     PandocFailOnWarningError -> "Failing because there were warnings."
     PandocPDFProgramNotFoundError pdfprog ->
-        pdfprog <> " not found. Please select a different --pdf-engine or install " <> pdfprog
+        quote pdfprog <> " not found. Please select a different --pdf-engine or install "
+        <> quote pdfprog
     PandocPDFError logmsg -> "Error producing PDF.\n" <> logmsg
     PandocXMLError fp logmsg -> "Invalid XML" <>
-        (if T.null fp then "" else " in " <> fp) <> ":\n" <> logmsg
+        (if T.null fp then "" else " in " <> quote fp) <> ":\n" <> logmsg
     PandocFilterError filtername msg -> "Error running filter " <>
-        filtername <> ":\n" <> msg
+        quote filtername <> ":\n" <> msg
     PandocLuaError msg -> "Error running Lua:\n" <> msg
     PandocNoScriptingEngine -> "This version of pandoc has been compiled " <>
                                "without Lua support."
     PandocCouldNotFindDataFileError fn ->
-        "Could not find data file " <> fn
+        "Could not find data file " <> quote fn
     PandocCouldNotFindMetadataFileError fn ->
-        "Could not find metadata file " <> fn
+        "Could not find metadata file " <> quote fn
     PandocResourceNotFound fn ->
-        "File " <> fn <> " not found in resource path"
-    PandocTemplateError s -> "Error compiling template " <> s
-    PandocNoTemplateError fp -> "No template defined in " <> fp
+        "File " <> quote fn <> " not found in resource path"
+    PandocTemplateError s -> "Error compiling template " <> quote s
+    PandocNoTemplateError fp -> "No template defined in " <> quote fp
     PandocAppError s -> s
     PandocEpubSubdirectoryError s ->
-      "EPUB subdirectory name '" <> s <> "' contains illegal characters"
+      "EPUB subdirectory name " <> quote s <> " contains illegal characters"
     PandocMacroLoop s ->
       "Loop encountered in expanding macro " <> s
     PandocUTF8DecodingError f offset w ->
-      "UTF-8 decoding error in " <> f <> " at byte offset " <> tshow offset <>
-      " (" <> T.pack (printf "%2x" w) <> ").\n" <>
-      "The input must be a UTF-8 encoded text."
+      "UTF-8 decoding error in " <> quote f <> " at byte offset "
+       <> tshow offset <> " (" <> T.pack (printf "%2x" w) <> ").\n"
+       <> "The input must be a UTF-8 encoded text."
     PandocIpynbDecodingError w ->
       "ipynb decoding error: " <> w
     PandocUnsupportedCharsetError charset ->
-      "Unsupported charset " <> charset
+      "Unsupported charset " <> quote charset
     PandocFormatError format s ->
-      "Error parsing format " <> tshow format <> ": " <> s
+      "Error parsing format " <> quote format <> ": " <> s
     PandocUnknownReaderError r ->
-      "Unknown input format " <> r <>
+      "Unknown input format " <> quote r <>
       case r of
         "doc" -> "\nPandoc can convert from DOCX, but not from DOC." <>
                  "\nTry using Word to save your DOC file as DOCX," <>
@@ -127,7 +128,7 @@ renderError e =
         "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
         _     -> ""
     PandocUnknownWriterError w ->
-       "Unknown output format " <> w <>
+       "Unknown output format " <> quote w <>
        case w of
          "pdf" -> "To create a pdf using pandoc, use" <>
                   " -t latex|beamer|context|ms|html5|typst" <>
@@ -136,21 +137,23 @@ renderError e =
          "doc" -> "\nPandoc can convert to DOCX, but not to DOC."
          _     -> ""
     PandocUnsupportedExtensionError ext f ->
-      "The extension " <> ext <> " is not supported " <>
+      "The extension " <> quote ext <> " is not supported " <>
       "for " <> f <> ".\nUse --list-extensions=" <> f <> " to " <>
       "list supported extensions."
     PandocCiteprocError e' ->
       prettyCiteprocError e'
     PandocBibliographyError fp msg ->
-      "Error reading bibliography file " <> fp <> ":\n" <> msg
+      "Error reading bibliography file " <> quote fp <> ":\n" <> msg
     PandocInputNotTextError fp ->
       "Expected text as an input, but received binary data from " <>
       (if T.null fp
         then "stdin"
-        else "file " <> fp) <>
+        else "file " <> quote fp) <>
       ".\nIf you intended to convert from binary format, verify that it's " <>
       "supported and use\nexplicit -f FORMAT."
 
+quote :: Text -> Text
+quote s = "'" <> s <> "'"
 
 -- | Handle PandocError by exiting with an error message.
 handleError :: Either PandocError a -> IO a
