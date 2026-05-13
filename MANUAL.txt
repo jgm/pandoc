@@ -5657,21 +5657,33 @@ before or after the link).
 
 The link consists of link text in square brackets, followed by a label in
 square brackets. (There cannot be space between the two unless the
-`spaced_reference_links` extension is enabled.) The link definition
-consists of the bracketed label, followed by a colon and a space, followed by
-the URL, and optionally (after a space) a link title either in quotes or in
-parentheses.  The label must not be parseable as a citation (assuming
-the `citations` extension is enabled):  citations take precedence over
-link labels.
+`spaced_reference_links` extension is enabled.) If the label is empty
+(`[]`), then it will be implicitly be taken to be the same as the link text;
+thus `[foo][]` is equivalent to `[foo][foo]`. (If the
+`shortcut_reference_links` extension is enabled, the empty `[]`
+may be omitted.)
 
-Here are some examples:
+The link definition consists of the bracketed label, followed by
+a colon and a space, followed by the URL, and optionally (after a
+space) a link title either in quotes or in parentheses. The label
+must not be parseable as a citation (assuming the `citations`
+extension is enabled): citations take precedence over link
+labels.
 
-    [my label 1]: /foo/bar.html  "My title, optional"
-    [my label 2]: /foo
-    [my label 3]: https://fsf.org (The Free Software Foundation)
-    [my label 4]: /bar#special  'A title in single quotes'
+Here are some examples of reference links and link definitions;
 
-The URL may optionally be surrounded by angle brackets:
+    See [the website *I* built][my website].
+
+    See [my website][] and [the bar page][1] and
+    the [home page of the FSF][fsf].
+
+    [my website]: http://foo.bar.baz
+    [1]: /foo/bar.html  "My title, optional"
+    [fsf]: https://fsf.org (The Free Software Foundation)
+    [special page]: /bar#special  'A title in single quotes'
+
+The URL in a link definition may optionally be surrounded by
+angle brackets:
 
     [my label 5]: <http://foo.bar.baz>
 
@@ -5686,18 +5698,14 @@ Note that link labels are not case sensitive.  So, this will work:
 
     [Foo]: /bar/baz
 
-In an *implicit* reference link, the second pair of brackets is
-empty:
+The link definition may come either before or after a
+reference link that uses the label.
 
-    See [my website][].
-
-    [my website]: http://foo.bar.baz
-
-Note:  In `Markdown.pl` and most other Markdown implementations,
-reference link definitions cannot occur in nested constructions
-such as list items or block quotes.  Pandoc lifts this
-arbitrary-seeming restriction.  So the following is fine in pandoc,
-though not in most other implementations:
+Note: In some Markdown implementations, reference link
+definitions cannot occur in nested constructions such as list
+items or block quotes. Pandoc lifts this arbitrary-seeming
+restriction. So the following is fine in pandoc, though not in
+all implementations:
 
     > My block [quote].
     >
