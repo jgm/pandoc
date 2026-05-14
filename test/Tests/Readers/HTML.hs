@@ -124,7 +124,7 @@ tests = [ testGroup "base tag"
         , testGroup "header"
           [ test htmlNativeDivs "<header> is parsed as a div" $
             "<header id=\"title\">Title</header>" =?>
-            divWith ("title", mempty, mempty) (plain "Title")
+            divWith ("title", ["header"], mempty) (plain "Title")
           ]
         , testGroup "code block"
           [ test html "attributes in pre > code element" $
