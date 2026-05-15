@@ -414,6 +414,10 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
+inlinesToTypst (i@(Span (ident,_,_) _):is) | not (T.null ident) =
+  -- insert a zero-width space U+200B before the label
+  -- because a typst label refers to preceding element (see #11568)
+  ("\x200B" <>) . hcat <$> mapM inlineToTypst (escapeParens (i:is))
 inlinesToTypst ils = hcat <$> mapM inlineToTypst (escapeParens ils)
 
 -- Add an escape before a parenthesis right after a non-space element.
