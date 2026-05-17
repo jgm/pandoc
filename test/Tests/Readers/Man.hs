@@ -22,7 +22,22 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 man :: Text -> Pandoc
-man = purely $ readMan def
+man = purely $ readMan def { readerExtensions =
+                            disableExtension Ext_auto_identifiers pandocExtensions }
+
+manAutoIds :: Text -> Pandoc
+manAutoIds = purely $  readMan def { readerExtensions =
+                             enableExtension Ext_auto_identifiers pandocExtensions }
+
+manGfmIds :: Text -> Pandoc
+manGfmIds = purely $ readMan def { readerExtensions =
+                           enableExtension Ext_gfm_auto_identifiers $
+                           enableExtension Ext_auto_identifiers pandocExtensions }
+
+manAsciiIds :: Text -> Pandoc
+manAsciiIds = purely $ readMan def { readerExtensions =
+                            enableExtension Ext_ascii_identifiers $
+                            enableExtension Ext_auto_identifiers pandocExtensions }
 
 infix 4 =:
 (=:) :: (ToString c, HasCallStack)
@@ -47,10 +62,10 @@ tests = [
       =?> para (strong (str "foo") <> emph (str "bar"))
     , "H1" =:
       ".SH The header\n"
-      =?> header 1 (text "The header")
+      =?> headerWith ("",[],[]) 1 (text "The header")
     , "H2" =:
       ".SS \"The header 2\""
-      =?> header 2 (text "The header 2")
+      =?> headerWith ("",[],[]) 2 (text "The header 2")
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
       =?>para (strong $ text "single arg with \"Q\"")
@@ -140,5 +155,36 @@ tests = [
             (TableHead nullAttr [])
             [TableBody nullAttr 0 [] $ map toRow [[plain $ text "a b c d"], [plain $ str "f"]]]
             (TableFoot nullAttr [])
+    ],
+  testGroup "AutoIdentifiers" [
+    test manAutoIds "H1 with auto id"
+      (".SH The header\n"
+      =?> headerWith ("the-header",[],[]) 1 (text "The header"))
+    , test manAutoIds "H2 with auto id"
+      (".SS \"The header 2\""
+      =?> headerWith ("the-header-2",[],[]) 2 (text "The header 2"))
+    , test manAutoIds "Multiple headers with auto ids"
+      (".SH First\n.SH Second\n.SH 3rd Header"
+      =?> headerWith ("first",[],[]) 1 (text "First") <>
+          headerWith ("second",[],[]) 1 (text "Second") <>
+          headerWith ("rd-header",[],[]) 1 (text "3rd Header"))
+    ],
+  testGroup "GFMAutoIdentifiers" [
+    test manGfmIds "H1 with auto id"
+      (".SH The header\n"
+      =?> headerWith ("the-header",[],[]) 1 (text "The header"))
+    , test manGfmIds "H2 with auto id"
+      (".SS \"The header 2\""
+      =?> headerWith ("the-header-2",[],[]) 2 (text "The header 2"))
+    , test manGfmIds "Multiple headers with auto ids"
+      (".SH First\n.SH Second\n.SH 3rd Header"
+      =?> headerWith ("first",[],[]) 1 (text "First") <>
+          headerWith ("second",[],[]) 1 (text "Second") <>
+          headerWith ("3rd-header",[],[]) 1 (text "3rd Header"))
+    ],
+  testGroup "ParseAsciiIdentifiers" [
+    test manAsciiIds "H1 for autoid and non ascii chars in header"
+      (".SH Über den Flüssen\n"
+      =?> headerWith ("uber-den-flussen",[],[]) 1 (text "Über den Flüssen"))
     ]
   ]
