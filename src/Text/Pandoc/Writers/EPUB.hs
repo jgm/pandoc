@@ -466,8 +466,8 @@ pandocToEPUB :: PandocMonad m
 pandocToEPUB version opts doc = do
   let doc' = ensureValidXmlIdentifiers doc
   -- handle pictures
-  Pandoc meta blocks <- walkM (transformInline opts) doc' >>=
-                        walkM transformBlock
+  Pandoc meta blocks <- walkM (transformInline version opts) doc' >>=
+                        walkM (transformBlock version)
   picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
 
   epubSubdir <- gets stEpubSubdir
@@ -1203,42 +1203,47 @@ getMediaNextNewName ext = do
   modify $ \st -> st { stMediaNextId = nextId + 1 }
   return $ "file" ++ show nextId ++ ext
 
-isHtmlFormat :: Format -> Bool
-isHtmlFormat (Format "html") = True
-isHtmlFormat (Format "html4") = True
-isHtmlFormat (Format "html5") = True
-isHtmlFormat _ = False
+isHtmlFormat :: EPUBVersion -> Format -> Bool
+isHtmlFormat _ (Format "html") = True
+isHtmlFormat _ (Format "html4") = True
+isHtmlFormat _ (Format "html5") = True
+isHtmlFormat _ (Format "epub") = True
+isHtmlFormat EPUB2 (Format "epub2") = True
+isHtmlFormat EPUB3 (Format "epub3") = True
+isHtmlFormat _ _ = False
 
 transformBlock  :: PandocMonad m
-                => Block
+                => EPUBVersion
+                -> Block
                 -> E m Block
-transformBlock (RawBlock fmt raw)
-  | isHtmlFormat fmt = do
+transformBlock version (RawBlock fmt raw)
+  | isHtmlFormat version fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawBlock fmt (renderTags' tags')
-transformBlock b = return b
+transformBlock _ b = return b
 
 transformInline  :: PandocMonad m
-                 => WriterOptions
+                 => EPUBVersion
+                 -> WriterOptions
                  -> Inline
                  -> E m Inline
-transformInline _opts (Image attr@(_,_,kvs) lab (src,tit))
+transformInline _ _opts (Image attr@(_,_,kvs) lab (src,tit))
   | isNothing (lookup "external" kvs) = do
     newsrc <- modifyMediaRef $ T.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
-transformInline opts x@(Math t m)
+transformInline _ opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef (T.unpack (url <> urlEncode m))
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" <> newsrc, "")]
-transformInline _opts (RawInline fmt raw)
-  | isHtmlFormat fmt = do
+transformInline version _opts (RawInline fmt raw)
+  | isHtmlFormat version fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawInline fmt (renderTags' tags')
-transformInline _ x = return x
+transformInline _ _ x = return x
 
 (!) :: (t -> Element) -> [(Text, Text)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
