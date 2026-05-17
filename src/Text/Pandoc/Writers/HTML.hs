@@ -1795,9 +1795,19 @@ intrinsicEventsHTML4 =
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
   html5 <- gets stHtml5
+  epubVersion <- gets stEPUBVersion
   return $ f == Format "html" ||
            ((html5 && f == Format "html5") || f == Format "html4") ||
+           isEpubFormat epubVersion f ||
            isSlideVariant f
+
+-- | Check to see if Format matches with an EPUB variant
+isEpubFormat :: Maybe EPUBVersion -> Format -> Bool
+isEpubFormat Nothing _ = False
+isEpubFormat (Just EPUB2) f =
+  f == Format "epub" || f == Format "epub2"
+isEpubFormat (Just EPUB3) f =
+  f == Format "epub" || f == Format "epub3"
 
 -- | Check to see if Format matches with an HTML slide variant
 isSlideVariant :: Format -> Bool
