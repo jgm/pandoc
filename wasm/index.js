@@ -987,8 +987,12 @@ window.pandocApp = function() {
     // Variables auto-add row
     onVariableInput() {
       const last = this.customVariables[this.customVariables.length - 1];
-      if (last && (last.key || last.value)) {
-        this.customVariables.push({ key: '', value: '' });
+      if (last) {
+        last.key = last.key.replace(/[<>"'`]/g, '');
+        last.value = last.value.replace(/[<>"'`]/g, '');
+        if (last.key || last.value) {
+          this.customVariables.push({ key: '', value: '' });
+        }
       }
       this.hasChanges = true;
     },
