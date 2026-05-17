@@ -4,6 +4,10 @@ section: 1
 date: September 22, 2022
 ---
 
+# NAME
+
+pandoc-lua - Lua interface to pandoc API
+
 # SYNOPSIS
 
 `pandoc-lua` [*options*] [*script* [*args*]]

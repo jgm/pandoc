@@ -35,7 +35,6 @@ import Data.Foldable (for_)
 import Data.List.Split (splitWhen)
 import qualified Data.List as L
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Either (partitionEithers)
 import Data.Monoid (First (..))
 import qualified Data.Set as Set
@@ -70,6 +69,7 @@ import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Sequence as Seq
+import Data.Maybe (fromMaybe, isJust)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: (PandocMonad m, ToSources a)
@@ -237,6 +237,7 @@ block = ((do
           -> pLineBlock
           | otherwise
           -> pDiv
+        "aside" -> pDiv
         "section" -> pDiv
         "header" -> pDiv
         "main" -> pDiv
@@ -489,6 +490,7 @@ isDivLike "div"     = True
 isDivLike "section" = True
 isDivLike "header"  = True
 isDivLike "main"    = True
+isDivLike "aside"   = True
 isDivLike _         = False
 
 pDiv :: PandocMonad m => TagParser m Blocks
@@ -502,12 +504,13 @@ pDiv = try $ do
                         | hident == ident ->
                           B.Many $ Header lev ("",hclasses,hkvs) ils Seq.<| rest
                     _ -> contents
-  let classes' = if tag == "section"
-                    then "section":classes
-                    else classes
-      kvs' = if tag == "main" && isNothing (lookup "role" kvs)
-               then ("role", "main"):kvs
-               else kvs
+  let (classes', kvs') =
+        case tag of
+          "section" -> ("section":classes, kvs)
+          "aside" -> ("aside":classes, kvs)
+          "header" -> ("header":classes, kvs)
+          "main" | Nothing <- lookup "role" kvs -> (classes, ("role", "main"):kvs)
+          _ -> (classes, kvs)
   return $ B.divWith (ident, classes', kvs') contents'
 
 pIframe :: PandocMonad m => TagParser m Blocks

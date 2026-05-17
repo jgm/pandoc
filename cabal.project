@@ -27,6 +27,11 @@ source-repository-package
   location: https://github.com/jgm/texmath.git
   tag: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/citeproc.git
+  tag: 1b684f1e06fc1093d20c1a2d474f4c3fdf2f65bd
+
 package pandoc
   flags: +embed_data_files +http
 
