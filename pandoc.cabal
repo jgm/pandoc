@@ -33,7 +33,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Interactive notebook formats (Jupyter notebook ipynb)
                  - Page layout formats (InDesign ICML)
                  - Wiki markup formats (MediaWiki, DokuWiki, TikiWiki, TWiki,
-                   Vimwiki, XWiki, ZimWiki, Jira wiki, Creole)
+                   Vimwiki, XWiki, ZimWiki, Jira wiki, Creole, MoinMoin)
                  - Slide show formats (LaTeX Beamer, PowerPoint, Slidy,
                    reveal.js, Slideous, S5, DZSlides)
                  - Data formats (CSV and TSV tables, Excel spreadsheets)
@@ -616,6 +616,7 @@ library
                    Text.Pandoc.Readers.RIS,
                    Text.Pandoc.Readers.CslJson,
                    Text.Pandoc.Readers.MediaWiki,
+                   Text.Pandoc.Readers.MoinMoin,
                    Text.Pandoc.Readers.Vimwiki,
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.Org,
@@ -763,6 +764,7 @@ library
                    Text.Pandoc.Readers.Mdoc.Lex,
                    Text.Pandoc.Readers.Mdoc.Macros,
                    Text.Pandoc.Readers.Mdoc.Standards,
+                   Text.Pandoc.Readers.MoinMoin.Highlight,
                    Text.Pandoc.Readers.Typst.Parsing,
                    Text.Pandoc.Readers.Typst.Math,
                    Text.Pandoc.Readers.ODT.Base,
@@ -867,6 +869,7 @@ test-suite test-pandoc
                   Tests.Readers.JATS
                   Tests.Readers.Jira
                   Tests.Readers.Markdown
+                  Tests.Readers.MoinMoin
                   Tests.Readers.Org
                   Tests.Readers.Org.Block
                   Tests.Readers.Org.Block.CodeBlock
