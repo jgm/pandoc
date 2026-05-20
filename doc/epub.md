@@ -149,8 +149,8 @@ or target readers that don't support MathML. Then you have two options:
 
 1.  Use the [`--webtex`](https://pandoc.org/MANUAL.html#option--webtex) option,
     which will use a web service to convert the TeX to an image.
-2.  Use the [`--gladtex`](https://pandoc.org/MANUAL.html#option--gladtex) option
-    to convert maths into SVG images on your local machine.
+2.  Use the [`-F gladtex`][GladTeX] filter to convert maths into SVG
+    images on your local machine.
 
 Both GladTeX and WebTeX add the LaTeX source of the formula as alternative text
 of the image, increasing accessibility for blind users.
@@ -168,4 +168,5 @@ of the image, increasing accessibility for blind users.
 [git]: https://git-scm.com
 [Dublin Core metadata elements]: https://dublincore.org/documents/dces/
 [User's Guide]: https://pandoc.org/MANUAL.html
+[GladTeX]: https://humenda.github.io/GladTeX/
 
