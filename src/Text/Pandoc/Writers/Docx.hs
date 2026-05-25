@@ -738,13 +738,9 @@ mkStylesEntry epochtime styledoc styleMaps st opts =
 -- | Create core document properties entry
 mkCorePropsEntry :: Integer -> UTCTime -> Meta -> Entry
 mkCorePropsEntry epochtime utctime meta =
-  let metaValueToText (MetaString s)    = s
-      metaValueToText (MetaInlines ils) = stringify ils
-      metaValueToText (MetaBlocks bs)   = stringify bs
-      metaValueToText (MetaBool b)      = T.pack (show b)
-      metaValueToText _                 = ""
+  let toText v = lookupMetaString "x" (Meta $ M.singleton "x" v)
       keywords = case lookupMeta "keywords" meta of
-                       Just (MetaList xs) -> map metaValueToText xs
+                       Just (MetaList xs) -> map toText xs
                        _                  -> []
       docPropsPath = "docProps/core.xml"
       extraCoreProps = ["subject","lang","category","description"]
