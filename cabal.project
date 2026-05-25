@@ -32,6 +32,11 @@ source-repository-package
   location: https://github.com/jgm/citeproc.git
   tag: 1b684f1e06fc1093d20c1a2d474f4c3fdf2f65bd
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: 48b95bab66401d94f80b7c84c5c33ab9e2cd39ea
+
 package pandoc
   flags: +embed_data_files +http
 
