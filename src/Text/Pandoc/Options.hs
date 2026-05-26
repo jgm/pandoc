@@ -444,7 +444,7 @@ isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
 defaultMathJaxURL :: Text
-defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
 
 defaultWebTeXURL :: Text
 defaultWebTeXURL = "https://latex.codecogs.com/png.latex?"
