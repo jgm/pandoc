@@ -200,9 +200,11 @@ memptyLine = msatisfy isEmptyLine where
   isEmptyLine _ = False
 
 mmacro :: PandocMonad m => T.Text -> ManParser m RoffToken
-mmacro mk = msatisfy isControlLine where
-  isControlLine (ControlLine mk' _ _) | mk == mk' = True
-                            | otherwise = False
+mmacro mk = mmacroMatching (== mk)
+
+mmacroMatching :: PandocMonad m => (T.Text -> Bool) -> ManParser m RoffToken
+mmacroMatching f = msatisfy isControlLine where
+  isControlLine (ControlLine mk _ _) = f mk
   isControlLine _ = False
 
 mmacroAny :: PandocMonad m => ManParser m RoffToken
@@ -479,7 +481,12 @@ parseList = try $ do
 continuation :: PandocMonad m => ManParser m Blocks
 continuation =
       (mmacro "RS" *> (mconcat <$> manyTill parseBlock (endmacro "RE")))
-  <|> try ((memptyLine <|> bareIP) *> (parsePara <|> parseCodeBlock))
+  <|> (bareIP *> parsePara)
+  <|> (notFollowedBy (mmacroMatching
+                      (`elem` ["TP","IP","LP","P","PP","HP",
+                               "RE","RS","SH","SS","SV","YS","TH",
+                               "TQ","YS","AT","DT","OP","PD","UC"]))
+                                *> parseBlock)
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
