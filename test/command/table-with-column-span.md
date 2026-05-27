@@ -315,11 +315,11 @@
   <table:table-column table:style-name="Table1.P" />
   <table:table-row>
     <table:table-cell table:style-name="TableRowCell" office:value-type="string" table:number-columns-spanned="8">
-      <text:p text:style-name="Table_20_Contents"><text:span text:style-name="T1">Octet
+      <text:p text:style-name="Table_20_Contents"><text:span text:style-name="Strong_20_Emphasis">Octet
       no. 1</text:span></text:p>
     </table:table-cell>
     <table:table-cell table:style-name="TableRowCell" office:value-type="string" table:number-columns-spanned="8">
-      <text:p text:style-name="Table_20_Contents"><text:span text:style-name="T1">Octet
+      <text:p text:style-name="Table_20_Contents"><text:span text:style-name="Strong_20_Emphasis">Octet
       no. 2</text:span></text:p>
     </table:table-cell>
   </table:table-row>

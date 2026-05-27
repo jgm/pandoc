@@ -136,6 +136,24 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
     style:parent-style-name="Text_20_body" style:class="list">
       <style:text-properties style:font-name-complex="Tahoma1" />
     </style:style>
+    <style:style style:name="List_20_Bullet"
+    style:display-name="List Bullet" style:family="paragraph"
+    style:parent-style-name="List" style:class="list" />
+    <style:style style:name="List_20_Bullet_20_Tight"
+    style:display-name="List Bullet Tight" style:family="paragraph"
+    style:parent-style-name="List" style:class="list">
+      <style:paragraph-properties fo:margin-top="0in"
+      fo:margin-bottom="0in" style:contextual-spacing="false" />
+    </style:style>
+    <style:style style:name="List_20_Number"
+    style:display-name="List Number" style:family="paragraph"
+    style:parent-style-name="List" style:class="list" />
+    <style:style style:name="List_20_Number_20_Tight"
+    style:display-name="List Number Tight" style:family="paragraph"
+    style:parent-style-name="List" style:class="list">
+      <style:paragraph-properties fo:margin-top="0in"
+      fo:margin-bottom="0in" style:contextual-spacing="false" />
+    </style:style>
     <style:style style:name="Caption" style:family="paragraph"
     style:parent-style-name="Standard" style:class="extra">
       <style:paragraph-properties fo:margin-top="0.0835in"
