@@ -91,6 +91,7 @@ parseMan = do
   bs <- many parseBlock <* eof
   meta <- metadata <$> getState
   let (Pandoc _ blocks) = doc $ mconcat bs
+  reportLogMessages
   return $ Pandoc meta blocks
 
 parseBlock :: PandocMonad m => ManParser m Blocks
