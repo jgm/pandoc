@@ -22,8 +22,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 man :: Text -> Pandoc
-man = purely $ readMan def { readerExtensions =
-                            disableExtension Ext_auto_identifiers pandocExtensions }
+man = purely $ readMan def
 
 infix 4 =:
 (=:) :: (ToString c, HasCallStack)

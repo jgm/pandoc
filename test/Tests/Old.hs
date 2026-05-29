@@ -224,7 +224,7 @@ tests pandocPath =
       "creole-reader.txt" "creole-reader.native"
     ]
   , testGroup "man"
-    [ test' "reader" ["-r", "man-auto_identifiers", "-w", "native", "-s"]
+    [ test' "reader" ["-r", "man", "-w", "native", "-s"]
       "man-reader.man" "man-reader.native"
     ]
   , testGroup "org"
