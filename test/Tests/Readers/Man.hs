@@ -47,10 +47,10 @@ tests = [
       =?> para (strong (str "foo") <> emph (str "bar"))
     , "H1" =:
       ".SH The header\n"
-      =?> headerWith ("",[],[]) 1 (text "The header")
+      =?> header 1 (text "The header")
     , "H2" =:
       ".SS \"The header 2\""
-      =?> headerWith ("",[],[]) 2 (text "The header 2")
+      =?> header 2 (text "The header 2")
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
       =?>para (strong $ text "single arg with \"Q\"")
