@@ -477,12 +477,12 @@ itemToReference locale variant item = do
     subtitle' <- (guard isPeriodical >> getTitle "issuesubtitle")
                   <|> (guard hasMaintitle >>
                        guard (not isChapterlike) >>
-                       getTitle "mainsubtitle")
+                       getTitle "mainsubtitle" <|> return mempty)
                   <|> getTitle "subtitle"
                   <|> return mempty
     titleaddon' <- (guard hasMaintitle >>
                      guard (not isChapterlike) >>
-                     getTitle "maintitleaddon")
+                     getTitle "maintitleaddon" <|> return mempty)
                     <|> getTitle "titleaddon"
                     <|> return mempty
 
