@@ -664,4 +664,5 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_smart ]
   getAll "typst"           = extensionsFromList [Ext_citations, Ext_smart]
   getAll "djot"            = extensionsFromList [Ext_sourcepos]
+  getAll "man"             = autoIdExtensions
   getAll _                 = mempty
