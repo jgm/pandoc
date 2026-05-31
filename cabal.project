@@ -41,7 +41,7 @@ source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs.git
   subdir: commonmark
-  tag: 48b95bab66401d94f80b7c84c5c33ab9e2cd39ea
+  tag: 204e4bb2e91bac82203468de207d8e2f79700dc0
 
 source-repository-package
   type: git
