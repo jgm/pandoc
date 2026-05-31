@@ -25,6 +25,9 @@ extra-deps:
 - djot-0.1.4
 - asciidoc-0.1.0.2
 - doclayout-0.5.0.1
+- commonmark-0.3
+- commonmark-pandoc-0.3
+- commonmark-extensions-0.2.7
 - git: https://github.com/jgm/typst-hs.git
   commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
 - git: https://github.com/jgm/typst-symbols.git
@@ -33,9 +36,6 @@ extra-deps:
   commit: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 - git: https://github.com/jgm/citeproc.git
   commit: 1b684f1e06fc1093d20c1a2d474f4c3fdf2f65bd
-- git: https://github.com/jgm/commonmark-hs.git
-  commit: 48b95bab66401d94f80b7c84c5c33ab9e2cd39ea
-  subdirs: [commonmark]
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
