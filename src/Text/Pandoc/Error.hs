@@ -20,7 +20,6 @@ module Text.Pandoc.Error (
   handleError) where
 
 import Control.Exception (Exception, displayException)
-import qualified Control.Exception as E
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Data.Text (Text)
