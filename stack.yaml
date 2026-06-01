@@ -28,14 +28,13 @@ extra-deps:
 - commonmark-0.3
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7
+- citproc-0.13.0.1
 - git: https://github.com/jgm/typst-hs.git
   commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
 - git: https://github.com/jgm/typst-symbols.git
   commit: 6e97668c9f2ffea09f3187c34b7641038370fd21
 - git: https://github.com/jgm/texmath.git
   commit: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
-- git: https://github.com/jgm/citeproc.git
-  commit: 1b684f1e06fc1093d20c1a2d474f4c3fdf2f65bd
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
