@@ -9,11 +9,6 @@ constraints: skylighting-format-blaze-html >= 0.1.2,
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/pandoc-types.git
-  tag: ced19af903949b84ba4b20dfe77d729c13cc7779
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/typst-symbols.git
   tag: 6e97668c9f2ffea09f3187c34b7641038370fd21
 
