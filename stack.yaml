@@ -31,8 +31,7 @@ extra-deps:
 - citeproc-0.13.0.1
 - pandoc-types-1.23.1.2
 - typst-symbols-0.2
-- git: https://github.com/jgm/typst-hs.git
-  commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
+- typst-0.10
 - git: https://github.com/jgm/texmath.git
   commit: 0a3fbebc5d0e21769f01b048eb63e1451ccf0e1a
 
