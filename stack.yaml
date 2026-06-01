@@ -28,7 +28,7 @@ extra-deps:
 - commonmark-0.3
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7
-- citproc-0.13.0.1
+- citeproc-0.13.0.1
 - pandoc-types-1.23.1.2
 - git: https://github.com/jgm/typst-hs.git
   commit: 19e835d40663a92df5bed4e8a0fca5465cacdd6b
