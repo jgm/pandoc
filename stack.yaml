@@ -23,7 +23,7 @@ extra-deps:
 - pandoc-lua-marshal-0.3.2.1
 - skylighting-format-blaze-html-0.1.2
 - djot-0.1.4
-- asciidoc-0.1.0.2
+- asciidoc-0.1.0.3
 - doclayout-0.5.0.2
 - commonmark-0.3
 - commonmark-pandoc-0.3
