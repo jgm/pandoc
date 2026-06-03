@@ -153,6 +153,11 @@ the first one given is the default.
     parsing Markdown. See `--abbreviations` in `pandoc(1)` for
     details.
 
+`typst-inputs` (JSON map)
+
+:   Inputs to be provided to the typst evaluator. See
+    `--typst-input` in `pandoc(1)` for details.
+
 `standalone` (boolean, default false)
 
 :   If true, causes a standalone document to be produced, using
