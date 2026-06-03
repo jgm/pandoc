@@ -84,6 +84,10 @@
     + Implement "rotate" as pass-through (#11531). Information about the
       angle is encoded in an attribute of an enclosing span or div.
 
+  * RTF reader:
+
+    + Fix tables parsed as deeply nested tables (#11682).
+
   * Docx writer:
 
     + Fix display of paragraph with just inline math (#11674).
