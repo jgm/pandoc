@@ -134,6 +134,9 @@ jobs:
     - uses: wimpysworld/nothing-but-nix@v10
       with:
        hatchet-protocol: 'rampage'
+    - name: Remove useless stuff
+      run: |
+        rm -rf /opt/hostedtoolcache
     - uses: cachix/install-nix-action@v31
       with:
         nix_path: nixpkgs=channel:nixos-unstable
