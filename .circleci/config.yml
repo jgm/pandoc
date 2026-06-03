@@ -51,8 +51,12 @@ jobs:
           name: Make macOS release
           no_output_timeout: 90m
           command: sh macos/make_macos_release.sh
+      - run:
+          name: Compress artifacts
+          command: |
+            tar cvf macos-arm64.tar.gz macos-arm64
       - store_artifacts:
-          path: macos-arm64
+          path: macos-arm64.tar.gz
 
   linux_amd64:
     docker:
@@ -87,8 +91,12 @@ jobs:
           command: |
             cabal freeze && cat cabal.project.freeze
             bash linux/make_artifacts.sh
+      - run:
+          name: Compress artifacts
+          command: |
+            tar cvf linux-amd64.tar.gz linux-amd64
       - store_artifacts:
-          path: linux-amd64
+          path: linux-amd64.tar.gz
 
   linux_arm64:
     docker:
@@ -123,8 +131,12 @@ jobs:
           command: |
             bash linux/make_artifacts.sh
             cabal freeze && cat cabal.project.freeze
+      - run:
+          name: Compress artifacts
+          command: |
+            tar cvf linux-arm64.tar.gz linux-arm64
       - store_artifacts:
-          path: linux-arm64
+          path: linux-arm64.tar.gz
 
 # Each build is gated behind an approval job, which is the CircleCI equivalent of
 # Cirrus's `trigger_type: manual` — nothing runs until you click "Approve" in the UI.
