@@ -24,7 +24,7 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2
 - djot-0.1.4
 - asciidoc-0.1.0.3
-- doclayout-0.5.0.2
+- doclayout-0.5.0.3
 - commonmark-0.3
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7
