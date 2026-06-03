@@ -1,0 +1,138 @@
+version: 2.1
+
+# Builds a cache key from every cabal project/package file in the tree.
+# Replaces Cirrus's static `fingerprint_key`: CircleCI cache keys are immutable,
+# so we key on a checksum that changes when dependencies change, and fall back
+# to the newest existing cache when they don't (the partial-key restore below).
+commands:
+  make_cache_key:
+    steps:
+      - run:
+          name: Compute cabal cache key
+          command: |
+            find . \( -name '*.cabal' -o -name 'cabal.project*' \) -print0 \
+              | sort -z | xargs -0 cat > /tmp/cabal-cache-key 2>/dev/null || true
+
+jobs:
+  macos_arm64:
+    macos:
+      xcode: "16.4.0"          # any GA Xcode image; M4 Pro needs a recent one
+    resource_class: m4pro.medium   # 6 vCPU / 28 GB (M1/M2 classes were retired Feb 2026)
+    steps:
+      - checkout
+      - run:
+          name: Install GHC + cabal
+          command: |
+            brew update
+            brew install ghc@9.10 cabal-install
+      - run:
+          name: Put GHC on PATH
+          # CircleCI's `environment:` does NOT expand $PATH, so we append at runtime.
+          command: echo 'export PATH="/opt/homebrew/opt/ghc@9.10/bin:$PATH"' >> "$BASH_ENV"
+      - make_cache_key
+      - restore_cache:
+          keys:
+            - cabal-store-macos-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-macos-arm64-v1-
+      - run:
+          name: Build dependencies
+          no_output_timeout: 90m
+          command: |
+            cabal update
+            cabal build all -fembed_data_files -fhttp -fserver -flua --dependencies-only
+      - save_cache:
+          key: cabal-store-macos-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+          paths:
+            - ~/.cabal/store
+      - run:
+          name: Make macOS release
+          no_output_timeout: 90m
+          command: sh macos/make_macos_release.sh
+      - store_artifacts:
+          path: macos-arm64
+
+  linux_amd64:
+    docker:
+      - image: quay.io/benz0li/ghc-musl:9.10
+    resource_class: large       # 4 vCPU / 8 GB. Bump to `xlarge` (8/16) if GHC OOMs.
+    environment:
+      CABALOPTS: -f-export-dynamic -fembed_data_files -fhttp -fserver -flua --enable-executable-static -j4
+      GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
+    steps:
+      - checkout
+      - make_cache_key
+      - restore_cache:
+          keys:
+            - cabal-store-linux-amd64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-amd64-v1-
+      - run:
+          name: Build dependencies
+          no_output_timeout: 90m
+          command: |
+            cabal update
+            cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+      - save_cache:
+          key: cabal-store-linux-amd64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+          paths:
+            - ~/.cabal/store
+      - run:
+          name: Package
+          no_output_timeout: 90m
+          command: |
+            cabal freeze && cat cabal.project.freeze
+            bash linux/make_artifacts.sh
+      - store_artifacts:
+          path: linux-amd64
+
+  linux_arm64:
+    docker:
+      - image: quay.io/benz0li/ghc-musl:9.10
+    resource_class: arm.large   # 4 vCPU / 16 GB
+    environment:
+      CABALOPTS: -f-export-dynamic -fembed_data_files -fhttp -fserver -flua --enable-executable-static -j4
+      GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
+    steps:
+      - checkout
+      - make_cache_key
+      - restore_cache:
+          keys:
+            - cabal-store-linux-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-arm64-v1-
+      - run:
+          name: Build dependencies
+          no_output_timeout: 90m
+          command: |
+            cabal update
+            cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+      - save_cache:
+          key: cabal-store-linux-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
+          paths:
+            - ~/.cabal/store
+      - run:
+          name: Package
+          no_output_timeout: 90m
+          command: |
+            bash linux/make_artifacts.sh
+            cabal freeze && cat cabal.project.freeze
+      - store_artifacts:
+          path: linux-arm64
+
+# Each build is gated behind an approval job, which is the CircleCI equivalent of
+# Cirrus's `trigger_type: manual` — nothing runs until you click "Approve" in the UI.
+workflows:
+  release:
+    jobs:
+      - hold_macos_arm64:
+          type: approval
+      - macos_arm64:
+          requires: [hold_macos_arm64]
+
+      - hold_linux_amd64:
+          type: approval
+      - linux_amd64:
+          requires: [hold_linux_amd64]
+
+      - hold_linux_arm64:
+          type: approval
+      - linux_arm64:
+          requires: [hold_linux_arm64]
