@@ -80,7 +80,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
 import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.XML (escapeStringForXML, rdfaAttributes, html5Attributes)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 import Text.Pandoc.Chunks (tocToList, toTOCTree)
@@ -89,6 +89,7 @@ import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import qualified Data.Set as Set
 
 -- import Debug.Trace
 
@@ -206,9 +207,18 @@ htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
   ,if null classes
       then empty
       else "class=" <> doubleQuotes (text $ T.unpack (T.unwords classes))
-  ,hsep (map (\(k,v) -> text (T.unpack k) <> "=" <>
+  ,hsep (map (\(k,v) -> formatKey k <> "=" <>
                 doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
   ])
+ where
+   formatKey x = text . T.unpack $
+        if (x `Set.member` (html5Attributes <> rdfaAttributes)
+            && x /= "label") -- #10048
+             || T.any (== ':') x -- e.g. epub: namespace
+             || "data-" `T.isPrefixOf` x
+             || "aria-" `T.isPrefixOf` x
+           then x
+           else "data-" <> x
 
 addSpaceIfNotEmpty :: HasChars a => Doc a -> Doc a
 addSpaceIfNotEmpty f = if isEmpty f then f else " " <> f
