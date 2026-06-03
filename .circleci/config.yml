@@ -22,7 +22,7 @@ jobs:
       - run:
           name: Checkout code
           command: |
-            git clone $CIRCLE_REPOSITORY_URL .
+            git clone https://github.com/jgm/pandoc .
       - run:
           name: Install GHC + cabal
           command: |
@@ -65,7 +65,7 @@ jobs:
       - run:
           name: Checkout code
           command: |
-            git clone $CIRCLE_REPOSITORY_URL .
+            git clone https://github.com/jgm/pandoc .
       - make_cache_key
       - restore_cache:
           keys:
@@ -101,7 +101,7 @@ jobs:
       - run:
           name: Checkout code
           command: |
-            git clone $CIRCLE_REPOSITORY_URL .
+            git clone https://github.com/jgm/pandoc .
       - make_cache_key
       - restore_cache:
           keys:
