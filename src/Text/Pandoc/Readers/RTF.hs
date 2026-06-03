@@ -305,6 +305,26 @@ modifyGroup f =
             [] -> []
             (x:xs) -> f x : xs }
 
+-- | @\\plain@ resets character formatting to default values.  Unlike a
+-- full reset to 'def', it must leave paragraph-level properties (such as
+-- whether we are inside a table, the list level, or the outline level)
+-- intact, as well as contextual properties like the current hyperlink or
+-- anchor.  Resetting these caused tables to be parsed as deeply nested
+-- structures when cell paragraphs used @\\plain@ after @\\intbl@.
+resetCharProps :: Properties -> Properties
+resetCharProps g =
+  g{ gBold = False
+   , gItalic = False
+   , gCaps = False
+   , gDeleted = False
+   , gSub = False
+   , gSuper = False
+   , gSmallCaps = False
+   , gUnderline = False
+   , gFontFamily = Nothing
+   , gHidden = False
+   }
+
 addFormatting :: (Properties, Text) -> Inlines
 addFormatting (_, "\n") = B.linebreak
 addFormatting (props, _) | gHidden props = mempty
@@ -546,9 +566,8 @@ processTok bs (Tok pos tok') = do
     ControlSymbol '~' -> bs <$ addText "\x00a0"
     ControlSymbol '-' -> bs <$ addText "\x00ad"
     ControlSymbol '_' -> bs <$ addText "\x2011"
-    ControlWord "trowd" _ -> bs <$ do -- add new row
-      updateState $ \s -> s{ sTableRows = TableRow [] : sTableRows s
-                           , sCurrentCell = mempty }
+    ControlWord "trowd" _ -> bs <$ beginTableRow -- begin new row
+    ControlWord "row" _ -> bs <$ beginTableRow -- end current row
     ControlWord "cell" _ -> bs <$ do
       new <- emitBlocks mempty
       curCell <- (<> new) . sCurrentCell <$> getState
@@ -561,7 +580,7 @@ processTok bs (Tok pos tok') = do
     ControlWord "intbl" _ -> do
       ls <- closeLists 0 -- see #11364
       ((ls <>) <$> emitBlocks bs) <* modifyGroup (\g -> g{ gInTable = True })
-    ControlWord "plain" _ -> bs <$ modifyGroup (const def)
+    ControlWord "plain" _ -> bs <$ modifyGroup resetCharProps
     ControlWord "lquote" _ -> bs <$ addText "\x2018"
     ControlWord "rquote" _ -> bs <$ addText "\x2019"
     ControlWord "ldblquote" _ -> bs <$ addText "\x201C"
@@ -673,6 +692,19 @@ closeLists lvl = do
           closeLists lvl
     _ -> pure mempty
 
+-- Begin a new table row.  Both @\\trowd@ (which sets row defaults) and
+-- @\\row@ (which ends a row) start a fresh row to be filled by subsequent
+-- @\\cell@s.  We only push a new empty row when the current one already has
+-- cells, so that documents repeating @\\trowd@ after @\\row@ (or omitting
+-- @\\trowd@ between rows) both produce the same flat structure.
+beginTableRow :: PandocMonad m => RTFParser m ()
+beginTableRow =
+  updateState $ \s ->
+    s{ sTableRows = case sTableRows s of
+                      TableRow [] : _ -> sTableRows s
+                      rs -> TableRow [] : rs
+     , sCurrentCell = mempty }
+
 closeTable :: PandocMonad m => RTFParser m Blocks
 closeTable = do
   rawrows <- sTableRows <$> getState
@@ -680,10 +712,13 @@ closeTable = do
      then return mempty
      else do
        let getCells (TableRow cs) = reverse cs
-       let rows = map getCells . reverse $ rawrows
+       -- drop empty rows produced by row terminators
+       let rows = filter (not . null) . map getCells . reverse $ rawrows
        updateState $ \s -> s{ sCurrentCell = mempty
                             , sTableRows = [] }
-       return $ B.simpleTable [] rows
+       if null rows
+          then return mempty
+          else return $ B.simpleTable [] rows
 
 closeContainers :: PandocMonad m => RTFParser m Blocks
 closeContainers = do
