@@ -19,7 +19,10 @@ jobs:
       xcode: "16.4.0"          # any GA Xcode image; M4 Pro needs a recent one
     resource_class: m4pro.medium   # 6 vCPU / 28 GB (M1/M2 classes were retired Feb 2026)
     steps:
-      - checkout
+      - run:
+          name: Checkout code
+          command: |
+            git clone $CIRCLE_REPOSITORY_URL .
       - run:
           name: Install GHC + cabal
           command: |
@@ -59,7 +62,10 @@ jobs:
       CABALOPTS: -f-export-dynamic -fembed_data_files -fhttp -fserver -flua --enable-executable-static -j4
       GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
     steps:
-      - checkout
+      - run:
+          name: Checkout code
+          command: |
+            git clone $CIRCLE_REPOSITORY_URL .
       - make_cache_key
       - restore_cache:
           keys:
@@ -92,7 +98,10 @@ jobs:
       CABALOPTS: -f-export-dynamic -fembed_data_files -fhttp -fserver -flua --enable-executable-static -j4
       GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
     steps:
-      - checkout
+      - run:
+          name: Checkout code
+          command: |
+            git clone $CIRCLE_REPOSITORY_URL .
       - make_cache_key
       - restore_cache:
           keys:
