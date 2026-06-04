@@ -154,16 +154,16 @@ jobs:
       - make_cache_key
       - restore_cache:
           keys:
-            - cabal-store-linux-wasm-v3-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
       - run:
           name: Build pandoc.wasm
           no_output_timeout: 60m
           command: |
             nix develop --command bash -c "make pandoc.wasm"
       - save_cache:
-          key: cabal-store-linux-wasm-v3-{{ checksum "/tmp/cabal-cache-key" }}
+          key: cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
-            - ~/.local/state/cabal
+            - ~/.ghc-wasm/.cabal/store
       - run:
           name: Compress artifacts
           command: |
