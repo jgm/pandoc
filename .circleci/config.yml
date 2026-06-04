@@ -35,7 +35,7 @@ jobs:
       - make_cache_key
       - restore_cache:
           keys:
-            - cabal-store-macos-arm64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-macos-arm64-v3-{{ checksum "/tmp/cabal-cache-key" }}
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -43,9 +43,9 @@ jobs:
             cabal update
             cabal build all -fembed_data_files -fhttp -fserver -flua --dependencies-only
       - save_cache:
-          key: cabal-store-macos-arm64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+          key: cabal-store-macos-arm64-v3-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
-            - $XDG_STATE_HOME/cabal
+            - ~/.local/state/cabal
       - run:
           name: Make macOS release
           no_output_timeout: 90m
@@ -72,7 +72,7 @@ jobs:
       - make_cache_key
       - restore_cache:
           keys:
-            - cabal-store-linux-amd64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-amd64-v3-{{ checksum "/tmp/cabal-cache-key" }}
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -80,9 +80,9 @@ jobs:
             cabal update
             cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
       - save_cache:
-          key: cabal-store-linux-amd64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+          key: cabal-store-linux-amd64-v3-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
-            - $XDG_STATE_HOME/cabal
+            - ~/.local/state/cabal
       - run:
           name: Package
           no_output_timeout: 90m
@@ -111,7 +111,7 @@ jobs:
       - make_cache_key
       - restore_cache:
           keys:
-            - cabal-store-linux-arm64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-arm64-v3-{{ checksum "/tmp/cabal-cache-key" }}
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -119,9 +119,9 @@ jobs:
             cabal update
             cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
       - save_cache:
-          key: cabal-store-linux-arm64-v2-{{ checksum "/tmp/cabal-cache-key" }}
+          key: cabal-store-linux-arm64-v3-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
-            - $XDG_STATE_HOME/cabal
+            - ~/.local/state/cabal
       - run:
           name: Package
           no_output_timeout: 90m
@@ -154,16 +154,16 @@ jobs:
       - make_cache_key
       - restore_cache:
           keys:
-            - cabal-store-linux-wasm-v2-{{ checksum "/tmp/cabal-cache-key" }}
+            - cabal-store-linux-wasm-v3-{{ checksum "/tmp/cabal-cache-key" }}
       - run:
           name: Build pandoc.wasm
           no_output_timeout: 60m
           command: |
             nix develop --command bash -c "make pandoc.wasm"
       - save_cache:
-          key: cabal-store-linux-wasm-v2-{{ checksum "/tmp/cabal-cache-key" }}
+          key: cabal-store-linux-wasm-v3-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
-            - $XDG_STATE_HOME/cabal
+            - ~/.local/state/cabal
       - run:
           name: Compress artifacts
           command: |
