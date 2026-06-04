@@ -150,7 +150,6 @@ jobs:
       - run:
           name: Checkout code
           command: |
-            nix-env -iA nixpkgs.git nixpkgs.gnutar nixpkgs.gzip
             git clone https://github.com/jgm/pandoc .
       - make_cache_key
       - restore_cache:
