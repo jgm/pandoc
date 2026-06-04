@@ -36,7 +36,6 @@ jobs:
       - restore_cache:
           keys:
             - cabal-store-macos-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
-            - cabal-store-macos-arm64-v1-
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -74,7 +73,6 @@ jobs:
       - restore_cache:
           keys:
             - cabal-store-linux-amd64-v1-{{ checksum "/tmp/cabal-cache-key" }}
-            - cabal-store-linux-amd64-v1-
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -114,7 +112,6 @@ jobs:
       - restore_cache:
           keys:
             - cabal-store-linux-arm64-v1-{{ checksum "/tmp/cabal-cache-key" }}
-            - cabal-store-linux-arm64-v1-
       - run:
           name: Build dependencies
           no_output_timeout: 90m
@@ -138,6 +135,43 @@ jobs:
       - store_artifacts:
           path: linux-arm64.tar.gz
 
+  wasm:
+    docker:
+      - image: nixos/nix:2.32.8
+    resource_class: arm.large   # 4 vCPU / 16 GB
+    environment:
+      NIX_PATH: nixpkgs=channel:nixos-unstable
+      # `nix develop` is a flakes command, so enable flakes. The sandbox must be
+      # off because CircleCI's container isn't privileged enough to set it up.
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        sandbox = false
+    steps:
+      - run:
+          name: Checkout code
+          command: |
+            nix-env -iA nixpkgs.git nixpkgs.gnutar nixpkgs.gzip
+            git clone https://github.com/jgm/pandoc .
+      - make_cache_key
+      - restore_cache:
+          keys:
+            - cabal-store-linux-wasm-v1-{{ checksum "/tmp/cabal-cache-key" }}
+      - run:
+          name: Build pandoc.wasm
+          no_output_timeout: 60m
+          command: |
+            nix develop --command bash -c "make pandoc.wasm"
+      - save_cache:
+          key: cabal-store-linux-wasm-v1-{{ checksum "/tmp/cabal-cache-key" }}
+          paths:
+            - dist-newstyle
+      - run:
+          name: Compress artifacts
+          command: |
+            zip -r pandoc.wasm.zip pandoc.wasm
+      - store_artifacts:
+          path: pandoc.wasm.zip
+
 # Each build is gated behind an approval job, which is the CircleCI equivalent of
 # Cirrus's `trigger_type: manual` — nothing runs until you click "Approve" in the UI.
 workflows:
@@ -157,3 +191,8 @@ workflows:
           type: approval
       - linux_arm64:
           requires: [hold_linux_arm64]
+
+      - hold_wasm:
+          type: approval
+      - wasm:
+          requires: [hold_wasm]
