@@ -167,6 +167,7 @@ jobs:
       - run:
           name: Compress artifacts
           command: |
+            nix-env -iA nixpkgs.zip
             zip -r pandoc.wasm.zip pandoc.wasm
       - store_artifacts:
           path: pandoc.wasm.zip
