@@ -53,7 +53,7 @@ jobs:
       - run:
           name: Compress artifacts
           command: |
-            tar cvf macos-arm64.tar.gz macos-arm64
+            tar cvzf macos-arm64.tar.gz macos-arm64
       - store_artifacts:
           path: macos-arm64.tar.gz
 
@@ -92,7 +92,7 @@ jobs:
       - run:
           name: Compress artifacts
           command: |
-            tar cvf linux-amd64.tar.gz linux-amd64
+            tar cvzf linux-amd64.tar.gz linux-amd64
       - store_artifacts:
           path: linux-amd64.tar.gz
 
@@ -131,7 +131,7 @@ jobs:
       - run:
           name: Compress artifacts
           command: |
-            tar cvf linux-arm64.tar.gz linux-arm64
+            tar cvzf linux-arm64.tar.gz linux-arm64
       - store_artifacts:
           path: linux-arm64.tar.gz
 
