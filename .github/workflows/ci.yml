@@ -155,7 +155,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: |
-          C:\cabal\store
+          %LOCALAPPDATA%/cabal/store
         key: ${{ runner.os }}-appdata-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
