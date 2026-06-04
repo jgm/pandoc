@@ -24,6 +24,7 @@ jobs:
       run: |
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
+        cabal path --store-dir
 
     # declare/restore cached things
 
