@@ -24,7 +24,6 @@ jobs:
       run: |
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
-        cabal path --store-dir
 
     # declare/restore cached things
 
@@ -33,7 +32,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: |
-          %LOCALAPPDATA%/cabal/store
+          C:\cabal\store
         key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
