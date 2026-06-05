@@ -217,6 +217,7 @@ htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
              || T.any (== ':') x -- e.g. epub: namespace
              || "data-" `T.isPrefixOf` x
              || "aria-" `T.isPrefixOf` x
+             || x == "markdown" -- #11685
            then x
            else "data-" <> x
 
