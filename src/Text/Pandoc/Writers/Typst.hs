@@ -138,6 +138,9 @@ pandocToTypst options (Pandoc meta blocks) = do
 pickTypstAttrs :: [(Text, Text)] -> ([(Text, Text)],[(Text, Text)])
 pickTypstAttrs = foldr go ([],[])
   where
+    go ("lang",lang)
+      | Right l <- parseLang lang
+      = second (("lang", tshow  (langLanguage l)):)
     go (k,v) =
       case T.splitOn ":" k of
         ["typst", "text", x] -> second ((x,v):)
@@ -385,17 +388,9 @@ blockToTypst block =
     Div (ident,_,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
-      -- Handle lang attribute for Div elements
-      let langAttrs = case lookup "lang" kvs of
-                        Nothing -> []
-                        Just lang -> case parseLang lang of
-                                       Left _ -> []
-                                       Right l -> [("lang",
-                                                    tshow (langLanguage l))]
-      let allTypstTextAttrs = typstTextAttrs ++ langAttrs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText allTypstTextAttrs
+        $$ toTypstPoundSetText typstTextAttrs
         $$ contents
         $$ ("]" <+> lab)
 
