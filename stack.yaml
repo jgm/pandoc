@@ -33,6 +33,7 @@ extra-deps:
 - typst-symbols-0.2
 - typst-0.10
 - texmath-0.13.1.2
+- emojis-0.1.5
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
