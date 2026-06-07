@@ -1005,7 +1005,7 @@ blockCommands = M.fromList
    , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
    , ("signature", mempty <$ (skipopts *> authors))
    , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
-   , ("newtheorem", newtheorem inline)
+   , ("newtheorem", newtheorem)
    , ("theoremstyle", theoremstyle)
    -- KOMA-Script metadata commands
    , ("extratitle", mempty <$ (skipopts *> tok >>= addMeta "extratitle"))
@@ -1178,7 +1178,7 @@ environment = try $ do
   name <- untokenize <$> braced
   M.findWithDefault mzero name environments <|>
     langEnvironment name <|>
-    theoremEnvironment blocks opt name <|>
+    theoremEnvironment blocks inlines opt name <|>
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
        then mzero

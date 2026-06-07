@@ -42,11 +42,11 @@ Pandoc
       , Space
       , Str "*"
       ]
-  , Header 1 ( "" , [] , [] ) [ Str "Headers" ]
+  , Header 1 ( "headers" , [] , [] ) [ Str "Headers" ]
   , Header
-      1 ( "" , [] , [] ) [ Str "Level" , Space , Str "1" ]
+      1 ( "level-1" , [] , [] ) [ Str "Level" , Space , Str "1" ]
   , Header
-      2 ( "" , [] , [] ) [ Str "Level" , Space , Str "2" ]
+      2 ( "level-2" , [] , [] ) [ Str "Level" , Space , Str "2" ]
   , Para
       [ Str "*"
       , Space
@@ -58,7 +58,7 @@ Pandoc
       , Space
       , Str "*"
       ]
-  , Header 1 ( "" , [] , [] ) [ Str "Paragraphs" ]
+  , Header 1 ( "paragraphs" , [] , [] ) [ Str "Paragraphs" ]
   , Para
       [ Str "Here's"
       , Space
@@ -159,7 +159,9 @@ Pandoc
       , Str "*"
       ]
   , Header
-      1 ( "" , [] , [] ) [ Str "Block" , Space , Str "Quotes" ]
+      1
+      ( "block-quotes" , [] , [] )
+      [ Str "Block" , Space , Str "Quotes" ]
   , Para
       [ Str "Code"
       , Space
@@ -182,7 +184,9 @@ Pandoc
       , [ Para [ Str "item" , Space , Str "two" ] ]
       ]
   , Header
-      1 ( "" , [] , [] ) [ Str "Code" , Space , Str "Blocks" ]
+      1
+      ( "code-blocks" , [] , [] )
+      [ Str "Code" , Space , Str "Blocks" ]
   , Para [ Str "Code:" ]
   , CodeBlock
       ( "" , [] , [] )
@@ -201,22 +205,22 @@ Pandoc
       , Space
       , Str "*"
       ]
-  , Header 1 ( "" , [] , [] ) [ Str "Lists" ]
-  , Header 2 ( "" , [] , [] ) [ Str "Unordered" ]
+  , Header 1 ( "lists" , [] , [] ) [ Str "Lists" ]
+  , Header 2 ( "unordered" , [] , [] ) [ Str "Unordered" ]
   , Para [ Str "Asterisks:" ]
   , BulletList
       [ [ Para [ Str "asterisk" , Space , Str "1" ] ]
       , [ Para [ Str "asterisk" , Space , Str "2" ] ]
       , [ Para [ Str "asterisk" , Space , Str "3" ] ]
       ]
-  , Header 2 ( "" , [] , [] ) [ Str "Ordered" ]
+  , Header 2 ( "ordered" , [] , [] ) [ Str "Ordered" ]
   , OrderedList
       ( 1 , Decimal , Period )
       [ [ Para [ Str "First" ] ]
       , [ Para [ Str "Second" ] ]
       , [ Para [ Str "Third" ] ]
       ]
-  , Header 2 ( "" , [] , [] ) [ Str "Nested" ]
+  , Header 2 ( "nested" , [] , [] ) [ Str "Nested" ]
   , BulletList
       [ [ Para [ Str "Tab" ]
         , BulletList
@@ -254,7 +258,7 @@ Pandoc
       ]
   , Header
       2
-      ( "" , [] , [] )
+      ( "different-styles" , [] , [] )
       [ Str "different" , Space , Str "styles:" ]
   , OrderedList
       ( 1 , UpperAlpha , Period )
@@ -292,7 +296,7 @@ Pandoc
             ]
         ]
       ]
-  , Header 2 ( "" , [] , [] ) [ Str "Ordered" ]
+  , Header 2 ( "ordered-1" , [] , [] ) [ Str "Ordered" ]
   , Para [ Str "Definition" , Space , Str "lists" ]
   , DefinitionList
       [ ( [ Strong [ Str "term1" ] ]
@@ -323,7 +327,7 @@ Pandoc
       ]
   , Header
       1
-      ( "" , [] , [] )
+      ( "special-characters" , [] , [] )
       [ Str "Special" , Space , Str "Characters" ]
   , Para
       [ Str "AT&T"
@@ -364,7 +368,7 @@ Pandoc
   , Para [ Str "Bang:" , Space , Str "!" ]
   , Para [ Str "Plus:" , Space , Str "+" ]
   , Para [ Str "Minus:" , Space , Str "-" ]
-  , Header 1 ( "" , [] , [] ) [ Str "Links" ]
+  , Header 1 ( "links" , [] , [] ) [ Str "Links" ]
   , Para
       [ Link
           ( "" , [] , [] )
@@ -379,7 +383,7 @@ Pandoc
           ( "mailto:me@example.com" , "" )
       , Str "."
       ]
-  , Header 1 ( "" , [] , [] ) [ Str "Macros" ]
+  , Header 1 ( "macros" , [] , [] ) [ Str "Macros" ]
   , Para
       [ Strong [ Str "Me" , Space , Str "Myself" ]
       , Space
@@ -406,7 +410,7 @@ Pandoc
       , Strong [ Str "Author" ]
       , Str "."
       ]
-  , Header 1 ( "" , [] , [] ) [ Str "Tables" ]
+  , Header 1 ( "tables" , [] , [] ) [ Str "Tables" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])

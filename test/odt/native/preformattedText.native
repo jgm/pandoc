@@ -1,0 +1,4 @@
+[ CodeBlock
+    ( "" , [] , [] )
+    "void main() {\n    printf(\"Hello world\");\n}"
+]

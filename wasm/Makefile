@@ -9,13 +9,13 @@ site: site/examples $(EXAMPLES) site/pandoc.js site/index.js site/index.html sit
 site/examples:
 	mkdir -p $@
 
-site/pandoc.js: pandoc.js
+site/pandoc.js: pandoc.js pandoc.wasm
 	perl -p -e "s/SHA1_PANDOC_WASM/$(SHA1_PANDOC_WASM)/g" $< > $@
 
-site/index.js: index.js
+site/index.js: index.js site/pandoc.js
 	perl -p -e "s/SHA1_PANDOC_JS/$(SHA1_PANDOC_JS)/g; s/SHA1_EXAMPLES/$(SHA1_EXAMPLES)/g" $< > $@
 
-site/%.html: %.html
+site/%.html: %.html site/index.js
 	perl -p -e "s/SHA1_INDEX_JS/$(SHA1_INDEX_JS)/g" $< > $@
 
 site/examples/%.zip: examples/% $(wildcard examples/%/*)
@@ -31,3 +31,7 @@ upload: site
 serve: site
 	cd site && python3 -m http.server
 .PHONY: serve
+
+clean:
+	rm -r site/*
+.PHONY: clean

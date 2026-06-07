@@ -466,8 +466,8 @@ pandocToEPUB :: PandocMonad m
 pandocToEPUB version opts doc = do
   let doc' = ensureValidXmlIdentifiers doc
   -- handle pictures
-  Pandoc meta blocks <- walkM (transformInline opts) doc' >>=
-                        walkM transformBlock
+  Pandoc meta blocks <- walkM (transformInline version opts) doc' >>=
+                        walkM (transformBlock version)
   picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
 
   epubSubdir <- gets stEpubSubdir
@@ -1048,10 +1048,9 @@ metadataElement version md mbCoverImage currentTime =
         coverageNodes = maybe [] (dcTag' "coverage") $ epubCoverage md
         rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
         coverImageNodes = maybe []
-            (\img -> [unode "meta" !  [(metaprop,"cover"),
-                                       ("content",toId img)] $ ()
-                        | version == EPUB2])
-            $ mbCoverImage
+            (\img -> [unode "meta" !  [("name","cover"),
+                                       ("content",toId img)] $ ()])
+            mbCoverImage
         modifiedNodes = [ unode "meta" ! [(metaprop, "dcterms:modified")] $
                showDateTimeISO8601 currentTime | version == EPUB3 ]
         belongsToCollectionNodes =
@@ -1141,11 +1140,18 @@ metadataElement version md mbCoverImage currentTime =
         schemeToOnix "ISBN-13"              = "15"
         schemeToOnix "Legal deposit number" = "17"
         schemeToOnix "URN"                  = "22"
-        schemeToOnix "OCLC"                 = "23"
+        schemeToOnix "OCLC number"          = "23"
+        schemeToOnix "Co-publisher’s ISBN-13" = "24"
         schemeToOnix "ISMN-13"              = "25"
         schemeToOnix "ISBN-A"               = "26"
-        schemeToOnix "JP"                   = "27"
-        schemeToOnix "OLCC"                 = "28"
+        schemeToOnix "JP e-code"            = "27"
+        schemeToOnix "OLCC number"          = "28"
+        schemeToOnix "JP Magazine ID"       = "29"
+        schemeToOnix "UPC-12+5"             = "30"
+        schemeToOnix "BNF Control number"   = "31"
+        schemeToOnix "ISSN-13"              = "34"
+        schemeToOnix "ARK"                  = "35"
+        schemeToOnix "Digital file internal version number" = "36"
         schemeToOnix _                      = "01"
 
 showDateTimeISO8601 :: UTCTime -> Text
@@ -1197,42 +1203,47 @@ getMediaNextNewName ext = do
   modify $ \st -> st { stMediaNextId = nextId + 1 }
   return $ "file" ++ show nextId ++ ext
 
-isHtmlFormat :: Format -> Bool
-isHtmlFormat (Format "html") = True
-isHtmlFormat (Format "html4") = True
-isHtmlFormat (Format "html5") = True
-isHtmlFormat _ = False
+isHtmlFormat :: EPUBVersion -> Format -> Bool
+isHtmlFormat _ (Format "html") = True
+isHtmlFormat _ (Format "html4") = True
+isHtmlFormat _ (Format "html5") = True
+isHtmlFormat _ (Format "epub") = True
+isHtmlFormat EPUB2 (Format "epub2") = True
+isHtmlFormat EPUB3 (Format "epub3") = True
+isHtmlFormat _ _ = False
 
 transformBlock  :: PandocMonad m
-                => Block
+                => EPUBVersion
+                -> Block
                 -> E m Block
-transformBlock (RawBlock fmt raw)
-  | isHtmlFormat fmt = do
+transformBlock version (RawBlock fmt raw)
+  | isHtmlFormat version fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawBlock fmt (renderTags' tags')
-transformBlock b = return b
+transformBlock _ b = return b
 
 transformInline  :: PandocMonad m
-                 => WriterOptions
+                 => EPUBVersion
+                 -> WriterOptions
                  -> Inline
                  -> E m Inline
-transformInline _opts (Image attr@(_,_,kvs) lab (src,tit))
+transformInline _ _opts (Image attr@(_,_,kvs) lab (src,tit))
   | isNothing (lookup "external" kvs) = do
     newsrc <- modifyMediaRef $ T.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
-transformInline opts x@(Math t m)
+transformInline _ opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef (T.unpack (url <> urlEncode m))
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" <> newsrc, "")]
-transformInline _opts (RawInline fmt raw)
-  | isHtmlFormat fmt = do
+transformInline version _opts (RawInline fmt raw)
+  | isHtmlFormat version fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawInline fmt (renderTags' tags')
-transformInline _ x = return x
+transformInline _ _ x = return x
 
 (!) :: (t -> Element) -> [(Text, Text)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)

@@ -43,7 +43,6 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
-import Text.Pandoc.Error
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -199,6 +198,7 @@ litBetween op cl = try $ do
 litCharNoSpace :: PandocMonad m => MarkdownParser m Text
 litCharNoSpace = T.singleton <$> escapedChar''
        <|> characterReference
+       <|> (snd <$> withRaw attributes)
        <|> T.singleton <$> noneOf "\n \r\t"
  where
    escapedChar'' = do
@@ -352,13 +352,9 @@ checkNotes :: PandocMonad m => MarkdownParser m ()
 checkNotes = do
   st <- getState
   let notesUsed = stateNoteRefs st
-  let notesDefined = M.keys (stateNotes' st)
-  mapM_ (\n -> unless (n `Set.member` notesUsed) $
-                case M.lookup n (stateNotes' st) of
-                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
-                   Nothing -> throwError $
-                     PandocShouldNeverHappenError "note not found")
-         notesDefined
+  forM_ (M.toList (stateNotes' st)) $ \(n, (pos, _)) ->
+    unless (n `Set.member` notesUsed) $
+      report (NoteDefinedButNotUsed n pos)
 
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -781,7 +777,7 @@ lhsCodeBlockBirdWith c = try $ do
   when (sourceColumn pos /= 1) $ Prelude.fail "Not in first column"
   lns <- many1 $ birdTrackLine c
   -- if (as is normal) there is always a space after >, drop it
-  let lns' = if all (\ln -> T.null ln || T.take 1 ln == " ") lns
+  let lns' = if all (\ln -> T.null ln || T.head ln == ' ') lns
                 then map (T.drop 1) lns
                 else lns
   blanklines
@@ -1073,8 +1069,7 @@ para = try $ do
                    <* lookAhead header)
               <|> (guardEnabled Ext_lists_without_preceding_blankline
                     -- Avoid creating a paragraph in a nested list.
-                    <* notFollowedBy' inList
-                    <* lookAhead listStart)
+                    <* notFollowedBy' (inList <* listStart))
               <|> do guardEnabled Ext_native_divs
                      inHtmlBlock <- stateInHtmlBlock <$> getState
                      case inHtmlBlock of
@@ -1168,7 +1163,7 @@ rawTeXBlock = do
                 many1 ((<>) <$> rawLaTeXBlock <*> spnl'))
   return $ case B.toList result of
                 [RawBlock _ cs]
-                  | T.all (`elem` [' ','\t','\n']) cs -> return mempty
+                  | T.all (\c -> c == ' ' || c == '\t' || c == '\n') cs -> return mempty
                 -- don't create a raw block for suppressed macro defs
                 _ -> return result
 
@@ -1204,7 +1199,9 @@ rawHtmlBlocks = do
         return (return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
                 contents <>
                 return (B.rawBlock "html" rawcloser)))
-      <|> return (return (B.rawBlock "html" raw) <> contents)
+      <|> if T.all isSpace raw
+             then return mempty
+             else return (return (B.rawBlock "html" raw) <> contents)
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
   return result
 
@@ -1406,7 +1403,20 @@ multilineTableHeader headless = try $ do
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m
           => MarkdownParser m (F TableComponents)
-gridTable = gridTableWith' NormalizeHeader parseBlocks
+gridTable = try $ do
+  -- Like other block-level constructs, a grid table may be indented by
+  -- up to three spaces.  The underlying grid-table parser expects the
+  -- table to begin at the left margin, so strip a uniform indentation
+  -- from every line before handing it off.
+  indent <- T.length <$> lookAhead nonindentSpaces
+  if indent == 0
+     then gridTableWith' NormalizeHeader parseBlocks
+     else do
+       let gridLine = try $ count indent (char ' ')
+                              *> lookAhead (oneOf "+|")
+                              *> anyLineNewline
+       rawTable <- T.concat <$> many1 gridLine
+       parseFromString' (gridTableWith' NormalizeHeader parseBlocks) rawTable
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -1608,7 +1618,7 @@ exampleRef = do
   guardEnabled Ext_example_lists
   try $ do
     char '@'
-    lab <- mconcat . map T.pack <$>
+    lab <- T.pack . concat <$>
                       many (many1 alphaNum <|>
                             try (do c <- char '_' <|> char '-'
                                     cs <- many1 alphaNum
@@ -1887,7 +1897,7 @@ wikilink constructor = do
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
-    guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+    guard $ T.all (\c -> c /= '\n' && c /= '\r' && c /= '\f' && c /= '\t') url
     return . pure . constructor attr url "" $
        B.text $ fromEntities title
 
@@ -1932,7 +1942,7 @@ wrapSpan (ident, classes, kvs) =
 
 isSmallCapsFontVariant :: Text -> Bool
 isSmallCapsFontVariant s =
-  T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+  T.toLower (T.filter (\c -> c /= ' ' && c /= '\t' && c /= ';') s) ==
   "font-variant:small-caps"
 
 regLink :: PandocMonad m
@@ -2091,7 +2101,7 @@ inlineNote = do
     char '^'
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
-    contents <- inBalancedBrackets inlines
+    contents <- withQuoteContext NoQuote $ inBalancedBrackets inlines
     notFollowedBy (char '(' <|> char '[' <|> ('{' <$ attributes))
       -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
@@ -2195,7 +2205,9 @@ rawHtmlInline = do
                              then (\x -> isInlineTag x &&
                                          not (isCloseBlockTag x))
                              else not . isTextTag
-  return $ return $ B.rawInline "html" result
+  return $ if T.all isSpace result
+              then return mempty
+              else return $ B.rawInline "html" result
 
 -- Emoji
 

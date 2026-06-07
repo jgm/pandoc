@@ -74,6 +74,7 @@ data ReaderOptions = ReaderOptions{
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
                                              -- (only implemented in commonmark)
+       , readerTypstInputs           :: [(Text, Text)] -- ^ parameters specified using --typst-input
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance HasSyntaxExtensions ReaderOptions where
@@ -90,6 +91,7 @@ instance Default ReaderOptions
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
                , readerStripComments         = False
+               , readerTypstInputs           = []
                }
 
 defaultAbbrevs :: Set.Set Text
@@ -442,7 +444,7 @@ isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
 defaultMathJaxURL :: Text
-defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
 
 defaultWebTeXURL :: Text
 defaultWebTeXURL = "https://latex.codecogs.com/png.latex?"

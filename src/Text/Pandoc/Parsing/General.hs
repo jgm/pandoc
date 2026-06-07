@@ -284,7 +284,7 @@ oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
                => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
 oneOfStrings' _ [] = Prelude.fail "no strings to match"
 oneOfStrings' matches strs =
-  TL.toStrict . TB.toLazyText <$> try (go (TB.fromText mempty) strs)
+  TL.toStrict . TB.toLazyText <$> try (go mempty strs)
  where
    go acc strs' = do
      c <- anyChar
@@ -400,15 +400,13 @@ enclosed start end parser = try $
 -- | Parse string, case insensitive.
 stringAnyCase :: (Stream s m Char, UpdateSourcePos s Char)
               => Text -> ParsecT s st m Text
-stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack
-
-stringAnyCase' :: (Stream s m Char, UpdateSourcePos s Char)
-               => String -> ParsecT s st m String
-stringAnyCase' [] = string ""
-stringAnyCase' (x:xs) = do
-  firstChar <- char (toUpper x) <|> char (toLower x)
-  rest <- stringAnyCase' xs
-  return (firstChar:rest)
+stringAnyCase t = TL.toStrict . TB.toLazyText <$> go (T.unpack t)
+  where
+    go [] = string "" $> mempty
+    go (x:xs) = do
+      c <- char (toUpper x) <|> char (toLower x)
+      rest <- go xs
+      pure $ TB.singleton c <> rest
 
 -- TODO rewrite by just adding to Sources stream?
 -- | Parse contents of 'str' using 'parser' and return result.
@@ -484,8 +482,10 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
                               xs <- many (satisfy isEmailChar)
                               return (x:xs)
        isEmailChar c     = isAlphaNum c || isEmailPunct c
-       isEmailPunct c    = T.any (== c) "!\"#$%&'*+-/=?^_{|}~;"
+       isEmailPunct c    = c `Set.member` emailPunctChars
 
+emailPunctChars :: Set.Set Char
+emailPunctChars = Set.fromList "!\"#$%&'*+-/=?^_{|}~;"
 
 uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Text
 uriScheme = oneOfStringsCI (Set.toList schemes)
@@ -532,7 +532,7 @@ uri = try $ do
            <|> entity
            <|> try (punct <* lookAhead (void wordChar <|> void percentEscaped))
     uriChunkBetween l r = try $ do chunk <- between (char l) (char r) uriChunk
-                                   return (T.pack $ [l] ++ chunk ++ [r])
+                                   return $ T.singleton l <> T.pack chunk <> T.singleton r
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end
@@ -688,7 +688,7 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
   where
     ident' = fromMaybe ident (lookup "id" kvs)
     cls'   = maybe cls T.words $ lookup "class" kvs
-    kvs'   = filter (\(k,_) -> k /= "id" || k /= "class") kvs
+    kvs'   = filter (\(k,_) -> k /= "id" && k /= "class") kvs
 
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
                    => ParsecT a st m b -- ^ parser to apply
@@ -755,8 +755,9 @@ fromParsecError (Sources inputs) err' = PandocParseError msg
       ((pos,txt):_) ->
         let ls = T.lines txt <> [""]
             ln = (errLine - sourceLine pos) + 1
-         in if length ls > ln && ln >= 1
-               then T.concat ["\n", ls !! (ln - 1)
-                             ,"\n", T.replicate (errColumn - 1) " "
-                             ,"^"]
-               else ""
+         in case drop (ln - 1) ls of
+               (l:_) | ln >= 1 ->
+                 T.concat ["\n", l
+                          ,"\n", T.replicate (errColumn - 1) " "
+                          ,"^"]
+               _ -> ""

@@ -138,6 +138,9 @@ pandocToTypst options (Pandoc meta blocks) = do
 pickTypstAttrs :: [(Text, Text)] -> ([(Text, Text)],[(Text, Text)])
 pickTypstAttrs = foldr go ([],[])
   where
+    go ("lang",lang)
+      | Right l <- parseLang lang
+      = second (("lang", tshow  (langLanguage l)):)
     go (k,v) =
       case T.splitOn ":" k of
         ["typst", "text", x] -> second ((x,v):)
@@ -164,10 +167,10 @@ toTypstTextElement typstTextAttrs content = "#text" <> toTypstPropsListParens ty
 
 toTypstSetText :: [(Text, Text)] -> Doc Text
 toTypstSetText [] = ""
-toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; "
+toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> ";"
 
 toTypstPoundSetText :: [(Text, Text)] -> Doc Text
-toTypstPoundSetText [] = ""
+toTypstPoundSetText [] = mempty
 toTypstPoundSetText typstTextAttrs = "#" <> toTypstSetText typstTextAttrs
 
 toTypstBracesSetText :: [(Text, Text)] -> Doc Text -> Doc Text
@@ -313,7 +316,7 @@ blockToTypst block =
                      ColSpan n -> [ "colspan: " <> tshow n ]) ++
                   map formatTypstProp typstAttrs2
             cellContents <- blocksToTypst bs
-            let contents2 = brackets (toTypstPoundSetText typstTextAttrs <> cellContents)
+            let contents2 = brackets (toTypstPoundSetText typstTextAttrs $$ cellContents)
             pure $ if null cellattrs
                       then contents2
                       else "table.cell" <>
@@ -385,17 +388,10 @@ blockToTypst block =
     Div (ident,_,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
-      -- Handle lang attribute for Div elements
-      let langAttrs = case lookup "lang" kvs of
-                        Nothing -> []
-                        Just lang -> case parseLang lang of
-                                       Left _ -> []
-                                       Right l -> [("lang",
-                                                    tshow (langLanguage l))]
-      let allTypstTextAttrs = typstTextAttrs ++ langAttrs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText allTypstTextAttrs <> contents
+        $$ toTypstPoundSetText typstTextAttrs
+        $$ contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
@@ -413,6 +409,10 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
+inlinesToTypst (i@(Span (ident,_,_) _):is) | not (T.null ident) =
+  -- insert a zero-width space U+200B before the label
+  -- because a typst label refers to preceding element (see #11568)
+  ("\x200B" <>) . hcat <$> mapM inlineToTypst (escapeParens (i:is))
 inlinesToTypst ils = hcat <$> mapM inlineToTypst (escapeParens ils)
 
 -- Add an escape before a parenthesis right after a non-space element.
@@ -605,8 +605,10 @@ isOrderedListMarker t = not (T.null ds) && rest == "."
 escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
   (case T.uncons t of
-    Just (c, _)
+    Just (c, rest)
       | c == ';' -> char '\\' -- see #9252
+      | c == '.'
+      , not (T.null rest) -> char '\\' -- see #11511
       | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>

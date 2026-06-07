@@ -52,7 +52,6 @@ import Text.Pandoc.Error
 import Text.Pandoc.Highlighting (defaultStyle)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.Docx.Parse (extractTarget)
 import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Writers.Docx.OpenXML (writeOpenXML, maxListLevel)
@@ -638,6 +637,8 @@ mkContentTypesEntry epochtime imgs headers footers refArchive =
                           fromMaybe "application/octet-stream" mbMimeType)
       mkMediaOverride imgpath =
           mkOverrideNode ("/" <> imgpath, getMimeTypeDef imgpath)
+      unrelativize ('/':xs) = '/':xs
+      unrelativize xs = "/word/" ++ xs
       overrides = map mkOverrideNode (
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
@@ -664,9 +665,9 @@ mkContentTypesEntry epochtime imgs headers footers refArchive =
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
                   ] ++
-                  map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
+                  map (\x -> (maybe "" (unrelativize . T.unpack) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
-                  map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
+                  map (\x -> (maybe "" (unrelativize . T.unpack) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
                     map mkImageOverride imgs ++
                     [ mkMediaOverride (eRelativePath e)
@@ -737,8 +738,13 @@ mkStylesEntry epochtime styledoc styleMaps st opts =
 -- | Create core document properties entry
 mkCorePropsEntry :: Integer -> UTCTime -> Meta -> Entry
 mkCorePropsEntry epochtime utctime meta =
-  let keywords = case lookupMeta "keywords" meta of
-                       Just (MetaList xs) -> map stringify xs
+  let metaValueToText (MetaString s)    = s
+      metaValueToText (MetaInlines ils) = stringify ils
+      metaValueToText (MetaBlocks bs)   = stringify bs
+      metaValueToText (MetaBool b)      = T.pack (show b)
+      metaValueToText _                 = ""
+      keywords = case lookupMeta "keywords" meta of
+                       Just (MetaList xs) -> map metaValueToText xs
                        _                  -> []
       docPropsPath = "docProps/core.xml"
       extraCoreProps = ["subject","lang","category","description"]
@@ -829,7 +835,9 @@ collectReferenceEntries refArchive distArchive headers footers = do
   let fontEntries = [entry | entry <- zEntries refArchive
                            , "word/fonts/" `isPrefixOf` (eRelativePath entry)]
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
-  headerFooterEntries <- mapM (entryFromArchive refArchive . ("word/" ++)) $
+  let unrelativize ('/':xs) = xs
+      unrelativize xs = "word/" ++ xs
+  headerFooterEntries <- mapM (entryFromArchive refArchive . unrelativize) $
                          mapMaybe (fmap T.unpack . extractTarget)
                          (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
@@ -842,3 +850,6 @@ collectReferenceEntries refArchive distArchive headers footers = do
   return $ docPropsAppEntry : themeEntry : fontTableEntry : webSettingsEntry
          : fontTableRelsEntries ++ fontEntries ++ headerFooterEntries
          ++ miscRelEntries ++ otherMediaEntries
+
+extractTarget :: Element -> Maybe Text
+extractTarget = findAttr (QName "Target" Nothing Nothing)

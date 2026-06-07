@@ -22,6 +22,8 @@ complete list, see the [Pandoc Extras wiki page](https://github.com/jgm/pandoc/w
 
   - [pandoc-mode](http://joostkremers.github.io/pandoc-mode) for Emacs
   - [vim-pandoc](https://github.com/vim-pandoc) for Vim
+  - [Panache](https://panache.bz/) is a language server, formatter, and linter
+    for Pandoc markdown.
 
 ### CLI wrappers
 

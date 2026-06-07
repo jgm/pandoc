@@ -28,6 +28,11 @@
     <RootCellStyleGroup Self="pandoc_cell_styles">
       <CellStyle Self="CellStyle/Cell" AppliedParagraphStyle="ParagraphStyle/$$ID/[No paragraph style]" Name="Cell" />
     </RootCellStyleGroup>
+$if(objectStyles)$
+    <RootObjectStyleGroup Self="pandoc_object_styles">
+      $objectStyles$
+    </RootObjectStyleGroup>
+$endif$
   <Story Self="pandoc_story"
       TrackChanges="false"
       StoryTitle="$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$"

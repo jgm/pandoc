@@ -6,7 +6,7 @@
 /LOG
 /TAGS
 /bench-*
-!.circleci/**
+!.circleci
 !.cirrus.yml
 !.envrc
 !.editorconfig

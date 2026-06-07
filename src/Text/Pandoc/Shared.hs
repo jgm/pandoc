@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -140,23 +141,27 @@ splitTextBy isSep t
 -- /not/ indices but text widths, which will be different for East Asian
 -- characters, emojis, etc.
 splitTextByIndices :: [Int] -> T.Text -> [T.Text]
-splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns)) . T.unpack
+splitTextByIndices ns = splitByRelWidths (zipWith (-) ns (0:ns))
  where
-  splitTextByRelIndices [] cs = [T.pack cs]
-  splitTextByRelIndices (x:xs) cs =
-    let (first, rest) = splitAt' x cs
-     in T.pack first : splitTextByRelIndices xs rest
+  splitByRelWidths [] t = [t]
+  splitByRelWidths (w:ws) t =
+    let (first, rest) = splitAtWidth w t
+     in first : splitByRelWidths ws rest
 
--- | Returns a pair whose first element is a prefix of @t@ and that has
--- width @n@, and whose second is the remainder of the string.
+-- | Split a @Text@ at a given display width, where width is determined
+-- by 'charWidth' (East Asian characters, emojis, etc. count as 2).
 --
 -- Note: Do *not* replace this with 'T.splitAt', which is not sensitive
 -- to character widths!
-splitAt' :: Int {-^ n -} -> [Char] {-^ t -} -> ([Char],[Char])
-splitAt' _ []          = ([],[])
-splitAt' n xs | n <= 0 = ([],xs)
-splitAt' n (x:xs)      = (x:ys,zs)
-  where (ys,zs) = splitAt' (n - charWidth x) xs
+splitAtWidth :: Int -> T.Text -> (T.Text, T.Text)
+splitAtWidth n t
+  | n <= 0    = (T.empty, t)
+  | otherwise = T.splitAt (go 0 0 t) t
+  where
+    go !idx !w t'
+      | w >= n    = idx
+      | T.null t' = idx
+      | otherwise = go (idx + 1) (w + charWidth (T.head t')) (T.tail t')
 
 --
 -- Text processing
@@ -237,20 +242,23 @@ camelCaseStrToHyphenated (a:rest) = toLower a:camelCaseStrToHyphenated rest
 toRomanNumeral :: Int -> T.Text
 toRomanNumeral x
   | x >= 4000 || x < 0 = "?"
-  | x >= 1000 = "M" <> toRomanNumeral (x - 1000)
-  | x >= 900  = "CM" <> toRomanNumeral (x - 900)
-  | x >= 500  = "D" <> toRomanNumeral (x - 500)
-  | x >= 400  = "CD" <> toRomanNumeral (x - 400)
-  | x >= 100  = "C" <> toRomanNumeral (x - 100)
-  | x >= 90   = "XC" <> toRomanNumeral (x - 90)
-  | x >= 50   = "L"  <> toRomanNumeral (x - 50)
-  | x >= 40   = "XL" <> toRomanNumeral (x - 40)
-  | x >= 10   = "X" <> toRomanNumeral (x - 10)
-  | x == 9    = "IX"
-  | x >= 5    = "V" <> toRomanNumeral (x - 5)
-  | x == 4    = "IV"
-  | x >= 1    = "I" <> toRomanNumeral (x - 1)
-  | otherwise = ""
+  | otherwise = T.pack (go x)
+  where
+    go n
+      | n >= 1000 = 'M'       : go (n - 1000)
+      | n >= 900  = 'C' : 'M' : go (n - 900)
+      | n >= 500  = 'D'       : go (n - 500)
+      | n >= 400  = 'C' : 'D' : go (n - 400)
+      | n >= 100  = 'C'       : go (n - 100)
+      | n >= 90   = 'X' : 'C' : go (n - 90)
+      | n >= 50   = 'L'       : go (n - 50)
+      | n >= 40   = 'X' : 'L' : go (n - 40)
+      | n >= 10   = 'X'       : go (n - 10)
+      | n == 9    = "IX"
+      | n >= 5    = 'V'       : go (n - 5)
+      | n == 4    = "IV"
+      | n >= 1    = 'I'       : go (n - 1)
+      | otherwise = []
 
 -- | Convert tabs to spaces. Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
@@ -263,7 +271,7 @@ tabFilter tabStop = T.unlines . map go . T.lines
          in  if T.null s2
                 then s1
                 else s1 <> T.replicate
-                       (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
+                       (tabStop - (T.length s1 `mod` tabStop)) " "
                        <> go (T.drop 1 s2)
 
 --
@@ -409,9 +417,9 @@ compactify items =
   let (others, final) = (init items, last items)
   in  case reverse (B.toList final) of
            (Para a:xs)
-             | null [Para x | Para x <- xs ++ concatMap B.toList others]
+             | not (any isPara xs || any (any isPara . B.toList) others)
              -> others ++ [B.fromList (reverse (Plain a : xs))]
-           _ | null [Para x | Para x <- concatMap B.toList items]
+           _ | not (any (any isPara . B.toList) items)
              -> items
            _ -> map (fmap plainToPara) items
 
@@ -727,11 +735,12 @@ formatCode attr = B.fromList . walk fmt . B.toList
 -- | Render HTML tags.
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link", "col",
-                                                       "use", "path", "rect"]
-                            , optRawTag   = matchTags ["script", "style"] }
-              where matchTags tags = flip elem tags . T.toLower
+               renderOptions{ optMinimize = \t -> T.toLower t `Set.member` minimizeTags
+                            , optRawTag   = \t -> T.toLower t `Set.member` rawTags }
+  where
+    minimizeTags = Set.fromList ["hr","br","img","meta","link","col",
+                                 "use","path","rect"]
+    rawTags = Set.fromList ["script","style"]
 
 --
 -- File handling

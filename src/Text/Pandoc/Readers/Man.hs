@@ -26,22 +26,39 @@ import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad(..), report)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
+import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
+import qualified Data.Set as Set
 import Text.Pandoc.Shared (extractSpaces)
 
 data ManState = ManState { readerOptions   :: ReaderOptions
+                         , manLogMessages  :: []LogMessage
+                         , manIdentifiers  :: Set.Set T.Text
                          , metadata        :: Meta
                          , tableCellsPlain :: Bool
                          } deriving Show
 
 instance Default ManState where
   def = ManState { readerOptions   = def
+                 , manLogMessages  = []
+                 , manIdentifiers  = Set.empty
                  , metadata        = nullMeta
                  , tableCellsPlain = True }
+
+instance HasReaderOptions ManState where
+  extractReaderOptions = readerOptions
+
+instance HasLogMessages ManState where
+  addLogMessage msg st = st{ manLogMessages = msg : manLogMessages st }
+  getLogMessages st = reverse $ manLogMessages st
+
+instance HasIdentifierList ManState where
+  extractIdentifierList = manIdentifiers
+  updateIdentifierList f st = st{ manIdentifiers = f $ manIdentifiers st }
 
 type ManParser m = P.ParsecT [RoffToken] ManState m
 
@@ -74,6 +91,7 @@ parseMan = do
   bs <- many parseBlock <* eof
   meta <- metadata <$> getState
   let (Pandoc _ blocks) = doc $ mconcat bs
+  reportLogMessages
   return $ Pandoc meta blocks
 
 parseBlock :: PandocMonad m => ManParser m Blocks
@@ -200,9 +218,11 @@ memptyLine = msatisfy isEmptyLine where
   isEmptyLine _ = False
 
 mmacro :: PandocMonad m => T.Text -> ManParser m RoffToken
-mmacro mk = msatisfy isControlLine where
-  isControlLine (ControlLine mk' _ _) | mk == mk' = True
-                            | otherwise = False
+mmacro mk = mmacroMatching (== mk)
+
+mmacroMatching :: PandocMonad m => (T.Text -> Bool) -> ManParser m RoffToken
+mmacroMatching f = msatisfy isControlLine where
+  isControlLine (ControlLine mk _ _) = f mk
   isControlLine _ = False
 
 mmacroAny :: PandocMonad m => ManParser m RoffToken
@@ -415,7 +435,9 @@ parseHeader = do
                  else return $ mconcat $ intersperse B.space
                              $ map linePartsToInlines args
   let lvl = if name == "SH" then 1 else 2
-  return $ header lvl contents
+  attr <- registerHeader nullAttr contents
+
+  return $ B.headerWith attr lvl contents
 
 parseBlockQuote :: PandocMonad m => ManParser m Blocks
 parseBlockQuote = blockQuote <$>
@@ -479,7 +501,12 @@ parseList = try $ do
 continuation :: PandocMonad m => ManParser m Blocks
 continuation =
       (mmacro "RS" *> (mconcat <$> manyTill parseBlock (endmacro "RE")))
-  <|> try ((memptyLine <|> bareIP) *> (parsePara <|> parseCodeBlock))
+  <|> (bareIP *> parsePara)
+  <|> (notFollowedBy (mmacroMatching
+                      (`elem` ["TP","IP","LP","P","PP","HP",
+                               "RE","RS","SH","SS","SV","YS","TH",
+                               "TQ","YS","AT","DT","OP","PD","UC"]))
+                                *> parseBlock)
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])

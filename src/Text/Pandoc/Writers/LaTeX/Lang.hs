@@ -40,7 +40,7 @@ toBabel (Lang "en" _ (Just "GB") _ _ _) = Just "british"
 toBabel (Lang "en" _ (Just "NZ") _ _ _) = Just "newzealand"
 toBabel (Lang "en" _ (Just "UK") _ _ _) = Just "british"
 toBabel (Lang "en" _ (Just "US") _ _ _) = Just "american"
-toBabel (Lang "fr" _ (Just "CA") _ _ _) = Just "canadien"
+toBabel (Lang "fr" _ (Just "CA") _ _ _) = Just "french"
 toBabel (Lang "fra" _ _ vars _ _)
   | "aca" `elem` vars                   = Just "acadian"
 toBabel (Lang "grc" _ _ _ _ _)          = Just "ancientgreek"

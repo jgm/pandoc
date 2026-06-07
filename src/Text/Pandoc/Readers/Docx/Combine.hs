@@ -52,7 +52,8 @@ fold this to combine the inlines.
 
 -}
 
-module Text.Pandoc.Readers.Docx.Combine ( smushInlines
+module Text.Pandoc.Readers.Docx.Combine ( combineBlocks
+                                        , smushInlines
                                         , smushBlocks
                                         )
        where

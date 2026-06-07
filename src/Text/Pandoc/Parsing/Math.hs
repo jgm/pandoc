@@ -28,6 +28,8 @@ import Text.Pandoc.Sources
   (UpdateSourcePos, anyChar, char, digit, newline, satisfy, space, string)
 
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 
 mathInlineWith :: (Stream s m Char, UpdateSourcePos s Char)  => Text -> Text -> ParsecT s st m Text
 mathInlineWith op cl = try $ do
@@ -48,25 +50,32 @@ mathInlineWith op cl = try $ do
   notFollowedBy digit  -- to prevent capture of $5
   return $ trimMath $ T.concat words'
  where
-  inBalancedBraces :: (Stream s m Char, UpdateSourcePos s Char) => Int -> Text -> ParsecT s st m Text
-  inBalancedBraces n = fmap T.pack . inBalancedBraces' n . T.unpack
+  inBalancedBraces :: (Stream s m Char, UpdateSourcePos s Char)
+                   => Int -> Text -> ParsecT s st m Text
+  inBalancedBraces n t =
+    TL.toStrict . TB.toLazyText <$>
+      go n False (TB.fromText t) (not (T.null t))
 
-  inBalancedBraces' :: (Stream s m Char, UpdateSourcePos s Char) => Int -> String -> ParsecT s st m String
-  inBalancedBraces' 0 "" = do
+  -- go depth lastWasBackslash accumulator started
+  go :: (Stream s m Char, UpdateSourcePos s Char)
+     => Int -> Bool -> TB.Builder -> Bool -> ParsecT s st m TB.Builder
+  go 0 _ acc False = do
     c <- anyChar
     if c == '{'
-       then inBalancedBraces' 1 "{"
+       then go 1 False (acc <> TB.singleton '{') True
        else mzero
-  inBalancedBraces' 0 s = return $ reverse s
-  inBalancedBraces' numOpen ('\\':xs) = do
+  go 0 _ acc True = return acc
+  go depth True acc _ = do
     c <- anyChar
-    inBalancedBraces' numOpen (c:'\\':xs)
-  inBalancedBraces' numOpen xs = do
+    go depth False (acc <> TB.singleton c) True
+  go depth False acc _ = do
     c <- anyChar
+    let acc' = acc <> TB.singleton c
     case c of
-         '}' -> inBalancedBraces' (numOpen - 1) (c:xs)
-         '{' -> inBalancedBraces' (numOpen + 1) (c:xs)
-         _   -> inBalancedBraces' numOpen (c:xs)
+         '\\' -> go depth True acc' True
+         '}'  -> go (depth - 1) False acc' True
+         '{'  -> go (depth + 1) False acc' True
+         _    -> go depth False acc' True
 
 mathDisplayWith :: (Stream s m Char, UpdateSourcePos s Char) => Text -> Text -> ParsecT s st m Text
 mathDisplayWith op cl = try $ fmap T.pack $ do

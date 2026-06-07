@@ -141,7 +141,7 @@ data TheoremStyle =
 
 data TheoremSpec =
   TheoremSpec
-    { theoremName    :: Inlines
+    { theoremName    :: [Tok]
     , theoremStyle   :: TheoremStyle
     , theoremSeries  :: Maybe Text
     , theoremSyncTo  :: Maybe Text

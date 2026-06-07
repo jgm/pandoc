@@ -63,7 +63,7 @@ import Control.Monad (MonadPlus, mzero)
 import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
-import Data.List (groupBy, intersperse, transpose)
+import Data.List (groupBy, intersperse, transpose, zipWith4)
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Text.Conversions (FromText(..))
@@ -80,7 +80,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
 import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.XML (escapeStringForXML, rdfaAttributes, html5Attributes)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 import Text.Pandoc.Chunks (tocToList, toTOCTree)
@@ -89,6 +89,7 @@ import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import qualified Data.Set as Set
 
 -- import Debug.Trace
 
@@ -206,9 +207,19 @@ htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
   ,if null classes
       then empty
       else "class=" <> doubleQuotes (text $ T.unpack (T.unwords classes))
-  ,hsep (map (\(k,v) -> text (T.unpack k) <> "=" <>
+  ,hsep (map (\(k,v) -> formatKey k <> "=" <>
                 doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
   ])
+ where
+   formatKey x = text . T.unpack $
+        if (x `Set.member` (html5Attributes <> rdfaAttributes)
+            && x /= "label") -- #10048
+             || T.any (== ':') x -- e.g. epub: namespace
+             || "data-" `T.isPrefixOf` x
+             || "aria-" `T.isPrefixOf` x
+             || x == "markdown" -- #11685
+           then x
+           else "data-" <> x
 
 addSpaceIfNotEmpty :: HasChars a => Doc a -> Doc a
 addSpaceIfNotEmpty f = if isEmpty f then f else " " <> f
@@ -322,9 +333,18 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
              (setTopBorder DoubleLine . setBottomBorder DoubleLine) footCells
   pure $ gridRows $ redoWidths opts colspecs rows
 
+data ColWidthInfo =
+  ColWidthInfo
+  { colWidthSpecified :: Int
+  , colWidthFull :: Int
+  , colWidthMin :: Int
+  , colWidthUsed :: Int }
+  deriving (Show, Ord, Eq)
+
 -- Returns (current widths, full widths, min widths)
-extractColWidths :: WriterOptions -> [[RenderedCell Text]] -> ([Int], [Int], [Int])
-extractColWidths opts rows = (currentwidths, fullwidths, minwidths)
+extractColWidths :: WriterOptions -> [[RenderedCell Text]] -> [ColWidthInfo]
+extractColWidths opts rows =
+  zipWith4 ColWidthInfo specifiedwidths fullwidths minwidths currentwidths
  where
    getWidths calcOffset =
      map (fromMaybe 0 . maximumMay) (transpose (map (concatMap (getCellWidths calcOffset)) rows))
@@ -332,11 +352,15 @@ extractColWidths opts rows = (currentwidths, fullwidths, minwidths)
                                  (calcOffset c `div` (cellColSpan c) +
                                   calcOffset c `rem` (cellColSpan c))
    fullwidths = getWidths (max 1 . offset . cellContents)
-   currentwidths = getWidths cellWidth
    minwidths =
      case writerWrapText opts of
        WrapNone -> fullwidths
        _ -> getWidths (minOffset . cellContents)
+   specifiedwidths = getWidths cellWidth
+   currentwidths = zipWith (\specw minw -> if specw == 0
+                                              then 0
+                                              else max specw minw)
+                           specifiedwidths minwidths
 
 resetWidths :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
 resetWidths _ [] = []
@@ -353,21 +377,37 @@ redoWidths _ _ [] = []
 redoWidths opts colspecs rows = map (resetWidths newwidths) rows
  where
   numcols = length colspecs
-  isSimple = all ((== ColWidthDefault) . snd) colspecs
-  (actualwidths, fullwidths, minwidths) = extractColWidths opts rows
-  totwidth = writerColumns opts - (3 * numcols) - 1
-  evenwidth = totwidth `div` numcols + totwidth `rem` numcols
-  keepwidths = filter (< evenwidth) fullwidths
-  evenwidth' = (totwidth - sum keepwidths) `div`
-                (numcols - length keepwidths)
-  ensureMinWidths = zipWith max minwidths
-  newwidths = ensureMinWidths $
-              case isSimple of
-                True | sum fullwidths <= totwidth -> fullwidths
-                     | otherwise -> map (\w -> if w < evenwidth
-                                                  then w
-                                                  else evenwidth') fullwidths
-                False -> actualwidths
+  widthInfos = extractColWidths opts rows
+  colsAvailable = writerColumns opts - (3 * numcols) - 1
+  -- now, we need to change colWidthUsed 0 to an appropriate number;
+  -- either the full width if it fits easily, or an appropriate fraction
+  -- of the remaining width.  This must be done recursively, because
+  -- once we decide that the full width can fit, that may leave less
+  -- space for the remaining columns with default width to fill.
+  recalculateWidths finalRun numRuns infos =
+    let numUnassigned = length (filter ((== 0) . colWidthUsed) infos)
+        unusedCols = colsAvailable - sum (map colWidthUsed infos)
+        defwidth = if numUnassigned == 0
+                      then 0
+                      else unusedCols `div` numUnassigned
+        infos' = map (\info -> if colWidthUsed info == 0
+                                  then if finalRun
+                                          then info{ colWidthUsed =
+                                                      max (colWidthMin info) defwidth }
+                                          else if colWidthFull info <= defwidth
+                                               then info{ colWidthUsed = colWidthFull info }
+                                               else info
+                                  else info) infos
+     in if finalRun || numRuns > 4
+           then infos'
+           else if infos == infos'
+                 then recalculateWidths True (numRuns + 1) infos
+                       -- run again, filling in unassigned widths with a fraction of the
+                       -- remaining width
+                 else recalculateWidths False (numRuns + 1) infos'
+                       -- run again, filling in unassigned widths only if the full with
+                       -- would be less than the fraction of remaining width
+  newwidths = map colWidthUsed $ recalculateWidths False (1 :: Int) widthInfos
 
 makeDummy :: RenderedCell Text -> RenderedCell Text
 makeDummy c =
@@ -534,7 +574,7 @@ getColWidth (_, ColWidthDefault) = 0 -- TODO?
 
 toCharWidth :: WriterOptions -> Double -> Int
 toCharWidth opts width =
-  max 1 (floor (width * fromIntegral (writerColumns opts)) - 3)
+  max 0 (floor (width * fromIntegral (writerColumns opts)) - 3)
 
 gridRow :: (Monad m, HasChars a)
         => WriterOptions

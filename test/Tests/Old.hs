@@ -344,7 +344,7 @@ extendedWriterTests pandocPath format
 s5WriterTest :: FilePath -> String -> [String] -> String -> TestTree
 s5WriterTest pandocPath modifier opts format
   = test pandocPath (format ++ " writer (" ++ modifier ++ ")")
-    (["-r", "native", "-w", format] ++ opts)
+    (["-r", "native", "-w", format] ++ opts ++ ["--variable", "pandoc-version="])
     "s5.native"  ("s5-" ++ modifier <.> "html")
 
 fb2WriterTest :: FilePath -> String -> [String] -> String -> String -> TestTree

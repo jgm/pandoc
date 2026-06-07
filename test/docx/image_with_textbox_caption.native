@@ -1,0 +1,44 @@
+[ Figure
+    ( "" , [] , [] )
+    (Caption
+       Nothing
+       [ Para
+           [ Str "1"
+           , Space
+           , Str "Daniel"
+           , Space
+           , Str "Schliebner:"
+           , Space
+           , Str "Cantor'sches"
+           , Space
+           , Str "Diagonalverfahren."
+           , Space
+           , Str "Von"
+           , Space
+           , Str "Mengen,"
+           , Space
+           , Str "Unendlichkeiten"
+           , Space
+           , Str "und"
+           , Space
+           , Str "Wahnsinn,"
+           , Space
+           , Str "Pdf:"
+           , Space
+           , Str
+               "https://www2.informatik.hu-berlin.de/~kossahl/Uni/Ma1/Cantor.pdf"
+           ]
+       ])
+    [ Plain
+        [ Image
+            ( ""
+            , []
+            , [ ( "width" , "2.3680555555555554in" )
+              , ( "height" , "0.9340277777777778in" )
+              ]
+            )
+            []
+            ( "media/image1.emf" , "" )
+        ]
+    ]
+]

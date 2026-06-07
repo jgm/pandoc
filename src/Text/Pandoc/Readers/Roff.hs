@@ -268,7 +268,8 @@ tableCell = do
     manyTill anyChar (try (string "T}"))
   simpleCell = do
     tabChar <- tableTabChar <$> getState
-    many (notFollowedBy (char tabChar <|> newline) >> anyChar)
+    many $ (char '\\' >> anyChar)
+       <|> (notFollowedBy (char tabChar <|> newline) >> anyChar)
 
 tableRow :: PandocMonad m => RoffLexer m [RoffTokens]
 tableRow = do

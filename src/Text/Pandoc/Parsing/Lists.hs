@@ -113,7 +113,7 @@ exampleNum :: (Stream s m Char, UpdateSourcePos s Char)
            => ParsecT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
   char '@'
-  lab <- mconcat . map T.pack <$>
+  lab <- T.pack . concat <$>
                     many (many1 alphaNum <|>
                           try (do c <- char '_' <|> char '-'
                                   cs <- many1 alphaNum

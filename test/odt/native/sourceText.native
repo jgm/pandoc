@@ -1,0 +1,11 @@
+[ Header
+    1
+    ( "test-foo" , [] , [] )
+    [ Span ( "anchor" , [] , [] ) []
+    , Str "Test"
+    , Space
+    , Code ( "" , [] , [] ) "foo"
+    ]
+, Para
+    [ Str "Hello" , Space , Code ( "" , [] , [] ) "world" ]
+]

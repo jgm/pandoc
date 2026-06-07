@@ -135,14 +135,14 @@ theoremstyle = do
     Just sty -> updateState $ \s -> s{ sLastTheoremStyle = sty }
   return mempty
 
-newtheorem :: PandocMonad m => LP m Inlines -> LP m Blocks
-newtheorem inline = do
+newtheorem :: PandocMonad m => LP m Blocks
+newtheorem = do
   number <- option True (False <$ symbol '*' <* sp)
   name <- untokenize <$> braced
   sp
   series <- option Nothing $ Just . untokenize <$> bracketedToks
   sp
-  showName <- tokWith inline
+  showName <- braced <|> ((:[]) <$> anyTok)
   sp
   syncTo <- option Nothing $ Just . untokenize <$> bracketedToks
   sty <- sLastTheoremStyle <$> getState
@@ -168,8 +168,12 @@ extractLabelFromBlock (Para inlines) = extractLabel Nothing inlines
 extractLabelFromBlock _ = Nothing
 
 theoremEnvironment :: PandocMonad m
-                   => LP m Blocks -> LP m Inlines -> Text -> LP m Blocks
-theoremEnvironment blocks opt name = do
+                   => LP m Blocks
+                   -> LP m Inlines
+                   -> LP m Inlines
+                   -> Text
+                   -> LP m Blocks
+theoremEnvironment blocks inlines opt name = do
   resetCaption
   tmap <- sTheoremMap <$> getState
   case M.lookup name tmap of
@@ -206,7 +210,8 @@ theoremEnvironment blocks opt name = do
                          PlainStyle      -> B.strong
                          DefinitionStyle -> B.strong
                          RemarkStyle     -> B.emph
-       let title = titleEmph (theoremName tspec <> number)
+       tname <- parseFromToks inlines (theoremName tspec)
+       let title = titleEmph (tname <> number)
                       <> optTitle <> "." <> space
        return $ divWith (fromMaybe "" mblabel, [name], [])
               $ addTitle title

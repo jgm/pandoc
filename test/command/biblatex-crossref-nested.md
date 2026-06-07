@@ -53,7 +53,7 @@ references:
   publisher: Publisher
   publisher-place: Location
   title: Macbeth \[title field of bookinbook-1\]
-  type: chapter
+  type: book
   volume: 3
   volume-title: Tragedies \[title field of book-1\]
 - author:

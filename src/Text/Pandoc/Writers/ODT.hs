@@ -212,9 +212,10 @@ updateStyle opts mbLang arch = do
                 . maybe id addLang mbLang
                 . transformElement (\qn -> qName qn == "styles" &&
                                       qPrefix qn == Just "office" )
-                     (case writerHighlightMethod opts of
+                     (addListItemStyles .
+                      (case writerHighlightMethod opts of
                         Skylighting style -> addHlStyles style
-                        _ -> id)
+                        _ -> id))
                 $ d )
         | otherwise = pure e
   entries <- mapM goEntry (zEntries arch)
@@ -227,6 +228,56 @@ addHlStyles sty el =
  where
    isHlStyle (Elem e) = "Tok" `T.isSuffixOf` (qName (elName e))
    isHlStyle _ = False
+
+-- | Ensure the office:styles element contains paragraph styles for
+-- list items used by the OpenDocument writer.  This injects only the
+-- styles that are missing, so a user-supplied reference.odt may
+-- override any of them.
+addListItemStyles :: Element -> Element
+addListItemStyles el =
+  el{ elContent = elContent el ++ map Elem missingStyles }
+ where
+   existing = [ T.concat [ attrVal a
+                         | a <- elAttribs e
+                         , qName (attrKey a) == "name"
+                         , qPrefix (attrKey a) == Just "style" ]
+              | Elem e <- elContent el
+              , qName (elName e) == "style"
+              , qPrefix (elName e) == Just "style" ]
+   missingStyles =
+     [ s | s <- listItemStyleElements
+         , styleNameOf s `notElem` existing ]
+   styleNameOf e = T.concat [ attrVal a
+                            | a <- elAttribs e
+                            , qName (attrKey a) == "name"
+                            , qPrefix (attrKey a) == Just "style" ]
+
+listItemStyleElements :: [Element]
+listItemStyleElements =
+  [ mkParaStyle "List_20_Bullet" "List Bullet" Nothing
+  , mkParaStyle "List_20_Bullet_20_Tight" "List Bullet Tight" (Just tightProps)
+  , mkParaStyle "List_20_Number" "List Number" Nothing
+  , mkParaStyle "List_20_Number_20_Tight" "List Number Tight" (Just tightProps)
+  ]
+ where
+   styleQN n p = QName n Nothing (Just p)
+   mkAttr p n v = Attr (styleQN n p) v
+   tightProps =
+     Element (styleQN "paragraph-properties" "style")
+       [ mkAttr "fo" "margin-top" "0in"
+       , mkAttr "fo" "margin-bottom" "0in"
+       , mkAttr "style" "contextual-spacing" "false"
+       ] [] Nothing
+   mkParaStyle name display mbProps =
+     Element (styleQN "style" "style")
+       [ mkAttr "style" "name" name
+       , mkAttr "style" "display-name" display
+       , mkAttr "style" "family" "paragraph"
+       , mkAttr "style" "parent-style-name" "List"
+       , mkAttr "style" "class" "list"
+       ]
+       (maybe [] (\p -> [Elem p]) mbProps)
+       Nothing
 
 -- top-down search
 transformElement :: (QName -> Bool)
