@@ -76,6 +76,9 @@ data RTFState = RTFState  { sOptions     :: ReaderOptions
                           , sListTable   :: ListTable
                           , sListOverrideTable :: ListTable
                           , sEatChars    :: Int
+                          , sListText    :: Bool -- True after a \listtext group,
+                                                 -- marking the start of a new
+                                                 -- list item
                           } deriving (Show)
 
 instance Default RTFState where
@@ -92,6 +95,7 @@ instance Default RTFState where
                 , sListTable = mempty
                 , sListOverrideTable = mempty
                 , sEatChars = 0
+                , sListText = False
                 }
 
 type FontTable = IntMap.IntMap FontFamily
@@ -477,7 +481,12 @@ processTok bs (Tok pos tok') = do
     Grouped (Tok _ (ControlWord "listtext" _) : _) -> do
       -- eject any previous list items...sometimes TextEdit
       -- doesn't put in a \par
-      emitBlocks bs
+      bs' <- emitBlocks bs
+      -- A \listtext group marks the beginning of a new list item.
+      -- A list paragraph lacking one is a continuation paragraph of
+      -- the current item (see emitBlocks).
+      updateState $ \s -> s{ sListText = True }
+      pure bs'
     Grouped (Tok _ (ControlWord "pgdsc" _) : _) -> pure bs
     Grouped (Tok _ (ControlWord "colortbl" _) : _) -> pure bs
     Grouped (Tok _ (ControlWord "listtable" _) : toks) ->
@@ -735,7 +744,8 @@ trimFinalLineBreak ils =
 emitBlocks :: PandocMonad m => Blocks -> RTFParser m Blocks
 emitBlocks bs = do
   annotatedToks <- reverse . sTextContent <$> getState
-  updateState $ \s -> s{ sTextContent = [] }
+  hadListText <- sListText <$> getState
+  updateState $ \s -> s{ sTextContent = [], sListText = False }
   let justCode = def{ gFontFamily = Just Modern }
   let prop = case annotatedToks of
                [] -> def
@@ -760,10 +770,18 @@ emitBlocks bs = do
              (List lo parentlevel _lt items : cs)
                | lo == lst
                , parentlevel == level
-               -- add another item to existing list
-               -> do updateState $ \s ->
+               -- A paragraph belonging to the current list level is
+               -- either a new item (preceded by a \listtext group) or a
+               -- continuation paragraph of the current item (no
+               -- \listtext).  This is what allows multi-paragraph list
+               -- items to be parsed correctly.
+               -> do let items' = case items of
+                                    (i:is) | not hadListText
+                                      -> (i <> newbs) : is
+                                    _ -> newbs : items
+                     updateState $ \s ->
                         s{ sListStack =
-                             List lo level listType (newbs:items) : cs }
+                             List lo level listType items' : cs }
                      pure mempty
                | lo /= lst || level < parentlevel
                -- close parent list and add new list

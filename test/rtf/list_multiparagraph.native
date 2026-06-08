@@ -1,0 +1,25 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ BulletList
+      [ [ Para
+            [ Str "First"
+            , Space
+            , Str "item,"
+            , Space
+            , Str "paragraph"
+            , Space
+            , Str "one."
+            ]
+        , Para
+            [ Str "First"
+            , Space
+            , Str "item,"
+            , Space
+            , Str "paragraph"
+            , Space
+            , Str "two."
+            ]
+        ]
+      , [ Para [ Str "Second" , Space , Str "item." ] ]
+      ]
+  ]
