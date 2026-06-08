@@ -15,6 +15,7 @@ module Text.Pandoc.Writers.RTF ( writeRTF
                                ) where
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad
+import Control.Monad.State.Strict (State, runState, get, put)
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord, isAlphaNum)
 import qualified Data.Map as M
@@ -101,9 +102,14 @@ writeRTF options doc = do
                 mapM (blockToRTF 0 AlignDefault))
               (fmap literal . inlinesToRTF)
               meta'
-  body <- blocksToRTF 0 AlignDefault blocks
+  -- Tag list blocks with a list id and level so that the rendered RTF
+  -- carries proper \ls/\ilvl references and a \listtable, which lets
+  -- lists (including multi-paragraph list items) round-trip.
+  let (blocks', listDefs) = prepareLists blocks
+  body <- blocksToRTF 0 AlignDefault blocks'
   toc <- blocksToRTF 0 AlignDefault [toTableOfContents options blocks]
   let context = defField "body" body
+              $ maybe id (defField "listtable") (listTableRTF listDefs)
               $ defField "spacer" spacer
               $ (if writerTableOfContents options
                     then defField "table-of-contents" toc
@@ -118,6 +124,73 @@ writeRTF options doc = do
        Nothing  -> case T.unsnoc body of
                         Just (_,'\n') -> body
                         _             -> body <> T.singleton '\n'
+
+-- | Information about a list needed to build the RTF list table:
+-- a unique id (used both as @\\listid@ and @\\ls@), the list level
+-- (@\\ilvl@) at which the list occurs, and its kind (bullet, or ordered
+-- with the given attributes).
+data ListInfo = ListInfo Int Int (Either () ListAttributes)
+
+-- | Walk the document and tag every list with a unique id and its
+-- nesting level, returning the tagged blocks together with the
+-- information needed to build the list table.  Tagged lists are wrapped
+-- in a @Div@ with the @__rtflist@ class and @ls@/@lvl@ attributes,
+-- which 'blockToRTF' recognizes.
+prepareLists :: [Block] -> ([Block], [ListInfo])
+prepareLists bs =
+  let (bs', (_, defs)) = runState (mapM (goBlock 0) bs) (1, [])
+  in  (bs', reverse defs)
+ where
+  tag :: Int -> Either () ListAttributes -> [[Block]]
+      -> ([[Block]] -> Block) -> State (Int, [ListInfo]) Block
+  tag level kind items ctor = do
+    (n, defs) <- get
+    put (n + 1, ListInfo n level kind : defs)
+    items' <- mapM (mapM (goBlock (level + 1))) items
+    return $ Div ("", ["__rtflist"], [("ls", tshow n), ("lvl", tshow level)])
+                 [ctor items']
+  goBlock :: Int -> Block -> State (Int, [ListInfo]) Block
+  goBlock level (BulletList items) = tag level (Left ()) items BulletList
+  goBlock level (OrderedList attrs items) =
+    tag level (Right attrs) items (OrderedList attrs)
+  goBlock level (BlockQuote bs') = BlockQuote <$> mapM (goBlock level) bs'
+  goBlock level (Div attr bs') = Div attr <$> mapM (goBlock level) bs'
+  goBlock level (Figure attr capt bs') =
+    Figure attr capt <$> mapM (goBlock level) bs'
+  goBlock _ b = return b
+
+-- | RTF @\\levelnfc@ number-format code for an ordered-list style.
+listNfc :: ListNumberStyle -> Int
+listNfc UpperRoman = 1
+listNfc LowerRoman = 2
+listNfc UpperAlpha = 3
+listNfc LowerAlpha = 4
+listNfc _          = 0 -- Decimal, DefaultStyle, Example
+
+-- | Build the @\\listtable@ and @\\listoverridetable@ for the collected
+-- lists, or 'Nothing' if the document contains no lists.
+listTableRTF :: [ListInfo] -> Maybe Text
+listTableRTF [] = Nothing
+listTableRTF infos = Just $
+  "{\\*\\listtable" <> T.concat (map listEntry infos) <> "}\n" <>
+  "{\\*\\listoverridetable" <> T.concat (map overrideEntry infos) <> "}\n"
+ where
+  listEntry (ListInfo lid level kind) =
+    "{\\list\\listtemplateid" <> tshow lid <>
+    T.concat [ levelEntry i kind | i <- [0..level] ] <>
+    "{\\listname ;}\\listid" <> tshow lid <> "}\n"
+  levelEntry i kind =
+    let (nfc, start) = case kind of
+                         Left ()           -> (23 :: Int, 1 :: Int)
+                         Right (s, sty, _) -> (listNfc sty, s)
+        li = (i + 1) * 360
+    in "{\\listlevel\\levelnfc" <> tshow nfc <> "\\levelnfcn" <> tshow nfc <>
+       "\\leveljc0\\leveljcn0\\levelfollow0\\levelstartat" <> tshow start <>
+       "\\levelindent0{\\leveltext\\'01\\u8226 ?;}{\\levelnumbers;}\\fi-360\\li" <>
+       tshow li <> "\\lin" <> tshow li <> " }"
+  overrideEntry (ListInfo lid _ _) =
+    "{\\listoverride\\listid" <> tshow lid <>
+    "\\listoverridecount0\\ls" <> tshow lid <> "}"
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: Text -> Text
@@ -230,6 +303,18 @@ blockToRTF :: PandocMonad m
            -> Alignment -- ^ alignment
            -> Block     -- ^ block to convert
            -> m Text
+blockToRTF indent alignment (Div (_, classes, kvs) [blk])
+  | "__rtflist" `elem` classes
+  , Just ls <- lookup "ls" kvs >>= readInt
+  , Just level <- lookup "lvl" kvs >>= readInt =
+  case blk of
+    BulletList lst -> spaceAtEnd . T.concat <$>
+      mapM (listItemToRTF alignment indent (Just (ls, level))
+              (bulletMarker indent)) lst
+    OrderedList attribs lst -> spaceAtEnd . T.concat <$>
+      zipWithM (listItemToRTF alignment indent (Just (ls, level)))
+               (orderedMarkers indent attribs) lst
+    _ -> blocksToRTF indent alignment [blk]
 blockToRTF indent alignment (Div _ bs) =
   blocksToRTF indent alignment bs
 blockToRTF indent alignment (Plain lst) =
@@ -248,10 +333,11 @@ blockToRTF _ _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd . T.concat <$>
-  mapM (listItemToRTF alignment indent (bulletMarker indent)) lst
+  mapM (listItemToRTF alignment indent Nothing (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) =
   spaceAtEnd . T.concat <$>
-   zipWithM (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
+   zipWithM (listItemToRTF alignment indent Nothing)
+            (orderedMarkers indent attribs) lst
 blockToRTF indent alignment (DefinitionList lst) = spaceAtEnd . T.concat <$>
   mapM (definitionListItemToRTF alignment indent) lst
 blockToRTF indent _ HorizontalRule = return $
@@ -303,22 +389,58 @@ tableItemToRTF indent alignment item = do
 spaceAtEnd :: Text -> Text
 spaceAtEnd str = maybe str (<> "\\sa180\\par}\n") $ T.stripSuffix "\\par}\n" str
 
+-- | Parse a decimal integer stored in a tag attribute.
+readInt :: Text -> Maybe Int
+readInt = safeRead
+
+-- | Inject an @\\ls@/@\\ilvl@ reference into an already-rendered list
+-- paragraph (used for continuation paragraphs of a multi-paragraph list
+-- item, which carry the list reference but no @\\listtext@ marker).  The
+-- reference is inserted right before the @\\fi@ first-line-indent control
+-- word, where the reader expects to find the paragraph's list properties.
+addListRef :: Int -> Int -> Text -> Text
+addListRef ls level t =
+  let ref = "\\ls" <> tshow ls <> "\\ilvl" <> tshow level
+      (pref, suff) = T.breakOn "\\fi" t
+  in if T.null suff then t else pref <> ref <> suff
+
 -- | Convert list item (list of blocks) to RTF.
 listItemToRTF :: PandocMonad m
-              => Alignment  -- ^ alignment
-              -> Int        -- ^ indent level
-              -> Text     -- ^ list start marker
-              -> [Block]    -- ^ list item (list of blocks)
+              => Alignment        -- ^ alignment
+              -> Int              -- ^ indent level
+              -> Maybe (Int, Int) -- ^ list reference (@\\ls@, @\\ilvl@), if
+                                  -- the list is part of the list table
+              -> Text             -- ^ list start marker
+              -> [Block]          -- ^ list item (list of blocks)
               -> m Text
-listItemToRTF alignment indent marker [] = return $
-  rtfCompact (indent + listIncrement) (negate listIncrement) alignment
-             (marker <> "\\tx" <> tshow listIncrement <> "\\tab ")
-listItemToRTF alignment indent marker (listFirst:listRest) = do
+listItemToRTF alignment indent mbref marker [] = return $
+  rtfCompact (indent + listIncrement) (negate listIncrement) alignment $
+    case mbref of
+      Nothing -> marker <> "\\tx" <> tshow listIncrement <> "\\tab "
+      Just (ls, level) ->
+        "\\ls" <> tshow ls <> "\\ilvl" <> tshow level <>
+        "\\tx" <> tshow listIncrement <> " {\\listtext\\tab " <> marker <> "\\tab}"
+listItemToRTF alignment indent mbref marker (listFirst:listRest) = do
   let f = blockToRTF (indent + listIncrement) alignment
   first <- f listFirst
-  rest <- mapM f listRest
-  let listMarker = "\\fi" <> tshow (negate listIncrement) <> " " <> marker <>
-                   "\\tx" <> tshow listIncrement <> "\\tab"
+  -- Continuation paragraphs carry the same \ls/\ilvl reference but no
+  -- \listtext marker, so the reader merges them into the current item.
+  -- Nested lists are tagged Divs that already carry their own reference,
+  -- so they are left untouched.
+  rest <- forM listRest $ \b -> do
+            t <- f b
+            return $ case mbref of
+              Just (ls, level) | not (isTaggedList b) -> addListRef ls level t
+              _ -> t
+  let listMarker = case mbref of
+        Nothing ->
+          "\\fi" <> tshow (negate listIncrement) <> " " <> marker <>
+          "\\tx" <> tshow listIncrement <> "\\tab"
+        Just (ls, level) ->
+          "\\fi" <> tshow (negate listIncrement) <>
+          "\\ls" <> tshow ls <> "\\ilvl" <> tshow level <>
+          "\\tx" <> tshow listIncrement <>
+          " {\\listtext\\tab " <> marker <> "\\tab}"
   -- Find the first occurrence of \\fi or \\fi-, then replace it and the following
   -- digits with the list marker.
   let insertListMarker t = case popDigit $ optionDash $ T.drop 3 suff of
@@ -335,6 +457,12 @@ listItemToRTF alignment indent marker (listFirst:listRest) = do
             | otherwise = Nothing
    -- insert the list marker into the (processed) first block
   return $ insertListMarker first <> T.concat rest
+
+-- | Is this a list block tagged by 'prepareLists' (and hence already
+-- carrying its own @\\ls@/@\\ilvl@ reference)?
+isTaggedList :: Block -> Bool
+isTaggedList (Div (_, classes, _) _) = "__rtflist" `elem` classes
+isTaggedList _ = False
 
 -- | Convert definition list item (label, list of blocks) to RTF.
 definitionListItemToRTF :: PandocMonad m
