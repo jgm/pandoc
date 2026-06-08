@@ -590,7 +590,7 @@ hypertargetBlock = try $ do
 hypertargetInline :: PandocMonad m => LP m Inlines
 hypertargetInline = try $ do
   ref <- untokenize <$> braced
-  ils <- grouped inline
+  ils <- tok
   return $ spanWith (ref, [], []) ils
 
 newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
