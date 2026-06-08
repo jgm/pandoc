@@ -96,6 +96,7 @@ import Text.Pandoc.XML.Light
       lookupAttrBy,
       parseXMLElement,
       elChildren,
+      onlyElems,
       QName(QName, qName),
       Content(Elem),
       Element(..))
@@ -283,6 +284,7 @@ data ParagraphStyle = ParagraphStyle { pStyle        :: [ParStyle]
                                      , pChange       :: Maybe TrackedChange
                                      , pBidi         :: Maybe Bool
                                      , pKeepNext     :: Bool
+                                     , pBottomBorder :: Bool
                                      }
                       deriving Show
 
@@ -295,6 +297,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , pChange = Nothing
                                        , pBidi = Just False
                                        , pKeepNext = False
+                                       , pBottomBorder = False
                                        }
 
 
@@ -885,20 +888,22 @@ elemToBodyPart ns element
         -> return $ Heading lev parstylename parstyle numId lvl lvlInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element
-  , [Elem ppr] <- elContent element
+  , [ppr] <- elChildren element
   , isElem ns "w" "pPr" ppr
-  , [Elem pbdr] <- elContent ppr
+  , [pbdr] <- elChildren ppr
   , isElem ns "w" "pBdr" pbdr
+  , [bot] <- elChildren pbdr
+  , isElem ns "w" "bottom" bot
     = return HRule
       -- for this style of horizontal rule, see
       -- https://support.microsoft.com/en-us/office/insert-a-horizontal-line-9bf172f6-5908-4791-9bb9-2c952197b1a9
 elemToBodyPart ns element -- pandoc-style horizontal rule
   | isElem ns "w" "p" element
-  , [Elem r] <- elContent element
+  , [r] <- elChildren element
   , isElem ns "w" "r" r
-  , [Elem pict] <- elContent r
+  , [pict] <- elChildren r
   , isElem ns "w" "pict" pict
-  , [Elem rect] <- elContent pict
+  , [rect] <- elChildren pict
   , isElem ns "v" "rect" rect
     = return HRule
 elemToBodyPart ns element
@@ -1376,6 +1381,10 @@ elemToParagraphStyle ns element sty numbering
                       getTrackedChange ns
       , pBidi = checkOnOff ns pPr (elemName ns "w" "bidi")
       , pKeepNext = isJust $ findChildByName ns "w" "keepNext" pPr
+      , pBottomBorder = case (onlyElems . elContent) <$>
+                              findChildByName ns "w" "pBdr" pPr of
+                              Just [x] -> isElem ns "w" "bottom" x
+                              _ -> False
       }
   | otherwise = defaultParagraphStyle
 
