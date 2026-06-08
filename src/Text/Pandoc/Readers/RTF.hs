@@ -79,6 +79,10 @@ data RTFState = RTFState  { sOptions     :: ReaderOptions
                           , sListText    :: Bool -- True after a \listtext group,
                                                  -- marking the start of a new
                                                  -- list item
+                          , sPnActive    :: Bool -- True while legacy \pn
+                                                 -- paragraph numbering is in
+                                                 -- effect; every paragraph in
+                                                 -- scope is its own list item
                           } deriving (Show)
 
 instance Default RTFState where
@@ -96,6 +100,7 @@ instance Default RTFState where
                 , sListOverrideTable = mempty
                 , sEatChars = 0
                 , sListText = False
+                , sPnActive = False
                 }
 
 type FontTable = IntMap.IntMap FontFamily
@@ -456,6 +461,7 @@ processTok bs (Tok pos tok') = do
       case firsttok of
         Tok _ (ControlWord "shppict" _) -> inGroup (foldM processTok bs toks)
         Tok _ (ControlWord "shpinst" _) -> inGroup (foldM processTok bs toks)
+        Tok _ (ControlWord "pn" _) -> bs <$ handlePn toks
         _ -> bs <$ (do oldTextContent <- sTextContent <$> getState
                        processTok mempty (Tok pos (Grouped toks))
                        updateState $ \st -> st{ sTextContent = oldTextContent })
@@ -478,13 +484,22 @@ processTok bs (Tok pos tok') = do
       bs <$ inGroup (handlePict toks)
     Grouped (Tok _ (ControlWord "stylesheet" _) : toks) ->
       bs <$ inGroup (handleStylesheet toks)
-    Grouped (Tok _ (ControlWord "listtext" _) : _) -> do
+    Grouped (Tok _ (ControlWord cw _) : _)
+      -- \listtext (Word 2000+) and \pntext (legacy Word 95-style
+      -- paragraph numbering) are both auto-generated list-marker
+      -- destinations.  Their visible text (the bullet or number) is
+      -- dropped; we synthesize markers ourselves.  The marker also
+      -- appears before the paragraph's \ls/\ilvl, so processing its
+      -- contents would otherwise capture the marker text as the
+      -- paragraph's first run, hiding the list properties from
+      -- emitBlocks (see #11686).
+      | cw == "listtext" || cw == "pntext" -> do
       -- eject any previous list items...sometimes TextEdit
       -- doesn't put in a \par
       bs' <- emitBlocks bs
-      -- A \listtext group marks the beginning of a new list item.
-      -- A list paragraph lacking one is a continuation paragraph of
-      -- the current item (see emitBlocks).
+      -- A \listtext/\pntext group marks the beginning of a new list
+      -- item.  A list paragraph lacking one is a continuation
+      -- paragraph of the current item (see emitBlocks).
       updateState $ \s -> s{ sListText = True }
       pure bs'
     Grouped (Tok _ (ControlWord "pgdsc" _) : _) -> pure bs
@@ -659,6 +674,9 @@ processTok bs (Tok pos tok') = do
     ControlWord "pard" _ -> do
       newbs <- emitBlocks bs
       modifyGroup (const def)
+      -- \pard resets paragraph properties, ending any legacy \pn
+      -- paragraph numbering that was in effect.
+      updateState $ \s -> s{ sPnActive = False }
       getStyleFormatting 0 >>= foldM processTok newbs
     ControlWord "par" _ -> emitBlocks bs
     _ -> pure bs
@@ -744,7 +762,10 @@ trimFinalLineBreak ils =
 emitBlocks :: PandocMonad m => Blocks -> RTFParser m Blocks
 emitBlocks bs = do
   annotatedToks <- reverse . sTextContent <$> getState
-  hadListText <- sListText <$> getState
+  -- A \listtext group marks a new item; legacy \pn paragraph numbering
+  -- (sPnActive) likewise makes every paragraph its own item.  Note that
+  -- sPnActive persists across \par (until \pard) and so is not reset here.
+  hadListText <- (||) <$> (sListText <$> getState) <*> (sPnActive <$> getState)
   updateState $ \s -> s{ sTextContent = [], sListText = False }
   let justCode = def{ gFontFamily = Just Modern }
   let prop = case annotatedToks of
@@ -919,6 +940,47 @@ handleListLevel levelTable (lvl, toks) = do
                    Nothing -> Bullet
                    Just numStyle -> Ordered (start,numStyle,Period)
   return $ IntMap.insert lvl listType levelTable
+
+-- Legacy Word-95 style paragraph numbering: {\*\pn ...}.  This
+-- destination configures the auto-number (or bullet) for the current
+-- list paragraph.  Unlike modern lists there is no \listtable, so we
+-- synthesize an entry in the list override table here.  The \ls and
+-- \ilvl that key the table appear inside the \pn group itself, as does
+-- the numbering style (\pnlvlblt for a bullet, otherwise \pndec,
+-- \pnucltr, etc.).  See #11686.
+handlePn :: PandocMonad m => [Tok] -> RTFParser m ()
+handlePn toks = do
+  let ls = headDef 0 [n | Tok _ (ControlWord "ls" (Just n)) <- toks]
+  let lvl = headDef 0 [n | Tok _ (ControlWord "ilvl" (Just n)) <- toks]
+  let start = headDef 1 [n | Tok _ (ControlWord "pnstart" (Just n)) <- toks]
+  let isBullet = not $ null [() | Tok _ (ControlWord "pnlvlblt" _) <- toks]
+  let pnStyle (Tok _ (ControlWord w _)) =
+        case w of
+          "pndec"   -> Just Decimal
+          "pnucltr" -> Just UpperAlpha
+          "pnlcltr" -> Just LowerAlpha
+          "pnucrm"  -> Just UpperRoman
+          "pnlcrm"  -> Just LowerRoman
+          _ -> Nothing
+      pnStyle _ = Nothing
+  let mbNumberStyle
+        | isBullet  = Nothing
+        | otherwise = case mapMaybe pnStyle toks of
+                        (s:_) -> Just s
+                        []    -> Just Decimal -- \pnlvlbody default
+  let listType = case mbNumberStyle of
+                   Nothing -> Bullet
+                   Just numStyle -> Ordered (start, numStyle, Period)
+  -- Don't clobber a type already registered via a real \listtable.
+  -- \pn is a paragraph property that stays in effect (auto-numbering or
+  -- bulleting every paragraph) until reset by \pard, so flag it so that
+  -- each following paragraph becomes its own list item.
+  updateState $ \s ->
+    s{ sListOverrideTable =
+         IntMap.insertWith (\new old -> IntMap.union old new) ls
+           (IntMap.singleton lvl listType)
+           (sListOverrideTable s)
+     , sPnActive = True }
 
 handleListOverrideTable :: PandocMonad m => [Tok] -> RTFParser m ()
 handleListOverrideTable toks = mapM_ handleListOverride toks
