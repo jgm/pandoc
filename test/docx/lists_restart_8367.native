@@ -1,0 +1,13 @@
+[Header 1 ("section-1",[],[]) [Str "Section",Space,Str "1"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "Item",Space,Str "1"]]
+ ,[Para [Str "Item",Space,Str "2"]]
+ ,[Para [Str "Item",Space,Str "3"]]]
+,Para [Str "Conclusion"]
+,Header 1 ("section-2",[],[]) [Str "Section",Space,Str "2"]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "Item",Space,Str "1"]]
+ ,[Para [Str "Item",Space,Str "2"]]
+ ,[Para [Str "Item",Space,Str "3"]]
+ ,[Para [Str "Item",Space,Str "4"]]]
+,Para [Str "Conclusion"]]

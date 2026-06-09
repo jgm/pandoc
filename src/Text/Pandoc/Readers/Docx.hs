@@ -782,15 +782,16 @@ bodyPartToBlocks (Paragraph pPr parparts) = do
       then (<> horizontalRule)
       else id)
     <$> getMainPar
-bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
-  -- We check whether this current numId has previously been used,
-  -- since Docx expects us to pick up where we left off.
+bodyPartToBlocks (ListItem pPr numId lvl isRestart (Just levelInfo) parparts) = do
+  -- We check whether this current abstract numbering id has previously been
+  -- used, since Docx expects us to pick up where we left off -- unless this
+  -- item explicitly restarts numbering (see #8367).
   listState <- gets docxListState
   let startFromState = M.lookup (numId, lvl) listState
       Level _ fmt txt startFromLevelInfo = levelInfo
       start = case startFromState of
-        Just n -> n + 1
-        Nothing -> fromMaybe 1 startFromLevelInfo
+        Just n | not isRestart -> n + 1
+        _ -> fromMaybe 1 startFromLevelInfo
       kvs = [ ("level", lvl)
             , ("num-id", numId)
             , ("format", fmt)
@@ -804,7 +805,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
     in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
-bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
+bodyPartToBlocks (ListItem pPr _ _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
