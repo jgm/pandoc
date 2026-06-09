@@ -374,9 +374,6 @@ modifierFromStyleDiff propertyTriple  =
     hasChanged property triple@(_, property -> newProperty, _) =
         (/= Just newProperty) (lookupPreviousValue property triple)
 
-    hasChangedM property triple@(_, textProps,_) =
-      fromMaybe False $ (/=) <$> property textProps <*> lookupPreviousValueM property triple
-
     lookupPreviousValue f = lookupPreviousStyleValue (fmap f . textProperties)
 
     lookupPreviousValueM f = lookupPreviousStyleValue (f <=< textProperties)
