@@ -368,7 +368,6 @@ modifierFromStyleDiff propertyTriple  =
 
     hasEmphChanged :: PropertyTriple -> Bool
     hasEmphChanged = swing any [ hasChanged  isEmphasised
-                               , hasChangedM pitch
                                , hasChanged  underline
                                ]
 
