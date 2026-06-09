@@ -32,8 +32,9 @@ extra-deps:
 - pandoc-types-1.23.1.2
 - typst-symbols-0.2
 - typst-0.10
-- texmath-0.13.1.2
 - emojis-0.1.5
+- git: https://github.com/jgm/texmath.git
+  commit: 170899673ee31de9096e178605e8da31a36e4185
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

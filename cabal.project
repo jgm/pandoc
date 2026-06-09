@@ -8,6 +8,11 @@ constraints: skylighting-format-blaze-html >= 0.1.2,
              crypton >= 1.1.1,
              doclayout >= 0.5.0.3
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 170899673ee31de9096e178605e8da31a36e4185
+
 package pandoc
   flags: +embed_data_files +http
 
