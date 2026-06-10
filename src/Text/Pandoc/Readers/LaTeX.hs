@@ -35,7 +35,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Either (partitionEithers)
 import Skylighting (defaultSyntaxMap)
-import System.FilePath (addExtension, replaceExtension, takeExtension)
+import System.FilePath ((</>), addExtension, replaceExtension, takeExtension)
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocPure, PandocMonad (..), getResourcePath,
@@ -231,7 +231,12 @@ doLHSverb =
     <$> manyTill (satisfyTok (not . isNewlineTok)) (symbol '|')
 
 mkImage :: PandocMonad m => [(Text, Text)] -> Text -> LP m Inlines
-mkImage options (T.unpack -> src) = do
+mkImage options = mkImageWithExts options
+  [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
+
+mkImageWithExts :: PandocMonad m
+                => [(Text, Text)] -> [String] -> Text -> LP m Inlines
+mkImageWithExts options exts' (T.unpack -> src) = do
    let replaceRelative (k,v) =
          case numUnit v of
               Just (num, "\\textwidth") -> (k, showFl (num * 100) <> "%")
@@ -243,19 +248,30 @@ mkImage options (T.unpack -> src) = do
    let attr = ("",[], kvs)
    let alt = maybe (str "image") str $ lookup "alt" options
    defaultExt <- getOption readerDefaultImageExtension
-   let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
    let exts  = exts' ++ map (map toUpper) exts'
-   let findFile s [] = return s
+   resourcePath <- getResourcePath
+   let candidates s =
+         s : [ dir </> s | dir <- resourcePath, not (null dir), dir /= "." ]
+       findExisting [] = return Nothing
+       findExisting (s:ss) = do
+         exists <- fileExists s
+         if exists
+            then return $ Just s
+            else findExisting ss
+       findFile s [] = do
+         found <- findExisting $ candidates s
+         return $ fromMaybe s found
        findFile s (e:es) = do
          let s' = addExtension s e
-         exists <- fileExists s'
-         if exists
-            then return s'
-            else findFile s es
+         found <- findExisting $ candidates s'
+         case found of
+           Just resolved -> return resolved
+           Nothing       -> findFile s es
    src' <- case takeExtension src of
-               "" | not (T.null defaultExt) -> return $ addExtension src $ T.unpack defaultExt
+               "" | not (T.null defaultExt) ->
+                      findFile src [T.unpack defaultExt]
                   | otherwise -> findFile src exts
-               _  -> return src
+               _  -> findFile src []
    return $ imageWith attr (T.pack src') "" alt
 
 removeDoubleQuotes :: Text -> Text
@@ -432,7 +448,8 @@ inlineCommands = M.unions
     -- svg
     , ("includesvg",      do options <- option [] keyvals
                              src <- bracedFilename
-                             mkImage options . unescapeURL $ src)
+                             mkImageWithExts options [".svg", ".png"]
+                               . unescapeURL $ src)
     -- hyperref
     , ("url", (\url -> linkWith ("",["uri"],[]) url "" (str url))
                         . unescapeURL . untokenize <$> bracedUrl)
@@ -1044,6 +1061,7 @@ blockCommands = M.fromList
    , ("lstinputlisting", inputListing)
    , ("inputminted", inputMinted)
    , ("graphicspath", graphicsPath)
+   , ("svgpath", graphicsPath)
    -- polyglossia
    , ("setdefaultlanguage", setDefaultLanguage)
    , ("setmainlanguage", setDefaultLanguage)

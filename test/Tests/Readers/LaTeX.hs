@@ -256,6 +256,12 @@ tests = [ testGroup "basic"
           , "Image with options with spaces" =:
             "\\includegraphics[width=12cm, height = 5cm]{foo.png}" =?>
             para (imageWith ("", [], [("width", "12cm"), ("height", "5cm")]) "foo.png" "" "image")
+          , "SVG image" =:
+            "\\includesvg{foo.svg}" =?>
+            para (image "foo.svg" "" (text "image"))
+          , "SVG image with width option" =:
+            "\\includesvg[width=0.5\\linewidth]{foo.svg}" =?>
+            para (imageWith ("", [], [("width", "50%")]) "foo.svg" "" "image")
           ]
 
         , let hex = ['0'..'9']++['a'..'f'] in
