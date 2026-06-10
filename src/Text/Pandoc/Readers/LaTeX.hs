@@ -806,7 +806,7 @@ rawBlockOr name fallback = do
 doSubfile :: PandocMonad m => LP m Blocks
 doSubfile = do
   skipMany opt
-  f <- T.unpack <$> bracedFilename
+  f <- T.unpack <$> expandedBracedFilename
   oldToks <- getInput
   setInput $ TokStream False []
   insertIncluded (ensureExtension (/= "") ".tex" f)
@@ -823,10 +823,16 @@ include name = do
           "input" -> (/= "")
           _ -> const False
   skipMany opt
-  fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
-         untokenize . filter (not . isComment) <$> braced
+  fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," <$>
+        expandedBracedFilename
   mapM_ (insertIncluded . ensureExtension isAllowed ".tex") fs
   return mempty
+
+expandedBracedFilename :: PandocMonad m => LP m Text
+expandedBracedFilename = do
+  toks <- braced
+  expanded <- parseFromToks (many anyTok <* eof) toks
+  return $ untokenize $ filter (not . isComment) expanded
 
 usepackage :: (PandocMonad m, Monoid a) => LP m a
 usepackage = do
