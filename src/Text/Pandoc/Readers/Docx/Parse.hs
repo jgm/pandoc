@@ -67,7 +67,7 @@ import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Bits ((.|.))
+import Data.Bits ((.&.))
 import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, ord, readLitChar)
 import Data.List
@@ -96,6 +96,7 @@ import Text.Pandoc.XML.Light
       lookupAttrBy,
       parseXMLElement,
       elChildren,
+      onlyElems,
       QName(QName, qName),
       Content(Elem),
       Element(..))
@@ -283,6 +284,7 @@ data ParagraphStyle = ParagraphStyle { pStyle        :: [ParStyle]
                                      , pChange       :: Maybe TrackedChange
                                      , pBidi         :: Maybe Bool
                                      , pKeepNext     :: Bool
+                                     , pBottomBorder :: Bool
                                      }
                       deriving Show
 
@@ -295,13 +297,14 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , pChange = Nothing
                                        , pBidi = Just False
                                        , pKeepNext = False
+                                       , pBottomBorder = False
                                        }
 
 
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | Heading Int ParaStyleName ParagraphStyle T.Text T.Text (Maybe Level)
                  [ParPart]
-              | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
+              | ListItem ParagraphStyle T.Text T.Text Bool (Maybe Level) [ParPart]
               | Tbl (Maybe T.Text) T.Text TblGrid TblLook [Row]
               | Captioned ParagraphStyle [ParPart] BodyPart
               | HRule
@@ -616,6 +619,28 @@ lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
     _ ->
       lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
+-- | Given a @numId@ and level, return the abstract numbering id (the stable
+-- identifier shared by all numbering instances based on the same abstract
+-- numbering definition) together with a flag indicating whether this
+-- particular instance restarts numbering at this level (via a
+-- @w:startOverride@).  Word represents "restart numbering" by pointing the
+-- first item of the restarted list at a new numId that shares the abstract
+-- numbering of the original list but carries a startOverride; the remaining
+-- items keep using the original numId.  Keying list continuation off the
+-- abstract numbering id (rather than the numId) lets those items be treated
+-- as one continuous, restarted list.  See #8367.
+lookupNumberingInfo :: T.Text -> T.Text -> Numbering -> (T.Text, Bool)
+lookupNumberingInfo numId ilvl (Numbering _ numbs _) =
+  case lookup numId $
+       map (\(Numb nid absnumid ovr) -> (nid, (absnumid, ovr))) numbs of
+    Nothing -> (numId, False)
+    Just (absNumId, ovrrides) ->
+      let isRestart = case lookup ilvl $
+                           map (\lo@(LevelOverride i _ _) -> (i, lo)) ovrrides of
+                        Just (LevelOverride _ (Just _) _) -> True
+                        _ -> False
+      in (absNumId, isRestart)
+
 loElemToLevelOverride :: NameSpaces -> Element -> Maybe LevelOverride
 loElemToLevelOverride ns element
   | isElem ns "w" "lvlOverride" element = do
@@ -764,9 +789,12 @@ elemToRow ns element | isElem ns "w" "tr" element =
     let cellElems = findChildrenByName ns "w" "tc" element
     let beforeCells = genericReplicate (fromMaybe 0 gridBefore) emptyCell
     cells <- mapD (elemToCell ns) cellElems
-    let hasTblHeader = maybe NoTblHeader (const HasTblHeader)
-          (properties
-           >>= findChildByName ns "w" "tblHeader")
+    let hasTblHeader =
+          case (properties >>= findChildByName ns "w" "tblHeader") of
+            Nothing -> NoTblHeader
+            Just he -> case findAttrByName ns "w" "val" he of
+              Just "0" -> NoTblHeader
+              _ -> HasTblHeader
     return $ Row hasTblHeader (beforeCells ++ cells)
 elemToRow _ _ = throwError WrongElem
 
@@ -804,7 +832,7 @@ testBitMask :: Text -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ T.unpack bitMaskS) :: [(Int, String)]) of
     []            -> False
-    ((n', _) : _) -> (n' .|. n) /= 0
+    ((n', _) : _) -> (n' .&. n) /= 0
 
 pHeading :: ParagraphStyle -> Maybe (ParaStyleName, Int)
 pHeading = getParStyleField headingLev . pStyle
@@ -814,8 +842,10 @@ pNumInfo = getParStyleField numInfo . pStyle
 
 mkListItem :: ParagraphStyle -> Text -> Text -> [ParPart] -> D BodyPart
 mkListItem parstyle numId lvl parparts = do
-  lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
-  return $ ListItem parstyle numId lvl lvlInfo parparts
+  numbering <- asks envNumbering
+  let lvlInfo = lookupLevel numId lvl numbering
+      (absNumId, isRestart) = lookupNumberingInfo numId lvl numbering
+  return $ ListItem parstyle absNumId lvl isRestart lvlInfo parparts
 
 pStyleIndentation :: ParagraphStyle -> Maybe ParIndentation
 pStyleIndentation style = (getParStyleField indent . pStyle) style
@@ -871,7 +901,8 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
-    lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
+    numbering <- asks envNumbering
+    let lvlInfo = lookupLevel numId lvl numbering
     parstyle <- elemToParagraphStyle ns element
                 <$> asks envParStyles
                 <*> asks envNumbering
@@ -879,23 +910,26 @@ elemToBodyPart ns element
     case pHeading parstyle of
       Nothing -> mkListItem parstyle numId lvl parparts
       Just (parstylename, lev)
-        -> return $ Heading lev parstylename parstyle numId lvl lvlInfo parparts
+        -> let (absNumId, _) = lookupNumberingInfo numId lvl numbering
+           in return $ Heading lev parstylename parstyle absNumId lvl lvlInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element
-  , [Elem ppr] <- elContent element
+  , [ppr] <- elChildren element
   , isElem ns "w" "pPr" ppr
-  , [Elem pbdr] <- elContent ppr
+  , [pbdr] <- elChildren ppr
   , isElem ns "w" "pBdr" pbdr
+  , [bot] <- elChildren pbdr
+  , isElem ns "w" "bottom" bot
     = return HRule
       -- for this style of horizontal rule, see
       -- https://support.microsoft.com/en-us/office/insert-a-horizontal-line-9bf172f6-5908-4791-9bb9-2c952197b1a9
 elemToBodyPart ns element -- pandoc-style horizontal rule
   | isElem ns "w" "p" element
-  , [Elem r] <- elContent element
+  , [r] <- elChildren element
   , isElem ns "w" "r" r
-  , [Elem pict] <- elContent r
+  , [pict] <- elChildren r
   , isElem ns "w" "pict" pict
-  , [Elem rect] <- elContent pict
+  , [rect] <- elChildren pict
   , isElem ns "v" "rect" rect
     = return HRule
 elemToBodyPart ns element
@@ -920,8 +954,10 @@ elemToBodyPart ns element
                     mkListItem parstyle numId lvl parparts
         Just (parstylename, lev) -> do
           let (numId, lvl) = fromMaybe ("","") $ pNumInfo parstyle
-          lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
-          return $ Heading lev parstylename parstyle numId lvl lvlInfo parparts
+          numbering <- asks envNumbering
+          let lvlInfo = lookupLevel numId lvl numbering
+              (absNumId, _) = lookupNumberingInfo numId lvl numbering
+          return $ Heading lev parstylename parstyle absNumId lvl lvlInfo parparts
         Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
@@ -1234,7 +1270,7 @@ elemToExtent el =
     (Just w, Just h) -> Just (w, h)
     _                -> Nothing
  where
-  getDim at = filterElementName (\n -> qName n `elem` ["extent", "ext"]) el
+  getDim at = filterElementName (\n -> qName n == "extent") el
               >>= findAttr (QName at Nothing Nothing) >>= safeRead
 
 
@@ -1373,6 +1409,10 @@ elemToParagraphStyle ns element sty numbering
                       getTrackedChange ns
       , pBidi = checkOnOff ns pPr (elemName ns "w" "bidi")
       , pKeepNext = isJust $ findChildByName ns "w" "keepNext" pPr
+      , pBottomBorder = case (onlyElems . elContent) <$>
+                              findChildByName ns "w" "pBdr" pPr of
+                              Just [x] -> isElem ns "w" "bottom" x
+                              _ -> False
       }
   | otherwise = defaultParagraphStyle
 

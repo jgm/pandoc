@@ -282,6 +282,10 @@ tests = [ testGroup "document"
             "docx/lists_sublist_reset.docx"
             "docx/lists_sublist_reset.native"
           , testCompare
+            "style-based list restarted on one item (#8367)"
+            "docx/lists_restart_8367.docx"
+            "docx/lists_restart_8367.native"
+          , testCompare
             "definition lists"
             "docx/definition_list.docx"
             "docx/definition_list.native"

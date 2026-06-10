@@ -25,6 +25,16 @@ jobs:
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
 
+    # declare/restore cached things
+
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v5
+      with:
+        path: |
+          C:\cabal\store
+        key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+
     - name: Install dependencies
       run: |
           cabal update
@@ -115,6 +125,15 @@ jobs:
         ghcup install cabal --set 3.14
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
 
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.local/state/cabal/store
+          ~/.cabal/store
+        key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+
     - name: Create release
       run: |
         sh macos/make_macos_release.sh
@@ -124,48 +143,3 @@ jobs:
         name: macos-x86_64
         path: macos-x86_64
 
-  wasm:
-
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v6
-    - uses: wimpysworld/nothing-but-nix@v10
-      with:
-       hatchet-protocol: 'rampage'
-    - uses: cachix/install-nix-action@v31
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v5
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
-    - name: Build pandoc.wasm
-      run: |
-        nix develop --command bash -c "make pandoc.wasm"
-    - name: Upload artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: pandoc.wasm
-        path: pandoc.wasm
-
-
-# linux:
-
-#   runs-on: ubuntu-latest
-#   steps:
-#   - uses: actions/checkout@v6
-#   - name: Create linux package
-#     run: |
-#         make debpkg
-#         mkdir linux-release-candidate
-#         cp linux/artifacts/*.deb linux-release-candidate/
-#         cp linux/artifacts/*.tar.gz linux-release-candidate/
-#   - uses: actions/upload-artifact@v7
-#     with:
-#       name: linux-release-candidate
-#       path: linux-release-candidate

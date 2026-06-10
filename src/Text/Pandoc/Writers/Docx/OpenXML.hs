@@ -438,6 +438,10 @@ blockToOpenXML' opts (Plain lst) = do
      else block
 blockToOpenXML' opts (Para lst)
   | null lst && not (isEnabled Ext_empty_paragraphs opts) = return []
+  | [Math InlineMath _] <- lst
+     = blockToOpenXML' opts (Para (lst ++ [Str "\x200B"])) -- see #11674
+       -- we add a space to prevent Word from displaying the single
+       -- inline math element with display math style
   | otherwise = do
       isFirstPara <- gets stFirstPara
       let displayMathPara = case lst of

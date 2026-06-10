@@ -1,4 +1,4 @@
-{| id="students" class="wikitable" source="mdn"
+{| id="students" class="wikitable" data-source="mdn"
 |+ List of Students
 |-
 ! style="text-align: center;"| Student ID

@@ -198,6 +198,7 @@ litBetween op cl = try $ do
 litCharNoSpace :: PandocMonad m => MarkdownParser m Text
 litCharNoSpace = T.singleton <$> escapedChar''
        <|> characterReference
+       <|> (snd <$> withRaw attributes)
        <|> T.singleton <$> noneOf "\n \r\t"
  where
    escapedChar'' = do
@@ -1198,7 +1199,9 @@ rawHtmlBlocks = do
         return (return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
                 contents <>
                 return (B.rawBlock "html" rawcloser)))
-      <|> return (return (B.rawBlock "html" raw) <> contents)
+      <|> if T.all isSpace raw
+             then return mempty
+             else return (return (B.rawBlock "html" raw) <> contents)
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
   return result
 
@@ -1400,7 +1403,20 @@ multilineTableHeader headless = try $ do
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m
           => MarkdownParser m (F TableComponents)
-gridTable = gridTableWith' NormalizeHeader parseBlocks
+gridTable = try $ do
+  -- Like other block-level constructs, a grid table may be indented by
+  -- up to three spaces.  The underlying grid-table parser expects the
+  -- table to begin at the left margin, so strip a uniform indentation
+  -- from every line before handing it off.
+  indent <- T.length <$> lookAhead nonindentSpaces
+  if indent == 0
+     then gridTableWith' NormalizeHeader parseBlocks
+     else do
+       let gridLine = try $ count indent (char ' ')
+                              *> lookAhead (oneOf "+|")
+                              *> anyLineNewline
+       rawTable <- T.concat <$> many1 gridLine
+       parseFromString' (gridTableWith' NormalizeHeader parseBlocks) rawTable
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -2085,7 +2101,7 @@ inlineNote = do
     char '^'
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
-    contents <- inBalancedBrackets inlines
+    contents <- withQuoteContext NoQuote $ inBalancedBrackets inlines
     notFollowedBy (char '(' <|> char '[' <|> ('{' <$ attributes))
       -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
@@ -2189,7 +2205,9 @@ rawHtmlInline = do
                              then (\x -> isInlineTag x &&
                                          not (isCloseBlockTag x))
                              else not . isTextTag
-  return $ return $ B.rawInline "html" result
+  return $ if T.all isSpace result
+              then return mempty
+              else return $ B.rawInline "html" result
 
 -- Emoji
 

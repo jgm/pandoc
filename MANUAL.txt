@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: 2026-03-19
+date: 2026-06-03
 ---
 
 # Synopsis
@@ -436,6 +436,24 @@ header when requesting a document from a URL:
 
         eval "$(pandoc --bash-completion)"
 
+`--sandbox[=true|false]`
+
+:   Run pandoc in a sandbox, limiting IO operations in readers
+    and writers to reading the files specified on the command line.
+    Note that this option does not limit IO operations by
+    filters or in the production of PDF documents.  But it does
+    offer security against, for example, disclosure of files
+    through the use of `include` directives.  Anyone using
+    pandoc on untrusted user input should use this option.
+
+    Note: some readers and writers (e.g., `docx`) need access to data
+    files.  If these are stored on the file system, then pandoc
+    will not be able to find them when run in `--sandbox` mode
+    and will raise an error. For these applications, we
+    recommend using a pandoc binary compiled with the `embed_data_files`
+    option, which causes the data files to be baked into the binary
+    instead of being stored on the file system.
+
 `--verbose`
 
 :   Give verbose debugging output.
@@ -766,6 +784,13 @@ header when requesting a document from a URL:
     space, and the period will not produce sentence-ending space
     in formats like LaTeX.  The strings may not contain spaces.
 
+`--typst-input=`*KEY*[`=`*VAL*]
+
+:   Set a parameter value that will be made available to the typst
+    parser in `sys.inputs`, like `--input` in the `typst` CLI.
+    Either `:` or `=` may be used to separate *KEY* from *VAL*.
+    Values containing spaces must be quoted.
+
 `--trace[=true|false]`
 
 :   Print diagnostic output tracing parser progress to stderr.
@@ -814,10 +839,10 @@ header when requesting a document from a URL:
     a *list* value, the value will be added to the list. If it already
     has another kind of value, it will be made into a list containing
     the previous and the new value. For example,
-    `-V keyword=Joe -V author=Sue` makes `author` contain a list
+    `-V author=Joe -V author=Sue` makes `author` contain a list
     of strings: `Joe` and `Sue`.
 
-`--variable-json=`*KEY*[`=`:*JSON*]
+`--variable-json=`*KEY*[`=`*JSON*]
 
 :   Set the template variable *KEY* to the value specified by a JSON
     string (this may be a boolean, a string, a list, or a mapping;
@@ -827,24 +852,6 @@ header when requesting a document from a URL:
     string value `"false"`. Either `:` or `=` may be used to
     separate *KEY* from *VAL*. If the variable already has a
     value, this value will be replaced.
-
-`--sandbox[=true|false]`
-
-:   Run pandoc in a sandbox, limiting IO operations in readers
-    and writers to reading the files specified on the command line.
-    Note that this option does not limit IO operations by
-    filters or in the production of PDF documents.  But it does
-    offer security against, for example, disclosure of files
-    through the use of `include` directives.  Anyone using
-    pandoc on untrusted user input should use this option.
-
-    Note: some readers and writers (e.g., `docx`) need access to data
-    files.  If these are stored on the file system, then pandoc
-    will not be able to find them when run in `--sandbox` mode
-    and will raise an error. For these applications, we
-    recommend using a pandoc binary compiled with the `embed_data_files`
-    option, which causes the data files to be baked into the binary
-    instead of being stored on the file system.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
@@ -1307,7 +1314,7 @@ header when requesting a document from a URL:
         To produce a custom `reference.docx`, first get a copy of
         the default `reference.docx`: `pandoc
         -o custom-reference.docx --print-default-data-file reference.docx`.
-        Then open `custom-reference.docx` in Word, modify the
+        Then open `custom-reference.docx` in Word or LibreOffice, modify the
         styles as you wish, and save the file.  For best
         results, do not make changes to this file other than
         modifying the styles used by pandoc:
@@ -1964,6 +1971,11 @@ those in another file included with a `defaults:` entry.
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --abbreviations abbrevs.txt      | abbreviations: abbrevs.txt        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --typst-input foo=bar            | typst-inputs:                     |
+|                                  |   foo: bar                        |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
@@ -3662,13 +3674,13 @@ automatically assigned a unique identifier based on the heading text.
 This extension can be enabled/disabled for the following formats:
 
 input formats
-:  `markdown`, `latex`, `rst`, `mediawiki`, `textile`
+:  `markdown`, `latex`, `rst`, `mediawiki`, `textile`, `man`
 
 output formats
 :  `markdown`, `muse`
 
 enabled by default in
-:  `markdown`, `muse`
+:  `markdown`, `muse`, `man`
 
 The default algorithm used to derive the identifier from the
 heading text is:
@@ -5651,21 +5663,33 @@ before or after the link).
 
 The link consists of link text in square brackets, followed by a label in
 square brackets. (There cannot be space between the two unless the
-`spaced_reference_links` extension is enabled.) The link definition
-consists of the bracketed label, followed by a colon and a space, followed by
-the URL, and optionally (after a space) a link title either in quotes or in
-parentheses.  The label must not be parseable as a citation (assuming
-the `citations` extension is enabled):  citations take precedence over
-link labels.
+`spaced_reference_links` extension is enabled.) If the label is empty
+(`[]`), then it will be implicitly be taken to be the same as the link text;
+thus `[foo][]` is equivalent to `[foo][foo]`. (If the
+`shortcut_reference_links` extension is enabled, the empty `[]`
+may be omitted.)
 
-Here are some examples:
+The link definition consists of the bracketed label, followed by
+a colon and a space, followed by the URL, and optionally (after a
+space) a link title either in quotes or in parentheses. The label
+must not be parseable as a citation (assuming the `citations`
+extension is enabled): citations take precedence over link
+labels.
 
-    [my label 1]: /foo/bar.html  "My title, optional"
-    [my label 2]: /foo
-    [my label 3]: https://fsf.org (The Free Software Foundation)
-    [my label 4]: /bar#special  'A title in single quotes'
+Here are some examples of reference links and link definitions;
 
-The URL may optionally be surrounded by angle brackets:
+    See [the website *I* built][my website].
+
+    See [my website][] and [the bar page][1] and
+    the [home page of the FSF][fsf].
+
+    [my website]: http://foo.bar.baz
+    [1]: /foo/bar.html  "My title, optional"
+    [fsf]: https://fsf.org (The Free Software Foundation)
+    [special page]: /bar#special  'A title in single quotes'
+
+The URL in a link definition may optionally be surrounded by
+angle brackets:
 
     [my label 5]: <http://foo.bar.baz>
 
@@ -5680,18 +5704,14 @@ Note that link labels are not case sensitive.  So, this will work:
 
     [Foo]: /bar/baz
 
-In an *implicit* reference link, the second pair of brackets is
-empty:
+The link definition may come either before or after a
+reference link that uses the label.
 
-    See [my website][].
-
-    [my website]: http://foo.bar.baz
-
-Note:  In `Markdown.pl` and most other Markdown implementations,
-reference link definitions cannot occur in nested constructions
-such as list items or block quotes.  Pandoc lifts this
-arbitrary-seeming restriction.  So the following is fine in pandoc,
-though not in most other implementations:
+Note: In some Markdown implementations, reference link
+definitions cannot occur in nested constructions such as list
+items or block quotes. Pandoc lifts this arbitrary-seeming
+restriction. So the following is fine in pandoc, though not in
+all implementations:
 
     > My block [quote].
     >

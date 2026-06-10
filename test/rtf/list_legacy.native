@@ -1,0 +1,14 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Para [ Str "A" ] ]
+      , [ Para [ Str "Numbered" ] ]
+      , [ Para [ Str "List" ] ]
+      ]
+  , BulletList
+      [ [ Para [ Str "A" ] ]
+      , [ Para [ Str "Bulleted" ] ]
+      , [ Para [ Str "List" ] ]
+      ]
+  ]

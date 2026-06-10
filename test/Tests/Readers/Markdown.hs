@@ -375,6 +375,12 @@ tests = [ testGroup "inline code"
           , test markdownSmart "unclosed double quote"
             ("**this should \"be bold**"
             =?> para (strong "this should \8220be bold"))
+          , test markdownSmart "single quote in inline note within single quotes" $ -- issue #11613
+              "'a^['b'.] c.'" =?>
+              para (singleQuoted ("a" <> note (para (singleQuoted "b" <> ".")) <> space <> "c."))
+          , test markdownSmart "double quote in inline note within double quotes" $ -- issue #11613
+              "\"a^[\"b\".] c.\"" =?>
+              para (doubleQuoted ("a" <> note (para (doubleQuoted "b" <> ".")) <> space <> "c."))
           ]
         , testGroup "sub- and superscripts"
           [

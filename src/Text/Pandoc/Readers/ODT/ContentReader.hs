@@ -368,15 +368,11 @@ modifierFromStyleDiff propertyTriple  =
 
     hasEmphChanged :: PropertyTriple -> Bool
     hasEmphChanged = swing any [ hasChanged  isEmphasised
-                               , hasChangedM pitch
                                , hasChanged  underline
                                ]
 
     hasChanged property triple@(_, property -> newProperty, _) =
         (/= Just newProperty) (lookupPreviousValue property triple)
-
-    hasChangedM property triple@(_, textProps,_) =
-      fromMaybe False $ (/=) <$> property textProps <*> lookupPreviousValueM property triple
 
     lookupPreviousValue f = lookupPreviousStyleValue (fmap f . textProperties)
 

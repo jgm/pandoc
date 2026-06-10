@@ -60,7 +60,7 @@ import qualified System.FilePath.Posix as Posix
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
            => ReaderOptions -> a -> m Pandoc
-readTypst _opts inp = do
+readTypst opts inp = do
   let sources = toSources inp
   let inputName = case sources of
         Sources ((pos, _):_) -> sourceName pos
@@ -73,7 +73,7 @@ readTypst _opts inp = do
                   currentUTCTime = getCurrentTime,
                   lookupEnvVar = fmap (fmap T.unpack) . lookupEnv . T.pack,
                   checkExistence = fileExists }
-      res <- evaluateTypst ops inputName parsed
+      res <- evaluateTypst ops (readerTypstInputs opts) inputName parsed
       case res of
         Left e -> throwError $ PandocParseError $ tshow e
         Right content -> do
@@ -142,8 +142,9 @@ fixNesting el@(Elt name pos fields)
   | Just (VContent elts) <- M.lookup "body" fields
   = let elts' = fmap fixNesting elts
         fields' = M.insert "body" (VContent elts') fields
-        in if isInline el
-              then case getField "body" fields' of
+        in if isBlock el
+              then Elt name pos fields'
+              else case getField "body" fields' of
                         Just ([el'@(Elt name' pos' fields'')] :: Seq Content)
                           | isBlock el'
                           , not (isInline el')
@@ -154,7 +155,6 @@ fixNesting el@(Elt name pos fields)
                                                   (Elt name pos fields'')))
                                         fields'
                         _ -> Elt name pos fields'
-              else Elt name pos fields'
 fixNesting x = x
 
 pPandoc :: PandocMonad m => P m B.Pandoc

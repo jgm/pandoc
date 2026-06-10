@@ -199,7 +199,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
     VersionInfo -> versionInfo [] Nothing ""
     Help -> do
       prg <- getProgName
-      UTF8.hPutStr stdout (T.pack $ usageMessage prg options)
+      mapM_ (UTF8.hPutStrLn stdout . T.stripEnd . T.pack) $
+        lines $ usageMessage prg options
     OptError e -> E.throwIO e
   exitSuccess
 
@@ -303,7 +304,7 @@ options =
                      let (key, val) = splitField arg
                      return opt{ optMetadata = addMeta key val $
                                                  optMetadata opt })
-                  "KEY[:VALUE]")
+                  "KEY[=VALUE]")
                  ""
 
     , Option "" ["metadata-file"]
@@ -345,7 +346,7 @@ options =
                   "true|false")
                  ""
 
-    , Option "s" ["standalone"]
+     , Option "s" ["standalone"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--standalone/-s" arg
@@ -367,7 +368,7 @@ options =
                      return opt{ optVariables =
                                   setVariable (T.pack key) (T.pack val) $
                                     optVariables opt })
-                  "KEY[:VALUE]")
+                  "KEY[=VALUE]")
                  ""
 
     , Option "" ["variable-json"]
@@ -663,7 +664,7 @@ options =
                      let (key, val) = splitField arg
                      return opt{ optRequestHeaders =
                        (T.pack key, T.pack val) : optRequestHeaders opt })
-                  "NAME:VALUE")
+                  "NAME=VALUE")
                  ""
 
     , Option "" ["no-check-certificate"]
@@ -680,6 +681,14 @@ options =
                                             Just $ normalizePath arg })
                 "FILE")
                 "" -- "Specify file for custom abbreviations"
+
+    , Option "" ["typst-input"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key, val) = splitField arg
+                     return opt{ optTypstInputs = (T.pack key, T.pack val) : optTypstInputs opt })
+                  "KEY=VALUE")
+                 ""
 
     , Option "" ["indented-code-classes"]
                   (ReqArg

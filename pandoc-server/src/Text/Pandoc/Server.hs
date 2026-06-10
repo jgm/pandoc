@@ -304,6 +304,7 @@ server = convertBytes
                             optDefaultImageExtension opts
                         , readerTrackChanges = optTrackChanges opts
                         , readerStripComments = optStripComments opts
+                        , readerTypstInputs = optTypstInputs opts
                         }
 
     let writeropts = WriterOptions

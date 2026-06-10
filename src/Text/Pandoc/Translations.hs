@@ -23,7 +23,7 @@ import Text.Pandoc.Translations.Types
 import Text.Pandoc.Class (PandocMonad(..), toTextM, report)
 import Text.Pandoc.Class.CommonState (CommonState(..))
 import Text.Pandoc.Data (readDataFile)
-import Text.Pandoc.Error (PandocError(..))
+import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Logging (LogMessage(..))
 import Control.Monad.Except (catchError)
 import qualified Data.Text as T
@@ -56,34 +56,29 @@ getTranslations = do
        Nothing -> return mempty  -- no language defined
        Just (_, Just t) -> return t
        Just (lang, Nothing) -> do  -- read from file
-         let translationFile = "translations/" <> renderLang lang <> ".yaml"
-         let fallbackFile = "translations/" <> langLanguage lang <> ".yaml"
-         let getTrans fp = do
-               txt <- readDataFile fp >>= toTextM fp
-               case readTranslations txt of
-                    Left e   -> do
+         let translationFiles = map (\x -> "translations/" <> T.unpack x <> ".yaml")
+               (nubOrd [renderLang lang,
+                      langLanguage lang <> maybe "" ("-" <>) (langScript lang),
+                      langLanguage lang])
+         let getTrans [] = return mempty
+             getTrans (fp:fps) = do
+               result <- catchError (Right <$> (readDataFile fp >>= toTextM fp))
+                             (\_ -> pure (Left ""))
+               case result >>= readTranslations of
+                  Left e
+                    | null fps -> do
                       report $ CouldNotLoadTranslations (renderLang lang)
-                        (T.pack fp <> ": " <> e)
+                                  (T.pack fp <> ": " <> e)
                       -- make sure we don't try again...
                       modifyCommonState $ \st ->
                         st{ stTranslations = Nothing }
                       return mempty
-                    Right t -> do
-                      modifyCommonState $ \st ->
-                                  st{ stTranslations = Just (lang, Just t) }
-                      return t
-         catchError (getTrans $ T.unpack translationFile)
-           (\_ ->
-             catchError (getTrans $ T.unpack fallbackFile)
-               (\e -> do
-                 report $ CouldNotLoadTranslations (renderLang lang)
-                          $ case e of
-                               PandocCouldNotFindDataFileError _ ->
-                                 "data file " <> fallbackFile <> " not found"
-                               _ -> ""
-                 -- make sure we don't try again...
-                 modifyCommonState $ \st -> st{ stTranslations = Nothing }
-                 return mempty))
+                    | otherwise -> getTrans fps
+                  Right t -> do
+                    modifyCommonState $ \st ->
+                        st{ stTranslations = Just (lang, Just t) }
+                    return t
+         getTrans translationFiles
 
 -- | Get a translation from the current term map.
 -- Issue a warning if the term is not defined.

@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.9.0.2
+version:         3.10
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -227,6 +227,7 @@ extra-source-files:
                  test/command/9002.docx
                  test/command/9603.docx
                  test/command/11113.docx
+                 test/command/11689.docx
                  test/command/biblio.bib
                  test/command/averroes.bib
                  test/command/A.txt
@@ -514,7 +515,7 @@ library
   build-depends: xml-light,
                  Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
-                 aeson                 >= 2.0.1.0  && < 2.3,
+                 aeson                 >= 2.0.1.0  && < 2.4,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
@@ -524,10 +525,10 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.13,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.13     && < 0.14,
-                 commonmark            >= 0.2.6.1  && < 0.3,
-                 commonmark-extensions >= 0.2.6    && < 0.3,
-                 commonmark-pandoc     >= 0.2.3    && < 0.3,
+                 citeproc              >= 0.13.0.1 && < 0.14,
+                 commonmark            >= 0.3      && < 0.4,
+                 commonmark-extensions >= 0.2.7    && < 0.3,
+                 commonmark-pandoc     >= 0.3      && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
                  crypton               >= 0.30     && < 1.2,
                  data-default          >= 0.4      && < 0.9,
@@ -535,7 +536,7 @@ library
                  directory             >= 1.2.3    && < 1.4,
                  doclayout             >= 0.5.0.1  && < 0.6,
                  doctemplates          >= 0.11     && < 0.12,
-                 emojis                >= 0.1.4.1  && < 0.2,
+                 emojis                >= 0.1.5    && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.6,
@@ -547,7 +548,7 @@ library
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.2      && < 2.4,
                  network-uri           >= 2.6      && < 2.8,
-                 pandoc-types          >= 1.23.1   && < 1.24,
+                 pandoc-types          >= 1.23.1.2 && < 1.24,
                  parsec                >= 3.1      && < 3.2,
                  pretty                >= 1.1      && < 1.2,
                  pretty-show           >= 1.10     && < 1.11,
@@ -561,10 +562,10 @@ library
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.13.1.1 && < 0.14,
+                 texmath               >= 0.13.1.2 && < 0.14,
                  text                  >= 1.1.1.0  && < 2.2,
                  text-conversions      >= 0.3      && < 0.4,
-                 time                  >= 1.5      && < 1.16,
+                 time                  >= 1.5      && < 1.17,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  unicode-data          >= 0.6      && < 0.9,
                  unicode-transforms    >= 0.3      && < 0.5,
@@ -573,10 +574,10 @@ library
                  zip-archive           >= 0.4.3.1  && < 0.5,
                  zlib                  >= 0.5      && < 0.8,
                  xml                   >= 1.3.12   && < 1.4,
-                 typst                 >= 0.9.0.1  && < 0.10,
+                 typst                 >= 0.10     && < 0.11,
                  vector                >= 0.12     && < 0.14,
                  djot                  >= 0.1.4    && < 0.2,
-                 asciidoc              >= 0.1.0.2  && < 0.2
+                 asciidoc              >= 0.1.0.3  && < 0.2
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
@@ -591,7 +592,7 @@ library
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.5,
                  network               >= 2.6      && < 3.3,
-                 tls                   >= 2.0.1    && < 2.4
+                 tls                   >= 2.0.1    && < 2.5
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
@@ -857,7 +858,7 @@ test-suite test-pandoc
                   tasty-quickcheck  >= 0.8     && < 0.12,
                   text              >= 1.1.1.0 && < 2.2,
                   temporary         >= 1.1     && < 1.4,
-                  time              >= 1.5     && < 1.16,
+                  time              >= 1.5     && < 1.17,
                   xml               >= 1.3.12  && < 1.4,
                   zip-archive       >= 0.4.3   && < 0.5
   other-modules:  Tests.Old

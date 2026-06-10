@@ -91,6 +91,7 @@
 - Cormac Relf
 - Craig S. Bosma
 - Damien Clochard
+- Dan Jacobson
 - Daniel Bergey
 - Daniel Kessler
 - Daniel Maslowski
@@ -215,6 +216,7 @@
 - Jez Cope
 - Joe Hermaszewski
 - Joe Hillenbrand
+- Johan Larsson
 - John KetzerX
 - John Luke Bentley
 - John MacFarlane
@@ -237,6 +239,7 @@
 - Justin Bogner
 - Justin Wood
 - Karl Pettersson
+- Keenan Brock
 - Keiichiro Shikano
 - Kelsey Hightower
 - Kevin Broch
@@ -286,6 +289,7 @@
 - Max Bolingbroke
 - Max Heller
 - Max Rydahl Andersen
+- Meher Chaitanya
 - Merijn Verstraaten
 - Michael Beaumont
 - Michael Chladek
@@ -365,6 +369,7 @@
 - RyanGlScott
 - Ryan Gibb
 - S.P.H
+- Sai Asish Y
 - Salim B
 - Sam S. Almahri
 - Sam May
@@ -495,6 +500,7 @@
 - mjfs
 - mt_caret
 - nbehrnd
+- nibras shami
 - niszet
 - nkalvi
 - nuew

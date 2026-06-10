@@ -73,6 +73,26 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       style:font-size-complex="12pt" style:language-complex="zxx"
       style:country-complex="none" />
     </style:default-style>
+    <style:style style:name="Title" style:family="paragraph"
+      style:parent-style-name="Heading" style:next-style-name="Subtitle"
+      style:class="chapter">
+      <style:paragraph-properties fo:text-align="center"
+        style:justify-single-word="false" fo:margin-top="0in"
+        fo:margin-bottom="0.0835in" style:contextual-spacing="false" />
+      <style:text-properties fo:font-size="28pt" fo:font-weight="bold"
+        style:font-size-asian="28pt" style:font-weight-asian="bold"
+        style:font-size-complex="28pt" style:font-weight-complex="bold" />
+    </style:style>
+    <style:style style:name="Subtitle" style:family="paragraph"
+      style:parent-style-name="Heading" style:next-style-name="Text_20_body"
+      style:class="chapter">
+      <style:paragraph-properties fo:text-align="center"
+        style:justify-single-word="false" fo:margin-top="0.0835in"
+        fo:margin-bottom="0.0835in" style:contextual-spacing="false" />
+      <style:text-properties fo:font-size="18pt" fo:font-style="italic"
+        style:font-size-asian="18pt" style:font-style-asian="italic"
+        style:font-size-complex="18pt" style:font-style-complex="italic" />
+    </style:style>
     <style:style style:name="Author" style:family="paragraph"
       style:parent-style-name="Standard" style:class="html">
         <style:paragraph-properties fo:text-align="center" />
@@ -135,6 +155,24 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
     <style:style style:name="List" style:family="paragraph"
     style:parent-style-name="Text_20_body" style:class="list">
       <style:text-properties style:font-name-complex="Tahoma1" />
+    </style:style>
+    <style:style style:name="List_20_Bullet"
+    style:display-name="List Bullet" style:family="paragraph"
+    style:parent-style-name="List" style:class="list" />
+    <style:style style:name="List_20_Bullet_20_Tight"
+    style:display-name="List Bullet Tight" style:family="paragraph"
+    style:parent-style-name="List" style:class="list">
+      <style:paragraph-properties fo:margin-top="0in"
+      fo:margin-bottom="0in" style:contextual-spacing="false" />
+    </style:style>
+    <style:style style:name="List_20_Number"
+    style:display-name="List Number" style:family="paragraph"
+    style:parent-style-name="List" style:class="list" />
+    <style:style style:name="List_20_Number_20_Tight"
+    style:display-name="List Number Tight" style:family="paragraph"
+    style:parent-style-name="List" style:class="list">
+      <style:paragraph-properties fo:margin-top="0in"
+      fo:margin-bottom="0in" style:contextual-spacing="false" />
     </style:style>
     <style:style style:name="Caption" style:family="paragraph"
     style:parent-style-name="Standard" style:class="extra">

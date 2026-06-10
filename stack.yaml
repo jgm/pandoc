@@ -21,13 +21,20 @@ extra-deps:
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
 - pandoc-lua-marshal-0.3.2.1
-- typst-symbols-0.1.9.1
-- citeproc-0.13
 - skylighting-format-blaze-html-0.1.2
 - djot-0.1.4
-- asciidoc-0.1.0.2
-- texmath-0.13.1.1
-- typst-0.9.0.1
+- asciidoc-0.1.0.3
+- doclayout-0.5.0.3
+- commonmark-0.3
+- commonmark-pandoc-0.3
+- commonmark-extensions-0.2.7
+- citeproc-0.13.0.1
+- pandoc-types-1.23.1.2
+- typst-symbols-0.2
+- typst-0.10
+- emojis-0.1.5
+- git: https://github.com/jgm/texmath.git
+  commit: 170899673ee31de9096e178605e8da31a36e4185
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

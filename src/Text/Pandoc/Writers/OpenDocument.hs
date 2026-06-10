@@ -51,6 +51,29 @@ plainToPara :: Block -> Block
 plainToPara (Plain x) = Para x
 plainToPara x         = x
 
+-- Names of predefined styles in the reference.odt; see data/odt/styles.xml.
+defaultBulletListStyleName, defaultNumberedListStyleName :: Text
+defaultBulletListStyleName   = "List_20_1"
+defaultNumberedListStyleName = "Numbering_20_1"
+
+bulletItemStyleName, bulletItemTightStyleName,
+  numberItemStyleName, numberItemTightStyleName :: Text
+bulletItemStyleName      = "List_20_Bullet"
+bulletItemTightStyleName = "List_20_Bullet_20_Tight"
+numberItemStyleName      = "List_20_Number"
+numberItemTightStyleName = "List_20_Number_20_Tight"
+
+-- | Predefined inline style names for single-style spans.
+wellKnownTextStyle :: Set.Set TextStyle -> Maybe Text
+wellKnownTextStyle s = case Set.toList s of
+  [Italic] -> Just "Emphasis"
+  [Bold]   -> Just "Strong_20_Emphasis"
+  [Strike] -> Just "Strikeout"
+  [Sub]    -> Just "Subscript"
+  [Sup]    -> Just "Superscript"
+  [Pre]    -> Just "Source_20_Text"
+  _        -> Nothing
+
 --
 -- OpenDocument writer
 --
@@ -66,7 +89,8 @@ data WriterState =
     WriterState { stNotes          :: [Doc Text]
                 , stTableStyles    :: [Doc Text]
                 , stParaStyles     :: [Doc Text]
-                , stListStyles     :: [(Int, [Doc Text])]
+                , stListOverrides  :: Map.Map (ListNumberStyle,ListNumberDelim)
+                                        (Text, Doc Text)
                 , stTextStyles     :: Map.Map (Set.Set TextStyle)
                                         (Text, Doc Text)
                 , stTextStyleAttr  :: Set.Set TextStyle
@@ -85,7 +109,7 @@ defaultWriterState =
     WriterState { stNotes          = []
                 , stTableStyles    = []
                 , stParaStyles     = []
-                , stListStyles     = []
+                , stListOverrides  = Map.empty
                 , stTextStyles     = Map.empty
                 , stTextStyleAttr  = Set.empty
                 , stIndentPara     = 0
@@ -120,10 +144,6 @@ increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: PandocMonad m => OD m ()
 resetIndent = modify $ \s -> s { stIndentPara = stIndentPara s - 1 }
-
-inTightList :: PandocMonad m => OD m a -> OD m a
-inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
-                 modify (\s -> s { stTight = False }) >> return r
 
 setInDefinitionList :: PandocMonad m => Bool -> OD m ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
@@ -163,22 +183,25 @@ inTextStyle d = do
   at <- gets stTextStyleAttr
   if Set.null at
      then return d
-     else do
-       styles <- gets stTextStyles
-       case Map.lookup at styles of
-            Just (styleName, _) -> return $
-              inTags False "text:span" [("text:style-name",styleName)] d
-            Nothing -> do
-              let styleName = "T" <> tshow (Map.size styles + 1)
-              addTextStyle at (styleName,
-                     inTags False "style:style"
-                       [("style:name", styleName)
-                       ,("style:family", "text")]
-                       $ selfClosingTag "style:text-properties"
-                          (sortOn fst . Map.toList
-                                $ L.foldl' textStyleAttr mempty (Set.toList at)))
-              return $ inTags False
-                  "text:span" [("text:style-name",styleName)] d
+     else case wellKnownTextStyle at of
+       Just styleName -> return $
+         inTags False "text:span" [("text:style-name", styleName)] d
+       Nothing -> do
+         styles <- gets stTextStyles
+         case Map.lookup at styles of
+              Just (styleName, _) -> return $
+                inTags False "text:span" [("text:style-name",styleName)] d
+              Nothing -> do
+                let styleName = "T" <> tshow (Map.size styles + 1)
+                addTextStyle at (styleName,
+                       inTags False "style:style"
+                         [("style:name", styleName)
+                         ,("style:family", "text")]
+                         $ selfClosingTag "style:text-properties"
+                            (sortOn fst . Map.toList
+                                  $ L.foldl' textStyleAttr mempty (Set.toList at)))
+                return $ inTags False
+                    "text:span" [("text:style-name",styleName)] d
 
 formulaStyles :: [Doc Text]
 formulaStyles = [formulaStyle InlineMath, formulaStyle DisplayMath]
@@ -263,10 +286,8 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
                      map snd (sortBy (comparing (Down . fst)) (
                         Map.elems (stTextStyles s)))
-      listStyle (n,l) = inTags True "text:list-style"
-                          [("style:name", "L" <> tshow n)] (vcat l)
-  let listStyles  = map listStyle (stListStyles s)
-  let automaticStyles = vcat $ reverse $ styles ++ listStyles
+  let listStyles  = map snd (Map.elems (stListOverrides s))
+  let automaticStyles = vcat $ reverse styles ++ listStyles
   let context = defField "body" body
               . defField "toc" (writerTableOfContents opts)
               . defField "toc-depth" (tshow $ writerTOCDepth opts)
@@ -286,32 +307,86 @@ withParagraphStyle  o s (b:bs)
 withParagraphStyle _ _ [] = return empty
 
 inPreformattedTags :: PandocMonad m => [Doc Text] -> OD m (Doc Text)
-inPreformattedTags s = do
-  n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
-  return $ inParagraphTagsWithStyle ("P" <> tshow n) $ hcat s
+inPreformattedTags s =
+  return $ inParagraphTagsWithStyle "Preformatted_20_Text" $ hcat s
+
+-- | Get the list-style name to use for an ordered list with the given
+-- numbering style and delimiter, registering an override automatic style
+-- if needed.  Lists with default style/delimiter use the predefined
+-- @Numbering_20_1@ style and no override is generated.
+orderedListStyleName :: PandocMonad m
+                     => ListNumberStyle -> ListNumberDelim -> OD m Text
+orderedListStyleName ns nd
+  | (ns == DefaultStyle || ns == Decimal) &&
+    (nd == DefaultDelim || nd == Period) =
+      return defaultNumberedListStyleName
+  | otherwise = do
+      overrides <- gets stListOverrides
+      case Map.lookup (ns, nd) overrides of
+        Just (name, _) -> return name
+        Nothing -> do
+          let name = "Pandoc_5f_Numbering_5f_" <>
+                       tshow (Map.size overrides + 1)
+              doc = inTags True "text:list-style"
+                      [("style:name", name)]
+                      (vcat (map (orderedListLevel ns nd) [1..10]))
+          modify $ \s -> s { stListOverrides =
+                               Map.insert (ns, nd) (name, doc)
+                                          (stListOverrides s) }
+          return name
+
+orderedListLevel :: ListNumberStyle -> ListNumberDelim -> Int -> Doc Text
+orderedListLevel ns nd lvl =
+    let suffix = case nd of
+                   OneParen  -> [("style:num-suffix", ")")]
+                   TwoParens -> [("style:num-prefix", "(")
+                                ,("style:num-suffix", ")")]
+                   _         -> [("style:num-suffix", ".")]
+        format = case ns of
+                   UpperAlpha -> "A"
+                   LowerAlpha -> "a"
+                   UpperRoman -> "I"
+                   LowerRoman -> "i"
+                   _          -> "1"
+    in inTags True "text:list-level-style-number"
+              ([ ("text:level"      , tshow lvl)
+               , ("text:style-name" , "Numbering_20_Symbols")
+               , ("style:num-format", format)
+               ] ++ suffix)
+              (selfClosingTag "style:list-level-properties"
+                 [ ("text:space-before",
+                      T.pack (printf "%.4fin" (0.1972 * fromIntegral (lvl - 1) :: Double)))
+                 , ("text:min-label-width", "0.1965in")
+                 , ("text:min-label-distance", "0.1in")
+                 ])
 
 orderedListToOpenDocument :: PandocMonad m
-                          => WriterOptions -> Int -> [[Block]] -> OD m (Doc Text)
-orderedListToOpenDocument o pn bs =
+                          => WriterOptions -> Text -> [[Block]]
+                          -> OD m (Doc Text)
+orderedListToOpenDocument o paraName bs =
     vcat . map (inTagsIndented "text:list-item") <$>
-    mapM (orderedItemToOpenDocument o pn . map plainToPara) bs
+    mapM (orderedItemToOpenDocument o paraName . map plainToPara) bs
 
 orderedItemToOpenDocument :: PandocMonad m
-                          => WriterOptions -> Int -> [Block] -> OD m (Doc Text)
-orderedItemToOpenDocument  o n bs = vcat <$> mapM go bs
- where go (OrderedList a l) = newLevel a l
-       go (Para          l) = inParagraphTagsWithStyle ("P" <> tshow n) <$>
+                          => WriterOptions -> Text -> [Block]
+                          -> OD m (Doc Text)
+orderedItemToOpenDocument  o paraName bs = vcat <$> mapM go bs
+ where go (OrderedList a l) = orderedList a l
+       go (Para          l) = inParagraphTagsWithStyle paraName <$>
                                 inlinesToOpenDocument o l
        go b                 = blockToOpenDocument o b
-       newLevel a l = do
-         nn <- length <$> gets stParaStyles
-         liststyles <- gets stListStyles
-         let ls = case liststyles of
-                    [] -> (1,[])  -- should never happen
-                    (s:_) -> s
-         modify $ \s -> s { stListStyles = orderedListLevelStyle a ls :
-                                 drop 1 (stListStyles s) }
-         inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
+       orderedList a@(_,ns,nd) l = do
+         lstName <- orderedListStyleName ns nd
+         let pn = if isTightList l then numberItemTightStyleName
+                                   else numberItemStyleName
+         let listAttrs = ("text:style-name", lstName) : startValueAttr a
+         inTags True "text:list" listAttrs <$>
+           orderedListToOpenDocument o pn l
+
+-- | Generate a @text:start-value@ attribute when the start value is not 1.
+startValueAttr :: ListAttributes -> [(Text, Text)]
+startValueAttr (s,_,_) | s /= 1 = [("text:start-value", tshow s)]
+startValueAttr _                = []
 
 isTightList :: [[Block]] -> Bool
 isTightList []          = False
@@ -319,23 +394,14 @@ isTightList (b:_)
     | Plain {} : _ <- b = True
     | otherwise         = False
 
-newOrderedListStyle :: PandocMonad m
-                    => Bool -> ListAttributes -> OD m (Int,Int)
-newOrderedListStyle b a = do
-  ln <- (+) 1 . length  <$> gets stListStyles
-  let nbs = orderedListLevelStyle a (ln, [])
-  pn <- if b then inTightList (paraListStyle ln) else paraListStyle ln
-  modify $ \s -> s { stListStyles = nbs : stListStyles s }
-  return (ln,pn)
-
 bulletListToOpenDocument :: PandocMonad m
                          => WriterOptions -> [[Block]] -> OD m (Doc Text)
 bulletListToOpenDocument o b = do
-  ln <- (+) 1 . length <$> gets stListStyles
-  (pn,ns) <- if isTightList b then inTightList (bulletListStyle ln) else bulletListStyle ln
-  modify $ \s -> s { stListStyles = ns : stListStyles s }
-  is <- listItemsToOpenDocument ("P" <> tshow pn) o b
-  return $ inTags True "text:list" [("text:style-name", "L" <> tshow ln)] is
+  let pn = if isTightList b then bulletItemTightStyleName
+                            else bulletItemStyleName
+  is <- listItemsToOpenDocument pn o b
+  return $ inTags True "text:list"
+             [("text:style-name", defaultBulletListStyleName)] is
 
 listItemsToOpenDocument :: PandocMonad m
                         => Text -> WriterOptions -> [[Block]] -> OD m (Doc Text)
@@ -354,16 +420,18 @@ deflistItemToOpenDocument o (t,d) = do
   return $ t' $$ d'
 
 inBlockQuote :: PandocMonad m
-             => WriterOptions -> Int -> [Block] -> OD m (Doc Text)
-inBlockQuote  o i (b:bs)
+             => WriterOptions -> Text -> [Block] -> OD m (Doc Text)
+inBlockQuote  o sty (b:bs)
     | BlockQuote l <- b = do increaseIndent
                              ni <- paraStyle
                                    [("style:parent-style-name","Quotations")]
-                             go =<< inBlockQuote o ni (map plainToPara l)
-    | Para       l <- b = go =<< inParagraphTagsWithStyle ("P" <> tshow i) <$> inlinesToOpenDocument o l
+                             inner <- inBlockQuote o ni (map plainToPara l)
+                             resetIndent
+                             go inner
+    | Para       l <- b = go =<< inParagraphTagsWithStyle sty <$> inlinesToOpenDocument o l
     | otherwise         = go =<< blockToOpenDocument o b
-    where go  block  = ($$) block <$> inBlockQuote o i bs
-inBlockQuote     _ _ [] =  resetIndent >> return empty
+    where go  block  = ($$) block <$> inBlockQuote o sty bs
+inBlockQuote     _ _ [] = return empty
 
 -- | Convert a list of Pandoc blocks to OpenDocument.
 blocksToOpenDocument :: PandocMonad m => WriterOptions -> [Block] -> OD m (Doc Text)
@@ -425,13 +493,16 @@ blockToOpenDocument o = \case
         if T.null ident
           then i
           else fmap mkBookmarkedDiv i
-      mkBlockQuote  b = do increaseIndent
-                           i <- paraStyle
-                                 [("style:parent-style-name","Quotations")]
-                           inBlockQuote o i (map plainToPara b)
-      orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
-                           inTags True "text:list" [ ("text:style-name", "L" <> tshow ln)]
-                                      <$> orderedListToOpenDocument o pn b
+      mkBlockQuote  b = do sty <- paraStyle
+                                    [("style:parent-style-name","Quotations")]
+                           inBlockQuote o sty (map plainToPara b)
+      orderedList a@(_,ns,nd) b = do
+        lstName <- orderedListStyleName ns nd
+        let pn = if isTightList b then numberItemTightStyleName
+                                  else numberItemStyleName
+        let listAttrs = ("text:style-name", lstName) : startValueAttr a
+        inTags True "text:list" listAttrs <$>
+          orderedListToOpenDocument o pn b
       table :: PandocMonad m => WriterOptions -> Ann.Table -> OD m (Doc Text)
       table opts
           (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies tfoot) = do
@@ -591,14 +662,9 @@ tableItemToOpenDocument o s (n,c) = do
       aa = alignAttrib align
       a = [ ("table:style-name" , s )
           , ("office:value-type", "string" ) ] ++ csa ++ rsa
-  itemParaStyle <- case aa of
-                     [] -> return 0
-                     _  -> paraStyleFromParent n aa
-  let itemParaStyle' = case itemParaStyle of
-                         0 -> n
-                         x -> "P" <> tshow x
+  itemParaStyle <- paraStyleFromParent n aa
   inTags True "table:table-cell" a <$>
-    withParagraphStyle o itemParaStyle' (map plainToPara i)
+    withParagraphStyle o itemParaStyle (map plainToPara i)
 
 -- | Convert a list of inline elements to OpenDocument.
 inlinesToOpenDocument :: PandocMonad m => WriterOptions -> [Inline] -> OD m (Doc Text)
@@ -761,55 +827,6 @@ mkLink o identTypes s t d =
             then linkOrReference
             else link
 
-bulletListStyle :: PandocMonad m => Int -> OD m (Int,(Int,[Doc Text]))
-bulletListStyle l = do
-  let doStyles  i = inTags True "text:list-level-style-bullet"
-                    [ ("text:level"      , tshow (i + 1))
-                    , ("text:style-name" , "Bullet_20_Symbols"  )
-                    , ("style:num-suffix", "."                  )
-                    , ("text:bullet-char", T.singleton (bulletList !! i))
-                    ] (listLevelStyle (1 + i))
-      bulletList  = map chr $ cycle [8226,9702,9642]
-      listElStyle = map doStyles [0..9]
-  pn <- paraListStyle l
-  return (pn, (l, listElStyle))
-
-orderedListLevelStyle :: ListAttributes -> (Int, [Doc Text]) -> (Int,[Doc Text])
-orderedListLevelStyle (s,n, d) (l,ls) =
-    let suffix    = case d of
-                      OneParen  -> [("style:num-suffix", ")")]
-                      TwoParens -> [("style:num-prefix", "(")
-                                   ,("style:num-suffix", ")")]
-                      _         -> [("style:num-suffix", ".")]
-        format    = case n of
-                      UpperAlpha -> "A"
-                      LowerAlpha -> "a"
-                      UpperRoman -> "I"
-                      LowerRoman -> "i"
-                      _          -> "1"
-        listStyle = inTags True "text:list-level-style-number"
-                    ([ ("text:level"      , tshow $ 1 + length ls )
-                     , ("text:style-name" , "Numbering_20_Symbols")
-                     , ("style:num-format", format                )
-                     , ("text:start-value", tshow s               )
-                     ] ++ suffix) (listLevelStyle (1 + length ls))
-    in  (l, ls ++ [listStyle])
-
-listLevelStyle :: Int -> Doc Text
-listLevelStyle i =
-    let indent = tshow (0.25 + (0.25 * fromIntegral i :: Double)) in
-    inTags True "style:list-level-properties"
-                       [ ("text:list-level-position-and-space-mode",
-                          "label-alignment")
-                       , ("fo:text-align", "right")
-                       ] $
-       selfClosingTag "style:list-level-label-alignment"
-                      [ ("text:label-followed-by", "listtab")
-                      , ("text:list-tab-stop-position", indent <> "in")
-                      , ("fo:text-indent", "-0.25in")
-                      , ("fo:margin-left", indent <> "in")
-                      ]
-
 tableStyle :: Int -> Double -> [(Char,Double)] -> Doc Text
 tableStyle num textWidth wcs =
     let tableId        = "Table" <> tshow (num + 1)
@@ -847,15 +864,17 @@ tableStyle num textWidth wcs =
         columnStyles   = map colStyle wcs
     in cellStyles $$ table $$ vcat columnStyles
 
-paraStyle :: PandocMonad m => [(Text,Text)] -> OD m Int
+-- | Generate (or reuse) a paragraph style with the given attributes.
+-- When the only attribute is @style:parent-style-name@ and no
+-- indent/tight overrides are active, the parent name is returned
+-- directly (no @Pn@ automatic style is created), so that the
+-- predefined style passes through unchanged.
+paraStyle :: PandocMonad m => [(Text,Text)] -> OD m Text
 paraStyle attrs = do
-  pn <- (+)   1 . length       <$> gets stParaStyles
   i  <- (*) (0.5 :: Double) . fromIntegral <$> gets stIndentPara
   b  <- gets stInDefinition
   t  <- gets stTight
-  let styleAttr = [ ("style:name"             , "P" <> tshow pn)
-                  , ("style:family"           , "paragraph"   )]
-      indentVal = flip (<>) "in" . tshow $ if b then max 0.5 i else i
+  let indentVal = flip (<>) "in" . tshow $ if b then max 0.5 i else i
       tight     = if t then [ ("fo:margin-top"          , "0in"    )
                             , ("fo:margin-bottom"       , "0in"    )]
                        else []
@@ -866,31 +885,32 @@ paraStyle attrs = do
                            , ("style:auto-text-indent" , "false"  )]
                       else []
       attributes = indent <> tight
-      paraProps = if null attributes
-                     then mempty
-                     else selfClosingTag
-                             "style:paragraph-properties" attributes
-  addParaStyle $ inTags True "style:style" (styleAttr <> attrs) paraProps
-  return pn
+  case (attributes, attrs) of
+    ([], [("style:parent-style-name", parent)]) -> return parent
+    _ -> do
+      pn <- (+) 1 . length <$> gets stParaStyles
+      let name      = "P" <> tshow pn
+          styleAttr = [ ("style:name"  , name)
+                      , ("style:family", "paragraph") ]
+          paraProps = if null attributes
+                         then mempty
+                         else selfClosingTag
+                                 "style:paragraph-properties" attributes
+      addParaStyle $ inTags True "style:style" (styleAttr <> attrs) paraProps
+      return name
 
-paraStyleFromParent :: PandocMonad m => Text -> [(Text,Text)] -> OD m Int
-paraStyleFromParent parent attrs = do
-  pn <- (+) 1 . length  <$> gets stParaStyles
-  let styleAttr = [ ("style:name"             , "P" <> tshow pn)
-                  , ("style:family"           , "paragraph")
-                  , ("style:parent-style-name", parent)]
-      paraProps = if null attrs
-                     then mempty
-                     else selfClosingTag
-                          "style:paragraph-properties" attrs
-  addParaStyle $ inTags True "style:style" styleAttr paraProps
-  return pn
-
-
-paraListStyle :: PandocMonad m => Int -> OD m Int
-paraListStyle l = paraStyle
-  [("style:parent-style-name","Text_20_body")
-  ,("style:list-style-name", "L" <> tshow l)]
+paraStyleFromParent :: PandocMonad m => Text -> [(Text,Text)] -> OD m Text
+paraStyleFromParent parent attrs
+  | null attrs = return parent
+  | otherwise  = do
+      pn <- (+) 1 . length <$> gets stParaStyles
+      let name      = "P" <> tshow pn
+          styleAttr = [ ("style:name"             , name)
+                      , ("style:family"           , "paragraph")
+                      , ("style:parent-style-name", parent)]
+          paraProps = selfClosingTag "style:paragraph-properties" attrs
+      addParaStyle $ inTags True "style:style" styleAttr paraProps
+      return name
 
 paraTableStyles :: Text -> Int -> [Alignment] -> [(Text, Doc Text)]
 paraTableStyles _ _ [] = []

@@ -35,6 +35,7 @@ make prerelease
 make authors
 #+end_src
 *** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] on GitHub
+windows, macos x86
     #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
 curl -L \
   -X POST \
@@ -44,10 +45,11 @@ curl -L \
 https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/dispatches \
   -d '{"ref":"main"}'
     #+end_src
-*** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
+*** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on app.circleci.com
+linux arm64, linux amd64, macos arm64, wasm
 *** TODO If it builds successfully, download artifacts
-from GitHub: Windows and intel mac and pandoc.wasm (rename as pandoc-VERSION.wasm)
-from Cirrus-ci.com: linux amd64 and arm64 and m1 mac
+from GitHub: Windows and intel mac
+from circleci.com: linux amd64 and arm64 and arm64 mac and pandoc.wasm (rename as pandoc-VERSION.wasm)
 *** TODO Use 'make' in macos artifact to sign code
 *** TODO Install pandoc from package
 So website will have the correct executable.

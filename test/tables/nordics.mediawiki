@@ -1,4 +1,4 @@
-{| id="nordics" class="wikitable" source="wikipedia"
+{| id="nordics" class="wikitable" data-source="wikipedia"
 |+ States belonging to the ''Nordics.''
 |-
 ! style="text-align: center;"| Name

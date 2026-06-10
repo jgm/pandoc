@@ -273,7 +273,7 @@ return {
     test('unsupported extension', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'gfm+empty_paragraphs') end,
-        'The extension empty_paragraphs is not supported for gfm'
+        'The extension \'empty_paragraphs\' is not supported for gfm'
       )
     end),
     test('read with other indented code classes', function()
@@ -297,7 +297,7 @@ return {
     test('failing read', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'nosuchreader') end,
-        'Unknown input format nosuchreader'
+        'Unknown input format \'nosuchreader\''
       )
     end),
     group 'read_env' {
@@ -364,21 +364,21 @@ return {
       test('unsupported extension', function ()
         assert.error_matches(
           function () pandoc.read('foo', 'gfm+empty_paragraphs') end,
-          'The extension empty_paragraphs is not supported for gfm'
+          'The extension \'empty_paragraphs\' is not supported for gfm'
         )
       end),
       test('unknown extension', function ()
         local format_spec = { format = 'markdown', extensions = {'nope'}}
         assert.error_matches(
           function () pandoc.read('x', format_spec) end,
-          'The extension nope is not supported for markdown'
+          'The extension \'nope\' is not supported for markdown'
         )
       end),
       test('fails on invalid extension', function ()
         local format_spec = { format = 'markdown', extensions = {'nope'}}
         assert.error_matches(
           function () pandoc.read('nu-uh', format_spec) end,
-          'The extension nope is not supported for markdown'
+          'The extension \'nope\' is not supported for markdown'
         )
       end),
     },
@@ -458,7 +458,7 @@ return {
       local format_spec = { format = 'plain', extensions = {'nope'}}
       assert.error_matches(
         function () pandoc.write(doc, format_spec) end,
-        'The extension nope is not supported for plain'
+        'The extension \'nope\' is not supported for plain'
       )
     end),
   },

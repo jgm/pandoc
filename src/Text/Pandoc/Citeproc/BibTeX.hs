@@ -188,6 +188,7 @@ writeBibtexString opts variant mblang ref =
            , "annote"
            , "url" -- not officially supported, but supported by
                    -- some styles (#8287)
+           , "doi"
            ]
 
   valToInlines (TextVal t) = B.text t
@@ -476,12 +477,12 @@ itemToReference locale variant item = do
     subtitle' <- (guard isPeriodical >> getTitle "issuesubtitle")
                   <|> (guard hasMaintitle >>
                        guard (not isChapterlike) >>
-                       getTitle "mainsubtitle")
+                       getTitle "mainsubtitle" <|> return mempty)
                   <|> getTitle "subtitle"
                   <|> return mempty
     titleaddon' <- (guard hasMaintitle >>
                      guard (not isChapterlike) >>
-                     getTitle "maintitleaddon")
+                     getTitle "maintitleaddon" <|> return mempty)
                     <|> getTitle "titleaddon"
                     <|> return mempty
 

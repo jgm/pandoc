@@ -212,9 +212,10 @@ updateStyle opts mbLang arch = do
                 . maybe id addLang mbLang
                 . transformElement (\qn -> qName qn == "styles" &&
                                       qPrefix qn == Just "office" )
-                     (case writerHighlightMethod opts of
+                     (addListItemStyles .
+                      (case writerHighlightMethod opts of
                         Skylighting style -> addHlStyles style
-                        _ -> id)
+                        _ -> id))
                 $ d )
         | otherwise = pure e
   entries <- mapM goEntry (zEntries arch)
@@ -227,6 +228,56 @@ addHlStyles sty el =
  where
    isHlStyle (Elem e) = "Tok" `T.isSuffixOf` (qName (elName e))
    isHlStyle _ = False
+
+-- | Ensure the office:styles element contains paragraph styles for
+-- list items used by the OpenDocument writer.  This injects only the
+-- styles that are missing, so a user-supplied reference.odt may
+-- override any of them.
+addListItemStyles :: Element -> Element
+addListItemStyles el =
+  el{ elContent = elContent el ++ map Elem missingStyles }
+ where
+   existing = [ T.concat [ attrVal a
+                         | a <- elAttribs e
+                         , qName (attrKey a) == "name"
+                         , qPrefix (attrKey a) == Just "style" ]
+              | Elem e <- elContent el
+              , qName (elName e) == "style"
+              , qPrefix (elName e) == Just "style" ]
+   missingStyles =
+     [ s | s <- listItemStyleElements
+         , styleNameOf s `notElem` existing ]
+   styleNameOf e = T.concat [ attrVal a
+                            | a <- elAttribs e
+                            , qName (attrKey a) == "name"
+                            , qPrefix (attrKey a) == Just "style" ]
+
+listItemStyleElements :: [Element]
+listItemStyleElements =
+  [ mkParaStyle "List_20_Bullet" "List Bullet" Nothing
+  , mkParaStyle "List_20_Bullet_20_Tight" "List Bullet Tight" (Just tightProps)
+  , mkParaStyle "List_20_Number" "List Number" Nothing
+  , mkParaStyle "List_20_Number_20_Tight" "List Number Tight" (Just tightProps)
+  ]
+ where
+   styleQN n p = QName n Nothing (Just p)
+   mkAttr p n v = Attr (styleQN n p) v
+   tightProps =
+     Element (styleQN "paragraph-properties" "style")
+       [ mkAttr "fo" "margin-top" "0in"
+       , mkAttr "fo" "margin-bottom" "0in"
+       , mkAttr "style" "contextual-spacing" "false"
+       ] [] Nothing
+   mkParaStyle name display mbProps =
+     Element (styleQN "style" "style")
+       [ mkAttr "style" "name" name
+       , mkAttr "style" "display-name" display
+       , mkAttr "style" "family" "paragraph"
+       , mkAttr "style" "parent-style-name" "List"
+       , mkAttr "style" "class" "list"
+       ]
+       (maybe [] (\p -> [Elem p]) mbProps)
+       Nothing
 
 -- top-down search
 transformElement :: (QName -> Bool)
@@ -299,11 +350,15 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
 transformPicMath _ (Math t math) = do
   entries <- gets stEntries
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
-  case writeMathML dt <$> readTeX math of
+  case readTeX math of
        Left  _ -> return $ Math t math
-       Right r -> do
+       Right exps -> do
          let conf = XL.useShortEmptyTags (const False) XL.defaultConfigPP
-         let mathml = XL.ppcTopElement conf r
+         let starMath =
+               writeStarMath dt exps <> "\n" <> starMathCommentFromTeX math
+         let mathmlElement =
+               addStarMathAnnotation starMath (writeMathML dt exps)
+         let mathml = XL.ppcTopElement conf mathmlElement
          epochtime <- floor `fmap` lift P.getPOSIXTime
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
@@ -327,6 +382,47 @@ transformPicMath _ (Math t math) = do
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ x = return x
+
+starMathCommentFromTeX :: T.Text -> T.Text
+starMathCommentFromTeX tex =
+  case T.lines normalized of
+    []       -> "%% TeX:"
+    (l : ls) ->
+      T.intercalate "\n" (("%% TeX: " <> l) : map ("%% " <>) ls)
+ where
+  normalized = T.replace "\r\n" "\n" (T.replace "\r" "\n" tex)
+
+addStarMathAnnotation :: T.Text -> XL.Element -> XL.Element
+addStarMathAnnotation starMath e =
+  case XL.elContent e of
+    [XL.Elem sem] | XL.qName (XL.elName sem) == "semantics" ->
+      e { XL.elContent = [XL.Elem (withAnnotation sem)] }
+    _ ->
+      e { XL.elContent = [XL.Elem (mkSemantics (XL.elContent e))] }
+ where
+  mkSemantics cs =
+    XL.Element (mkMathQName "semantics") [] (cs ++ [XL.Elem annotation]) Nothing
+
+  withAnnotation sem =
+    sem { XL.elContent =
+            filter (not . isStarMathAnnotation) (XL.elContent sem)
+            ++ [XL.Elem annotation] }
+
+  annotation =
+    XL.Element (mkMathQName "annotation")
+      [XL.Attr (XL.QName "encoding" Nothing Nothing) "StarMath 5.0"]
+      [XL.Text (XL.CData XL.CDataText (T.unpack starMath) Nothing)]
+      Nothing
+
+  isStarMathAnnotation (XL.Elem el) =
+    XL.qName (XL.elName el) == "annotation" &&
+    any (\a -> XL.qName (XL.attrKey a) == "encoding"
+               && XL.attrVal a == "StarMath 5.0")
+        (XL.elAttribs el)
+  isStarMathAnnotation _ = False
+
+  mkMathQName n =
+    XL.QName n (XL.qURI $ XL.elName e) (XL.qPrefix $ XL.elName e)
 
 documentSettings :: Bool -> B.ByteString
 documentSettings isTextMode = fromStringLazy $ render Nothing

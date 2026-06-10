@@ -83,7 +83,7 @@ import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Citeproc (ItemId(..), Reference(..), CitationItem(..))
+import Citeproc (ItemId(..), Val(TextVal,FancyVal), Reference(..), CitationItem(..))
 import qualified Citeproc
 import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
@@ -536,8 +536,13 @@ handleCitation :: PandocMonad m
                => Citeproc.Citation T.Text
                -> DocxContext m [Citation]
 handleCitation citation = do
+  let getItemId item =
+        case citationItemData item >>= M.lookup "citation-key" . referenceVariables of
+          Just (TextVal k) -> ItemId k
+          Just (FancyVal k) -> ItemId k
+          _ -> citationItemId item
   let toPandocCitation item =
-        Citation{ citationId = unItemId (Citeproc.citationItemId item)
+        Citation{ citationId = unItemId (getItemId item)
                 , citationPrefix = maybe [] (toList . text) $
                                      Citeproc.citationItemPrefix item
                 , citationSuffix = (toList . text) $
@@ -554,8 +559,7 @@ handleCitation citation = do
   let refs = mapMaybe (\item -> fmap (\itemData -> text <$>
                                         -- see #10366, sometimes itemData has a different
                                         -- id and we need to use the same one:
-                                        itemData{ referenceId =
-                                                    Citeproc.citationItemId item })
+                                        itemData{ referenceId = getItemId item })
                                   (Citeproc.citationItemData item)) items
   modify $ \st ->
     st{ docxReferences = foldr
@@ -714,74 +718,80 @@ bodyPartToBlocks (Heading n style pPr numId lvl mblvlInfo parparts) = do
              in M.insert (numId, lvl) start
                   (M.filterWithKey notExpired listState) }
     makeHeaderAnchor $ headerWith ("", addNum classes, []) n ils
-bodyPartToBlocks (Paragraph pPr parparts)
-  | Just True <- pBidi pPr = do
-      let pPr' = pPr { pBidi = Nothing }
-      local (\s -> s{ docxInBidi = True })
-        (bodyPartToBlocks (Paragraph pPr' parparts))
-  | isCodeDiv pPr = do
-      transform <- paragraphStyleToTransform pPr
-      return $
-        transform $
-        codeBlock $
-        T.concat $
-        map parPartToText parparts
-  | otherwise = do
-    ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
-    prevParaIls <- gets docxPrevPara
-    dropIls <- gets docxDropCap
-    let ils' = dropIls <> ils
-    let (paraOrPlain, pPr')
-          | hasStylesInheritedFrom ["Compact"] pPr = (plain, removeStyleNamed "Compact" pPr)
-          | otherwise = (para, pPr)
-    if dropCap pPr'
-      then do modify $ \s -> s { docxDropCap = ils' }
-              return mempty
-      else do modify $ \s -> s { docxDropCap = mempty }
-              let ils'' = (if null prevParaIls then mempty
-                          else prevParaIls <> space) <> ils'
-                  handleInsertion = do
-                    modify $ \s -> s {docxPrevPara = mempty}
-                    transform <- paragraphStyleToTransform pPr'
-                    return $ transform $ paraOrPlain ils''
-              opts <- asks docxOptions
-              case (pChange pPr', readerTrackChanges opts) of
-                  _ | null ils'', not (isEnabled Ext_empty_paragraphs opts) ->
+bodyPartToBlocks (Paragraph pPr parparts) = do
+  let getMainPar
+        | Just True <- pBidi pPr = do
+            let pPr' = pPr { pBidi = Nothing }
+            local (\s -> s{ docxInBidi = True })
+              (bodyPartToBlocks (Paragraph pPr' parparts))
+        | isCodeDiv pPr = do
+            transform <- paragraphStyleToTransform pPr
+            return $
+              transform $
+              codeBlock $
+              T.concat $
+              map parPartToText parparts
+        | otherwise = do
+          ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
+          prevParaIls <- gets docxPrevPara
+          dropIls <- gets docxDropCap
+          let ils' = dropIls <> ils
+          let (paraOrPlain, pPr')
+                | hasStylesInheritedFrom ["Compact"] pPr = (plain, removeStyleNamed "Compact" pPr)
+                | otherwise = (para, pPr)
+          if dropCap pPr'
+            then do modify $ \s -> s { docxDropCap = ils' }
                     return mempty
-                  (Just (TrackedChange Insertion _), AcceptChanges) ->
-                      handleInsertion
-                  (Just (TrackedChange Insertion _), RejectChanges) -> do
-                      modify $ \s -> s {docxPrevPara = ils''}
-                      return mempty
-                  (Just (TrackedChange Insertion (ChangeInfo _ cAuthor cDate))
-                   , AllChanges) -> do
-                      let attr = ("", ["paragraph-insertion"], addAuthorAndDate cAuthor cDate)
-                          insertMark = spanWith attr mempty
-                      transform <- paragraphStyleToTransform pPr'
-                      return $ transform $
-                        paraOrPlain $ ils'' <> insertMark
-                  (Just (TrackedChange Deletion _), AcceptChanges) -> do
-                      modify $ \s -> s {docxPrevPara = ils''}
-                      return mempty
-                  (Just (TrackedChange Deletion _), RejectChanges) ->
-                      handleInsertion
-                  (Just (TrackedChange Deletion (ChangeInfo _ cAuthor cDate))
-                   , AllChanges) -> do
-                      let attr = ("", ["paragraph-deletion"], addAuthorAndDate cAuthor cDate)
-                          insertMark = spanWith attr mempty
-                      transform <- paragraphStyleToTransform pPr'
-                      return $ transform $
-                        paraOrPlain $ ils'' <> insertMark
-                  _ -> handleInsertion
-bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
-  -- We check whether this current numId has previously been used,
-  -- since Docx expects us to pick up where we left off.
+            else do modify $ \s -> s { docxDropCap = mempty }
+                    let ils'' = (if null prevParaIls then mempty
+                                else prevParaIls <> space) <> ils'
+                        handleInsertion = do
+                          modify $ \s -> s {docxPrevPara = mempty}
+                          transform <- paragraphStyleToTransform pPr'
+                          return $ transform $ paraOrPlain ils''
+                    opts <- asks docxOptions
+                    case (pChange pPr', readerTrackChanges opts) of
+                        _ | null ils'', not (isEnabled Ext_empty_paragraphs opts) ->
+                          return mempty
+                        (Just (TrackedChange Insertion _), AcceptChanges) ->
+                            handleInsertion
+                        (Just (TrackedChange Insertion _), RejectChanges) -> do
+                            modify $ \s -> s {docxPrevPara = ils''}
+                            return mempty
+                        (Just (TrackedChange Insertion (ChangeInfo _ cAuthor cDate))
+                         , AllChanges) -> do
+                            let attr = ("", ["paragraph-insertion"], addAuthorAndDate cAuthor cDate)
+                                insertMark = spanWith attr mempty
+                            transform <- paragraphStyleToTransform pPr'
+                            return $ transform $
+                              paraOrPlain $ ils'' <> insertMark
+                        (Just (TrackedChange Deletion _), AcceptChanges) -> do
+                            modify $ \s -> s {docxPrevPara = ils''}
+                            return mempty
+                        (Just (TrackedChange Deletion _), RejectChanges) ->
+                            handleInsertion
+                        (Just (TrackedChange Deletion (ChangeInfo _ cAuthor cDate))
+                         , AllChanges) -> do
+                            let attr = ("", ["paragraph-deletion"], addAuthorAndDate cAuthor cDate)
+                                insertMark = spanWith attr mempty
+                            transform <- paragraphStyleToTransform pPr'
+                            return $ transform $
+                              paraOrPlain $ ils'' <> insertMark
+                        _ -> handleInsertion
+  (if pBottomBorder pPr
+      then (<> horizontalRule)
+      else id)
+    <$> getMainPar
+bodyPartToBlocks (ListItem pPr numId lvl isRestart (Just levelInfo) parparts) = do
+  -- We check whether this current abstract numbering id has previously been
+  -- used, since Docx expects us to pick up where we left off -- unless this
+  -- item explicitly restarts numbering (see #8367).
   listState <- gets docxListState
   let startFromState = M.lookup (numId, lvl) listState
       Level _ fmt txt startFromLevelInfo = levelInfo
       start = case startFromState of
-        Just n -> n + 1
-        Nothing -> fromMaybe 1 startFromLevelInfo
+        Just n | not isRestart -> n + 1
+        _ -> fromMaybe 1 startFromLevelInfo
       kvs = [ ("level", lvl)
             , ("num-id", numId)
             , ("format", fmt)
@@ -795,7 +805,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
     in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
-bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
+bodyPartToBlocks (ListItem pPr _ _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts

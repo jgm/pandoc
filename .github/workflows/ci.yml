@@ -155,7 +155,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: |
-          C:\cabal\store
+          %LOCALAPPDATA%/cabal/store
         key: ${{ runner.os }}-appdata-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
@@ -171,75 +171,3 @@ jobs:
           cabal update
           cabal test --ghc-option=-Werror -fhttp --enable-tests --disable-optimization --ghc-options=-Werror all
 
-# The nix build ran out of resources. Not sure how to fix.
-#
-#  nix-wasm:
-#
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: true
-#    steps:
-#    - uses: actions/checkout@v6
-#    # Remove unneeded cruft in runner so we have room for Nix:
-#    - uses: wimpysworld/nothing-but-nix@v9
-#      with:
-#        hatchet-protocol: 'rampage'
-#    - uses: DeterminateSystems/nix-installer-action@main
-#    - uses: DeterminateSystems/magic-nix-cache-action@main
-#    - name: Cache cabal work
-#      id:   cabal-local
-#      uses: actions/cache@v5
-#      with:
-#        path: |
-#          dist-newstyle
-#        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
-#    - run: |
-#        nix develop --command bash -c "make pandoc.wasm"
-
-# We no longer run the macos tests, to make CI faster.
-# macos:
-
-#   runs-on: macos-12
-#   strategy:
-#     fail-fast: true
-#     matrix:
-#       versions:
-#         - ghc: '8.8.4'
-#           cabal: '3.2'
-
-#   steps:
-#   - uses: actions/checkout@v6
-
-#   - name: Install cabal/ghc
-#     run: |
-#       ghcup install ghc --set ${{ matrix.versions.ghc }}
-#       ghcup install cabal ${{ matrix.versions.cabal }}
-
-#   # declare/restore cached things
-
-#   - name: Cache cabal global package db
-#     id:   cabal-global
-#     uses: actions/cache@v5
-#     with:
-#       path: |
-#         ~/.cabal
-#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
-
-#   - name: Cache cabal work
-#     id:   cabal-local
-#     uses: actions/cache@v5
-#     with:
-#       path: |
-#         dist-newstyle
-#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
-
-#   - name: Install dependencies
-#     run: |
-#         cabal v2-update
-#         cabal v2-build --dependencies-only --enable-tests --disable-optimization
-#   - name: Build and test
-#     run: |
-#         cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
-#         # fail if warnings in local build
-#         ! grep -q ": *[Ww]arning:" build.log || exit 1
-#         cabal v2-test --disable-optimization --test-option=--hide-successes --test-option=--ansi-tricks=false
