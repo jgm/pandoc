@@ -747,8 +747,14 @@ inlineToOpenDocument o ils
                    getDims (("height", h):xs) = ("svg:height", h) : getDims xs
                    getDims (("rel-height", w):xs) = ("style:rel-height", w) : getDims xs
                    getDims (_:xs) =                             getDims xs
+               -- Image is an Inline: anchor the frame as a character so
+               -- it flows with the text.  Without an explicit anchor,
+               -- consumers default to paragraph anchoring and float the
+               -- frame beside the following text.
                return $ inTags False "draw:frame"
-                        (("draw:name", "img" <> tshow id') : getDims kvs) $
+                        (("draw:name", "img" <> tshow id')
+                         : ("text:anchor-type", "as-char")
+                         : getDims kvs) $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
