@@ -649,18 +649,13 @@ pFigure = do
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
   TagOpen _ attr' <- pSatisfy (matchTagOpen "pre" [])
-  -- if the `pre` has no attributes, try if it is followed by a `code`
-  -- element and use those attributes if possible.
-  attr <- case attr' of
-    _:_ -> pure (toAttr attr')
-    []  -> option nullAttr $ do
-      TagOpen _ codeAttr <- pSatisfy (matchTagOpen "code" [])
-      pure $ toAttr
-        [ (k, v') | (k, v) <- codeAttr
-                    -- strip language from class
-                  , let v' = if k == "class"
-                             then fromMaybe v (T.stripPrefix "language-" v)
-                             else v ]
+  -- merge attributes of `pre` and `code` tags
+  TagOpen _ codeAttr <- pSatisfy (matchTagOpen "code" [])
+  let stripLanguagePrefix x = fromMaybe x (T.stripPrefix "language-" x)
+  let modifyClasses f ("class",v) =
+        ("class", T.unwords . map f . T.words $ v)
+      modifyClasses f (k,v) = (k,v)
+  let attr = toAttr $ map (modifyClasses stripLanguagePrefix) $ codeAttr <> attr'
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
   -- drop trailing newline if any
