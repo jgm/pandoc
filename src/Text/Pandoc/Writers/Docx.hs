@@ -115,8 +115,7 @@ writeDocx opts doc = do
   -- Phase 6: Core content generation
   -- adjust contents to add sectPr from reference.docx
   let sectpr = case mbsectpr of
-        Just sectpr' -> add_attrs (elAttribs sectpr') $ mknode "w:sectPr" []
-                             (elChildren sectpr')
+        Just sectpr' -> setWmlPrefix sectpr'
         Nothing      -> mknode "w:sectPr" []
                           [ mknode "w:footnotePr" []
                             [ mknode "w:numRestart" [("w:val","eachSect")] () ]
@@ -477,6 +476,18 @@ modifyAtPath (p:ps) f e = e{ elContent = map go (elContent e) }
     go (Elem el) | p (elName el) = Elem (modifyAtPath ps f el)
     go c = c
 
+setWmlPrefix :: Element -> Element
+setWmlPrefix el =
+  el{ elName = setPrefix (elName el)
+    , elAttribs = map setAttr (elAttribs el)
+    , elContent = map setContent (elContent el) }
+  where
+    setPrefix qn | isWmlNamespace qn = qn{ qPrefix = Just "w" }
+                 | otherwise = qn
+    setAttr attr = attr{ attrKey = setPrefix (attrKey attr) }
+    setContent (Elem e) = Elem (setWmlPrefix e)
+    setContent c = c
+
 -- | Load reference and distribution archives
 loadArchives :: PandocMonad m
              => WriterOptions
@@ -496,12 +507,18 @@ loadArchives opts = do
                         readDataFile "reference.docx"
   return (refArchive, distArchive, username, utctime)
 
+isWmlNamespace :: QName -> Bool
+isWmlNamespace qn =
+  qURI qn == Just
+    "http://schemas.openxmlformats.org/wordprocessingml/2006/main" ||
+  qURI qn == Just "http://purl.oclc.org/ooxml/wordprocessingml/main"
+
 -- | Extract page dimensions from template
 extractPageLayout :: PandocMonad m
                   => Archive -> Archive -> m (Maybe Element, Maybe Integer)
 extractPageLayout refArchive distArchive = do
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
-  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
+  let wname f qn = isWmlNamespace qn && f (qName qn)
   let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
 
   -- Gets the template size
