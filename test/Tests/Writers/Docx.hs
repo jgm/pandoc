@@ -35,6 +35,11 @@ documentXml opts doc =
   entryXml "word/document.xml" . toArchive =<<
     runIOorExplode (setVerbosity ERROR >> writeDocx opts doc)
 
+documentXmlFromNative :: WriterOptions -> FilePath -> IO Element
+documentXmlFromNative opts fp = do
+  txt <- T.readFile fp
+  entryXml "word/document.xml" . toArchive =<<
+    runIOorExplode (setVerbosity ERROR >> readNative def txt >>= writeDocx opts)
 
 -- we add an extra check to make sure that we're not writing in the
 -- toplevel docx directory. We don't want to accidentally overwrite an
@@ -306,6 +311,15 @@ tests = [ testGroup "inlines"
               -- Check that the styles.xml contains the German language
               assertBool ("Language from reference docx not preserved. w:lang lines: " ++ unlines (getLangLines stylesXml))
                 (any ("de-DE" `isInfixOf`) (getLangLines stylesXml))
+          , testCase "section properties from non-w-prefix reference docx" $ do
+              let opts = def{writerReferenceDoc=Just "docx/ns0-reference.docx"}
+              doc <- documentXmlFromNative opts "docx/inline_formatting.native"
+              case findElements (wmlName "sectPr") doc of
+                [] -> assertFailure "sectPr not found in output"
+                sectPr:_ -> do
+                  assertBool "pgSz not found in output"
+                    (not $ null $ findElements (wmlName "pgSz") sectPr)
+                  findAttr (wmlName "type") sectPr @?= Just "continuous"
           , testCase "language from metadata overrides reference docx" $ do
               -- Use a reference docx with German language, but specify French in metadata
               let opts = def{writerReferenceDoc=Just "docx/german-reference.docx"}
