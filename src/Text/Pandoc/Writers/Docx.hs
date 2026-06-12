@@ -478,15 +478,19 @@ modifyAtPath (p:ps) f e = e{ elContent = map go (elContent e) }
 
 setWmlPrefix :: Element -> Element
 setWmlPrefix el =
-  el{ elName = setPrefix (elName el)
-    , elAttribs = map setAttr (elAttribs el)
-    , elContent = map setContent (elContent el) }
+  add_attrs (map fixWmlAttr (elAttribs el)) $
+    mknode "w:sectPr" [] (map fixWmlChild (elChildren el))
   where
-    setPrefix qn | isWmlNamespace qn = qn{ qPrefix = Just "w" }
-                 | otherwise = qn
-    setAttr attr = attr{ attrKey = setPrefix (attrKey attr) }
-    setContent (Elem e) = Elem (setWmlPrefix e)
-    setContent c = c
+    fixWmlAttr attr = attr{ attrKey = fixWmlQName (attrKey attr) }
+    fixWmlQName qn
+      | isWmlNamespace qn = qn{ qPrefix = Just "w" }
+      | otherwise = qn
+    fixWmlChild e
+      | qPrefix (elName e) /= Just "w"
+      , isWmlNamespace (elName e) =
+          e{ elName = fixWmlQName (elName e)
+           , elAttribs = map fixWmlAttr (elAttribs e) }
+      | otherwise = e
 
 -- | Load reference and distribution archives
 loadArchives :: PandocMonad m
