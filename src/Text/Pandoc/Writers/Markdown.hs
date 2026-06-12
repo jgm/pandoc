@@ -28,7 +28,7 @@ import Data.Default
 import Data.List (intersperse, sortOn, union, find)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe, isNothing)
+import Data.Maybe (fromMaybe, mapMaybe, isNothing, isJust)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Data.Char (isSpace)
@@ -55,6 +55,7 @@ import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
                                            WriterEnv(..),
                                            Ref, Refs, MD, evalMD)
+import Skylighting (lookupSyntax)
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -596,7 +597,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
                  then nowrap $ " " <> classOrAttrsToMarkdown opts attribs
                  else
                    let (_,cls,_) = attribs
-                    in case getLangFromClasses cls of
+                    in case getLangFromClasses opts cls of
                               Just l -> " " <> literal l
                               Nothing -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
@@ -958,11 +959,11 @@ computeDivNestingLevel = foldr go 0
 
 -- Identify the class in a list of classes that corresponds to
 -- the language syntax.  language-X turns to X.
-getLangFromClasses :: [Text] -> Maybe Text
-getLangFromClasses cs =
+getLangFromClasses :: WriterOptions -> [Text] -> Maybe Text
+getLangFromClasses opts cs =
   case find ("language-" `T.isPrefixOf`) cs of
     Just x -> Just (T.drop 9 x)
     Nothing ->
-      case filter (/= "sourceCode") cs of
+      case [x | x <- cs, isJust (lookupSyntax x (writerSyntaxMap opts))] of
         (x:_) -> Just x
         [] -> Nothing
