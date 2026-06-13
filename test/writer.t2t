@@ -1,8 +1,6 @@
-
-
-
-
-
+Pandoc Test Suite
+John MacFarlane; Anonymous
+July 17, 2006
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
@@ -328,10 +326,25 @@ bar
 
 Interpreted markdown in a table:
 
+"""
+<table>
+<tr>
+<td>
+"""
 
 This is //emphasized//
+"""
+</td>
+<td>
+"""
 
 And this is **strong**
+"""
+</td>
+</tr>
+</table>
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+"""
 
 Here’s a simple block:
 
@@ -360,9 +373,21 @@ foo
 
 This should just be an HTML comment:
 
+"""
+<!-- Comment -->
+"""
 
 Multiline:
 
+"""
+<!--
+Blah
+Blah
+-->
+<!--
+    This is another comment.
+-->
+"""
 
 Code block:
 
@@ -372,6 +397,9 @@ Code block:
 
 Just plain comment, with trailing spaces on the line:
 
+"""
+<!-- foo -->
+"""
 
 Code:
 
@@ -381,6 +409,17 @@ Code:
 
 Hr’s:
 
+"""
+<hr>
+<hr />
+<hr />
+<hr>
+<hr />
+<hr />
+<hr class="foo" id="bar" />
+<hr class="foo" id="bar" />
+<hr class="foo" id="bar">
+"""
 
 
 --------------------

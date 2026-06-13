@@ -4,7 +4,7 @@
    Copyright   : Copyright (C) 2008-2024 Eric Forgeot, based on John MacFarlane DokuWiki writer
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Clare Macrae <clare.macrae@googlemail.com>
+   Maintainer  : Eric Forgeot
    Stability   : alpha
    Portability : portable
 
@@ -16,7 +16,6 @@ Txt2Tags:  <https://www.txt2tags.org/>
 module Text.Pandoc.Writers.Txt2Tags ( writeTxt2Tags ) where
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
-import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
 import Data.List (transpose)
 import Data.List.NonEmpty (nonEmpty)
@@ -24,33 +23,26 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Extensions
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents,
-                            writerTemplate, writerWrapText), isEnabled)
+                            writerTemplate, writerWrapText))
 import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
 import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
 
-data WriterState = WriterState {
-  }
-
 data WriterEnvironment = WriterEnvironment {
     stIndent      :: Text  -- Indentation prefix for the current list nesting level
   , stBackSlashLB :: Bool  -- True inside table cells (use \\ for line breaks)
   }
 
-instance Default WriterState where
-  def = WriterState {}
-
 instance Default WriterEnvironment where
   def = WriterEnvironment { stIndent      = ""
                           , stBackSlashLB = False }
 
-type Txt2Tags m = ReaderT WriterEnvironment (StateT WriterState m)
+type Txt2Tags m = ReaderT WriterEnvironment m
 
 -- | Convert Pandoc to Txt2Tags.
 writeTxt2Tags :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -58,7 +50,7 @@ writeTxt2Tags opts document =
   runTxt2Tags (pandocToTxt2Tags opts document)
 
 runTxt2Tags :: PandocMonad m => Txt2Tags m a -> m a
-runTxt2Tags = flip evalStateT def . flip runReaderT def
+runTxt2Tags = flip runReaderT def
 
 -- | Return Txt2Tags representation of document.
 pandocToTxt2Tags :: PandocMonad m
@@ -107,11 +99,10 @@ blockToTxt2Tags opts (Para inlines) = do
 blockToTxt2Tags opts (LineBlock lns) =
   blockToTxt2Tags opts $ linesToPara lns
 
-blockToTxt2Tags opts b@(RawBlock f str)
+blockToTxt2Tags _ b@(RawBlock f str)
   | f == Format "txt2tags" = return str
   -- Use the Txt2Tags raw area syntax (""") for block-level HTML pass-through:
-  | f == Format "html"
-  , isEnabled Ext_raw_html opts = return $ "\"\"\"\n" <> str <> "\n\"\"\"\n"
+  | f == Format "html" = return $ "\"\"\"\n" <> str <> "\n\"\"\"\n"
   | otherwise = "" <$ report (BlockNotRendered b)
 
 blockToTxt2Tags _ HorizontalRule = return "\n--------------------\n"
@@ -284,6 +275,13 @@ inlineListToTxt2Tags :: PandocMonad m
 inlineListToTxt2Tags opts lst =
   T.concat <$> mapM (inlineToTxt2Tags opts) lst
 
+-- | Render inlines wrapped in the given left and right delimiters.
+surroundInlines :: PandocMonad m
+                => WriterOptions -> Text -> Text -> [Inline] -> Txt2Tags m Text
+surroundInlines opts left right lst = do
+  contents <- inlineListToTxt2Tags opts lst
+  return $ left <> contents <> right
+
 -- | Convert Pandoc inline element to Txt2Tags.
 inlineToTxt2Tags :: PandocMonad m
                  => WriterOptions -> Inline -> Txt2Tags m Text
@@ -291,40 +289,24 @@ inlineToTxt2Tags :: PandocMonad m
 inlineToTxt2Tags opts (Span _attrs ils) =
   inlineListToTxt2Tags opts ils
 
-inlineToTxt2Tags opts (Emph lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "//" <> contents <> "//"
+inlineToTxt2Tags opts (Emph lst) = surroundInlines opts "//" "//" lst
 
-inlineToTxt2Tags opts (Underline lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "__" <> contents <> "__"
+inlineToTxt2Tags opts (Underline lst) = surroundInlines opts "__" "__" lst
 
-inlineToTxt2Tags opts (Strong lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "**" <> contents <> "**"
+inlineToTxt2Tags opts (Strong lst) = surroundInlines opts "**" "**" lst
 
-inlineToTxt2Tags opts (Strikeout lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "--" <> contents <> "--"
+inlineToTxt2Tags opts (Strikeout lst) = surroundInlines opts "--" "--" lst
 
 -- Txt2Tags has no superscript/subscript syntax; fall back to HTML tags.
-inlineToTxt2Tags opts (Superscript lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "<sup>" <> contents <> "</sup>"
+inlineToTxt2Tags opts (Superscript lst) = surroundInlines opts "<sup>" "</sup>" lst
 
-inlineToTxt2Tags opts (Subscript lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "<sub>" <> contents <> "</sub>"
+inlineToTxt2Tags opts (Subscript lst) = surroundInlines opts "<sub>" "</sub>" lst
 
 inlineToTxt2Tags opts (SmallCaps lst) = inlineListToTxt2Tags opts lst
 
-inlineToTxt2Tags opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "\8216" <> contents <> "\8217"
+inlineToTxt2Tags opts (Quoted SingleQuote lst) = surroundInlines opts "\8216" "\8217" lst
 
-inlineToTxt2Tags opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToTxt2Tags opts lst
-  return $ "\8220" <> contents <> "\8221"
+inlineToTxt2Tags opts (Quoted DoubleQuote lst) = surroundInlines opts "\8220" "\8221" lst
 
 inlineToTxt2Tags opts (Cite _ lst) = inlineListToTxt2Tags opts lst
 
@@ -340,11 +322,10 @@ inlineToTxt2Tags _ (Math mathType str) = return $ delim <> str <> delim
                      DisplayMath -> "$$"
                      InlineMath  -> "$"
 
-inlineToTxt2Tags opts il@(RawInline f str)
+inlineToTxt2Tags _ il@(RawInline f str)
   | f == Format "txt2tags" = return str
   -- Use the Txt2Tags inline raw syntax ("") for HTML pass-through:
-  | f == Format "html"
-  , isEnabled Ext_raw_html opts = return $ "\"\"" <> str <> "\"\""
+  | f == Format "html" = return $ "\"\"" <> str <> "\"\""
   | otherwise = "" <$ report (InlineNotRendered il)
 
 inlineToTxt2Tags _ LineBreak = do

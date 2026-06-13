@@ -1,8 +1,6 @@
-$pagetitle$
-$author-meta$
-$date-meta$
-
-
+$title$
+$for(author)$$author$$sep$; $endfor$
+$date$
 
 $for(include-before)$
 $include-before$
