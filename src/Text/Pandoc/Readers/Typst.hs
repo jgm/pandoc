@@ -31,6 +31,7 @@ import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Translations (Term(References), translateTerm)
 import Text.Pandoc.Shared (tshow, blocksToInlines)
+import Text.Pandoc.Parsing (registerHeader, reportLogMessages)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import Control.Monad.Trans (lift)
@@ -79,7 +80,7 @@ readTypst opts inp = do
         Right content -> do
           let content' = fixNesting content
           let labs = findLabels [content']
-          runParserT pPandoc defaultPState{ sLabels = labs }
+          runParserT pPandoc defaultPState{ sLabels = labs, sOptions = opts }
             inputName [content'] >>=
               either (throwError . PandocParseError . T.pack . show) pure
 
@@ -188,6 +189,7 @@ pPandoc = do
         (if null keywords
             then id
             else B.setMeta "keywords" keywords) $ meta
+  reportLogMessages
   pure $ Pandoc meta' (B.toList bs)
 
 pBlocks :: PandocMonad m => P m B.Blocks
@@ -264,8 +266,9 @@ blockHandlers = M.fromList
   ,("heading", \_ mbident fields -> do
       body <- getField "body" fields
       lev <- getField "level" fields <|> pure 1
-      B.headerWith (fromMaybe "" mbident,[],[]) lev
-         <$> pWithContents pInlines body)
+      ils <- pWithContents pInlines body
+      attr <- registerHeader (fromMaybe "" mbident,[],[]) ils
+      pure $ B.headerWith attr lev ils)
   ,("quote", \_ _ fields -> do
       getField "block" fields >>= guard
       body <- getField "body" fields >>= pWithContents pBlocks

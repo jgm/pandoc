@@ -3673,7 +3673,7 @@ automatically assigned a unique identifier based on the heading text.
 This extension can be enabled/disabled for the following formats:
 
 input formats
-:  `markdown`, `latex`, `rst`, `mediawiki`, `textile`, `man`
+:  `markdown`, `latex`, `rst`, `mediawiki`, `textile`, `man`, `typst`
 
 output formats
 :  `markdown`, `muse`

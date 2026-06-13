@@ -662,7 +662,8 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "mediawiki"       = autoIdExtensions <>
     extensionsFromList
     [ Ext_smart ]
-  getAll "typst"           = extensionsFromList [Ext_citations, Ext_smart]
+  getAll "typst"           = autoIdExtensions <>
+    extensionsFromList [Ext_citations, Ext_smart]
   getAll "djot"            = extensionsFromList [Ext_sourcepos]
   getAll "man"             = autoIdExtensions
   getAll _                 = mempty

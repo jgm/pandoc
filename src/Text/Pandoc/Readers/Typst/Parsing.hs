@@ -16,10 +16,13 @@ module Text.Pandoc.Readers.Typst.Parsing
 where
 import Control.Monad (MonadPlus)
 import Control.Monad.Reader (lift)
+import Data.Default (def)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.Parsec
     ( ParsecT, getInput, setInput, tokenPrim )
@@ -27,18 +30,38 @@ import Typst.Types
     ( Identifier, Content(Elt), FromVal(..), Val(VNone) )
 import Text.Pandoc.Class.PandocMonad ( PandocMonad, report )
 import Text.Pandoc.Logging (LogMessage(..))
+import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Parsing.Capabilities
+    ( HasReaderOptions(..), HasIdentifierList(..), HasLogMessages(..) )
 import Text.Pandoc.Definition
 
 data PState = PState
         { sLabels :: [Text]
-        , sMeta :: Meta }
+        , sMeta :: Meta
+        , sOptions :: ReaderOptions
+        , sIdentifiers :: Set Text
+        , sLogMessages :: [LogMessage] }
         deriving (Show)
+
+instance HasReaderOptions PState where
+  extractReaderOptions = sOptions
+
+instance HasIdentifierList PState where
+  extractIdentifierList = sIdentifiers
+  updateIdentifierList f st = st{ sIdentifiers = f (sIdentifiers st) }
+
+instance HasLogMessages PState where
+  addLogMessage m st = st{ sLogMessages = m : sLogMessages st }
+  getLogMessages = reverse . sLogMessages
 
 defaultPState :: PState
 defaultPState =
   PState
   { sLabels = []
-  , sMeta = mempty }
+  , sMeta = mempty
+  , sOptions = def
+  , sIdentifiers = Set.empty
+  , sLogMessages = [] }
 
 type P m a = ParsecT [Content] PState m a
 -- state tracks a list of labels in the document
