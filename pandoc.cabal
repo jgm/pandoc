@@ -56,6 +56,7 @@ data-files:
                  data/templates/default.html5
                  data/templates/default.chunkedhtml
                  data/templates/default.djot
+                 data/templates/default.doclang
                  data/templates/default.docbook4
                  data/templates/default.docbook5
                  data/templates/default.jats_archiving
@@ -648,7 +649,6 @@ library
                    Text.Pandoc.Readers.Pod,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
-                   Text.Pandoc.Writers.XML,
                    Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
@@ -660,6 +660,7 @@ library
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.Djot,
+                   Text.Pandoc.Writers.DocLang,
                    Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
@@ -789,7 +790,6 @@ library
                    Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Readers.Roff.Escape,
-                   Text.Pandoc.Readers.XML,
                    Text.Pandoc.Writers.Docx.OpenXML,
                    Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Docx.Table,
@@ -815,7 +815,6 @@ library
                    Text.Pandoc.Char,
                    Text.Pandoc.TeX,
                    Text.Pandoc.URI,
-                   Text.Pandoc.XMLFormat,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
@@ -862,7 +861,6 @@ test-suite test-pandoc
                   Tests.Helpers
                   Tests.Shared
                   Tests.MediaBag
-                  Tests.XML
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS

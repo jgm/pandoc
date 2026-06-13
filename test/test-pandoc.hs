@@ -53,7 +53,6 @@ import qualified Tests.Writers.AnnotatedTable
 import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Markua
 import qualified Tests.Writers.BBCode
-import qualified Tests.XML
 import qualified Tests.MediaBag
 import Text.Pandoc.Shared (inDirectory)
 
@@ -63,7 +62,6 @@ tests pandocPath = testGroup "pandoc tests"
         , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "MediaBag" Tests.MediaBag.tests
-        , testGroup "XML" Tests.XML.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests

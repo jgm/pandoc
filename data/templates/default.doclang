@@ -1,0 +1,19 @@
+<doclang version="0.6">
+$if(title)$
+<head>
+$if(title)$
+  <title>$title$</title>
+$endif$
+$for(author)$
+  <author>$author$</author>
+$endfor$
+$if(date)$
+  <date>$date$</date>
+$endif$
+$if(lang)$
+  <language>$lang$</language>
+$endif$
+</head>
+$endif$
+$body$
+</doclang>

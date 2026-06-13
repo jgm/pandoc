@@ -654,7 +654,7 @@ pCodeBlock = try $ do
   let stripLanguagePrefix x = fromMaybe x (T.stripPrefix "language-" x)
   let modifyClasses f ("class",v) =
         ("class", T.unwords . map f . T.words $ v)
-      modifyClasses f (k,v) = (k,v)
+      modifyClasses _ (k,v) = (k,v)
   let attr = toAttr $ map (modifyClasses stripLanguagePrefix) $ codeAttr <> attr'
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents

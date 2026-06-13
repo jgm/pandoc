@@ -285,7 +285,6 @@ header when requesting a document from a URL:
     - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
     - `xlsx` ([Excel spreadsheet][XLSX])
-    - `xml` (XML version of native AST)
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
 
@@ -319,6 +318,7 @@ header when requesting a document from a URL:
     - `context` ([ConTeXt])
     - `csljson` ([CSL JSON] bibliography)
     - `djot` ([Djot markup])
+    - `doclang` ([DocLang], AI-native document format)
     - `docbook` or `docbook4` ([DocBook] 4)
     - `docbook5` (DocBook 5)
     - `docx` ([Word docx])
@@ -371,7 +371,6 @@ header when requesting a document from a URL:
     - `tei` ([TEI Simple])
     - `typst` ([typst])
     - `vimdoc` ([Vimdoc])
-    - `xml` (XML version of native AST)
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom Lua writer, see [Custom readers and writers] below
