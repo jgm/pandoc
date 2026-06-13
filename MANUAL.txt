@@ -285,6 +285,7 @@ header when requesting a document from a URL:
     - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
     - `xlsx` ([Excel spreadsheet][XLSX])
+    - `xml` (XML version of native AST)
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
 
@@ -371,6 +372,7 @@ header when requesting a document from a URL:
     - `tei` ([TEI Simple])
     - `typst` ([typst])
     - `vimdoc` ([Vimdoc])
+    - `xml` (XML version of native AST)
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom Lua writer, see [Custom readers and writers] below
@@ -524,6 +526,7 @@ header when requesting a document from a URL:
 [Rich Text Format]: https://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: https://docbook.org
 [Djot markup]: https://djot.net
+[DocLang]: https://github.com/doclang-project/doclang
 [JATS]: https://jats.nlm.nih.gov
 [BITS]: https://jats.nlm.nih.gov/extensions/bits/
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all

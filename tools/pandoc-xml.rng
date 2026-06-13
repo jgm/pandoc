@@ -1,0 +1,913 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+A RELAX NG schema for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a RELAX NG schema for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can use this schema to validate Pandoc XML documents.
+It's translated from pandoc-xml.dtd with the "Trang" software by James Clark,
+and adjusted manually to add some constraints:
+- elements with Attr can have arbitrary attributes (this is not possible with a DTD)
+- Header's "level", OrderedList's "start" and Cell's "rowspan" and "colspan" attributes
+  must be a positive integer and are equal to 1 if not specified
+- column widths in ColSpec must be between 0 and 1 (inclusive, with 0=ColWidthDefault)
+- the "count" attribute in the "<Space>" element must be positive and equal to 1 if not specified
+-->
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+  xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="Pandoc">
+    <element name="Pandoc">
+      <ref name="attlist_Pandoc" />
+      <ref name="meta" />
+      <ref name="blocks" />
+    </element>
+  </define>
+  <define name="attlist_Pandoc" combine="interleave">
+    <attribute name="api-version" />
+  </define>
+  <define name="block">
+    <choice>
+      <ref name="Para" />
+      <ref name="Plain" />
+      <ref name="Header" />
+      <ref name="Div" />
+      <ref name="BlockQuote" />
+      <ref name="HorizontalRule" />
+      <ref name="BulletList" />
+      <ref name="OrderedList" />
+      <ref name="DefinitionList" />
+      <ref name="Table" />
+      <ref name="Figure" />
+      <ref name="LineBlock" />
+      <ref name="CodeBlock" />
+      <ref name="RawBlock" />
+    </choice>
+  </define>
+  <define name="inline_element">
+    <choice>
+      <ref name="Str" />
+      <ref name="Space" />
+      <ref name="Emph" />
+      <ref name="Strong" />
+      <ref name="Underline" />
+      <ref name="Strikeout" />
+      <ref name="Superscript" />
+      <ref name="Subscript" />
+      <ref name="SmallCaps" />
+      <ref name="Quoted" />
+      <ref name="Cite" />
+      <ref name="Code" />
+      <ref name="SoftBreak" />
+      <ref name="LineBreak" />
+      <ref name="Math" />
+      <ref name="RawInline" />
+      <ref name="Link" />
+      <ref name="Image" />
+      <ref name="Note" />
+      <ref name="Span" />
+    </choice>
+  </define>
+  <define name="inline">
+    <choice>
+      <text />
+      <ref name="inline_element" />
+    </choice>
+  </define>
+  <define name="attr">
+    <optional>
+      <attribute name="id">
+        <data type="ID" />
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="class" />
+    </optional>
+    <zeroOrMore>
+      <attribute>
+        <anyName />
+      </attribute>
+    </zeroOrMore>
+  </define>
+  <define name="metavalue">
+    <choice>
+      <ref name="MetaMap" />
+      <ref name="MetaList" />
+      <ref name="MetaBool" />
+      <ref name="MetaString" />
+      <ref name="MetaInlines" />
+      <ref name="MetaBlocks" />
+    </choice>
+  </define>
+  <define name="meta">
+    <element name="meta">
+      <ref name="attlist_meta" />
+      <zeroOrMore>
+        <ref name="entry" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_meta" combine="interleave">
+    <empty />
+  </define>
+  <define name="MetaMap">
+    <element name="MetaMap">
+      <ref name="attlist_MetaMap" />
+      <zeroOrMore>
+        <ref name="entry" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_MetaMap" combine="interleave">
+    <empty />
+  </define>
+  <define name="entry">
+    <element name="entry">
+      <ref name="attlist_entry" />
+      <zeroOrMore>
+        <ref name="metavalue" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_entry" combine="interleave">
+    <attribute name="key" />
+  </define>
+  <define name="MetaList">
+    <element name="MetaList">
+      <ref name="attlist_MetaList" />
+      <zeroOrMore>
+        <ref name="metavalue" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_MetaList" combine="interleave">
+    <empty />
+  </define>
+  <define name="MetaBool">
+    <element name="MetaBool">
+      <ref name="attlist_MetaBool" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_MetaBool" combine="interleave">
+    <attribute name="value">
+      <choice>
+        <value>true</value>
+        <value>false</value>
+      </choice>
+    </attribute>
+  </define>
+  <define name="MetaString">
+    <element name="MetaString">
+      <ref name="attlist_MetaString" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_MetaString" combine="interleave">
+    <empty />
+  </define>
+  <define name="MetaInlines">
+    <element name="MetaInlines">
+      <ref name="attlist_MetaInlines" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_MetaInlines" combine="interleave">
+    <empty />
+  </define>
+  <define name="MetaBlocks">
+    <element name="MetaBlocks">
+      <ref name="attlist_MetaBlocks" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_MetaBlocks" combine="interleave">
+    <empty />
+  </define>
+  <define name="blocks">
+    <element name="blocks">
+      <ref name="attlist_blocks" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_blocks" combine="interleave">
+    <empty />
+  </define>
+  <define name="Para">
+    <element name="Para">
+      <ref name="attlist_Para" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Para" combine="interleave">
+    <empty />
+  </define>
+  <define name="Plain">
+    <element name="Plain">
+      <ref name="attlist_Plain" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Plain" combine="interleave">
+    <empty />
+  </define>
+  <define name="Header">
+    <element name="Header">
+      <ref name="attlist_Header" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Header" combine="interleave">
+    <optional>
+      <attribute name="level" a:defaultValue="1">
+        <data type="positiveInteger" />
+      </attribute>
+    </optional>
+    <ref name="attr" />
+  </define>
+  <define name="Div">
+    <element name="Div">
+      <ref name="attlist_Div" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Div" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="BlockQuote">
+    <element name="BlockQuote">
+      <ref name="attlist_BlockQuote" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_BlockQuote" combine="interleave">
+    <empty />
+  </define>
+  <define name="HorizontalRule">
+    <element name="HorizontalRule">
+      <ref name="attlist_HorizontalRule" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_HorizontalRule" combine="interleave">
+    <empty />
+  </define>
+  <define name="BulletList">
+    <element name="BulletList">
+      <ref name="attlist_BulletList" />
+      <oneOrMore>
+        <ref name="item" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_BulletList" combine="interleave">
+    <empty />
+  </define>
+  <define name="OrderedList">
+    <element name="OrderedList">
+      <ref name="attlist_OrderedList" />
+      <oneOrMore>
+        <ref name="item" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_OrderedList" combine="interleave">
+    <optional>
+      <attribute name="start" a:defaultValue="1">
+        <data type="positiveInteger" />
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="number-style" a:defaultValue="DefaultStyle">
+        <choice>
+          <value>DefaultStyle</value>
+          <value>Example</value>
+          <value>Decimal</value>
+          <value>LowerRoman</value>
+          <value>UpperRoman</value>
+          <value>LowerAlpha</value>
+          <value>UpperAlpha</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="number-delim" a:defaultValue="DefaultDelim">
+        <choice>
+          <value>DefaultDelim</value>
+          <value>Period</value>
+          <value>OneParen</value>
+          <value>TwoParens</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="DefinitionList">
+    <element name="DefinitionList">
+      <ref name="attlist_DefinitionList" />
+      <oneOrMore>
+        <ref name="item" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_DefinitionList" combine="interleave">
+    <empty />
+  </define>
+  <define name="item">
+    <element name="item">
+      <ref name="attlist_item" />
+      <choice>
+        <zeroOrMore>
+          <ref name="block" />
+        </zeroOrMore>
+        <group>
+          <ref name="term" />
+          <oneOrMore>
+            <ref name="def" />
+          </oneOrMore>
+        </group>
+      </choice>
+    </element>
+  </define>
+  <define name="attlist_item" combine="interleave">
+    <empty />
+  </define>
+  <define name="term">
+    <element name="term">
+      <ref name="attlist_term" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_term" combine="interleave">
+    <empty />
+  </define>
+  <define name="def">
+    <element name="def">
+      <ref name="attlist_def" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_def" combine="interleave">
+    <empty />
+  </define>
+  <define name="Table">
+    <element name="Table">
+      <ref name="attlist_Table" />
+      <ref name="Caption" />
+      <ref name="colspecs" />
+      <ref name="TableHead" />
+      <oneOrMore>
+        <ref name="TableBody" />
+      </oneOrMore>
+      <ref name="TableFoot" />
+    </element>
+  </define>
+  <define name="attlist_Table" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="Caption">
+    <element name="Caption">
+      <ref name="attlist_Caption" />
+      <optional>
+        <ref name="ShortCaption" />
+      </optional>
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Caption" combine="interleave">
+    <empty />
+  </define>
+  <define name="ShortCaption">
+    <element name="ShortCaption">
+      <ref name="attlist_ShortCaption" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_ShortCaption" combine="interleave">
+    <empty />
+  </define>
+  <define name="colspecs">
+    <element name="colspecs">
+      <ref name="attlist_colspecs" />
+      <oneOrMore>
+        <ref name="ColSpec" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_colspecs" combine="interleave">
+    <empty />
+  </define>
+  <define name="ColSpec">
+    <element name="ColSpec">
+      <ref name="attlist_ColSpec" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_ColSpec" combine="interleave">
+    <optional>
+      <attribute name="alignment" a:defaultValue="AlignDefault">
+        <choice>
+          <value>AlignLeft</value>
+          <value>AlignRight</value>
+          <value>AlignCenter</value>
+          <value>AlignDefault</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="col-width" a:defaultValue="0">
+        <data type="double">
+          <param name="minInclusive">0</param>
+          <param name="maxInclusive">1</param>
+        </data>
+      </attribute>
+    </optional>
+  </define>
+  <define name="TableHead">
+    <element name="TableHead">
+      <ref name="attlist_TableHead" />
+      <zeroOrMore>
+        <ref name="Row" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_TableHead" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="TableFoot">
+    <element name="TableFoot">
+      <ref name="attlist_TableFoot" />
+      <zeroOrMore>
+        <ref name="Row" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_TableFoot" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="TableBody">
+    <element name="TableBody">
+      <ref name="attlist_TableBody" />
+      <ref name="header" />
+      <ref name="body" />
+    </element>
+  </define>
+  <define name="attlist_TableBody" combine="interleave">
+    <optional>
+      <attribute name="row-head-columns" a:defaultValue="0" />
+    </optional>
+    <ref name="attr" />
+  </define>
+  <define name="header">
+    <element name="header">
+      <ref name="attlist_header" />
+      <zeroOrMore>
+        <ref name="Row" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_header" combine="interleave">
+    <empty />
+  </define>
+  <define name="body">
+    <element name="body">
+      <ref name="attlist_body" />
+      <zeroOrMore>
+        <ref name="Row" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_body" combine="interleave">
+    <empty />
+  </define>
+  <define name="Row">
+    <element name="Row">
+      <ref name="attlist_Row" />
+      <zeroOrMore>
+        <ref name="Cell" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Row" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="Cell">
+    <element name="Cell">
+      <ref name="attlist_Cell" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Cell" combine="interleave">
+    <optional>
+      <attribute name="alignment" a:defaultValue="AlignDefault">
+        <choice>
+          <value>AlignLeft</value>
+          <value>AlignRight</value>
+          <value>AlignCenter</value>
+          <value>AlignDefault</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="row-span" a:defaultValue="1">
+        <data type="positiveInteger" />
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="col-span" a:defaultValue="1">
+        <data type="positiveInteger" />
+      </attribute>
+    </optional>
+    <ref name="attr" />
+  </define>
+  <define name="Figure">
+    <element name="Figure">
+      <ref name="attlist_Figure" />
+      <ref name="Caption" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Figure" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="LineBlock">
+    <element name="LineBlock">
+      <ref name="attlist_LineBlock" />
+      <oneOrMore>
+        <ref name="line" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_LineBlock" combine="interleave">
+    <empty />
+  </define>
+  <define name="line">
+    <element name="line">
+      <ref name="attlist_line" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_line" combine="interleave">
+    <empty />
+  </define>
+  <define name="CodeBlock">
+    <element name="CodeBlock">
+      <ref name="attlist_CodeBlock" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_CodeBlock" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="RawBlock">
+    <element name="RawBlock">
+      <ref name="attlist_RawBlock" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_RawBlock" combine="interleave">
+    <attribute name="format" />
+  </define>
+  <define name="Space">
+    <element name="Space">
+      <ref name="attlist_Space" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_Space" combine="interleave">
+    <optional>
+      <attribute name="count" a:defaultValue="1">
+        <data type="positiveInteger" />
+      </attribute>
+    </optional>
+  </define>
+  <define name="Str">
+    <element name="Str">
+      <ref name="attlist_Str" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_Str" combine="interleave">
+    <optional>
+      <attribute name="content" a:defaultValue="" />
+    </optional>
+  </define>
+  <define name="Emph">
+    <element name="Emph">
+      <ref name="attlist_Emph" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Emph" combine="interleave">
+    <empty />
+  </define>
+  <define name="Strong">
+    <element name="Strong">
+      <ref name="attlist_Strong" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Strong" combine="interleave">
+    <empty />
+  </define>
+  <define name="Underline">
+    <element name="Underline">
+      <ref name="attlist_Underline" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Underline" combine="interleave">
+    <empty />
+  </define>
+  <define name="Strikeout">
+    <element name="Strikeout">
+      <ref name="attlist_Strikeout" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Strikeout" combine="interleave">
+    <empty />
+  </define>
+  <define name="Superscript">
+    <element name="Superscript">
+      <ref name="attlist_Superscript" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Superscript" combine="interleave">
+    <empty />
+  </define>
+  <define name="Subscript">
+    <element name="Subscript">
+      <ref name="attlist_Subscript" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Subscript" combine="interleave">
+    <empty />
+  </define>
+  <define name="SmallCaps">
+    <element name="SmallCaps">
+      <ref name="attlist_SmallCaps" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_SmallCaps" combine="interleave">
+    <empty />
+  </define>
+  <define name="Span">
+    <element name="Span">
+      <ref name="attlist_Span" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Span" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="Quoted">
+    <element name="Quoted">
+      <ref name="attlist_Quoted" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Quoted" combine="interleave">
+    <optional>
+      <attribute name="quote-type" a:defaultValue="DoubleQuote">
+        <choice>
+          <value>SingleQuote</value>
+          <value>DoubleQuote</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="Math">
+    <element name="Math">
+      <ref name="attlist_Math" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_Math" combine="interleave">
+    <optional>
+      <attribute name="math-type" a:defaultValue="InlineMath">
+        <choice>
+          <value>DisplayMath</value>
+          <value>InlineMath</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="RawInline">
+    <element name="RawInline">
+      <ref name="attlist_RawInline" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_RawInline" combine="interleave">
+    <attribute name="format" />
+  </define>
+  <define name="Cite">
+    <element name="Cite">
+      <ref name="attlist_Cite" />
+      <zeroOrMore>
+        <choice>
+          <text />
+          <ref name="citations" />
+          <ref name="inline_element" />
+        </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Cite" combine="interleave">
+    <empty />
+  </define>
+  <define name="citations">
+    <element name="citations">
+      <ref name="attlist_citations" />
+      <oneOrMore>
+        <ref name="Citation" />
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="attlist_citations" combine="interleave">
+    <empty />
+  </define>
+  <define name="Citation">
+    <element name="Citation">
+      <ref name="attlist_Citation" />
+      <optional>
+        <ref name="prefix" />
+      </optional>
+      <optional>
+        <ref name="suffix" />
+      </optional>
+    </element>
+  </define>
+  <define name="prefix">
+    <element name="prefix">
+      <ref name="attlist_prefix" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_prefix" combine="interleave">
+    <empty />
+  </define>
+  <define name="suffix">
+    <element name="suffix">
+      <ref name="attlist_suffix" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_suffix" combine="interleave">
+    <empty />
+  </define>
+  <define name="attlist_Citation" combine="interleave">
+    <optional>
+      <attribute name="id" />
+    </optional>
+    <optional>
+      <attribute name="note-num" />
+    </optional>
+    <optional>
+      <attribute name="hash" a:defaultValue="0" />
+    </optional>
+    <optional>
+      <attribute name="mode" a:defaultValue="AuthorInText">
+        <choice>
+          <value>AuthorInText</value>
+          <value>SuppressAuthor</value>
+          <value>NormalCitation</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="Code">
+    <element name="Code">
+      <ref name="attlist_Code" />
+      <text />
+    </element>
+  </define>
+  <define name="attlist_Code" combine="interleave">
+    <ref name="attr" />
+  </define>
+  <define name="Image">
+    <element name="Image">
+      <ref name="attlist_Image" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Image" combine="interleave">
+    <optional>
+      <attribute name="title"/>
+    </optional>
+    <optional>
+      <attribute name="src"/>
+    </optional>
+    <ref name="attr"/>
+  </define>
+  <define name="Link">
+    <element name="Link">
+      <ref name="attlist_Link" />
+      <zeroOrMore>
+        <ref name="inline" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Link" combine="interleave">
+    <optional>
+      <attribute name="title"/>
+    </optional>
+    <optional>
+      <attribute name="href"/>
+    </optional>
+    <ref name="attr"/>
+  </define>
+  <define name="SoftBreak">
+    <element name="SoftBreak">
+      <ref name="attlist_SoftBreak" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_SoftBreak" combine="interleave">
+    <empty />
+  </define>
+  <define name="LineBreak">
+    <element name="LineBreak">
+      <ref name="attlist_LineBreak" />
+      <empty />
+    </element>
+  </define>
+  <define name="attlist_LineBreak" combine="interleave">
+    <empty />
+  </define>
+  <define name="Note">
+    <element name="Note">
+      <ref name="attlist_Note" />
+      <zeroOrMore>
+        <ref name="block" />
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="attlist_Note" combine="interleave">
+    <empty />
+  </define>
+  <start>
+    <choice>
+      <ref name="Pandoc" />
+    </choice>
+  </start>
+</grammar>

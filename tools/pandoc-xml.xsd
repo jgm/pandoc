@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+A XML Schema definition for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a XML Schema schema for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can use this schema to validate Pandoc XML documents.
+It's translated from pandoc-xml.dtd with the "Trang" software by James Clark,
+and adjusted manually to add some constraints:
+- elements with Attr can have arbitrary attributes (this is not possible with a DTD)
+- Header's "level", OrderedList's "start" and Cell's "rowspan" and "colspan" attributes
+  must be a positive integer and are equal to 1 if not specified
+- column widths in ColSpec must be between 0 and 1 (inclusive, with 0=ColWidthDefault)
+- the "count" attribute in the "<Space>" element must be a positive integer,
+  equal to 1 if not specified
+- OrderedList's number style and delimiter, ColSpec's and Cell's alignment,
+  Quoted's QuoteType and Math's Mathtype
+  can only take the values specified in pandoc-types
+- TableBody's row-head-columns must be zero (default, when not specified) or a positive integer
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="Pandoc">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="meta"/>
+        <xs:element ref="blocks"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Pandoc"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Pandoc">
+    <xs:attribute name="api-version" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="block" abstract="true"/>
+  <xs:element name="inline_element" abstract="true"/>
+  <xs:group name="inline">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="inline_element"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:attributeGroup name="attr">
+    <xs:attribute name="id" type="xs:ID"/>
+    <xs:attribute name="class"/>
+    <xs:anyAttribute processContents="skip"/>
+  </xs:attributeGroup>
+  <xs:element name="metavalue" abstract="true"/>
+  <xs:element name="meta">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="entry"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MetaMap" substitutionGroup="metavalue">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="entry"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="entry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="metavalue"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_entry"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_entry">
+    <xs:attribute name="key" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="MetaList" substitutionGroup="metavalue">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="metavalue"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MetaBool" substitutionGroup="metavalue">
+    <xs:complexType>
+      <xs:attributeGroup ref="attlist_MetaBool"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_MetaBool">
+    <xs:attribute name="value" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="true"/>
+          <xs:enumeration value="false"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="MetaString" substitutionGroup="metavalue" type="xs:string"/>
+  <xs:element name="MetaInlines" substitutionGroup="metavalue">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MetaBlocks" substitutionGroup="metavalue">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="blocks">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Para" substitutionGroup="block">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Plain" substitutionGroup="block">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Header" substitutionGroup="block">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+      <xs:attributeGroup ref="attlist_Header"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Header">
+    <xs:attribute name="level" default="1" type="xs:positiveInteger"/>
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Div" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Div"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Div">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="BlockQuote" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="HorizontalRule" substitutionGroup="block">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="BulletList" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="item"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OrderedList" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="item"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_OrderedList"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_OrderedList">
+    <xs:attribute name="start" default="1" type="xs:positiveInteger"/>
+    <xs:attribute name="number-style" default="DefaultStyle">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="DefaultStyle"/>
+          <xs:enumeration value="Example"/>
+          <xs:enumeration value="Decimal"/>
+          <xs:enumeration value="LowerRoman"/>
+          <xs:enumeration value="UpperRoman"/>
+          <xs:enumeration value="LowerAlpha"/>
+          <xs:enumeration value="UpperAlpha"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="number-delim" default="DefaultDelim">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="DefaultDelim"/>
+          <xs:enumeration value="Period"/>
+          <xs:enumeration value="OneParen"/>
+          <xs:enumeration value="TwoParens"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="DefinitionList" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="item"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="item">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+        <xs:sequence>
+          <xs:element ref="term"/>
+          <xs:element maxOccurs="unbounded" ref="def"/>
+        </xs:sequence>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="term">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="def">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Table" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Caption"/>
+        <xs:element ref="colspecs"/>
+        <xs:element ref="TableHead"/>
+        <xs:element maxOccurs="unbounded" ref="TableBody"/>
+        <xs:element ref="TableFoot"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Table"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Table">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Caption">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="ShortCaption"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ShortCaption">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="colspecs">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ColSpec"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ColSpec">
+    <xs:complexType>
+      <xs:attributeGroup ref="attlist_ColSpec"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_ColSpec">
+    <xs:attribute name="alignment" default="AlignDefault">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="AlignLeft"/>
+          <xs:enumeration value="AlignRight"/>
+          <xs:enumeration value="AlignCenter"/>
+          <xs:enumeration value="AlignDefault"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="col-width" default="0">
+      <xs:simpleType>
+        <xs:restriction base="xs:double">
+          <xs:minInclusive value="0"/>
+          <xs:maxInclusive value="1"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="TableHead">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Row"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_TableHead"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_TableHead">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="TableFoot">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Row"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_TableFoot"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_TableFoot">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="TableBody">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="header"/>
+        <xs:element ref="body"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_TableBody"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_TableBody">
+    <xs:attribute name="row-head-columns" default="0"/>
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="header">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Row"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="body">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Row"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Row">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Cell"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Row"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Row">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Cell">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Cell"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Cell">
+    <xs:attribute name="alignment" default="AlignDefault">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="AlignLeft"/>
+          <xs:enumeration value="AlignRight"/>
+          <xs:enumeration value="AlignCenter"/>
+          <xs:enumeration value="AlignDefault"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="row-span" default="1" type="xs:positiveInteger"/>
+    <xs:attribute name="col-span" default="1" type="xs:positiveInteger"/>
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Figure" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Caption"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Figure"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Figure">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="LineBlock" substitutionGroup="block">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="line"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="line">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CodeBlock" substitutionGroup="block">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="attlist_CodeBlock"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_CodeBlock">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="RawBlock" substitutionGroup="block">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="attlist_RawBlock"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_RawBlock">
+    <xs:attribute name="format" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="Space" substitutionGroup="inline_element">
+    <xs:complexType>
+      <xs:attributeGroup ref="attlist_Space"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Space">
+    <xs:attribute name="count" default="1" type="xs:positiveInteger"/>
+  </xs:attributeGroup>
+  <xs:element name="Str" substitutionGroup="inline_element">
+    <xs:complexType>
+      <xs:attributeGroup ref="attlist_Str"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Str">
+    <xs:attribute name="content" default=""/>
+  </xs:attributeGroup>
+  <xs:element name="Emph" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Strong" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Underline" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Strikeout" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Superscript" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Subscript" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SmallCaps" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Span" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+      <xs:attributeGroup ref="attlist_Span"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Span">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Quoted" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+      <xs:attributeGroup ref="attlist_Quoted"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Quoted">
+    <xs:attribute name="quote-type" default="DoubleQuote">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="SingleQuote"/>
+          <xs:enumeration value="DoubleQuote"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="Math" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="attlist_Math"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Math">
+    <xs:attribute name="math-type" default="InlineMath">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="DisplayMath"/>
+          <xs:enumeration value="InlineMath"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="RawInline" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="attlist_RawInline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_RawInline">
+    <xs:attribute name="format" use="required"/>
+  </xs:attributeGroup>
+  <xs:element name="Cite" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="citations"/>
+        <xs:element ref="inline_element"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="citations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="Citation"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Citation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="prefix"/>
+        <xs:element minOccurs="0" ref="suffix"/>
+      </xs:sequence>
+      <xs:attributeGroup ref="attlist_Citation"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="prefix">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="suffix">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Citation">
+    <xs:attribute name="id"/>
+    <xs:attribute name="note-num"/>
+    <xs:attribute name="hash" default="0"/>
+    <xs:attribute name="mode" default="AuthorInText">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="AuthorInText"/>
+          <xs:enumeration value="SuppressAuthor"/>
+          <xs:enumeration value="NormalCitation"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:element name="Code" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:attributeGroup ref="attlist_Code"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Code">
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Image" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+      <xs:attributeGroup ref="attlist_Image"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Image">
+    <xs:attribute name="title"/>
+    <xs:attribute name="src"/>
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="Link" substitutionGroup="inline_element">
+    <xs:complexType mixed="true">
+      <xs:group minOccurs="0" maxOccurs="unbounded" ref="inline"/>
+      <xs:attributeGroup ref="attlist_Link"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="attlist_Link">
+    <xs:attribute name="title"/>
+    <xs:attribute name="href"/>
+    <xs:attributeGroup ref="attr"/>
+  </xs:attributeGroup>
+  <xs:element name="SoftBreak" substitutionGroup="inline_element">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="LineBreak" substitutionGroup="inline_element">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="Note" substitutionGroup="inline_element">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="block"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
