@@ -923,6 +923,12 @@ header when requesting a document from a URL:
     prefer it to be at the beginning of the document, before the
     title, you can use `--pdf-engine=pdfroff`.
 
+    Because the entries in a table of contents need heading
+    identifiers to link to, this option forces the
+    [`auto_identifiers`](#extension-auto_identifiers) extension on
+    for the input format, even when it is off by default (as it is
+    for `typst`).
+
 `--toc-depth=`*NUMBER*
 
 :   Specify the number of section levels to include in the table

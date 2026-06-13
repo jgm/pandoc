@@ -228,6 +228,11 @@ convertWithOpts' scriptingEngine istty datadir opts = do
     report $ Deprecated "markdown_github" "Use gfm instead."
 
   abbrevs <- readAbbreviations (optAbbreviations opts)
+  -- Headings need identifiers to be linkable from a table of contents,
+  -- so force auto_identifiers on when a TOC is requested (see #11041).
+  let readerExts' = if writerTableOfContents writerOptions
+                       then enableExtension Ext_auto_identifiers readerExts
+                       else readerExts
   let readerOpts = def{
           readerStandalone = standalone
         , readerColumns = optColumns opts
@@ -236,7 +241,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
         , readerDefaultImageExtension = optDefaultImageExtension opts
         , readerTrackChanges = optTrackChanges opts
         , readerAbbreviations = abbrevs
-        , readerExtensions = readerExts
+        , readerExtensions = readerExts'
         , readerStripComments = optStripComments opts
         , readerTypstInputs = optTypstInputs opts
         }
