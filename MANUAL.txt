@@ -394,7 +394,8 @@ header when requesting a document from a URL:
     then instead of producing a `.zip` file pandoc will create
     a directory *FILE* and unpack the zip archive there
     (unless *FILE* already exists, in which case an error
-    will be raised).
+    will be raised). Note: `-o`/`--output` must come before
+    any `--print-default-template`.
 
 `--data-dir=`*DIRECTORY*
 
