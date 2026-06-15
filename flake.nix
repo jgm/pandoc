@@ -15,12 +15,6 @@
 
     # WASM toolchain, used (in the dev shell) to build pandoc for wasm32.
     ghc-wasm-meta.url = "gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org";
-
-    # Git dependency pinned in cabal.project's source-repository-package.
-    texmath = {
-      url = "github:jgm/texmath/170899673ee31de9096e178605e8da31a36e4185";
-      flake = false;
-    };
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -30,39 +24,43 @@
 
       perSystem = { self', pkgs, lib, system, ... }:
         let
-          # Hackage versions that nixpkgs ships too old (or, for asciidoc, not
-          # at all) for pandoc 3.10's `build-depends` bounds. These are the
-          # highest Hackage versions in range; pandoc 3.10 itself proves they
-          # are mutually compatible.
-          bumpedDeps = {
-            typst = "0.10";
-            typst-symbols = "0.2";
-            citeproc = "0.13.0.1";
-            commonmark = "0.3";
-            commonmark-extensions = "0.2.7";
-            commonmark-pandoc = "0.3";
-            emojis = "0.1.5";
-            djot = "0.1.4";
-            pandoc-types = "1.23.1.2";
-            asciidoc = "0.1.0.3";
+          # Single source of truth for dependency versions: pandoc's own
+          # `stack.yaml` `extra-deps`. haskell-flake's package set lags pandoc's
+          # `build-depends`, so we apply the very same overrides stack does.
+          # Parsed at eval time (IFD: yaml -> json).
+          stackExtraDeps = builtins.fromJSON (builtins.readFile
+            (pkgs.runCommand "stack-extra-deps.json" { } ''
+              ${pkgs.yq-go}/bin/yq -o=json '.extra-deps' \
+                ${inputs.self + "/stack.yaml"} > $out
+            ''));
 
-            # The hslua 2.5 ecosystem (used by pandoc-lua-engine). The
-            # sub-libraries version independently of the `hslua` umbrella.
-            hslua = "2.5.0";
-            hslua-core = "2.3.2.1";
-            hslua-marshalling = "2.3.2";
-            hslua-classes = "2.3.2";
-            hslua-objectorientation = "2.5.0";
-            hslua-packaging = "2.4.1";
-            hslua-aeson = "2.3.2";
-            hslua-typing = "0.2.0";
-            hslua-module-path = "1.2.0";
-            hslua-module-system = "1.3.0";
-            hslua-module-text = "1.2.0";
-            hslua-module-version = "1.2.0.1";
-            hslua-module-zip = "1.2.1";
-            hslua-module-doclayout = "1.2.1.1";
-          };
+          # "hslua-module-doclayout-1.2.1.1" -> name + version
+          # (Hackage versions contain no '-', so version = last '-'-segment).
+          parseDep = s:
+            let parts = lib.splitString "-" s;
+            in lib.nameValuePair
+              (lib.concatStringsSep "-" (lib.init parts))
+              (lib.last parts);
+
+          # name -> version, derived from stack.yaml's plain `pkg-version` entries.
+          bumpedDeps =
+            lib.listToAttrs
+              (map parseDep (builtins.filter builtins.isString stackExtraDeps))
+            // {
+              # nixpkgs ships these older than stack's LTS resolver does, so they
+              # are not pinned in stack.yaml but still need overriding here.
+              hslua-core = "2.3.2.1";
+              hslua-classes = "2.3.2";
+              hslua-aeson = "2.3.2";
+            };
+
+          # git `source-repository-package`s from stack.yaml (currently texmath).
+          # The package name is taken from the repo basename.
+          gitSources = lib.listToAttrs (map
+            (d: lib.nameValuePair
+              (lib.removeSuffix ".git" (baseNameOf d.git))
+              { source = builtins.fetchGit { url = d.git; rev = d.commit; allRefs = true; }; })
+            (builtins.filter builtins.isAttrs stackExtraDeps));
 
           # The sub-packages' `COPYING.md` is a `../COPYING.md` symlink that
           # dangles once the sub-directory is isolated as a source, breaking
@@ -101,10 +99,9 @@
             pandoc-cli.source = inputs.self + "/pandoc-cli";
             pandoc-lua-engine.source = inputs.self + "/pandoc-lua-engine";
             pandoc-server.source = inputs.self + "/pandoc-server";
-
-            # Git dependency pinned in cabal.project's source-repository-package.
-            texmath.source = inputs.texmath;
-          } // lib.mapAttrs (_: version: { source = version; }) bumpedDeps;
+          }
+          // gitSources
+          // lib.mapAttrs (_: version: { source = version; }) bumpedDeps;
 
           settings = {
             pandoc = {
@@ -123,10 +120,10 @@
             pandoc-lua-engine = { check = false; haddock = false; buildFromSdist = false; custom = fixLicense; };
             pandoc-server = { check = false; haddock = false; buildFromSdist = false; custom = fixLicense; };
 
-            # texmath (git) and the bumped Hackage deps below: skip tests/haddock
-            # and relax stale version bounds against this GHC's boot libraries.
-            texmath = { check = false; haddock = false; jailbreak = true; };
-          } // lib.genAttrs (builtins.attrNames bumpedDeps)
+            # The git sources (texmath) and the bumped Hackage deps: skip
+            # tests/haddock and relax stale bounds against this GHC's boot libs.
+          } // lib.genAttrs
+            (builtins.attrNames bumpedDeps ++ builtins.attrNames gitSources)
             (_: { check = false; haddock = false; jailbreak = true; });
 
           # Dev shell (`nix develop`). haskell-flake already provides

@@ -124,8 +124,7 @@
         "flake-parts": "flake-parts",
         "ghc-wasm-meta": "ghc-wasm-meta",
         "haskell-flake": "haskell-flake",
-        "nixpkgs": "nixpkgs_2",
-        "texmath": "texmath"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "systems": {
@@ -140,23 +139,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "texmath": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1781000469,
-        "narHash": "sha256-EQMp63rJgDziz9c1K7XtmX1TSqzQRnZqZZlAVK2gogk=",
-        "owner": "jgm",
-        "repo": "texmath",
-        "rev": "170899673ee31de9096e178605e8da31a36e4185",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jgm",
-        "repo": "texmath",
-        "rev": "170899673ee31de9096e178605e8da31a36e4185",
         "type": "github"
       }
     }
