@@ -395,6 +395,10 @@ header when requesting a document from a URL:
     a directory *FILE* and unpack the zip archive there
     (unless *FILE* already exists, in which case an error
     will be raised).
+    Note: on the command line `-o`/`--output` must come before
+    any `--print-highlight-style`,
+    `--print-default-data-file`, or
+    `--print-default-template`.
 
 `--data-dir=`*DIRECTORY*
 
