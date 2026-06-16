@@ -2902,6 +2902,7 @@ ODT or pptx.
 :   sets the base CSS `font-size`, which you'd usually set
     to e.g. `20px`, but it also accepts `pt`
     (12pt = 16px in most browsers).
+    Note: use `--css` to change printed media font size.
 
 `fontcolor`
 :   sets the CSS `color` property on the `html` element.
