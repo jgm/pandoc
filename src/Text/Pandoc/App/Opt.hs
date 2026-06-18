@@ -31,7 +31,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Trans (MonadIO, liftIO, lift)
 import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
-import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
+import System.FilePath ( (<.>), (</>), takeDirectory )
 import System.Directory ( canonicalizePath )
 import Data.Char (toLower, isSpace)
 import Data.Maybe (fromMaybe)
@@ -891,19 +891,18 @@ fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  -> FilePath
                  -> m FilePath
 fullDefaultsPath dataDir file = do
-  let fp = if null (takeExtension file)
-              then addExtension file "yaml"
-              else file
   defaultDataDir <- liftIO defaultUserDataDir
-  let defaultFp = fromMaybe defaultDataDir dataDir </> "defaults" </> fp
-  fpExists <- fileExists fp
-  if fpExists
-     then return fp
-     else do
-       defaultFpExists <- fileExists defaultFp
-       if defaultFpExists
-          then return defaultFp
-          else return fp
+  let ddir = fromMaybe defaultDataDir dataDir </> "defaults"
+  let findFile [] = return file
+      findFile (fp:fps) = do
+        fpExists <- fileExists fp
+        if fpExists
+           then return fp
+           else findFile fps
+  findFile [file,
+            file <.> "yaml",
+            ddir </> file,
+            ddir </> file <.> "yaml"]
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.
