@@ -423,7 +423,7 @@ header when requesting a document from a URL:
     be searched for first in the working directory, and then in
     the `defaults` subdirectory of the user data directory
     (see `--data-dir`).  The `.yaml` extension will be added if
-    *FILE* lacs an extension. See the section [Defaults files]
+    *FILE* lacks an extension. See the section [Defaults files]
     for more information on the file format. Settings from the
     defaults file may be overridden or extended by subsequent
     options on the command line.
