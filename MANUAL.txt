@@ -4614,7 +4614,7 @@ or two spaces.
 
 A term may have multiple definitions, and each definition may
 consist of one or more indented block elements (paragraph, code block,
-list, etc.). The blocks in the definition shoud be indented to the column
+list, etc.). The blocks in the definition should be indented to the column
 of the first non-space content after the `:` or `~` marker, or
 (if the `four_space_rule` extension is enabled) four spaces or
 one tab stop. As with other Markdown lists, you can "lazily" omit
