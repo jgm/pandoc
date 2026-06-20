@@ -3,7 +3,7 @@
 \includegraphics{command/corrupt.svg}
 ^D
 2> [WARNING] Could not determine image size for command/corrupt.svg: could not determine image type
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
       <Properties>
@@ -36,7 +36,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo.svg}
 ^D
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 37.5 -37.5">
       <Properties>
@@ -69,7 +69,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo-without-xml-declaration.svg}
 ^D
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 37.5 -37.5">
       <Properties>
@@ -103,7 +103,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/inkscape-cube.svg}
 ^D
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 54.75 -65.25">
       <Properties>
