@@ -467,7 +467,7 @@ String library is not Unicode aware
     **won't** match the "snowman" Unicode character.
 
     Use the [pandoc.text](#module-pandoc.text) module for Unicode-aware
-    transformation, and consider using using the lpeg or re
+    transformation, and consider using the lpeg or re
     library for pattern matching.
 
 # Examples
