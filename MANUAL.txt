@@ -4746,9 +4746,12 @@ lines that follow as a YAML metadata block or a table.
 
 ## Tables
 
-Four kinds of tables may be used. The first three kinds presuppose the use of
-a fixed-width font, such as Courier. The fourth kind can be used with
-proportionally spaced fonts, as it does not require lining up columns.
+Four kinds of tables may be used. The first three kinds (simple,
+multiline, and grid) require lining up columns and thus
+presuppose the use of a fixed-width font, such as Courier.
+The fourth kind (pipe tables) can be used with
+proportionally spaced fonts, as it does not require lining up
+columns.
 
 ### Extension: `table_captions` ###
 
