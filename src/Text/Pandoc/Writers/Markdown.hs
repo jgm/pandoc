@@ -31,6 +31,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing, isJust)
 import qualified Data.Set as Set
 import Data.Text (Text)
+import Text.Read (readMaybe)
 import Data.Char (isSpace)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
@@ -178,12 +179,20 @@ valToYaml (SimpleVal x)
       if hasNewlines x
          then hang 0 ("|" <> cr) x
          else case x of
-                Text _ t | isSpecialString t ->
+                Text _ t | isSpecialString t || looksLikeNumber t ->
                          "\"" <> fmap escapeInDoubleQuotes x <> "\""
                 _ | isNothing (foldM needsDoubleQuotes True x) ->
                          "\"" <> fmap escapeInDoubleQuotes x <> "\""
                   | otherwise -> x
     where
+      -- we need to put quotes around numbers that begin with 0
+      -- or have decimal points, because their YAML renderings
+      -- may differ. See #11715.
+      looksLikeNumber t = case readMaybe (T.unpack t) of
+                     Nothing -> False
+                     Just (_ :: Double) ->
+                       (T.any (== '.') t && T.takeEnd 1 t == "0") ||
+                       T.take 1 t == "0"
       isSpecialString t = Set.member t specialStrings
       specialStrings = Set.fromList
        ["y", "Y", "yes", "Yes", "YES", "n", "N",
