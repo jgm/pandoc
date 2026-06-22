@@ -19,7 +19,7 @@ jobs:
             cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.10
@@ -113,7 +113,7 @@ jobs:
     runs-on: macos-15-intel
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install ghcup
       run: |
