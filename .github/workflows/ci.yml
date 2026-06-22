@@ -61,7 +61,7 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     # needed by memory
     - name: Install numa
@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     # needed by memory
     - name: Install numa
@@ -141,7 +141,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install ghc
       run: |

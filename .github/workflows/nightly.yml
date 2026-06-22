@@ -13,7 +13,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install ghc
       run: |
@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.10
@@ -74,7 +74,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install ghcup
       run: |
         brew install ghcup
@@ -107,7 +107,7 @@ jobs:
 #    strategy:
 #      fail-fast: true
 #    steps:
-#    - uses: actions/checkout@v6
+#    - uses: actions/checkout@v7
 #    - uses: wimpysworld/nothing-but-nix@v9
 #      with:
 #       hatchet-protocol: 'rampage'
