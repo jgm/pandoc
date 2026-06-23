@@ -61,7 +61,7 @@ $endfor$
     ),
 $endif$
 $if(keywords)$
-  keywords: ($for(keywords)$$keywords$$sep$,$endfor$),
+  keywords: ($for(keywords)$"$keywords/nowrap$"$sep$,$endfor$),
 $endif$
 $if(date)$
   date: [$date$],
