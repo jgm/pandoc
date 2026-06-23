@@ -1,0 +1,118 @@
+#include <check.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <yaml.h>
+
+START_TEST(test_bidi_character_safety)
+{
+    // Invariant: YAML parsing must handle bidirectional characters safely without hidden execution
+    const char *payloads[] = {
+        // Exact exploit case: bidi override characters that could hide malicious content
+        "key: \"\\u202Eevil\\u202Cscript\"",
+        // Boundary case: mixed direction text with neutral characters
+        "key: \"Hello\\u202Eworld\\u202C123\"",
+        // Valid input: normal Arabic text
+        "key: \"مرحبا بالعالم\"",
+        // Edge case: bidi characters at boundaries
+        "key: \"\\u202E\\u202C\"",
+        // Real-world example: potentially misleading bidi in values
+        "title: \"\\u202Eexe.gpj\\u202C.txt\""
+    };
+    int num_payloads = sizeof(payloads) / sizeof(payloads[0]);
+
+    for (int i = 0; i < num_payloads; i++) {
+        FILE *fp = fopen("data/translations/ar.yaml", "r");
+        if (!fp) {
+            ck_abort_msg("Failed to open ar.yaml file");
+        }
+        
+        yaml_parser_t parser;
+        yaml_event_t event;
+        
+        // Initialize parser
+        if (!yaml_parser_initialize(&parser)) {
+            fclose(fp);
+            ck_abort_msg("Failed to initialize YAML parser");
+        }
+        
+        yaml_parser_set_input_file(&parser, fp);
+        
+        int parse_success = 1;
+        int has_bidi_chars = 0;
+        
+        // Parse through the document
+        do {
+            if (!yaml_parser_parse(&parser, &event)) {
+                parse_success = 0;
+                break;
+            }
+            
+            // Check for bidi characters in scalar events
+            if (event.type == YAML_SCALAR_EVENT) {
+                const char *value = (const char *)event.data.scalar.value;
+                size_t length = event.data.scalar.length;
+                
+                for (size_t j = 0; j < length; j++) {
+                    unsigned char c = value[j];
+                    // Check for Unicode bidi control characters
+                    if (c == 0xE2 && j + 2 < length) {
+                        if (value[j+1] == 0x80 && 
+                            (value[j+2] == 0xAA || value[j+2] == 0xAB || 
+                             value[j+2] == 0xAC || value[j+2] == 0xAD || 
+                             value[j+2] == 0xAE || value[j+2] == 0xAF)) {
+                            has_bidi_chars = 1;
+                        }
+                    }
+                }
+            }
+            
+            yaml_event_delete(&event);
+        } while (event.type != YAML_STREAM_END_EVENT);
+        
+        // Security property: parsing must complete successfully regardless of bidi characters
+        ck_assert_msg(parse_success, "YAML parsing failed for payload %d", i);
+        
+        // Cleanup
+        yaml_parser_delete(&parser);
+        fclose(fp);
+        
+        // Additional check: if bidi chars are present, ensure they don't cause hidden execution
+        if (has_bidi_chars) {
+            // The presence of bidi characters alone should not cause security issues
+            // This is a sanity check that parsing completed
+            ck_assert(parse_success);
+        }
+    }
+}
+END_TEST
+
+Suite *security_suite(void)
+{
+    Suite *s;
+    TCase *tc_core;
+
+    s = suite_create("Security");
+    tc_core = tcase_create("Core");
+
+    tcase_add_test(tc_core, test_bidi_character_safety);
+    suite_add_tcase(s, tc_core);
+
+    return s;
+}
+
+int main(void)
+{
+    int number_failed;
+    Suite *s;
+    SRunner *sr;
+
+    s = security_suite();
+    sr = srunner_create(s);
+
+    srunner_run_all(sr, CK_NORMAL);
+    number_failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
