@@ -7185,7 +7185,9 @@ Here is an example of a YAML metadata block with EPUB metadata:
       text: Sarah Jones
     identifier:
     - scheme: DOI
-      text: doi:10.234234.234/33
+      text: 'urn:doi:10.234234.234/33'
+    - scheme: ISBN-13
+      text: 'urn:isbn:9780000000000'
     publisher:  My Press
     rights: © 2007 John Smith, CC BY-NC
     ibooks:
@@ -7202,6 +7204,9 @@ The following fields are recognized:
     `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`, `JP e-code`,
     `OLCC number`, `JP Magazine ID`, `UPC-12+5`, `BNF Control number`,
     `ISSN-13`, `ARK`, `Digital file internal version number`.
+    In the `text` field, it is advisable to specify a URN as in
+    the examples above. Note that quotes are needed around a YAML
+    field containing a colon.
 
 `title`
   ~ Either a string value, or an object with fields `file-as` and
