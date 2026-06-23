@@ -170,7 +170,7 @@ parseRST = do
   return doc
 
 resolveBlockSubstitutions :: PandocMonad m => Block -> RSTParser m Block
-resolveBlockSubstitutions x@(Para [Link _attr _ (s,_)])
+resolveBlockSubstitutions (Para [Link _attr ils (s,_)])
   | Just ref <- T.stripPrefix "##SUBST##" s = do
           substTable <- stateSubstitutions <$> getState
           let key@(Key key') = toKey $ stripFirstAndLast ref
@@ -178,7 +178,7 @@ resolveBlockSubstitutions x@(Para [Link _attr _ (s,_)])
                Nothing     -> do
                  pos <- getPosition
                  logMessage $ ReferenceNotFound (tshow key') pos
-                 return x
+                 return $ Para ils
                Just target -> case
                  B.toList target of
                    [bl] -> return bl
@@ -233,7 +233,7 @@ resolveReferences x@(Link _ ils (s,_))
                Nothing     -> do
                  pos <- getPosition
                  logMessage $ ReferenceNotFound (tshow key') pos
-                 return x
+                 return $ Span ("",[],[]) ils
                Just target -> case
                  B.toList target of
                    [Para [t]] -> return t
