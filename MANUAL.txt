@@ -7197,28 +7197,30 @@ Here is an example of a YAML metadata block with EPUB metadata:
 The following fields are recognized:
 
 `identifier`
-  ~ Either a string value or an object with fields `text` and
-    `scheme`.  Valid values for `scheme` are `ISBN-10`,
-    `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
-    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC number`,
-    `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`, `JP e-code`,
-    `OLCC number`, `JP Magazine ID`, `UPC-12+5`, `BNF Control number`,
-    `ISSN-13`, `ARK`, `Digital file internal version number`.
-    In the `text` field, it is advisable to specify a URN as in
-    the examples above. Note that quotes are needed around a YAML
-    field containing a colon.
+  ~ Either a string value, or an object with fields `text` and
+    `scheme` (optional), or a list of such objects. Valid values for
+    `scheme` are `ISBN-10`, `GTIN-13`, `UPC`, `ISMN-10`, `DOI`,
+    `LCCN`, `GTIN-14`, `ISBN-13`, `Legal deposit number`, `URN`,
+    `OCLC number`, `Co-publisher’s ISBN-13`, `ISMN-13`, `ISBN-A`,
+    `JP e-code`, `OLCC number`, `JP Magazine ID`, `UPC-12+5`,
+    `BNF Control number`, `ISSN-13`, `ARK`, `Digital file
+    internal version number`. In the `text` field, it is
+    advisable to specify a URN as in the examples above. Note
+    that quotes are needed around a YAML field containing a colon.
 
 `title`
-  ~ Either a string value, or an object with fields `file-as` and
-    `type`, or a list of such objects.  Valid values for `type` are
-    `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
+  ~ Either a string value, or an object with fields `text`,
+    `file-as` (optional) and `type` (optional), or a list of such
+    objects. Valid values for `type` are `main`, `subtitle`,
+    `short`, `collection`, `edition`, `extended`.
 
 `creator`
-  ~ Either a string value, or an object with fields `role`, `file-as`,
-    and `text`, or a list of such objects.  Valid values for `role` are
-    [MARC relators], but
-    pandoc will attempt to translate the human-readable versions
-    (like "author" and "editor") to the appropriate marc relators.
+  ~ Either a string value, or an object with fields `text`,
+    `role` (optional), and `file-as` (optional), or a list of
+    such objects. Valid values for `role` are [MARC relators],
+    but pandoc will attempt to translate the human-readable
+    versions (like "author" and "editor") to the appropriate marc
+    relators.
 
 `contributor`
   ~ Same format as `creator`.
@@ -7232,12 +7234,14 @@ The following fields are recognized:
     language if nothing is specified.
 
 `subject`
-  ~ Either a string value, or an object with fields `text`, `authority`,
-    and `term`, or a list of such objects. Valid values for `authority`
-    are either a [reserved authority value] (currently `AAT`, `BIC`,
-    `BISAC`, `CLC`, `DDC`, `CLIL`, `EuroVoc`, `MEDTOP`, `LCSH`, `NDC`,
-    `Thema`, `UDC`, and `WGS`) or an absolute IRI identifying a custom
-    scheme. Valid values for `term` are defined by the scheme.
+  ~ Either a string value, or an object with fields `text`,
+    `authority` (optional), and `term` (optional), or a list of
+    such objects. Valid values for `authority` are either a
+    [reserved authority value] (currently `AAT`, `BIC`, `BISAC`,
+    `CLC`, `DDC`, `CLIL`, `EuroVoc`, `MEDTOP`, `LCSH`, `NDC`,
+    `Thema`, `UDC`, and `WGS`) or an absolute IRI identifying a
+    custom scheme. Valid values for `term` are defined by the
+    scheme.
 
 `description`
   ~ A string value.
