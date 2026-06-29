@@ -56,6 +56,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
+import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Citation (citationsToNatbib,
@@ -662,8 +663,9 @@ blockToLaTeX (DefinitionList lst) = do
   let spacing = if all (isTightList . snd) lst
                    then text "\\tightlist"
                    else empty
+  notes <- notesToLaTeX <$> gets stNotes
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$
-               "\\end{description}"
+               "\\end{description}" $$ notes
 blockToLaTeX HorizontalRule =
             return
   "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}"
@@ -762,9 +764,10 @@ listItemToLaTeX isOrdered lst
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m (Doc Text)
 defListItemToLaTeX (term, defs) = do
     -- needed to turn off 'listings' because it breaks inside \item[...]:
-    modify $ \s -> s{stInItem = True}
+    oldExternalNotes <- gets stExternalNotes
+    modify $ \s -> s{stInItem = True, stExternalNotes = True}
     term' <- inlineListToLaTeX term
-    modify $ \s -> s{stInItem = False}
+    modify $ \s -> s{stInItem = False, stExternalNotes = oldExternalNotes}
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
     let isInternalLink (Link _ _ (src,_))
