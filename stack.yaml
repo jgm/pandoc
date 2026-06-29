@@ -35,6 +35,8 @@ extra-deps:
 - emojis-0.1.5
 - git: https://github.com/jgm/texmath.git
   commit: 170899673ee31de9096e178605e8da31a36e4185
+- git: https://github.com/jgm/djoths.git
+  commit: 7cabb69eef81d80688beb4fce6b604ad1ccc5941
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
