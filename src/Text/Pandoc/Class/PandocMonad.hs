@@ -495,16 +495,19 @@ findFileWithDataFallback subdir fp = do
   existsInWorkingDir <- fileExists fp
   if existsInWorkingDir
      then return $ Just fp
-     else do
-       mbDataDir <- checkUserDataDir fp
-       case mbDataDir of
-         Nothing -> return Nothing
-         Just datadir -> do
-           let datafp = datadir </> subdir </> fp
-           existsInDataDir <- fileExists datafp
-           return $ if existsInDataDir
-                    then Just datafp
-                    else Nothing
+     else checkUserDataDir fp >>= findInDataDir
+ where
+  findInDataDir Nothing = pure Nothing
+  findInDataDir (Just datadir) = do
+    let datafp = datadir </> subdir </> fp
+    let nested = datadir </> subdir </> dropExtension fp </> fp
+    existsInDataDir <- fileExists datafp
+    nestedInDataDir <- fileExists nested
+    return $
+      case () of
+        _ | existsInDataDir -> Just datafp
+        _ | nestedInDataDir -> Just nested
+        _ -> Nothing
 
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
