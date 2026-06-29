@@ -80,7 +80,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           ~/.local/state/cabal
@@ -88,7 +88,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           dist-newstyle
@@ -118,7 +118,7 @@ jobs:
     # declare/restore cached things
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           ~/.stack
@@ -126,7 +126,7 @@ jobs:
 
     - name: Cache stack work
       id:   stack-local
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           .stack-work
@@ -152,7 +152,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           %LOCALAPPDATA%/cabal/store
@@ -160,7 +160,7 @@ jobs:
 
     - name: Cache cabal work
       id: cabal-local
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           dist-newstyle
