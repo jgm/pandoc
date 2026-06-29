@@ -528,10 +528,11 @@ tableRows :: PandocMonad m => DWParser m [[(Alignment, B.Blocks)]]
 tableRows = many1 tableRow
 
 tableRow :: PandocMonad m => DWParser m [(Alignment, B.Blocks)]
-tableRow = many1Till tableCell tableRowEnd
+tableRow = tableCellSeparator *> many1 tableCell <* tableRowEnd
 
-tableRowEnd :: PandocMonad m => DWParser m Char
-tableRowEnd = try $ tableCellSeparator <* manyTill spaceChar eol
+-- DokuWiki just ignores stuff after the end of a table row (#11739)
+tableRowEnd :: PandocMonad m => DWParser m ()
+tableRowEnd = void $ manyTill anyChar eol
 
 tableCellSeparator :: PandocMonad m => DWParser m Char
 tableCellSeparator = char '|' <|> char '^'
@@ -542,8 +543,7 @@ tableCell = try $ (second (B.plain . B.trimInlines . mconcat)) <$> cellContent
     cellContent = do
       -- https://www.dokuwiki.org/wiki:syntax#tables
       -- DokuWiki represents the alignment of cells with two spaces padding.
-      tableCellSeparator
-      cellInline <- manyTill inlineUnconsolidatedWhitespace (lookAhead tableCellSeparator)
+      cellInline <- manyTill inlineUnconsolidatedWhitespace tableCellSeparator
       let left  = [B.space, B.space] `isPrefixOf` cellInline
       let right = [B.space, B.space] `isSuffixOf` cellInline
       let alignment = case (left, right) of
