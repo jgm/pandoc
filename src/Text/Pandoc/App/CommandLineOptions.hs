@@ -1006,21 +1006,16 @@ options =
 
     , Option "" ["bibliography"]
                  (ReqArg
-                  (\arg opt -> return opt{ optMetadata =
-                                            addMeta "bibliography"
-                                              (normalizePath arg) $
-                                              optMetadata opt })
+                  (\arg opt -> return opt{ optBibliography =
+                                            optBibliography opt ++
+                                              [normalizePath arg] })
                    "FILE")
                  ""
 
      , Option "" ["csl"]
                  (ReqArg
                   (\arg opt -> do
-                    case lookupMeta (T.pack "csl") $ optMetadata opt of
-                      Just _ -> optError $ PandocOptionError
-                                   "--csl option can only be used once"
-                      Nothing -> return opt{ optMetadata = addMeta "csl" (normalizePath arg) $
-                      optMetadata opt })
+                    return opt{ optCSL = Just (normalizePath arg) })
                    "FILE")
                  ""
 
