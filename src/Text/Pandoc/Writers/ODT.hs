@@ -17,7 +17,7 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify, lift)
 import Control.Monad (MonadPlus(mplus))
 import qualified Data.ByteString.Lazy as B
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Generics (everywhere', mkT)
 import Data.List (isPrefixOf)
 import qualified Data.Map as Map
@@ -102,7 +102,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
                                 readDataFile "reference.odt"
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
-  doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc
+  let refTextWidth = referenceTextWidthPt opts refArchive
+  doc' <- walkM (transformPicMath opts refTextWidth) $ walk fixDisplayMath doc
   newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
   epochtime <- floor `fmap` lift P.getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
@@ -303,16 +304,49 @@ addLang lang = everywhere' (mkT updateLangAttr)
           updateLangAttr x = x
 
 -- | transform both Image and Math elements
-transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
-transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
+-- | Width of the text area in points, from the reference document's
+-- page layout (page width minus horizontal margins).  This mirrors how
+-- the docx writer derives its print width from the reference docx
+-- section properties.
+referenceTextWidthPt :: WriterOptions -> Archive -> Maybe Double
+referenceTextWidthPt opts archive = do
+  entry <- findEntryByPath "styles.xml" archive
+  styles <- either (const Nothing) Just $
+    parseXMLElement $ toTextLazy $ fromEntry entry
+  layout <- listToMaybe $ filterElementsName
+    ((== "page-layout-properties") . qName) styles
+  let dim attrName = do
+        v <- findAttrBy ((== attrName) . qName) layout
+        d <- lengthToDim v
+        Just $ 72 * inInch opts d
+  pageWidth <- dim "page-width"
+  let margin = fromMaybe 0 . dim
+  Just $ pageWidth - margin "margin-left" - margin "margin-right"
+
+transformPicMath :: PandocMonad m
+                 => WriterOptions -> Maybe Double -> Inline -> O m Inline
+transformPicMath opts mbTextWidthPt (Image attr@(id', cls, _) lab (src,t)) =
+  catchError
    (do (img, mbMimeType) <- P.fetchItem src
        (ptX, ptY) <- case imageSize opts img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
                          report $ CouldNotDetermineImageSize src msg
                          return (100, 100)
+       let textWidthPt = fromMaybe 420 mbTextWidthPt
        let dims =
              case (getDim Width, getDim Height) of
+               -- Percent dimensions are not valid ODF lengths.  When both
+               -- dimensions are given and the width is relative, resolve
+               -- it against the reference document's text width (as the
+               -- docx writer does) and let the height follow the image's
+               -- aspect ratio.
+               (Just (Percent wp), Just _) ->
+                 let wIn = wp / 100 * textWidthPt / 72
+                 in [ ("width", tshow (Inch wIn))
+                    , ("height", tshow (Inch (wIn / ratio))) ]
+               (Just w@(Inch i), Just (Percent _)) ->
+                 [("width", tshow w), ("height", tshow (Inch (i / ratio)))]
                (Just w, Just h)              -> [("width", tshow w), ("height", tshow h)]
                (Just w@(Percent _), Nothing) -> [("rel-width", tshow w),("rel-height", "scale"),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
                (Nothing, Just h@(Percent _)) -> [("rel-width", "scale"),("rel-height", tshow h),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
@@ -347,7 +381,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
        report $ CouldNotFetchResource src $ T.pack (show e)
        return $ Emph lab)
 
-transformPicMath _ (Math t math) = do
+transformPicMath _ _ (Math t math) = do
   entries <- gets stEntries
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
   case readTeX math of
@@ -381,7 +415,7 @@ transformPicMath _ (Math t math) = do
                                         , ("xlink:show", "embed")
                                         , ("xlink:actuate", "onLoad")]
 
-transformPicMath _ x = return x
+transformPicMath _ _ x = return x
 
 starMathCommentFromTeX :: T.Text -> T.Text
 starMathCommentFromTeX tex =

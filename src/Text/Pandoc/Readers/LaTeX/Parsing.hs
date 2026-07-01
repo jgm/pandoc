@@ -98,7 +98,7 @@ import Control.Applicative (many, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Data.Char (chr, isAlphaNum, isDigit, isLetter, ord)
+import Data.Char (chr, isAlphaNum, isDigit, isLetter, isSpace, ord)
 import Data.Default
 import Data.List (intercalate)
 import qualified Data.IntMap as IntMap
@@ -615,7 +615,7 @@ doMacros' n inp =
         $ throwError $ PandocMacroLoop name
       (macros :| _ ) <- sMacros <$> getState
       case M.lookup name macros of
-           Nothing -> trySpecialMacro name ts
+           Nothing -> trySpecialMacro spos name ts
            Just (Macro _scope expansionPoint argspecs optarg newtoks) -> do
              let getargs' = do
                    args <-
@@ -645,21 +645,38 @@ doMacros' n inp =
 
 -- | Certain macros do low-level tex manipulations that can't
 -- be represented in our Macro type, so we handle them here.
-trySpecialMacro :: PandocMonad m => Text -> [Tok] -> LP m [Tok]
-trySpecialMacro "xspace" ts = do
+trySpecialMacro :: PandocMonad m => SourcePos -> Text -> [Tok] -> LP m [Tok]
+trySpecialMacro _ "xspace" ts = do
   ts' <- doMacros' 1 ts
   case ts' of
     Tok pos Word t : _
       | startsWithAlphaNum t -> return $ Tok pos Spaces " " : ts'
     _ -> return ts'
-trySpecialMacro "iftrue" ts = handleIf (ifParser True) ts
-trySpecialMacro "iffalse" ts = handleIf (ifParser False) ts
-trySpecialMacro "ifmmode" ts = do
+trySpecialMacro spos "csname" ts = do
+  lstate <- getState
+  res <- lift $ runParserT csnameParser lstate "csname" $ TokStream False ts
+  case res of
+    Left _ -> mzero
+    Right (name, rest) ->
+      -- Re-run expansion: the constructed control sequence may itself
+      -- be a macro (cf. the xspace case above).
+      doMacros' 1 $ Tok spos (CtrlSeq name) ("\\" <> name) : rest
+trySpecialMacro _ "iftrue" ts = handleIf (ifParser True) ts
+trySpecialMacro _ "iffalse" ts = handleIf (ifParser False) ts
+trySpecialMacro _ "ifmmode" ts = do
   mathMode <- sMathMode <$> getState
   handleIf (ifParser mathMode) ts
-trySpecialMacro "ifstrequal" ts = do
+trySpecialMacro _ "ifstrequal" ts = do
   handleIf ifStrequalParser ts
-trySpecialMacro _ _ = mzero
+trySpecialMacro _ _ _ = mzero
+
+csnameParser :: PandocMonad m => LP m (Text, [Tok])
+csnameParser = do
+  nameToks <- manyTill anyTok (controlSeq "endcsname")
+  TokStream _ rest <- getInput
+  let name = T.filter (not . isSpace) $ untokenize nameToks
+  guard $ not $ T.null name
+  return (name, rest)
 
 ifStrequalParser :: PandocMonad m => LP m [Tok]
 ifStrequalParser = do
