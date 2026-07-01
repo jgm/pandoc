@@ -444,9 +444,9 @@ and now 3
 
 with a continuation
 
-@enumerate 4
+@enumerate 
 @item
-sublist with roman numerals, starting with 4
+sublist with roman numerals starting with i.
 @item
 more items
 @enumerate A
@@ -462,16 +462,16 @@ a subsublist
 
 Nesting:
 
-@enumerate A
+@enumerate D
 @item
 Upper Alpha
 @enumerate 
 @item
 Upper Roman.
-@enumerate 6
+@enumerate 
 @item
-Decimal start with 6
-@enumerate c
+Decimal start with 1
+@enumerate a
 @item
 Lower alpha with paren
 @end enumerate

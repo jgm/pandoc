@@ -215,7 +215,7 @@ Same thing but with paragraphs:
 
 with a continuation
 
-11. sublist with roman numerals, starting with 4
+11. sublist with roman numerals starting with i.
 11. more items
 111. a subsublist
 111. a subsublist
@@ -224,7 +224,7 @@ Nesting:
 
 1. Upper Alpha
 11. Upper Roman.
-111. Decimal start with 6
+111. Decimal start with 1
 1111. Lower alpha with paren
 
 Autonumbering:

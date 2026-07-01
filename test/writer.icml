@@ -334,13 +334,13 @@
           </TabList>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" Name="NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" NumberingExpression="^#.^t" NumberingLevel="4" BulletsAndNumberingListType="NumberedList" LeftIndent="30">
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; lowerAlpha" Name="NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; lowerAlpha" NumberingExpression="^#.^t" NumberingLevel="4" BulletsAndNumberingListType="NumberedList" LeftIndent="30">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <NumberingFormat type="string">a, b, c, d...</NumberingFormat>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-6" Name="NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-6" NumberingExpression="^#.^t" NumberingLevel="3" BulletsAndNumberingListType="NumberedList" LeftIndent="20">
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first" Name="NumList &gt; NumList &gt; NumList &gt; first" NumberingExpression="^#.^t" NumberingLevel="3" BulletsAndNumberingListType="NumberedList" LeftIndent="20">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
@@ -357,18 +357,12 @@
           <NumberingFormat type="string">A, B, C, D...</NumberingFormat>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; beginsWith-4 &gt; lowerRoman" Name="NumList &gt; NumList &gt; beginsWith-4 &gt; lowerRoman" NumberingExpression="^#.^t" NumberingLevel="2" BulletsAndNumberingListType="NumberedList" LeftIndent="10">
-        <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
-          <NumberingFormat type="string">i, ii, iii, iv...</NumberingFormat>
-        </Properties>
-      </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; first" Name="NumList &gt; NumList &gt; first" NumberingExpression="^#.^t" NumberingLevel="2" BulletsAndNumberingListType="NumberedList" LeftIndent="10">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; first &gt; beginsWith-4 &gt; lowerRoman" Name="NumList &gt; NumList &gt; first &gt; beginsWith-4 &gt; lowerRoman" NumberingExpression="^#.^t" NumberingLevel="2" BulletsAndNumberingListType="NumberedList" LeftIndent="10">
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; first &gt; lowerRoman" Name="NumList &gt; NumList &gt; first &gt; lowerRoman" NumberingExpression="^#.^t" NumberingLevel="2" BulletsAndNumberingListType="NumberedList" LeftIndent="10">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <NumberingFormat type="string">i, ii, iii, iv...</NumberingFormat>
@@ -378,6 +372,12 @@
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <NumberingFormat type="string">I, II, III, IV...</NumberingFormat>
+        </Properties>
+      </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; lowerRoman" Name="NumList &gt; NumList &gt; lowerRoman" NumberingExpression="^#.^t" NumberingLevel="2" BulletsAndNumberingListType="NumberedList" LeftIndent="10">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <NumberingFormat type="string">i, ii, iii, iv...</NumberingFormat>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; Paragraph" Name="NumList &gt; Paragraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
@@ -405,7 +405,7 @@
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; upperAlpha" Name="NumList &gt; first &gt; upperAlpha" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; beginsWith-4 &gt; upperAlpha" Name="NumList &gt; first &gt; beginsWith-4 &gt; upperAlpha" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <NumberingFormat type="string">A, B, C, D...</NumberingFormat>
@@ -1144,13 +1144,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange NumberingStartAt="4" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; first &gt; beginsWith-4 &gt; lowerRoman" NumberingContinue="false">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; first &gt; lowerRoman" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>sublist with roman numerals, starting with 4</Content>
+    <Content>sublist with roman numerals starting with i.</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; beginsWith-4 &gt; lowerRoman">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; lowerRoman">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>more items</Content>
   </CharacterStyleRange>
@@ -1174,7 +1174,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; upperAlpha" NumberingContinue="false">
+<ParagraphStyleRange NumberingStartAt="4" AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; beginsWith-4 &gt; upperAlpha" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Upper Alpha</Content>
   </CharacterStyleRange>
@@ -1186,13 +1186,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange NumberingStartAt="6" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-6" NumberingContinue="false">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>Decimal start with 6</Content>
+    <Content>Decimal start with 1</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange NumberingStartAt="3" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" NumberingContinue="false">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; lowerAlpha" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Lower alpha with paren</Content>
   </CharacterStyleRange>

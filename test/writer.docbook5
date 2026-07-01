@@ -527,10 +527,10 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
           <para>
             with a continuation
           </para>
-          <orderedlist numeration="lowerroman" spacing="compact" startingnumber="4">
+          <orderedlist numeration="lowerroman" spacing="compact">
             <listitem>
               <para>
-                sublist with roman numerals, starting with 4
+                sublist with roman numerals starting with i.
               </para>
             </listitem>
             <listitem>
@@ -556,7 +556,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <para>
         Nesting:
       </para>
-      <orderedlist numeration="upperalpha" spacing="compact">
+      <orderedlist numeration="upperalpha" spacing="compact" startingnumber="4">
         <listitem>
           <para>
             Upper Alpha
@@ -566,12 +566,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
               <para>
                 Upper Roman.
               </para>
-              <orderedlist numeration="arabic" spacing="compact" startingnumber="6">
+              <orderedlist numeration="arabic" spacing="compact">
                 <listitem>
                   <para>
-                    Decimal start with 6
+                    Decimal start with 1
                   </para>
-                  <orderedlist numeration="loweralpha" spacing="compact" startingnumber="3">
+                  <orderedlist numeration="loweralpha" spacing="compact">
                     <listitem>
                       <para>
                         Lower alpha with paren

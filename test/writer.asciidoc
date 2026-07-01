@@ -233,8 +233,8 @@ Same thing but with paragraphs:
 . and now 3
 +
 with a continuation
-[lowerroman, start=4]
-.. sublist with roman numerals, starting with 4
+[lowerroman]
+.. sublist with roman numerals starting with i.
 .. more items
 [upperalpha]
 ... a subsublist
@@ -242,13 +242,13 @@ with a continuation
 
 Nesting:
 
-[upperalpha]
+[upperalpha, start=4]
 . Upper Alpha
 [upperroman]
 .. Upper Roman.
-[arabic, start=6]
-... Decimal start with 6
-[loweralpha, start=3]
+[arabic]
+... Decimal start with 1
+[loweralpha]
 .... Lower alpha with paren
 
 Autonumbering:

@@ -4552,6 +4552,10 @@ ordered list marker in place of a numeral:
 
 Note:  the '`#`' ordered list marker doesn't work with `commonmark`.
 
+As with `commonmark`, ordered sublists must start with `1` or the
+equivalent (e.g., `i` or `a`). This helps avoid unintentional
+lists caused by things like parenthesized dates.
+
 ### Extension: `startnum` ###
 
 Pandoc also pays attention to the type of list marker used, and to the

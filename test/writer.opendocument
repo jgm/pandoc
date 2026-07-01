@@ -523,10 +523,10 @@ list markers<text:bookmark-end text:name="fancy-list-markers" /></text:h>
   <text:list-item>
     <text:p text:style-name="List_20_Number">and now 3</text:p>
     <text:p text:style-name="List_20_Number">with a continuation</text:p>
-    <text:list text:style-name="Pandoc_5f_Numbering_5f_2" text:start-value="4">
+    <text:list text:style-name="Pandoc_5f_Numbering_5f_2">
       <text:list-item>
         <text:p text:style-name="List_20_Number_20_Tight">sublist with roman
-        numerals, starting with 4</text:p>
+        numerals starting with i.</text:p>
       </text:list-item>
       <text:list-item>
         <text:p text:style-name="List_20_Number_20_Tight">more items</text:p>
@@ -545,17 +545,17 @@ list markers<text:bookmark-end text:name="fancy-list-markers" /></text:h>
   </text:list-item>
 </text:list>
 <text:p text:style-name="First_20_paragraph">Nesting:</text:p>
-<text:list text:style-name="Pandoc_5f_Numbering_5f_4">
+<text:list text:style-name="Pandoc_5f_Numbering_5f_4" text:start-value="4">
   <text:list-item>
     <text:p text:style-name="List_20_Number_20_Tight">Upper Alpha</text:p>
     <text:list text:style-name="Pandoc_5f_Numbering_5f_5">
       <text:list-item>
         <text:p text:style-name="List_20_Number_20_Tight">Upper Roman.</text:p>
-        <text:list text:style-name="Pandoc_5f_Numbering_5f_1" text:start-value="6">
+        <text:list text:style-name="Pandoc_5f_Numbering_5f_1">
           <text:list-item>
             <text:p text:style-name="List_20_Number_20_Tight">Decimal start with
-            6</text:p>
-            <text:list text:style-name="Pandoc_5f_Numbering_5f_6" text:start-value="3">
+            1</text:p>
+            <text:list text:style-name="Pandoc_5f_Numbering_5f_6">
               <text:list-item>
                 <text:p text:style-name="List_20_Number_20_Tight">Lower alpha
                 with paren</text:p>

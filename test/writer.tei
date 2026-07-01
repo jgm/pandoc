@@ -350,8 +350,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <p>and now 3</p>
         <p>with a continuation</p>
         <list type="ordered:lowerroman">
-          <item n="4">
-            <p>sublist with roman numerals, starting with 4</p>
+          <item>
+            <p>sublist with roman numerals starting with i.</p>
           </item>
           <item>
             <p>more items</p>
@@ -369,16 +369,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </list>
     <p>Nesting:</p>
     <list type="ordered:upperalpha">
-      <item>
+      <item n="4">
         <p>Upper Alpha</p>
         <list type="ordered:upperroman">
           <item>
             <p>Upper Roman.</p>
             <list type="ordered:arabic">
-              <item n="6">
-                <p>Decimal start with 6</p>
+              <item>
+                <p>Decimal start with 1</p>
                 <list type="ordered:loweralpha">
-                  <item n="3">
+                  <item>
                     <p>Lower alpha with paren</p>
                   </item>
                 </list>

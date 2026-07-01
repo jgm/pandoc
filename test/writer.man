@@ -254,9 +254,9 @@ and now 3
 .RS 4
 .PP
 with a continuation
-.IP "iv." 4
-sublist with roman numerals, starting with 4
-.IP " v." 4
+.IP " i." 4
+sublist with roman numerals starting with i.
+.IP "ii." 4
 more items
 .RS 4
 .IP "(A)" 4
@@ -267,16 +267,16 @@ a subsublist
 .RE
 .PP
 Nesting:
-.IP "A." 3
+.IP "D." 3
 Upper Alpha
 .RS 4
 .IP "I." 3
 Upper Roman.
 .RS 4
-.IP "(6)" 4
-Decimal start with 6
+.IP "(1)" 4
+Decimal start with 1
 .RS 4
-.IP "c)" 3
+.IP "a)" 3
 Lower alpha with paren
 .RE
 .RE

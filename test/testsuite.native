@@ -595,7 +595,7 @@ Pandoc
             , Str "continuation"
             ]
         , OrderedList
-            ( 4 , LowerRoman , Period )
+            ( 1 , LowerRoman , Period )
             [ [ Plain
                   [ Str "sublist"
                   , Space
@@ -603,13 +603,13 @@ Pandoc
                   , Space
                   , Str "roman"
                   , Space
-                  , Str "numerals,"
+                  , Str "numerals"
                   , SoftBreak
                   , Str "starting"
                   , Space
                   , Str "with"
                   , Space
-                  , Str "4"
+                  , Str "i."
                   ]
               ]
             , [ Plain [ Str "more" , Space , Str "items" ]
@@ -624,13 +624,13 @@ Pandoc
       ]
   , Para [ Str "Nesting:" ]
   , OrderedList
-      ( 1 , UpperAlpha , Period )
+      ( 4 , UpperAlpha , Period )
       [ [ Plain [ Str "Upper" , Space , Str "Alpha" ]
         , OrderedList
             ( 1 , UpperRoman , Period )
             [ [ Plain [ Str "Upper" , Space , Str "Roman." ]
               , OrderedList
-                  ( 6 , Decimal , TwoParens )
+                  ( 1 , Decimal , TwoParens )
                   [ [ Plain
                         [ Str "Decimal"
                         , Space
@@ -638,10 +638,10 @@ Pandoc
                         , Space
                         , Str "with"
                         , Space
-                        , Str "6"
+                        , Str "1"
                         ]
                     , OrderedList
-                        ( 3 , LowerAlpha , OneParen )
+                        ( 1 , LowerAlpha , OneParen )
                         [ [ Plain
                               [ Str "Lower"
                               , Space

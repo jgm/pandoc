@@ -269,8 +269,8 @@ indented with spaces</p></li>
 <p>with a continuation</p>
 
 <ol>
-<li>sublist with roman numerals,
-starting with 4</li>
+<li>sublist with roman numerals
+starting with i.</li>
 <li>more items
 
 <ol>
@@ -289,7 +289,7 @@ starting with 4</li>
 <li>Upper Roman.
 
 <ol>
-<li>Decimal start with 6
+<li>Decimal start with 1
 
 <ol>
 <li>Lower alpha with paren</li>

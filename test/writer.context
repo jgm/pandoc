@@ -431,9 +431,9 @@ Same thing but with paragraphs:
 
   with a continuation
 
-  \startenumerate[r,packed][start=4,stopper=.]
+  \startenumerate[r,packed][stopper=.]
   \item
-    sublist with roman numerals, starting with 4
+    sublist with roman numerals starting with i.
   \item
     more items
     \startenumerate[A,packed][left=(,stopper=)]
@@ -447,16 +447,16 @@ Same thing but with paragraphs:
 
 Nesting:
 
-\startenumerate[A,packed][stopper=.]
+\startenumerate[A,packed][start=4,stopper=.]
 \item
   Upper Alpha
   \startenumerate[R,packed][stopper=.]
   \item
     Upper Roman.
-    \startenumerate[n,packed][start=6,left=(,stopper=)]
+    \startenumerate[n,packed][left=(,stopper=)]
     \item
-      Decimal start with 6
-      \startenumerate[a,packed][start=3,stopper=)]
+      Decimal start with 1
+      \startenumerate[a,packed][stopper=)]
       \item
         Lower alpha with paren
       \stopenumerate

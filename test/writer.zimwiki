@@ -211,7 +211,7 @@ Same thing but with paragraphs:
 1. begins with 2
 2. and now 3
 with a continuation
-	1. sublist with roman numerals, starting with 4
+	1. sublist with roman numerals starting with i.
 	2. more items
 		1. a subsublist
 		2. a subsublist
@@ -220,7 +220,7 @@ Nesting:
 
 1. Upper Alpha
 	1. Upper Roman.
-		1. Decimal start with 6
+		1. Decimal start with 1
 			1. Lower alpha with paren
 
 Autonumbering:

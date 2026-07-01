@@ -982,6 +982,8 @@ listItem fourSpaceRule start = try $ do
 orderedList :: PandocMonad m => MarkdownParser m (F Blocks)
 orderedList = try $ do
   (start, style, delim) <- lookAhead (orderedListStart Nothing)
+  ctx <- stateParserContext <$> getState
+  when (ctx == ListItemState) $ guard (start == 1)
   unless (style `elem` [DefaultStyle, Decimal, Example] &&
           delim `elem` [DefaultDelim, Period]) $
     guardEnabled Ext_fancy_lists

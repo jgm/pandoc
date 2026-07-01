@@ -396,8 +396,8 @@ Same thing but with paragraphs:
   with a continuation
 
   #block[
-  #set enum(numbering: "i.", start: 4)
-  + sublist with roman numerals, starting with 4
+  #set enum(numbering: "i.", start: 1)
+  + sublist with roman numerals starting with i.
   + more items
     #block[
     #set enum(numbering: "(A)", start: 1)
@@ -410,16 +410,16 @@ Same thing but with paragraphs:
 Nesting:
 
 #block[
-#set enum(numbering: "A.", start: 1)
+#set enum(numbering: "A.", start: 4)
 + Upper Alpha
   #block[
   #set enum(numbering: "I.", start: 1)
   + Upper Roman.
     #block[
-    #set enum(numbering: "(1)", start: 6)
-    + Decimal start with 6
+    #set enum(numbering: "(1)", start: 1)
+    + Decimal start with 1
       #block[
-      #set enum(numbering: "a)", start: 3)
+      #set enum(numbering: "a)", start: 1)
       + Lower alpha with paren
       ]
     ]

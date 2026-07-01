@@ -432,10 +432,9 @@ Same thing but with paragraphs:
 
   \begin{enumerate}
   \def\labelenumii{\roman{enumii}.}
-  \setcounter{enumii}{3}
   \tightlist
   \item
-    sublist with roman numerals, starting with 4
+    sublist with roman numerals starting with i.
   \item
     more items
 
@@ -454,6 +453,7 @@ Nesting:
 
 \begin{enumerate}
 \def\labelenumi{\Alph{enumi}.}
+\setcounter{enumi}{3}
 \tightlist
 \item
   Upper Alpha
@@ -466,14 +466,12 @@ Nesting:
 
     \begin{enumerate}
     \def\labelenumiii{(\arabic{enumiii})}
-    \setcounter{enumiii}{5}
     \tightlist
     \item
-      Decimal start with 6
+      Decimal start with 1
 
       \begin{enumerate}
       \def\labelenumiv{\alph{enumiv})}
-      \setcounter{enumiv}{2}
       \tightlist
       \item
         Lower alpha with paren

@@ -358,11 +358,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
         <p>with a continuation</p>
         <list list-type="order">
           <list-item>
-            <label>iv.</label>
-            <p>sublist with roman numerals, starting with 4</p>
+            <p>sublist with roman numerals starting with i.</p>
           </list-item>
           <list-item>
-            <label>v.</label>
             <p>more items</p>
             <list list-type="order">
               <list-item>
@@ -381,17 +379,18 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <p>Nesting:</p>
     <list list-type="order">
       <list-item>
+        <label>D.</label>
         <p>Upper Alpha</p>
         <list list-type="order">
           <list-item>
             <p>Upper Roman.</p>
             <list list-type="order">
               <list-item>
-                <label>(6)</label>
-                <p>Decimal start with 6</p>
+                <label>(1)</label>
+                <p>Decimal start with 1</p>
                 <list list-type="order">
                   <list-item>
-                    <label>c)</label>
+                    <label>a)</label>
                     <p>Lower alpha with paren</p>
                   </list-item>
                 </list>

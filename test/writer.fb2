@@ -307,16 +307,16 @@ indented with spaces</p>
 <empty-line />
 <p>    with a continuation</p>
 <empty-line />
-<p>(3) iv. sublist with roman numerals,
-starting with 4</p>
-<p>(3) v. more items</p>
-<p>(3) v. (A) a subsublist</p>
-<p>(3) v. (B) a subsublist</p>
+<p>(3) i. sublist with roman numerals
+starting with i.</p>
+<p>(3) ii. more items</p>
+<p>(3) ii. (A) a subsublist</p>
+<p>(3) ii. (B) a subsublist</p>
 <p>Nesting:</p>
-<p>A. Upper Alpha</p>
-<p>A. I. Upper Roman.</p>
-<p>A. I. (6) Decimal start with 6</p>
-<p>A. I. (6) c) Lower alpha with paren</p>
+<p>D. Upper Alpha</p>
+<p>D. I. Upper Roman.</p>
+<p>D. I. (1) Decimal start with 1</p>
+<p>D. I. (1) a) Lower alpha with paren</p>
 <p>Autonumbering:</p>
 <p>1. Autonumber.</p>
 <p>2. More.</p>
