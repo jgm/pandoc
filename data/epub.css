@@ -37,6 +37,13 @@ sub {
   vertical-align: sub;
   font-size: smaller;
 }
+h1, h2, h3, h4, h5, h6 {
+  text-indent: 0;
+  text-align: left;
+  font-weight: bold;
+  page-break-after: avoid;
+  page-break-inside: avoid;
+}
 h1 {
   margin: 3em 0 0 0;
   font-size: 2em;
@@ -62,13 +69,6 @@ h5 {
 }
 h6 {
   font-size: 1em;
-}
-h1, h2, h3, h4, h5, h6 {
-  text-indent: 0;
-  text-align: left;
-  font-weight: bold;
-  page-break-after: avoid;
-  page-break-inside: avoid;
 }
 
 ol, ul {
