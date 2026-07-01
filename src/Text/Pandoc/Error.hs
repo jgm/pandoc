@@ -26,7 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 import System.Exit (ExitCode (..), exitWith)
-import System.IO (stderr)
+import System.IO (stderr, hPutStrLn)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
 import Text.Pandoc.Shared (tshow)
@@ -161,7 +161,7 @@ handleError (Right r) = return r
 handleError (Left e) =
   case e of
     PandocIOError _ err' -> do
-      putStrLn $ displayException err'
+      hPutStrLn stderr $ displayException err'
       exitWith (ExitFailure 1)
     _ -> err exitCode (renderError e)
  where
