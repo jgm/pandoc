@@ -22,6 +22,7 @@ import qualified Tests.Readers.JATS
 import qualified Tests.Readers.Jira
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
+import qualified Tests.Readers.MoinMoin
 import qualified Tests.Readers.Muse
 import qualified Tests.Readers.ODT
 import qualified Tests.Readers.Org
@@ -90,6 +91,7 @@ tests pandocPath = testGroup "pandoc tests"
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
           , testGroup "Markdown" Tests.Readers.Markdown.tests
+          , testGroup "MoinMoin" Tests.Readers.MoinMoin.tests
           , testGroup "HTML" Tests.Readers.HTML.tests
           , testGroup "JATS" Tests.Readers.JATS.tests
           , testGroup "Jira" Tests.Readers.Jira.tests
