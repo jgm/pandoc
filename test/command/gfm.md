@@ -220,3 +220,45 @@ hi
 - [ ] foo
 - [x] bar
 ```
+
+```
+% pandoc -f gfm -t native
+- [ ]
+- [ ] bubbles
+^D
+[ BulletList
+    [ [ Plain [ Str "\9744" ] ]
+    , [ Plain [ Str "\9744" , Space , Str "bubbles" ] ]
+    ]
+]
+```
+
+```
+% pandoc -f gfm -t gfm
+- [ ]
+- [x]
+- [ ] bubbles
+^D
+- [ ]
+- [x]
+- [ ] bubbles
+```
+
+```
+% pandoc -f gfm -t native
+- [x] foo
+  - [ ] bar
+  - [x] baz
+- [ ] bim
+^D
+[ BulletList
+    [ [ Plain [ Str "\9746" , Space , Str "foo" ]
+      , BulletList
+          [ [ Plain [ Str "\9744" , Space , Str "bar" ] ]
+          , [ Plain [ Str "\9746" , Space , Str "baz" ] ]
+          ]
+      ]
+    , [ Plain [ Str "\9744" , Space , Str "bim" ] ]
+    ]
+]
+```

@@ -22,10 +22,11 @@ import Commonmark.Extensions
 import Commonmark.Pandoc
 import Data.Text (Text)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Definition as D
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
+import Text.Pandoc.Shared (taskListItemFromAscii)
 import Control.Monad (MonadPlus(mzero))
 import Control.Monad.Except (  MonadError(throwError) )
 import Data.Functor.Identity (runIdentity)
@@ -101,6 +102,9 @@ readCommonMarkBody opts s toks =
   (if isEnabled Ext_implicit_figures opts
       then walk makeFigures
       else id) .
+  (if isEnabled Ext_task_lists opts
+      then walk (convertTaskListItems (readerExtensions opts))
+      else id) .
   (if isEnabled Ext_tex_math_gfm opts
       then walk handleGfmMath
       else id) .
@@ -108,12 +112,25 @@ readCommonMarkBody opts s toks =
       then walk stripBlockComments . walk stripInlineComments
       else id) <$>
   if isEnabled Ext_sourcepos opts
-     then case runIdentity (parseCommonmarkWith (specFor opts) toks) of
+     then case runIdentity (parseCommonmarkWith (specFor parserOpts) toks) of
             Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm SourceRange Blocks) -> return $ B.doc bls
-     else case runIdentity (parseCommonmarkWith (specFor opts) toks) of
+     else case runIdentity (parseCommonmarkWith (specFor parserOpts) toks) of
             Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+ where
+  -- Parse task lists as ordinary list text and convert afterward.
+  -- This avoids buggy nesting behavior from the parser's task-list extension.
+  parserOpts = opts{
+    readerExtensions = disableExtension Ext_task_lists (readerExtensions opts)
+  }
+
+convertTaskListItems :: Extensions -> Block -> Block
+convertTaskListItems exts (D.BulletList items) =
+  D.BulletList $ map (taskListItemFromAscii exts) items
+convertTaskListItems exts (D.OrderedList attrs items) =
+  D.OrderedList attrs $ map (taskListItemFromAscii exts) items
+convertTaskListItems _ b = b
 
 handleGfmMath :: Block -> Block
 handleGfmMath (CodeBlock ("",["math"],[]) raw) = Para [Math DisplayMath raw]
@@ -187,7 +204,6 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
            | isEnabled Ext_implicit_header_references opts ] ++
          [ (footnoteSpec <>) | isEnabled Ext_footnotes opts ] ++
          [ (definitionListSpec <>) | isEnabled Ext_definition_lists opts ] ++
-         [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
          [ (wikilinksSpec TitleAfterPipe <>)
            | isEnabled Ext_wikilinks_title_after_pipe opts ] ++
          [ (wikilinksSpec TitleBeforePipe <>)
