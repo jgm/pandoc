@@ -1,0 +1,816 @@
+<doclang version="0.6">
+<head>
+  <title>Pandoc Test Suite</title>
+  <author>John MacFarlane</author>
+  <author>Anonymous</author>
+  <date>July 17, 2006</date>
+</head>
+<text>
+  This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
+  markdown test suite.
+</text>
+<heading>Headers</heading>
+<heading level="2">
+  Level 2 with an embedded link (/url)
+</heading>
+<heading level="3">
+  Level 3 with <italic>emphasis</italic>
+</heading>
+<heading level="4">
+  Level 4
+</heading>
+<heading level="5">
+  Level 5
+</heading>
+<heading>Level 1</heading>
+<heading level="2">
+  Level 2 with <italic>emphasis</italic>
+</heading>
+<heading level="3">
+  Level 3
+</heading>
+<text>
+  with no blank line
+</text>
+<heading level="2">
+  Level 2
+</heading>
+<text>
+  with no blank line
+</text>
+<heading>Paragraphs</heading>
+<text>
+  Here’s a regular paragraph.
+</text>
+<text>
+  In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+  Because a hard-wrapped line in the middle of a paragraph looked like a list
+  item.
+</text>
+<text>
+  Here’s one with a bullet. * criminey.
+</text>
+<text>
+  There should be a hard line break here.
+</text>
+<heading>Block Quotes</heading>
+<text>
+  E-mail style:
+</text>
+<text>
+  This is a block quote. It is pretty short.
+</text>
+<text>
+  Code in a block quote:
+</text>
+<code>
+  <content>
+    sub status {
+        print &quot;working&quot;;
+    }
+  </content>
+</code>
+<text>
+  A list:
+</text>
+<list class="ordered">
+  <ldiv/>item one
+  <ldiv/>item two
+</list>
+<text>
+  Nested block quotes:
+</text>
+<text>
+  nested
+</text>
+<text>
+  nested
+</text>
+<text>
+  This should not be a block quote: 2 &gt; 1.
+</text>
+<text>
+  And a following paragraph.
+</text>
+<heading>Code Blocks</heading>
+<text>
+  Code:
+</text>
+<code>
+  <content>
+    ---- (should be four hyphens)
+
+    sub status {
+        print &quot;working&quot;;
+    }
+
+    this code block is indented by one tab
+  </content>
+</code>
+<text>
+  And:
+</text>
+<code>
+  <content><![CDATA[    this code block is indented by two tabs
+
+  These should not be escaped:  \$ \\ \> \[ \{]]></content>
+</code>
+<heading>Lists</heading>
+<heading level="2">
+  Unordered
+</heading>
+<text>
+  Asterisks tight:
+</text>
+<list>
+  <ldiv/>asterisk 1
+  <ldiv/>asterisk 2
+  <ldiv/>asterisk 3
+</list>
+<text>
+  Asterisks loose:
+</text>
+<list>
+  <ldiv/>asterisk 1
+  <ldiv/>asterisk 2
+  <ldiv/>asterisk 3
+</list>
+<text>
+  Pluses tight:
+</text>
+<list>
+  <ldiv/>Plus 1
+  <ldiv/>Plus 2
+  <ldiv/>Plus 3
+</list>
+<text>
+  Pluses loose:
+</text>
+<list>
+  <ldiv/>Plus 1
+  <ldiv/>Plus 2
+  <ldiv/>Plus 3
+</list>
+<text>
+  Minuses tight:
+</text>
+<list>
+  <ldiv/>Minus 1
+  <ldiv/>Minus 2
+  <ldiv/>Minus 3
+</list>
+<text>
+  Minuses loose:
+</text>
+<list>
+  <ldiv/>Minus 1
+  <ldiv/>Minus 2
+  <ldiv/>Minus 3
+</list>
+<heading level="2">
+  Ordered
+</heading>
+<text>
+  Tight:
+</text>
+<list class="ordered">
+  <ldiv/>First
+  <ldiv/>Second
+  <ldiv/>Third
+</list>
+<text>
+  and:
+</text>
+<list class="ordered">
+  <ldiv/>One
+  <ldiv/>Two
+  <ldiv/>Three
+</list>
+<text>
+  Loose using tabs:
+</text>
+<list class="ordered">
+  <ldiv/>First
+  <ldiv/>Second
+  <ldiv/>Third
+</list>
+<text>
+  and using spaces:
+</text>
+<list class="ordered">
+  <ldiv/>One
+  <ldiv/>Two
+  <ldiv/>Three
+</list>
+<text>
+  Multiple paragraphs:
+</text>
+<list class="ordered">
+  <ldiv/><text>
+    Item 1, graf one.
+  </text>
+  <text>
+    Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+  </text>
+  <ldiv/>Item 2.
+  <ldiv/>Item 3.
+</list>
+<heading level="2">
+  Nested
+</heading>
+<list>
+  <ldiv/>Tab
+  <list>
+    <ldiv/>Tab
+    <list>
+      <ldiv/>Tab
+    </list>
+  </list>
+</list>
+<text>
+  Here’s another:
+</text>
+<list class="ordered">
+  <ldiv/>First
+  <ldiv/>Second:
+  <list>
+    <ldiv/>Fee
+    <ldiv/>Fie
+    <ldiv/>Foe
+  </list>
+  <ldiv/>Third
+</list>
+<text>
+  Same thing but with paragraphs:
+</text>
+<list class="ordered">
+  <ldiv/>First
+  <ldiv/><text>
+    Second:
+  </text>
+  <list>
+    <ldiv/>Fee
+    <ldiv/>Fie
+    <ldiv/>Foe
+  </list>
+  <ldiv/>Third
+</list>
+<heading level="2">
+  Tabs and spaces
+</heading>
+<list>
+  <ldiv/>this is a list item indented with tabs
+  <ldiv/><text>
+    this is a list item indented with spaces
+  </text>
+  <list>
+    <ldiv/>this is an example list item indented with tabs
+    <ldiv/>this is an example list item indented with spaces
+  </list>
+</list>
+<heading level="2">
+  Fancy list markers
+</heading>
+<list class="ordered">
+  <ldiv/>begins with 2
+  <ldiv/><text>
+    and now 3
+  </text>
+  <text>
+    with a continuation
+  </text>
+  <list class="ordered">
+    <ldiv/>sublist with roman numerals, starting with 4
+    <ldiv/>more items
+    <list class="ordered">
+      <ldiv/>a subsublist
+      <ldiv/>a subsublist
+    </list>
+  </list>
+</list>
+<text>
+  Nesting:
+</text>
+<list class="ordered">
+  <ldiv/>Upper Alpha
+  <list class="ordered">
+    <ldiv/>Upper Roman.
+    <list class="ordered">
+      <ldiv/>Decimal start with 6
+      <list class="ordered">
+        <ldiv/>Lower alpha with paren
+      </list>
+    </list>
+  </list>
+</list>
+<text>
+  Autonumbering:
+</text>
+<list>
+  <ldiv/>Autonumber.
+  <ldiv/>More.
+  <list>
+    <ldiv/>Nested.
+  </list>
+</list>
+<text>
+  Should not be a list item:
+</text>
+<text>
+  M.A. 2007
+</text>
+<text>
+  B. Williams
+</text>
+<heading>Definition Lists</heading>
+<text>
+  Tight using spaces:
+</text>
+<list>
+  <ldiv/>applered fruit
+  <ldiv/>orangeorange fruit
+  <ldiv/>bananayellow fruit
+</list>
+<text>
+  Tight using tabs:
+</text>
+<list>
+  <ldiv/>applered fruit
+  <ldiv/>orangeorange fruit
+  <ldiv/>bananayellow fruit
+</list>
+<text>
+  Loose:
+</text>
+<list>
+  <ldiv/>apple<text>
+    red fruit
+  </text>
+  <ldiv/>orange<text>
+    orange fruit
+  </text>
+  <ldiv/>banana<text>
+    yellow fruit
+  </text>
+</list>
+<text>
+  Multiple blocks with italics:
+</text>
+<list>
+  <ldiv/><italic>apple</italic><text>
+    red fruit
+  </text>
+  <text>
+    contains seeds, crisp, pleasant to taste
+  </text>
+  <ldiv/><italic>orange</italic><text>
+    orange fruit
+  </text>
+  <code>
+    <content>
+      { orange code block }
+    </content>
+  </code>
+  <text>
+    orange block quote
+  </text>
+</list>
+<text>
+  Multiple definitions, tight:
+</text>
+<list>
+  <ldiv/>applered fruit
+  computer
+  <ldiv/>orangeorange fruit
+  bank
+</list>
+<text>
+  Multiple definitions, loose:
+</text>
+<list>
+  <ldiv/>apple<text>
+    red fruit
+  </text>
+  <text>
+    computer
+  </text>
+  <ldiv/>orange<text>
+    orange fruit
+  </text>
+  <text>
+    bank
+  </text>
+</list>
+<text>
+  Blank line after term, indented marker, alternate markers:
+</text>
+<list>
+  <ldiv/>apple<text>
+    red fruit
+  </text>
+  <text>
+    computer
+  </text>
+  <ldiv/>orange<text>
+    orange fruit
+  </text>
+  <list class="ordered">
+    <ldiv/>sublist
+    <ldiv/>sublist
+  </list>
+</list>
+<heading>HTML Blocks</heading>
+<text>
+  Simple block on one line:
+</text>
+foo
+<text>
+  And nested without indentation:
+</text>
+<text>
+  foo
+</text>
+bar
+<text>
+  Interpreted markdown in a table:
+</text>
+This is <italic>emphasized</italic>
+And this is <bold>strong</bold>
+<text>
+  Here’s a simple block:
+</text>
+<text>
+  foo
+</text>
+<text>
+  This should be a code block, though:
+</text>
+<code>
+  <content><![CDATA[<div>
+      foo
+  </div>]]></content>
+</code>
+<text>
+  As should this:
+</text>
+<code>
+  <content><![CDATA[<div>foo</div>]]></content>
+</code>
+<text>
+  Now, nested:
+</text>
+foo
+<text>
+  This should just be an HTML comment:
+</text>
+<text>
+  Multiline:
+</text>
+<text>
+  Code block:
+</text>
+<code>
+  <content><![CDATA[<!-- Comment -->]]></content>
+</code>
+<text>
+  Just plain comment, with trailing spaces on the line:
+</text>
+<text>
+  Code:
+</text>
+<code>
+  <content><![CDATA[<hr />]]></content>
+</code>
+<text>
+  Hr’s:
+</text>
+<heading>Inline Markup</heading>
+<text>
+  This is <italic>emphasized</italic>, and so <italic>is this</italic>.
+</text>
+<text>
+  This is <bold>strong</bold>, and so <bold>is this</bold>.
+</text>
+<text>
+  An <italic>emphasized link (/url)</italic>.
+</text>
+<text>
+  <bold><italic>This is strong and em.</italic></bold>
+</text>
+<text>
+  So is <bold><italic>this</italic></bold> word.
+</text>
+<text>
+  <bold><italic>This is strong and em.</italic></bold>
+</text>
+<text>
+  So is <bold><italic>this</italic></bold> word.
+</text>
+<text>
+  This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>,
+  <code>\$</code>, <code>&lt;html&gt;</code>.
+</text>
+<text>
+  <strikethrough>This is <italic>strikeout</italic>.</strikethrough>
+</text>
+<text>
+  Superscripts: a<superscript>bc</superscript>d
+  a<superscript><italic>hello</italic></superscript>
+  a<superscript>hello there</superscript>.
+</text>
+<text>
+  Subscripts: H<subscript>2</subscript>O, H<subscript>23</subscript>O,
+  H<subscript>many of them</subscript>O.
+</text>
+<text>
+  These should not be superscripts or subscripts, because of the unescaped
+  spaces: a^b c^d, a~b c~d.
+</text>
+<heading>Smart quotes, ellipses, dashes</heading>
+<text>
+  Hello, said the spider. Shelob is my name.
+</text>
+<text>
+  A, B, and C are letters.
+</text>
+<text>
+  Oak, elm, and beech are names of trees. So is pine.
+</text>
+<text>
+  He said, I want to go. Were you alive in the 70’s?
+</text>
+<text>
+  Here is some quoted <code>code</code> and a quoted
+  link (http://example.com/?foo=1&bar=2).
+</text>
+<text>
+  Some dashes: one—two — three—four — five.
+</text>
+<text>
+  Dashes between numbers: 5–7, 255–66, 1987–1999.
+</text>
+<text>
+  Ellipses…and…and….
+</text>
+<heading>LaTeX</heading>
+<list>
+  <ldiv/>
+  <ldiv/><formula>2+2=4</formula>
+  <ldiv/><formula>x \in y</formula>
+  <ldiv/><formula>\alpha \wedge \omega</formula>
+  <ldiv/><formula>223</formula>
+  <ldiv/><formula>p</formula>-Tree
+  <ldiv/>Here’s some display math:
+  <formula>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</formula>
+  <ldiv/>Here’s one that has a line break in it:
+  <formula>\alpha + \omega \times x^2</formula>.
+</list>
+<text>
+  These shouldn’t be math:
+</text>
+<list>
+  <ldiv/>To get the famous equation, write <code>$e = mc^2$</code>.
+  <ldiv/>$22,000 is a <italic>lot</italic> of money. So is $34,000. (It worked
+  if lot is emphasized.)
+  <ldiv/>Shoes ($20) and socks ($5).
+  <ldiv/>Escaped <code>$</code>: $73 <italic>this should be emphasized</italic>
+  23$.
+</list>
+<text>
+  Here’s a LaTeX table:
+</text>
+<heading>Special Characters</heading>
+<text>
+  Here is some unicode:
+</text>
+<list>
+  <ldiv/>I hat: Î
+  <ldiv/>o umlaut: ö
+  <ldiv/>section: §
+  <ldiv/>set membership: ∈
+  <ldiv/>copyright: ©
+</list>
+<text>
+  AT&amp;T has an ampersand in their name.
+</text>
+<text>
+  AT&amp;T is another way to write it.
+</text>
+<text>
+  This &amp; that.
+</text>
+<text>
+  4 &lt; 5.
+</text>
+<text>
+  6 &gt; 5.
+</text>
+<text>
+  Backslash: \
+</text>
+<text>
+  Backtick: `
+</text>
+<text>
+  Asterisk: *
+</text>
+<text>
+  Underscore: _
+</text>
+<text>
+  Left brace: {
+</text>
+<text>
+  Right brace: }
+</text>
+<text>
+  Left bracket: [
+</text>
+<text>
+  Right bracket: ]
+</text>
+<text>
+  Left paren: (
+</text>
+<text>
+  Right paren: )
+</text>
+<text>
+  Greater-than: &gt;
+</text>
+<text>
+  Hash: #
+</text>
+<text>
+  Period: .
+</text>
+<text>
+  Bang: !
+</text>
+<text>
+  Plus: +
+</text>
+<text>
+  Minus: -
+</text>
+<heading>Links</heading>
+<heading level="2">
+  Explicit
+</heading>
+<text>
+  Just a URL (/url/).
+</text>
+<text>
+  URL and title (/url/).
+</text>
+<text>
+  URL and title (/url/).
+</text>
+<text>
+  URL and title (/url/).
+</text>
+<text>
+  URL and title (/url/)
+</text>
+<text>
+  URL and title (/url/)
+</text>
+<text>
+  with_underscore (/url/with_underscore)
+</text>
+<text>
+  Email link (mailto:nobody@nowhere.net)
+</text>
+<text>
+  Empty ().
+</text>
+<heading level="2">
+  Reference
+</heading>
+<text>
+  Foo bar (/url/).
+</text>
+<text>
+  With embedded [brackets] (/url/).
+</text>
+<text>
+  b (/url/) by itself should be a link.
+</text>
+<text>
+  Indented once (/url).
+</text>
+<text>
+  Indented twice (/url).
+</text>
+<text>
+  Indented thrice (/url).
+</text>
+<text>
+  This should [not][] be a link.
+</text>
+<code>
+  <content>
+    [not]: /url
+  </content>
+</code>
+<text>
+  Foo bar (/url/).
+</text>
+<text>
+  Foo biz (/url/).
+</text>
+<heading level="2">
+  With ampersands
+</heading>
+<text>
+  Here’s a link with an ampersand in the URL (http://example.com/?foo=1&bar=2).
+</text>
+<text>
+  Here’s a link with an amersand in the link text: AT&amp;T (http://att.com/).
+</text>
+<text>
+  Here’s an inline link (/script?foo=1&bar=2).
+</text>
+<text>
+  Here’s an inline link in pointy braces (/script?foo=1&bar=2).
+</text>
+<heading level="2">
+  Autolinks
+</heading>
+<text>
+  With an ampersand:
+  http://example.com/?foo=1&amp;bar=2 (http://example.com/?foo=1&bar=2)
+</text>
+<list>
+  <ldiv/>In a list?
+  <ldiv/>http://example.com/ (http://example.com/)
+  <ldiv/>It should.
+</list>
+<text>
+  An e-mail address: nobody@nowhere.net (mailto:nobody@nowhere.net)
+</text>
+<text>
+  Blockquoted: http://example.com/ (http://example.com/)
+</text>
+<text>
+  Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
+</text>
+<code>
+  <content><![CDATA[or here: <http://example.com/>]]></content>
+</code>
+<heading>Images</heading>
+<text>
+  From Voyage dans la Lune by Georges Melies (1902):
+</text>
+<text>
+  Here is a movie icon.
+</text>
+<heading>Footnotes</heading>
+<text>
+  Here is a footnote reference,<footnote>
+    <text>
+      Here is the footnote. It can go anywhere after the footnote reference. It
+      need not be placed at the end of the document.
+    </text>
+  </footnote> and another.<footnote>
+    <text>
+      Here’s the long note. This one contains multiple blocks.
+    </text>
+    <text>
+      Subsequent blocks are indented to show that they belong to the footnote
+      (as with list items).
+    </text>
+    <code>
+      <content><![CDATA[  { <code> }]]></content>
+    </code>
+    <text>
+      If you want, you can indent every line, but you can also be lazy and just
+      indent the first line of each block.
+    </text>
+  </footnote> This should <italic>not</italic> be a footnote reference, because
+  it contains a space.[^my note] Here is an inline note.<footnote>
+    <text>
+      This is <italic>easier</italic> to type. Inline notes may contain
+      links (http://google.com) and <code>]</code> verbatim characters, as well
+      as [bracketed text].
+    </text>
+  </footnote>
+</text>
+<text>
+  Notes can go in quotes.<footnote>
+    <text>
+      In quote.
+    </text>
+  </footnote>
+</text>
+<list class="ordered">
+  <ldiv/>And in list items.<footnote>
+    <text>
+      In list.
+    </text>
+  </footnote>
+</list>
+<text>
+  This paragraph should not be part of the note, as it is not indented.
+</text>
+</doclang>

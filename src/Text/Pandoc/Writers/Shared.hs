@@ -52,10 +52,11 @@ module Text.Pandoc.Writers.Shared (
                      , delimited
                      , allRowsEmpty
                      , tableBodiesToRows
-                     , insertCurrentSpansAtColumn
-                     , takePreviousSpansAtColumn
-                     , decrementTrailingRowSpans
-                     )
+                      , insertCurrentSpansAtColumn
+                      , isSimpleContent
+                      , takePreviousSpansAtColumn
+                      , decrementTrailingRowSpans
+                      )
 where
 import Safe (lastMay, maximumMay)
 import qualified Data.ByteString.Lazy as BL
@@ -874,6 +875,14 @@ isOrderedListMarker :: Text -> Bool
 isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
               isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
+
+-- | If blocks are a single paragraph of inline content,
+-- return Just the inlines. Useful for container optimization
+-- (virtual text, simple list items, etc.).
+isSimpleContent :: [Block] -> Maybe [Inline]
+isSimpleContent [Plain ils] = Just ils
+isSimpleContent [Para  ils] = Just ils
+isSimpleContent _           = Nothing
 
 toTaskListItem :: MonadPlus m => [Block] -> m (Bool, [Block])
 toTaskListItem (Plain (Str "☐":Space:ils):xs) = pure (False, Plain ils:xs)

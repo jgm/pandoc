@@ -319,6 +319,7 @@ header when requesting a document from a URL:
     - `context` ([ConTeXt])
     - `csljson` ([CSL JSON] bibliography)
     - `djot` ([Djot markup])
+    - `doclang` ([DocLang], AI-native document format)
     - `docbook` or `docbook4` ([DocBook] 4)
     - `docbook5` (DocBook 5)
     - `docx` ([Word docx])
@@ -526,6 +527,7 @@ header when requesting a document from a URL:
 [Rich Text Format]: https://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: https://docbook.org
 [Djot markup]: https://djot.net
+[DocLang]: https://github.com/doclang-project/doclang
 [JATS]: https://jats.nlm.nih.gov
 [BITS]: https://jats.nlm.nih.gov/extensions/bits/
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
