@@ -569,16 +569,25 @@ makeSectionsWithOffsets numoffsets numbering mbBaseLevel bs =
       | all (\case
                Header level' _ _ -> level' > level
                _                 -> True) ys
-      , "column" `notElem` dclasses
-      , "columns" `notElem` dclasses
-      , "fragment" `notElem` dclasses = do
+      , "section" `elem` dclasses
+        || ("column" `notElem` dclasses &&
+            "columns" `notElem` dclasses &&
+            "fragment" `notElem` dclasses &&
+            "cell" `notElem` dclasses) = do
     inner <- go (Header level hattr title':ys)
     rest <- go xs
     return $
       case inner of
-            [Div divattr'@(dident',_,_) zs]
-              | T.null dident || T.null dident' || dident == dident'
-              -> Div (combineAttr divattr' divattr) zs : rest
+            [Div divattr'@(dident',_,_) zs@(Header level' hattr' title'' : zs')]
+              | dident == dident'
+                -> Div (combineAttr divattr' divattr) zs : rest
+              | (_,dclasses',dkvs) <- combineAttr divattr' divattr
+              , ("",hclasses,hkvs) <- hattr'
+                -> if T.null dident
+                      then Div (dident',dclasses',dkvs) zs : rest
+                      else Div (dident,dclasses',dkvs)
+                             (Header level' (dident',hclasses,hkvs) title''
+                               : zs') : rest
             _ -> Div divattr inner : rest
   go (Div attr xs : rest) = do
     xs' <- go xs
