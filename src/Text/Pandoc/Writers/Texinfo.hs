@@ -241,7 +241,8 @@ blockToTexinfo HorizontalRule =
              text "@end iftex" $$
              text "@ifnottex" $$
              text (replicate 72 '-') $$
-             text "@end ifnottex"
+             text "@end ifnottex" $$
+             blankline
 
 blockToTexinfo (Header 0 _ lst) = do
   txt <- if null lst
