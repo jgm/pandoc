@@ -3539,6 +3539,11 @@ The `--css` option also affects the output.
 [`install-font.sh`]: https://www.schaffter.ca/mom/bin/install-font.sh
 [ms-font-steps]: https://www.schaffter.ca/mom/momdoc/appendices.html#steps
 
+### Variables for RTF
+
+`fontsize`
+:   font size for body text, e.g. `12pt` or `12.5pt`.
+
 ### Variables set automatically
 
 Pandoc sets these variables automatically in response to [options] or
