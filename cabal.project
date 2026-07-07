@@ -18,6 +18,12 @@ source-repository-package
   location: https://github.com/jgm/djoths.git
   tag: 7cabb69eef81d80688beb4fce6b604ad1ccc5941
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: 73903fa7723ca2b1a1120063451e9647d1382754
+  subdir: commonmark-extensions
+
 package pandoc
   flags: +embed_data_files +http
 
