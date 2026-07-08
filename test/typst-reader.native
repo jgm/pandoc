@@ -1299,7 +1299,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\cap"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "sect"
+                                  , Code ( "" , [] , [] ) "inter"
                                   ]
                               ]
                           ]
@@ -1595,7 +1595,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\1488"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "alef"
+                                  , Code ( "" , [] , [] ) "aleph"
                                   ]
                               ]
                           ]
@@ -3119,7 +3119,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\partial"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "diff"
+                                  , Code ( "" , [] , [] ) "partial"
                                   ]
                               ]
                           ]
@@ -3150,7 +3150,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\oplus"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "plus.circle"
+                                  , Code ( "" , [] , [] ) "plus.o"
                                   ]
                               ]
                           ]
@@ -3195,7 +3195,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\ominus"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "minus.circle"
+                                  , Code ( "" , [] , [] ) "minus.o"
                                   ]
                               ]
                           ]
@@ -3209,8 +3209,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\295"
                                   , Str "\8192"
-                                  , Code
-                                      ( "" , [] , [] ) "planck.reduce"
+                                  , Code ( "" , [] , [] ) "planck"
                                   ]
                               ]
                           ]
@@ -3241,7 +3240,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\odot"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "dot.circle"
+                                  , Code ( "" , [] , [] ) "dot.o"
                                   ]
                               ]
                           ]
@@ -3288,7 +3287,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\otimes"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "times.circle"
+                                  , Code ( "" , [] , [] ) "times.o"
                                   ]
                               ]
                           ]
@@ -3919,7 +3918,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\bigcap"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "sect.big"
+                                  , Code ( "" , [] , [] ) "inter.big"
                                   ]
                               ]
                           ]
@@ -3970,7 +3969,8 @@ Pandoc
                                   [ Math InlineMath "\\langle\\rangle"
                                   , Str "\8192"
                                   , Code
-                                      ( "" , [] , [] ) "angle.l angle.r"
+                                      ( "" , [] , [] )
+                                      "chevron.l chevron.r"
                                   ]
                               ]
                           ]

@@ -27,20 +27,21 @@ extra-deps:
 - commonmark-pandoc-0.3
 - citeproc-0.13.0.1
 - pandoc-types-1.23.1.2
-- typst-symbols-0.2
 - emojis-0.1.5
 - git: https://github.com/jgm/texmath.git
-  commit: 170899673ee31de9096e178605e8da31a36e4185
+  commit: e5d689366e4d480f96e9453f455d1a4362fad880
 - git: https://github.com/jgm/djoths.git
   commit: 7cabb69eef81d80688beb4fce6b604ad1ccc5941
 - git: https://github.com/jgm/commonmark-hs
   commit: 73903fa7723ca2b1a1120063451e9647d1382754
   subdirs: [commonmark-extensions]
 - git: https://github.com/jgm/typst-hs.git
-  commit: 4ceec2da687ac25fd5b7a373d2554ff2f4beff64
+  commit: 1a94f1fd69841fd4039441afa3e1ed330db8e334
 - git: https://github.com/jgm/skylighting.git
   commit: c196a0e4da03b7212db8fcc122a6a1c1fcdecb87
   subdirs: [skylighting-format-blaze-html]
+- git: https://github.com/jgm/typst-symbols.git
+  commit: 928839de6742b61ee601ce4510cf4dcfd044354d
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

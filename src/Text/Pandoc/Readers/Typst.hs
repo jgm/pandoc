@@ -388,6 +388,7 @@ blockHandlers = M.fromList
               >> M.lookup "angle" fields ) of
         Nothing -> pure B.horizontalRule
         _ -> pure mempty)
+  ,("divider", \_ _ _fields -> pure B.horizontalRule)
   ,("numbering", \_ _ fields -> do
       numStyle <- getField "numbering" fields
       (nums :: V.Vector Integer) <- getField "numbers" fields

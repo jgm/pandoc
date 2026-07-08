@@ -167,13 +167,13 @@ Getting script letters is @unavailable.
   columns: 3,
   column-gutter: 1em,
   cell($union$, `union`), cell($RR$, [`RR`, `bb(R)`]), cell($forall$, `forall`),
-  cell($sect$, `sect`), cell($bb(Z)$, [`ZZ`, `bb(Z)`]), cell($exists$, `exists`),
+  cell($inter$, `inter`), cell($bb(Z)$, [`ZZ`, `bb(Z)`]), cell($exists$, `exists`),
   cell($subset$, `subset`), cell($bb(Q)$, [`QQ`, `bb(Q)`]), cell($not$, `not`),
   cell($subset.eq$, `subset.eq`), cell($bb(N)$, [`NN`, `bb(N)`]), cell($or$, `or`),
   cell($supset$, `supset`), cell($bb(C)$, [`CC`, `bb(C)`]), cell($and$, `and`),
   cell($supset.eq$, `supset.eq`), cell($diameter$, [`diameter`]), cell($tack.r$, `tack.r`),
   cell($in$, `in`), cell($nothing$, `nothing`), cell($models$, `models`),
-  cell($in.not$, `in.not`), cell($alef$, `alef`), cell($without$, `without`),
+  cell($in.not$, `in.not`), cell($aleph$, `aleph`), cell($without$, `without`),
 ))
 
 Negate an operator, as in $subset.not$, with `subset.not`.
@@ -257,11 +257,11 @@ Just type them!
   cell($>>$, [`>>`, `gt.double`]), cell($tilde.equiv.not$, `tilde.equiv.not`), cell($divides$, `divides`),
   cell($approx$, `approx`), cell($tilde$, `tilde`), cell($divides.not$, `divides.not`),
   cell($\u{224D}$, [`\u{224D}` @tricky]), cell($tilde.eq$, `tilde.eq`), cell($n!$, `n!`),
-  cell($equiv$, `equiv`), cell($tilde.not$, `tilde.not`), cell($diff$, `diff`),
-  cell($prec$, `prec`), cell($plus.circle$, `plus.circle`), cell($nabla$, `nabla`),
-  cell($prec.eq$, `prec.eq`), cell($minus.circle$, `minus.circle`), cell($planck.reduce$, `planck.reduce`),
-  cell($succ$, `succ`), cell($dot.circle$, `dot.circle`), cell($circle.stroked.tiny$, `circle.stroked.tiny`),
-  cell($succ.eq$, `succ.eq`), cell($times.circle$, `times.circle`), cell($star$, `star`),
+  cell($equiv$, `equiv`), cell($tilde.not$, `tilde.not`), cell($partial$, `partial`),
+  cell($prec$, `prec`), cell($plus.o$, `plus.o`), cell($nabla$, `nabla`),
+  cell($prec.eq$, `prec.eq`), cell($minus.o$, `minus.o`), cell($planck$, `planck`),
+  cell($succ$, `succ`), cell($dot.o$, `dot.o`), cell($circle.stroked.tiny$, `circle.stroked.tiny`),
+  cell($succ.eq$, `succ.eq`), cell($times.o$, `times.o`), cell($star$, `star`),
   cell($prop$, `prop`), cell($\u{2298}$, [`\u{2298}` @tricky]), cell($sqrt("")$, `sqrt("")`),
   cell($\u{2250}$, [`\u{2250}` @tricky]), cell($harpoon.tr$, `harpoon.tr`), cell($checkmark$, `checkmark`),
 ))
@@ -294,14 +294,14 @@ These do the same.
 #align(center, table(
   columns: 3,
   cell($integral$, `integral`), cell($integral.triple$, `integral.triple`), cell($union.big$, `union.big`),
-  cell($integral.double$, `integral.double`), cell($integral.cont$, `integral.cont`), cell($sect.big$, `sect.big`),
+  cell($integral.double$, `integral.double`), cell($integral.cont$, `integral.cont`), cell($inter.big$, `inter.big`),
 ))
 
 = Fences
 #align(center, table(
   columns: 3,
   column-gutter: 1.5em,
-  cell($()$, `()`), cell($angle.l angle.r$, `angle.l angle.r`), cell($abs("")$, `abs("")`),
+  cell($()$, `()`), cell($chevron.l chevron.r$, `chevron.l chevron.r`), cell($abs("")$, `abs("")`),
   cell($[]$, `[]`), cell($floor("")$, `floor("")`), cell($norm("")$, `norm("")`),
   cell(${}$, `{}`), cell($ceil("")$, `ceil("")`),
 ))
@@ -322,7 +322,7 @@ To have them grow with the enclosed formula, also use the `lr` function.
 #align(center, table(
   columns: 2,
   column-gutter: 1em,
-  $ lr(angle.l i, 2^(2^i) angle.r) $,
+  $ lr(chevron.l i, 2^(2^i) chevron.r) $,
   ```
   lr(angle.l i, 2^(2^i) angle.r)
   ```,

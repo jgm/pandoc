@@ -235,7 +235,7 @@ blockToTypst block =
       contents <- blocksToTypst blocks
       return $ "#quote(block: true)[" $$ chomp contents $$ "]" $$ blankline
     HorizontalRule ->
-      return $ blankline <> "#horizontalrule" <> blankline
+      return $ blankline <> "#divider()" <> blankline
     OrderedList attribs items -> do
       let addBlock = case attribs of
                        (1, DefaultStyle, DefaultDelim) -> id

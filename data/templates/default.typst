@@ -1,5 +1,3 @@
-#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
-
 #set terms(hanging-indent: 1.5em)
 
 #set table(
