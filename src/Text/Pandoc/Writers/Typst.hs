@@ -403,7 +403,10 @@ defListItemToTypst (term, defns) = do
   term' <- inlinesToTypst term
   modify $ \st -> st{ stEscapeContext = NormalContext }
   defns' <- mapM blocksToTypst defns
-  return $ nowrap ("/ " <> term' <> ": " <> "#block[") $$
+  return $
+    case defns of
+      [[Plain _]] -> hang 4 (nowrap ("/ " <> term' <> ": ")) (vcat defns')
+      _ -> nowrap ("/ " <> term' <> ": " <> "#block[") $$
             chomp (vsep defns') $$ "]"
 
 listItemToTypst :: PandocMonad m => Int -> Doc Text -> [Block] -> TW m (Doc Text)
