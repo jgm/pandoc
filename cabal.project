@@ -20,6 +20,11 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/typst-hs.git
+  tag: 4ceec2da687ac25fd5b7a373d2554ff2f4beff64
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/commonmark-hs.git
   tag: 73903fa7723ca2b1a1120063451e9647d1382754
   subdir: commonmark-extensions
