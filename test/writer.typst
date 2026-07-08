@@ -5,6 +5,10 @@
   stroke: none
 )
 
+#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
+// Polyfill divider to allow compiling with typst < 0.15:
+#let divider = if "divider" in std { divider } else { horizontalRule }
+
 #show figure.where(
   kind: table
 ): set figure.caption(position: top)
