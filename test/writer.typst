@@ -447,11 +447,9 @@ Tight using spaces:
 / apple: #block[
 red fruit
 ]
-
 / orange: #block[
 orange fruit
 ]
-
 / banana: #block[
 yellow fruit
 ]
@@ -461,11 +459,9 @@ Tight using tabs:
 / apple: #block[
 red fruit
 ]
-
 / orange: #block[
 orange fruit
 ]
-
 / banana: #block[
 yellow fruit
 ]
@@ -511,7 +507,6 @@ red fruit
 
 computer
 ]
-
 / orange: #block[
 orange fruit
 

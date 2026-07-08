@@ -264,8 +264,11 @@ blockToTypst block =
       return $ (if isTightList items
                    then vcat items'
                    else vsep items') $$ blankline
-    DefinitionList items ->
-      ($$ blankline) . vsep <$> mapM defListItemToTypst items
+    DefinitionList items -> do
+      let concat' = if all (isTightList . snd) items
+                    then vcat
+                    else vsep
+      ($$ blankline) . concat' <$> mapM defListItemToTypst items
     Table (ident,tabclasses,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
       let lab = toLabel FreestandingLabel ident
       capt' <- if null caption
