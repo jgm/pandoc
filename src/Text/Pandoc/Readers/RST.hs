@@ -25,6 +25,7 @@ import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
@@ -186,7 +187,10 @@ resolveBlockSubstitutions (Para [Link _attr ils (s,_)])
 resolveBlockSubstitutions x = return x
 
 resolveReferences :: PandocMonad m => Inline -> RSTParser m Inline
-resolveReferences x@(Link _ ils (s,_))
+resolveReferences = resolveReferences' Set.empty
+
+resolveReferences' :: PandocMonad m => Set.Set Key -> Inline -> RSTParser m Inline
+resolveReferences' seen x@(Link _ ils (s,_))
   | Just ref <- T.stripPrefix "##REF##" s = do
       let isAnonKey (Key (T.uncons -> Just ('_',_))) = True
           isAnonKey _                                = False
@@ -229,18 +233,24 @@ resolveReferences x@(Link _ ils (s,_))
   | Just ref <- T.stripPrefix "##SUBST##" s = do
           substTable <- stateSubstitutions <$> getState
           let key@(Key key') = toKey $ stripFirstAndLast ref
-          case M.lookup key substTable of
+          if key `Set.member` seen
+             then do
+               pos <- getPosition
+               logMessage $ CircularReference key' pos
+               return $ Span ("",[],[]) ils
+             else case M.lookup key substTable of
                Nothing     -> do
                  pos <- getPosition
                  logMessage $ ReferenceNotFound (tshow key') pos
                  return $ Span ("",[],[]) ils
-               Just target -> case
-                 B.toList target of
+               Just target -> do
+                 resolved <- case B.toList target of
                    [Para [t]] -> return t
                    [Para xs] -> return $ Span nullAttr xs
                    bls -> return $ Span nullAttr $ blocksToInlines bls
+                 resolveReferences' (Set.insert key seen) resolved
   | otherwise = return x
-resolveReferences x = return x
+resolveReferences' _ x = return x
 
 parseCitation :: PandocMonad m
               => (Text, Text) -> RSTParser m (Inlines, [Blocks])

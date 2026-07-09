@@ -220,5 +220,22 @@ tests = [ "line block with blank line" =:
           , "include newlines" =:
             "**before\nafter**" =?>
             para (strong (text "before\nafter"))
+          , "reference to internal target embedded in a substitution" =:
+            T.unlines
+              [ ".. _target:"
+              , ""
+              , "See |sub|."
+              , ""
+              , ".. |sub| replace:: `text <target_>`_"
+              ] =?>
+            divWith ("target",[],[])
+              (para ("See " <> link "#target" "" "text" <> "."))
+          , "circular substitution does not loop forever" =:
+            T.unlines
+              [ ".. |a| replace:: |a|"
+              , ""
+              , "Test |a| here."
+              ] =?>
+            para ("Test " <> spanWith ("",[],[]) "|a|" <> " here.")
           ]
         ]
