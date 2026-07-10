@@ -203,11 +203,17 @@ resolveReferences' seen x@(Link _ ils (s,_))
                     []    -> mzero -- TODO log?
                     (k:_) -> return k
                 else return $ toKey ref
-      ((src,tit), attr) <- lookupKey [] key
-      -- if anonymous link, remove key so it won't be used again
-      when (isAnonKey key) $ updateState $ \st ->
-                              st{ stateKeys = M.delete key keyTable }
-      return $ Link attr ils (src, tit)
+      if key `Set.member` seen
+         then do
+           pos <- getPosition
+           let Key key' = key
+           logMessage $ CircularReference key' pos
+           return x
+         else do
+           ((src,tit), attr) <- lookupKey [] key
+           when (isAnonKey key) $ updateState $ \st ->
+                                   st{ stateKeys = M.delete key keyTable }
+           resolveReferences' (Set.insert key seen) (Link attr ils (src, tit))
   | Just ref <- T.stripPrefix "##NOTE##" s = do
       state <- getState
       let notes = stateNotes state
