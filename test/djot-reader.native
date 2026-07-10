@@ -1175,11 +1175,14 @@ Pandoc
           , Code ( "" , [] , [] ) "$"
           , Str ","
           , Space
-          , Code ( "" , [] , [] ) "\\`, "
-          , Str "$"
-          , Code ( "" , [] , [] ) ", "
-          , Str "<html>"
-          , Code ( "" , [] , [] ) "."
+          , Code ( "" , [] , [] ) "\\"
+          , Str ","
+          , Space
+          , Code ( "" , [] , [] ) "\\$"
+          , Str ","
+          , Space
+          , Code ( "" , [] , [] ) "<html>"
+          , Str "."
           ]
       , Para
           [ Span

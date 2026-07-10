@@ -31,7 +31,7 @@ extra-deps:
 - git: https://github.com/jgm/texmath.git
   commit: e5d689366e4d480f96e9453f455d1a4362fad880
 - git: https://github.com/jgm/djoths.git
-  commit: 7cabb69eef81d80688beb4fce6b604ad1ccc5941
+  commit: 6d13d92126d3d10c571bcb9543fd6c889e9aad3f
 - git: https://github.com/jgm/commonmark-hs
   commit: 73903fa7723ca2b1a1120063451e9647d1382754
   subdirs: [commonmark-extensions]
