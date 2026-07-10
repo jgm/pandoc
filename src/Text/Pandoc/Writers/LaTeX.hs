@@ -56,7 +56,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
-import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
+import Text.Pandoc.Writers.LaTeX.Util (getAccumulatedNotes)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Citation (citationsToNatbib,
@@ -65,7 +65,7 @@ import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState,
                                         PdfStandard (..))
 import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
-                                       toLabel, inCmd,
+                                       toLabel, inCmd, withExternalNotes,
                                        wrapDiv, hypertarget, labelFor,
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
@@ -663,7 +663,7 @@ blockToLaTeX (DefinitionList lst) = do
   let spacing = if all (isTightList . snd) lst
                    then text "\\tightlist"
                    else empty
-  notes <- notesToLaTeX <$> gets stNotes
+  notes <- getAccumulatedNotes
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$
                "\\end{description}" $$ notes
 blockToLaTeX HorizontalRule =
@@ -679,7 +679,7 @@ blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
 blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
   opts <- gets stOptions
-  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
+  (capt, captForLof) <- withExternalNotes $ getCaption inlineListToLaTeX captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
       placement = case lookup "latex-placement" kvs of
@@ -705,6 +705,7 @@ blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
         Table {}  -> Any True
         _         -> Any False)
   st <- get
+  footnotes <- getAccumulatedNotes
   return $ (case () of
     _ | containsTable body ->
           -- placing a longtable in a figure or center environment does
@@ -764,10 +765,9 @@ listItemToLaTeX isOrdered lst
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m (Doc Text)
 defListItemToLaTeX (term, defs) = do
     -- needed to turn off 'listings' because it breaks inside \item[...]:
-    oldExternalNotes <- gets stExternalNotes
-    modify $ \s -> s{stInItem = True, stExternalNotes = True}
-    term' <- inlineListToLaTeX term
-    modify $ \s -> s{stInItem = False, stExternalNotes = oldExternalNotes}
+    modify $ \s -> s{ stInItem = True }
+    term' <- withExternalNotes $ inlineListToLaTeX term
+    modify $ \s -> s{ stInItem = False }
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
     let isInternalLink (Link _ _ (src,_))

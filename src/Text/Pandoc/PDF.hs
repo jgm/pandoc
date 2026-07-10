@@ -305,6 +305,8 @@ tex2pdf program args tmpDir source = do
                      x | "! Package inputenc Error" `BC.isPrefixOf` x
                            && program /= "xelatex"
                        -> "\nTry running pandoc with --pdf-engine=xelatex."
+                     "! Package longtable Error: longtable not in 1-column mode."
+                       -> "\nTry adding the .float class attribute to your tables."
                      _ -> ""
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""

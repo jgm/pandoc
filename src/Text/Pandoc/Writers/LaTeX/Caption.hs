@@ -21,29 +21,20 @@ import Text.Pandoc.Definition
 import Text.DocLayout (Doc, brackets, empty)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
-import Text.Pandoc.Writers.LaTeX.Types
-  ( LW, WriterState (stExternalNotes, stNotes, stInCaption) )
+import Text.Pandoc.Writers.LaTeX.Types ( LW, WriterState (stInCaption) )
 
 
--- | Produces the components of a LaTeX 'caption' command. Returns a triple
--- containing the caption text, the short caption for the list of
--- figures/tables, and the footnote definitions.
+-- | Produces the components of a LaTeX 'caption' command. Returns a pair
+-- containing the caption text and the short caption for the list of
+-- figures/tables.
 getCaption :: PandocMonad m
            => ([Inline] -> LW m (Doc Text)) -- ^ inlines converter
-           -> Bool                          -- ^ whether to extract notes
            -> Caption
-           -> LW m (Doc Text, Doc Text, Doc Text)
-getCaption inlineListToLaTeX externalNotes (Caption maybeShort long) = do
+           -> LW m (Doc Text, Doc Text)
+getCaption inlineListToLaTeX (Caption maybeShort long) = do
   modify $ \st -> st{ stInCaption = True }
   let long' = blocksToInlines long
-  oldExternalNotes <- gets stExternalNotes
-  modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
   capt <- inlineListToLaTeX long'
-  footnotes <- if externalNotes
-                  then notesToLaTeX <$> gets stNotes
-                  else return empty
-  modify $ \st -> st{ stExternalNotes = oldExternalNotes, stNotes = [] }
   -- We can't have footnotes in the list of figures/tables, so remove them:
   let getNote (Note _) = Any True
       getNote _        = Any False
@@ -55,4 +46,4 @@ getCaption inlineListToLaTeX externalNotes (Caption maybeShort long) = do
                              else return empty
                   Just short -> toShortCapt short
   modify $ \st -> st{ stInCaption = False }
-  return (capt, captForLof, footnotes)
+  return (capt, captForLof)

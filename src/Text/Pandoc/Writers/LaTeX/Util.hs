@@ -18,6 +18,8 @@ module Text.Pandoc.Writers.LaTeX.Util (
   , labelFor
   , getListingsLanguage
   , mbBraced
+  , withExternalNotes
+  , getAccumulatedNotes
   )
 where
 
@@ -27,6 +29,7 @@ import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Options (WriterOptions(..), isEnabled)
 import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState(..))
 import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
+import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Highlighting (toListingsLanguage)
 import Text.DocLayout
 import Text.Pandoc.Definition
@@ -285,3 +288,20 @@ mbBraced :: Text -> Text
 mbBraced x = if not (T.all isAlphaNum x)
                 then "{" <> x <> "}"
                 else x
+
+withExternalNotes :: PandocMonad m
+                  => LW m a
+                  -> LW m a
+withExternalNotes p = do
+  oldExternalNotes <- gets stExternalNotes
+  modify $ \st -> st{ stExternalNotes = True }
+  res <- p
+  modify $ \st -> st{ stExternalNotes = oldExternalNotes }
+  return res
+
+getAccumulatedNotes :: PandocMonad m
+                    => LW m (Doc Text)
+getAccumulatedNotes = do
+  res <- notesToLaTeX <$> gets stNotes
+  modify $ \st -> st{ stNotes = [] }
+  return res

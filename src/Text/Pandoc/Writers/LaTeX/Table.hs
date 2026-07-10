@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Table
    Copyright   : Copyright (C) 2006-2024 John MacFarlane
@@ -24,17 +26,17 @@ import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.DocLayout
-  ( Doc, braces, cr, empty, hcat, hsep, isEmpty, literal, nest
-  , text, vcat, ($$) )
+  ( Doc, braces, brackets, cr, empty, hcat, hsep, isEmpty, literal, nest
+  , text, vcat, ($$))
 import Text.Pandoc.Shared (splitBy, tshow)
 import Text.Pandoc.Walk (walk, query)
 import Data.Monoid (Any(..))
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
-import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
-  ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stMultiRow
-                    , stNotes, stTable, stOptions) )
-import Text.Pandoc.Writers.LaTeX.Util (labelFor)
+  ( LW, WriterState (stBeamer, stInMinipage, stMultiRow
+                    , stTable, stOptions) )
+import Text.Pandoc.Writers.LaTeX.Util (labelFor, withExternalNotes,
+                                       getAccumulatedNotes)
 import Text.Printf (printf)
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
@@ -46,30 +48,103 @@ tableToLaTeX :: PandocMonad m
              -> Ann.Table
              -> LW m (Doc Text)
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
+  let (Ann.Table (ident, classes, kvs) caption specs thead tbodies tfoot) = tbl
+  let placement = brackets $ maybe mempty (text . T.unpack)
+                           $ lookup "latex-placement" kvs
+  -- if the float class is included in table attributes, we generate a floating
+  -- table environment; otherwise we use longtable
+  beamer <- gets stBeamer
+  let float = "float" `elem` classes
+  let renderTable = do
+       capt <- captionToLaTeX inlnsToLaTeX caption ident
+       let isSimpleTable =
+             all ((== ColWidthDefault) . snd) specs &&
+             all (all isSimpleCell)
+               (mconcat [ headRows thead
+                        , concatMap bodyRows tbodies
+                        , footRows tfoot
+                        ])
+       let colDesc' = colDescriptors isSimpleTable tbl
+       let colDesc = braces ("@{}" <> colDesc' <> "@{}")
+                     -- the @{} removes extra space at beginning and end
+       let colCount = ColumnCount $ length specs
+       let mkHead = headToLaTeX blksToLaTeX isSimpleTable colCount
+       let mkRow = rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell
+       if float
+          then tableToLaTeXTable placement colDesc mkHead mkRow capt thead tbodies tfoot
+          else tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot
+  -- See #5367 -- footnotehyper/footnote don't work in beamer,
+  -- so we need to produce the notes outside the table...
+  if float || beamer
+     then ($$) <$> withExternalNotes renderTable <*> getAccumulatedNotes
+     else renderTable
+
+tableToLaTeXTable :: PandocMonad m
+                  => Doc Text
+                  -> Doc Text
+                  -> (Ann.TableHead -> LW m (Doc Text))
+                  -> ([Ann.Cell] -> LW m (Doc Text))
+                  -> Doc Text
+                  -> Ann.TableHead
+                  -> [Ann.TableBody]
+                  -> Ann.TableFoot
+                  -> LW m (Doc Text)
+tableToLaTeXTable placement colDesc mkHead mkRow capt thead tbodies tfoot = do
   opts <- gets stOptions
-  let (Ann.Table (ident, _, _) caption specs thead tbodies tfoot) = tbl
-  CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption ident
   let hasTopCaption = not (isEmpty capt) &&
                         writerTableCaptionPosition opts == CaptionAbove
   let hasBottomCaption = not (isEmpty capt) &&
                           writerTableCaptionPosition opts == CaptionBelow
-  let isSimpleTable =
-        all ((== ColWidthDefault) . snd) specs &&
-        all (all isSimpleCell)
-          (mconcat [ headRows thead
-                   , concatMap bodyRows tbodies
-                   , footRows tfoot
-                   ])
-  let removeNote (Note _) = Span ("", [], []) []
-      removeNote x        = x
-  let colCount = ColumnCount $ length specs
+  head' <- if isEmptyHead thead
+               then return "\\toprule\\noalign{}"
+               else mkHead thead
+  rows' <- mapM mkRow $ mconcat (map bodyRows tbodies)
+  lastfoot <- mapM mkRow $ footRows tfoot
+  let foot' = (if isEmptyFoot tfoot
+                  then mempty
+                  else "\\midrule\\noalign{}" $$ vcat lastfoot)
+              $$ "\\bottomrule\\noalign{}"
+  modify $ \s -> s{ stTable = True }
+  let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
+  return
+    $ (if null capt then makeUnnumbered else id)
+    $ "\\begin{table}" <> placement
+    $$ "\\centering"
+    $$ (if hasTopCaption
+           then capt <> "\\tabularnewline"
+           else mempty)
+    $$ "\\begin{tabular}" <> colDesc
+    $$ head'
+    $$ vcat rows'
+    $$ foot'
+    $$ "\\end{tabular}"
+    $$ (if hasBottomCaption
+           then capt <> "\\tabularnewline"
+           else mempty)
+    $$ "\\end{table}"
+
+
+tableToLaTeXLongtable :: PandocMonad m
+                      => Doc Text
+                      -> (Ann.TableHead -> LW m (Doc Text))
+                      -> ([Ann.Cell] -> LW m (Doc Text))
+                      -> Doc Text
+                      -> Ann.TableHead
+                      -> [Ann.TableBody]
+                      -> Ann.TableFoot
+                      -> LW m (Doc Text)
+tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
+  opts <- gets stOptions
+  let hasTopCaption = not (isEmpty capt) &&
+                        writerTableCaptionPosition opts == CaptionAbove
+  let hasBottomCaption = not (isEmpty capt) &&
+                          writerTableCaptionPosition opts == CaptionBelow
   -- The first head is not repeated on the following pages. If we were to just
   -- use a single head, without a separate first head, then the caption would be
   -- repeated on all pages that contain a part of the table. We avoid this by
   -- making the caption part of the first head. The downside is that we must
   -- duplicate the header rows for this.
   head' <- do
-    let mkHead = headToLaTeX blksToLaTeX isSimpleTable colCount
     case (hasTopCaption, isEmptyHead thead) of
       (False, True) -> return "\\toprule\\noalign{}"
       (False, False)  -> mkHead thead
@@ -79,15 +154,15 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
       (True, False)   -> do
         -- avoid duplicate notes in head and firsthead:
         firsthead <- mkHead thead
+        let removeNote (Note _) = Span ("", [], []) []
+            removeNote x        = x
         repeated  <- mkHead (walk removeNote thead)
         return $ capt <> "\\tabularnewline"
                  $$ firsthead
                  $$ "\\endfirsthead"
                  $$ repeated
-  rows' <- mapM (rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell) $
-                mconcat (map bodyRows tbodies)
-  lastfoot <- mapM (rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell) $
-                    footRows tfoot
+  rows' <- mapM mkRow $ mconcat (map bodyRows tbodies)
+  lastfoot <- mapM mkRow $ footRows tfoot
   let foot' = (if isEmptyFoot tfoot
                   then mempty
                   else "\\midrule\\noalign{}" $$ vcat lastfoot)
@@ -96,14 +171,11 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
                      then "\\tabularnewline" $$ capt
                      else mempty)
   modify $ \s -> s{ stTable = True }
-  notes <- notesToLaTeX <$> gets stNotes
   beamer <- gets stBeamer
   let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
   return
     $ (if null capt then makeUnnumbered else id)
-    $ "\\begin{longtable}[]" <>
-          braces ("@{}" <> colDescriptors isSimpleTable tbl <> "@{}")
-          -- the @{} removes extra space at beginning and end
+    $ "\\begin{longtable}[]" <> colDesc
     $$ head'
     $$ "\\endhead"
     $$ vcat
@@ -120,8 +192,6 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
                   ,  vcat rows'
                   ])
     $$ "\\end{longtable}"
-    $$ captNotes
-    $$ notes
 
 isSimpleCell :: Ann.Cell -> Bool
 isSimpleCell (Ann.Cell _ _ (Cell _attr _align _rowspan _colspan blocks)) =
@@ -184,28 +254,18 @@ colAlign = \case
   AlignCenter  -> "c"
   AlignDefault -> "l"
 
-data CaptionDocs =
-  CaptionDocs
-  { captionCommand :: Doc Text
-  , captionNotes :: Doc Text
-  }
-
 captionToLaTeX :: PandocMonad m
                => ([Inline] -> LW m (Doc Text))
                -> Caption
                -> Text     -- ^ table identifier (label)
-               -> LW m CaptionDocs
+               -> LW m (Doc Text)
 captionToLaTeX inlnsToLaTeX caption ident = do
-  (captionText, captForLot, captNotes) <- getCaption inlnsToLaTeX False caption
+  (captionText, captForLot) <- getCaption inlnsToLaTeX caption
   label <- labelFor ident
-  return $ CaptionDocs
-    { captionNotes = captNotes
-    , captionCommand = if isEmpty captionText && isEmpty label
-                       then empty
-                       else "\\caption" <> captForLot <>
-                            braces captionText
-                            <> label
-    }
+  return $ if isEmpty captionText && isEmpty label
+              then empty
+              else "\\caption" <> captForLot <>
+                     braces captionText <> label
 
 type BlocksWriter m = [Block] -> LW m (Doc Text)
 
@@ -322,11 +382,6 @@ cellToLaTeX blockListToLaTeX isSimpleTable colCount celltype annotatedCell = do
   let align = case align' of
                 AlignDefault -> specAlign
                 _            -> align'
-  beamer <- gets stBeamer
-  externalNotes <- gets stExternalNotes
-  -- See #5367 -- footnotehyper/footnote don't work in beamer,
-  -- so we need to produce the notes outside the table...
-  modify $ \st -> st{ stExternalNotes = beamer }
   let isPlainOrPara = \case
         Para{}  -> True
         Plain{} -> True
@@ -352,7 +407,6 @@ cellToLaTeX blockListToLaTeX isSimpleTable colCount celltype annotatedCell = do
                   (if hasLineBreaks then "\\strut" else mempty)
                   <> cr <>
                   "\\end{minipage}"
-  modify $ \st -> st{ stExternalNotes = externalNotes }
   when (rowspan /= RowSpan 1) $
     modify (\st -> st{ stMultiRow = True })
   let inMultiColumn x = case colspan of
