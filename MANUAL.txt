@@ -5019,7 +5019,15 @@ attribute may be used to pass parameters affecting the float placement:
 
 Note that `longtable` does not work with two-column layouts, so if you
 are producing a two-column document using LaTeX, you will need to specify
-the `float` class on every table (or use a Lua filter to add it automatically).
+the `float` class on every table, or use this small Lua filter
+to add it automatically:
+
+```lua
+function Table(el)
+  el.classes:insert("float")
+  return el
+end
+```
 
 ## Metadata blocks
 
