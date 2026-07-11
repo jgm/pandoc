@@ -948,7 +948,7 @@ In a list?
 It should.
 @end itemize
 
-An e-mail address: @uref{mailto:nobody@@nowhere.net,nobody@@nowherenet}
+An e-mail address: @uref{mailto:nobody@@nowhere.net,nobody@@nowhere.net}
 
 @quotation
 Blockquoted: @url{http://example.com/}

@@ -48,7 +48,7 @@ data WriterState =
               , stOptions     :: WriterOptions -- writer options
               }
 
-data Context = NormalContext | NodeContext
+data Context = NormalContext | NodeContext | ArgumentContext
   deriving (Eq, Show)
 
 withContext :: PandocMonad m => Context -> TI m a -> TI m a
@@ -138,6 +138,7 @@ stringToTexinfo t
           escChar '\x2026' = "@dots{}"
           escChar '\x2019' = "'"
           escChar ',' | context == NodeContext = ""
+          escChar ',' | context == ArgumentContext = "@comma{}"
           escChar ':' | context == NodeContext = ""
           escChar '.' | context == NodeContext = ""
           escChar '(' | context == NodeContext = ""
@@ -529,7 +530,7 @@ inlineToTexinfo (Link _ txt (src, _))
                   Nothing -> literal <$> stringToTexinfo
                                     (T.filter (not . disallowedInNode) src)
                   Just node -> pure $ literal node
-      contents <- withContext NodeContext $ inlineListToTexinfo txt
+      contents <- withContext ArgumentContext $ inlineListToTexinfo txt
       return $ text "@ref"
         <> braces (target <> if contents == target
                                 then mempty
@@ -538,13 +539,13 @@ inlineToTexinfo (Link _ txt (src, _))
       [Str x] | escapeURI x == src ->  -- autolink
                   return $ literal $ "@url{" <> x <> "}"
       _ -> do
-        contents <- withContext NodeContext $ inlineListToTexinfo txt
+        contents <- withContext ArgumentContext $ inlineListToTexinfo txt
         src1 <- stringToTexinfo src
         return $ literal ("@uref{" <> src1 <> ",") <> contents <>
                  char '}'
 
 inlineToTexinfo (Image attr alternate (source, _)) = do
-  content <- withContext NodeContext $ inlineListToTexinfo alternate
+  content <- withContext ArgumentContext $ inlineListToTexinfo alternate
   opts <- gets stOptions
   let showDim dim = case dimension dim attr of
                       (Just (Pixel a))   -> showInInch opts (Pixel a) <> "in"
