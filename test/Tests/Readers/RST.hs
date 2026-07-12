@@ -220,5 +220,34 @@ tests = [ "line block with blank line" =:
           , "include newlines" =:
             "**before\nafter**" =?>
             para (strong (text "before\nafter"))
+          , "bare reference reusing a named target resolves correctly" =:
+            T.unlines
+              [ ".. _target:"
+              , ""
+              , "See `alias <target_>`_ and again alias_."
+              ] =?>
+            divWith ("target",[],[])
+              (para ("See " <> link "#target" "" "alias" <> " and again " <>
+                     link "#target" "" "alias" <> "."))
+          , "self-referencing named target does not loop forever" =:
+            "See `a <a_>`_." =?>
+            para ("See " <> link "##REF##a" "" "a" <> ".")
+          , "reference to internal target embedded in a substitution" =:
+            T.unlines
+              [ ".. _target:"
+              , ""
+              , "See |sub|."
+              , ""
+              , ".. |sub| replace:: `text <target_>`_"
+              ] =?>
+            divWith ("target",[],[])
+              (para ("See " <> link "#target" "" "text" <> "."))
+          , "circular substitution does not loop forever" =:
+            T.unlines
+              [ ".. |a| replace:: |a|"
+              , ""
+              , "Test |a| here."
+              ] =?>
+            para ("Test " <> spanWith ("",[],[]) "|a|" <> " here.")
           ]
         ]
