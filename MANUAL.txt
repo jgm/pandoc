@@ -3888,13 +3888,15 @@ output formats
 
 ### Extension: `native_numbering` ###
 
-Enables native numbering of figures and tables. Enumeration
-starts at 1.
-
-This extension can be enabled/disabled for the following formats:
+Enables numbering of figures and tables via counter fields
+specific to the target format. This extension
+can be enabled/disabled for the following formats:
 
 output formats
 :  `odt`, `opendocument`, `docx`
+
+If this extension is not enabled, tables and figures in these
+formats will not be numbered.
 
 ### Extension: `xrefs_name` ###
 
