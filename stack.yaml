@@ -9,6 +9,12 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
+# check nixpkgs version before removing this pin:
+- hslua-core-2.3.2.1
+# check nixpkgs version before removing this pin:
+- hslua-classes-2.3.2
+# check nixpkgs version before removing this pin:
+- hslua-aeson-2.3.2
 - hslua-2.5.0
 - hslua-marshalling-2.3.2
 - hslua-module-doclayout-1.2.1.1
