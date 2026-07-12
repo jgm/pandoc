@@ -672,8 +672,13 @@ taskListItemFromAscii :: Extensions -> [Block] -> [Block]
 taskListItemFromAscii = handleTaskListItem fromMd
   where
     fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
+    fromMd (Str "[ ]"                 : Space : is) = Str "☒" : Space : is
     fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
     fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
+    fromMd [Str "[" , Space , Str "]"] = [Str "☐"]
+    fromMd [Str "[ ]"]                 = [Str "☐"]
+    fromMd [Str "[x]"]                 = [Str "☒"]
+    fromMd [Str "[X]"]                 = [Str "☒"]
     fromMd is = is
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
