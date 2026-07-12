@@ -364,6 +364,7 @@ header when requesting a document from a URL:
     - `rtf` ([Rich Text Format])
     - `texinfo` ([GNU Texinfo])
     - `textile` ([Textile])
+    - `t2t` ([txt2tags])
     - `slideous` ([Slideous] HTML and JavaScript slide show)
     - `slidy` ([Slidy] HTML and JavaScript slide show)
     - `dzslides` ([DZSlides] HTML5 + JavaScript slide show)
@@ -5443,7 +5444,7 @@ LaTeX
   ~ It will appear verbatim surrounded by `\(...\)` (for inline
     math) or `\[...\]` (for display math).
 
-Markdown, Emacs Org mode, ConTeXt, ZimWiki
+Markdown, Emacs Org mode, ConTeXt, Txt2Tags, ZimWiki
   ~ It will appear verbatim surrounded by `$...$` (for inline
     math) or `$$...$$` (for display math).
 
@@ -5508,8 +5509,8 @@ Markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB, Markdown, CommonMark, Emacs Org mode, and Textile
-output, and suppressed in other formats.
+DZSlides, EPUB, Markdown, CommonMark, Emacs Org mode, Textile, and
+Txt2Tags output, and suppressed in other formats.
 
 For a more explicit way of including raw HTML in a Markdown
 document, see the [`raw_attribute` extension][Extension: `raw_attribute`].
