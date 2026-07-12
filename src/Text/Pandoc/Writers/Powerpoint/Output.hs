@@ -1365,6 +1365,132 @@ shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [(Maybe ShapeId, 
 shapesToElements layout shps =
  concat <$> mapM (shapeToElements layout) shps
 
+-- | Create a GraphicFrame element with explicit positioning
+graphicFrameToElementsWithPosition ::
+  PandocMonad m =>
+  Integer ->  -- x position
+  Integer ->  -- y position
+  Integer ->  -- width (cx)
+  Integer ->  -- height (cy)
+  [Graphic] ->
+  [ParaElem] ->
+  P m [(ShapeId, Element)]
+graphicFrameToElementsWithPosition x y cx cy tbls caption = do
+  let cy' = if not $ null caption then cy - captionHeight else cy
+
+  elements <- mapM (graphicToElement cx) tbls
+  let graphicFrameElts =
+        ( 6
+        , mknode "p:graphicFrame" [] $
+          [ mknode "p:nvGraphicFramePr" []
+            [ mknode "p:cNvPr" [("id", "6"), ("name", "Content Placeholder 5")] ()
+            , mknode "p:cNvGraphicFramePr" []
+              [mknode "a:graphicFrameLocks" [("noGrp", "1")] ()]
+            , mknode "p:nvPr" []
+              [mknode "p:ph" [("idx", "1")] ()]
+            ]
+          , mknode "p:xfrm" []
+            [ mknode "a:off" [("x", tshow $ 12700 * x),
+                              ("y", tshow $ 12700 * y)] ()
+            , mknode "a:ext" [("cx", tshow $ 12700 * cx),
+                              ("cy", tshow $ 12700 * cy')] ()
+            ]
+          ] <> elements
+        )
+
+  if not $ null caption
+    then do capElt <- createCaption ((x, y), (cx, cy)) caption
+            return [graphicFrameElts, capElt]
+    else return [graphicFrameElts]
+
+-- | Create a TextBox element with explicit positioning
+textBoxToElementWithPosition ::
+  PandocMonad m =>
+  Element ->
+  Integer ->  -- x position
+  Integer ->  -- y position
+  Integer ->  -- width (cx)
+  Integer ->  -- height (cy)
+  [Paragraph] ->
+  P m (Maybe ShapeId, Element)
+textBoxToElementWithPosition layout x y cx cy paras
+  | ns <- elemToNameSpaces layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      (shapeId, sp) <- getContentShape ns spTree
+      elements <- mapM paragraphToElement paras
+      let txBody = mknode "p:txBody" [] $
+                   [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
+          -- Create spPr with explicit positioning
+          xfrm = mknode "a:xfrm" []
+                   [ mknode "a:off" [("x", tshow $ 12700 * x),
+                                     ("y", tshow $ 12700 * y)] ()
+                   , mknode "a:ext" [("cx", tshow $ 12700 * cx),
+                                     ("cy", tshow $ 12700 * cy)] ()
+                   ]
+          spPr = mknode "p:spPr" [] [xfrm]
+      return
+        . (shapeId,)
+        . surroundWithMathAlternate
+        . replaceNamedChildren ns "p" "txBody" [txBody]
+        . replaceNamedChildren ns "p" "spPr" [spPr]
+        $ sp
+textBoxToElementWithPosition _ _ _ _ _ _ = return (Nothing, mknode "p:sp" [] ())
+
+-- | Convert shapes to elements with vertical stacking
+-- This positions multiple shapes vertically within a content area,
+-- preserving the original order of shapes from the source document
+shapesToElementsStacked ::
+  PandocMonad m =>
+  Element ->    -- layout
+  Integer ->    -- x position of content area
+  Integer ->    -- y position of content area
+  Integer ->    -- width (cx) of content area
+  Integer ->    -- total height (cy) of content area
+  [Shape] ->
+  P m [(Maybe ShapeId, Content)]
+shapesToElementsStacked layout x y cx totalCy shapes = do
+  -- Calculate heights for each shape based on content size
+  let gap = 10  -- Small gap between elements
+
+      -- Count "units" for each shape based on content
+      -- Text paragraphs need more space than table rows (bullets have more padding)
+      shapeUnits :: Shape -> Int
+      shapeUnits (TextBox paras) = max 2 (length paras * 2)  -- 2 units per paragraph
+      shapeUnits (GraphicFrame tbls _) =
+        max 2 $ sum [1 + length rows | Tbl _ _ _ rows <- tbls]  -- header + data rows
+      shapeUnits (Pic {}) = 4  -- images get moderate space
+      shapeUnits (RawOOXMLShape _) = 2
+
+      -- Calculate total units and height per unit
+      totalUnits = sum $ map shapeUnits shapes
+      heightPerUnit :: Double
+      heightPerUnit = if totalUnits > 0
+                      then fromIntegral totalCy / fromIntegral totalUnits
+                      else fromIntegral totalCy
+
+  -- Process shapes in order, tracking Y position
+  let go :: PandocMonad m => Integer -> [Shape] -> P m [(Maybe ShapeId, Content)]
+      go _ [] = return []
+      go currentY (shape:rest) = do
+        let units = shapeUnits shape
+            shapeHeight = round $ fromIntegral units * heightPerUnit
+            heightWithGap = shapeHeight - gap
+
+        elts <- case shape of
+          GraphicFrame tbls caption ->
+            map (bimap Just Elem) <$>
+              graphicFrameToElementsWithPosition x currentY cx heightWithGap tbls caption
+          TextBox paras -> do
+            elt <- textBoxToElementWithPosition layout x currentY cx heightWithGap paras
+            return [(fst elt, Elem (snd elt))]
+          _ -> return []  -- Skip other shapes for now
+
+        restElts <- go (currentY + shapeHeight) rest
+        return $ elts ++ restElts
+
+  go y shapes
+
 graphicFrameToElements ::
   PandocMonad m =>
   Element ->
@@ -1566,9 +1692,33 @@ contentToElement layout hdrShape shapes
       (shapeId, element) <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = [Elem element | not (null hdrShape)]
           contentHeaderId = if null hdrShape then Nothing else shapeId
-      content' <- local
-                         (\env -> env {envPlaceholder = Placeholder ObjType 0})
-                         (shapesToElements layout shapes)
+
+      -- Check if we have multiple content shapes that need stacking
+      let hasMultipleShapes = length shapes > 1
+          hasGraphicAndText = any isGraphicFrame shapes && any isTextBox shapes
+            where
+              isGraphicFrame (GraphicFrame _ _) = True
+              isGraphicFrame _ = False
+              isTextBox (TextBox _) = True
+              isTextBox _ = False
+
+      content' <- if hasMultipleShapes && hasGraphicAndText
+        then do
+          -- Get content area dimensions for stacking
+          master <- getMaster
+          (pageWidth, pageHeight) <- asks envPresentationSize
+          ((x, y), (cx, cy)) <- local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                                      (getContentShapeSize ns layout master)
+                                `catchError`
+                                (\_ -> return ((0, 0), (pageWidth, pageHeight)))
+          -- Use stacked layout for multiple shapes
+          local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                (shapesToElementsStacked layout x y cx cy shapes)
+        else
+          -- Use regular layout for single shapes
+          local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                (shapesToElements layout shapes)
+
       let contentContentIds = mapMaybe fst content'
           contentElements = snd <$> content'
       footer <- footerElements content
@@ -1688,8 +1838,33 @@ contentWithCaptionToElement layout hdrShape textShapes contentShapes
                     (shapesToElements layout textShapes)
       let contentWithCaptionCaptionIds = mapMaybe fst text
           textElements = snd <$> text
-      content <- local (\env -> env {envPlaceholder = Placeholder ObjType 0})
-                       (shapesToElements layout contentShapes)
+
+      -- Check if we have multiple content shapes that need stacking
+      let hasMultipleShapes = length contentShapes > 1
+          hasGraphicAndText = any isGraphicFrame contentShapes && any isTextBox contentShapes
+            where
+              isGraphicFrame (GraphicFrame _ _) = True
+              isGraphicFrame _ = False
+              isTextBox (TextBox _) = True
+              isTextBox _ = False
+
+      content <- if hasMultipleShapes && hasGraphicAndText
+        then do
+          -- Get content area dimensions for stacking
+          master <- getMaster
+          (pageWidth, pageHeight) <- asks envPresentationSize
+          ((x, y), (cx, cy)) <- local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                                      (getContentShapeSize ns layout master)
+                                `catchError`
+                                (\_ -> return ((0, 0), (pageWidth, pageHeight)))
+          -- Use stacked layout for multiple shapes
+          local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                (shapesToElementsStacked layout x y cx cy contentShapes)
+        else
+          -- Use regular layout for single shapes
+          local (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                (shapesToElements layout contentShapes)
+
       let contentWithCaptionContentIds = mapMaybe fst content
           contentElements = snd <$> content
       footer <- footerElements contentWithCaption
