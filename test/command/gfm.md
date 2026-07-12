@@ -220,3 +220,15 @@ hi
 - [ ] foo
 - [x] bar
 ```
+
+```
+% pandoc -f native -t gfm
+[ BulletList
+    [ [ Plain [ Str "\9744" ] ]
+    , [ Plain [ Str "\9746" ] ]
+    ]
+]
+^D
+- [ ]
+- [x]
+```

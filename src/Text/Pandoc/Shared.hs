@@ -681,6 +681,10 @@ taskListItemFromAscii = handleTaskListItem fromMd
 taskListItemToAscii :: Extensions -> [Block] -> [Block]
 taskListItemToAscii = handleTaskListItem toMd
   where
+    toMd [Str "☐"] = [rawMd "[ ]"]
+    toMd [Str "☒"] = [rawMd "[x]"]
+    toMd [Str "❏"] = [rawMd "[ ]"]
+    toMd [Str "✓"] = [rawMd "[x]"]
     toMd (Str "☐" : Space : is) = rawMd "[ ]" : Space : is
     toMd (Str "☒" : Space : is) = rawMd "[x]" : Space : is
     toMd (Str "❏" : Space : is) = rawMd "[ ]" : Space : is
