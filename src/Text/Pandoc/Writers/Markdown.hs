@@ -724,13 +724,8 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
              | otherwise = DefaultDelim
   let attribs = (start', sty', delim')
   let markers  = orderedListMarkers attribs
-  let markers' = case variant of
-                        Markua -> markers
-                        _ -> map (\m -> if T.length m < 3
-                                   then m <> T.replicate (3 - T.length m) " "
-                                   else m) markers
   contents <- inList $
-              zipWithM (orderedListItemToMarkdown opts) markers' items
+              zipWithM (orderedListItemToMarkdown opts) markers items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
 blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
@@ -843,15 +838,18 @@ orderedListItemToMarkdown opts marker bs = do
   let exts = writerExtensions opts
   contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
   variant <- asks envVariant
+  let beginsWithCodeBlock = case bs of
+                             CodeBlock{} : _ -> True
+                             _ -> False
   let sps = case writerTabStop opts - T.length marker of
-                   n | n > 0 -> literal $ T.replicate n " "
-                   _ -> literal " "
+                   _ | beginsWithCodeBlock -> 1 -- see #11762
+                   _ | variant == Markua -> 1
+                   n | n > 0 -> n
+                   _ -> 1
   let ind = if isEnabled Ext_four_space_rule opts
                then writerTabStop opts
-               else max (writerTabStop opts) (T.length marker + 1)
-  let start = case variant of
-              Markua -> literal marker <> " "
-              _      -> literal marker <> sps
+               else T.length marker + sps
+  let start = literal marker <> literal (T.replicate sps " ")
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr

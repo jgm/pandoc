@@ -192,7 +192,7 @@ Multiple paragraphs:
 
 1. Item 1, graf one.
 
-    Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+   Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 
 2. Item 2.
 
@@ -209,9 +209,9 @@ Here’s another:
 
 1. First
 2. Second:
-    * Fee
-    * Fie
-    * Foe
+   * Fee
+   * Fie
+   * Foe
 3. Third
 
 Same thing but with paragraphs:
@@ -220,9 +220,9 @@ Same thing but with paragraphs:
 
 2. Second:
 
-    * Fee
-    * Fie
-    * Foe
+   * Fee
+   * Fie
+   * Foe
 
 3. Third
 
@@ -244,25 +244,25 @@ Same thing but with paragraphs:
 
 3) and now 3
 
-    with a continuation
+   with a continuation
 
-    i. sublist with roman numerals starting with i.
-    ii. more items
-        A) a subsublist
-        B) a subsublist
+   i. sublist with roman numerals starting with i.
+   ii. more items
+       A) a subsublist
+       B) a subsublist
 
 Nesting:
 
 D. Upper Alpha
-    I. Upper Roman.
-        1) Decimal start with 1
-            a) Lower alpha with paren
+   I. Upper Roman.
+      1) Decimal start with 1
+         a) Lower alpha with paren
 
 Autonumbering:
 
 1. Autonumber.
 2. More.
-    1. Nested.
+   1. Nested.
 
 Should not be a list item:
 
