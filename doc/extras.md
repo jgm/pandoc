@@ -113,3 +113,8 @@ repository](https://github.com/pandoc/lua-filters).)
     conditionals, code file inclusion, string expansion,
     and diagrams from code blocks.
 
+### Logo
+
+Here is a logo designed by pandoc contributor Albert Krewinkel:
+<https://github.com/tarleb/pandoc-logo>.
+
