@@ -1,0 +1,48 @@
+name: Nix
+
+# Builds pandoc with the flake (haskell-flake) on Linux and macOS.
+on:
+  push:
+    branches:
+    - 'main'
+    - 'haskell-flake-revamp'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nix-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nix-build:
+    name: nix build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        - macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: cachix/install-nix-action@v30
+      with:
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          accept-flake-config = true
+
+    # Cache the /nix/store across runs so dependencies don't recompile.
+    - uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ matrix.os }}-${{ hashFiles('flake.lock', 'flake.nix', '**/*.cabal', 'cabal.project') }}
+        restore-prefixes-first-match: nix-${{ matrix.os }}-
+
+    - name: nix build
+      run: nix build .#default --print-build-logs
+
+    - name: pandoc --version
+      run: nix run .#default -- --version
