@@ -36,7 +36,7 @@ jobs:
           accept-flake-config = true
 
     # Cache the /nix/store across runs so dependencies don't recompile.
-    - uses: nix-community/cache-nix-action@v6
+    - uses: nix-community/cache-nix-action@v7
       with:
         primary-key: nix-${{ matrix.os }}-${{ hashFiles('flake.lock', 'flake.nix', '**/*.cabal', 'cabal.project') }}
         restore-prefixes-first-match: nix-${{ matrix.os }}-
