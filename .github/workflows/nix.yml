@@ -3,9 +3,12 @@ name: Nix
 # Builds pandoc with the flake (haskell-flake) on Linux and macOS.
 on:
   push:
+    paths:
+    - 'stack.yaml'
+    - 'pandoc.cabal'
+    - 'flake.nix'
     branches:
     - 'main'
-    - 'haskell-flake-revamp'
   pull_request:
   workflow_dispatch:
 
