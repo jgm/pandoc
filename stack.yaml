@@ -38,10 +38,9 @@ extra-deps:
 - djot-0.1.4.1
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
+- typst-0.11
 - git: https://github.com/jgm/texmath.git
   commit: e5d689366e4d480f96e9453f455d1a4362fad880
-- git: https://github.com/jgm/typst-hs.git
-  commit: 1a94f1fd69841fd4039441afa3e1ed330db8e334
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
