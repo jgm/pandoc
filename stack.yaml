@@ -31,6 +31,7 @@ extra-deps:
 - doclayout-0.5.0.3
 - commonmark-0.3
 - commonmark-pandoc-0.3
+- commonmark-extensions-0.2.7.1
 - citeproc-0.13.0.1
 - pandoc-types-1.23.1.2
 - emojis-0.1.5
@@ -39,9 +40,6 @@ extra-deps:
   commit: e5d689366e4d480f96e9453f455d1a4362fad880
 - git: https://github.com/jgm/djoths.git
   commit: 6d13d92126d3d10c571bcb9543fd6c889e9aad3f
-- git: https://github.com/jgm/commonmark-hs
-  commit: 73903fa7723ca2b1a1120063451e9647d1382754
-  subdirs: [commonmark-extensions]
 - git: https://github.com/jgm/typst-hs.git
   commit: 1a94f1fd69841fd4039441afa3e1ed330db8e334
 - git: https://github.com/jgm/typst-symbols.git

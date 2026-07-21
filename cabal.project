@@ -28,12 +28,6 @@ source-repository-package
   location: https://github.com/jgm/typst-symbols.git
   tag: 928839de6742b61ee601ce4510cf4dcfd044354d
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs.git
-  tag: 73903fa7723ca2b1a1120063451e9647d1382754
-  subdir: commonmark-extensions
-
 package pandoc
   flags: +embed_data_files +http
 
