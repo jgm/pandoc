@@ -1,5 +1,251 @@
 # Revision history for pandoc
 
+## pandoc 3.10.1 (2026-07-21)
+
+  * New output format `t2t` (Txt2Tags markup, <https://txt2tags.org>))
+    (luginf).
+
+  * New module Text.Pandoc.Writers.Txt2Tags, exporting
+    `writeTxt2Tags` (loginf) [API change]. Also exported from
+    Text.Pandoc.Writers.
+
+  * Change adding of `.yaml` extension in `--defaults` option (#11717).
+    Previously it was always added if the specified filename
+    lacked an extension. Now it is only added if there is
+    no file with the original name. This facilitates using
+    `--defaults` with bash/zsh `<(..)` or `=(..)`.
+
+  * RST reader:
+
+    + Fix nested placeholder resolution for inline elements (#11753,
+      Tobias Deiminger). (Regression from pandoc 3.6.)
+    + Treat undefined substitution references as plain text (#11727).
+      This mirrors rst2html behavior.
+
+  * Markdown reader:
+
+    + Ordered sublists must start with 1, er equivalent, e.g. i (#11735).
+      This brings the markdown parser in line with commonmark, and avoids
+      a lot of unintended list starts. Note that ordered lists that
+      are not sublists may still start with numbers other than 1.
+
+  * ODT reader:
+
+    + Don't create Emph just because of changed font (#11691).
+
+  * RTF reader:
+
+    + Support multi-paragraph list items.
+    + Support legacy `\pn/\pntext` paragraph numbering (#11686).
+
+  * Docx reader:
+
+    + Improve horizontal rule detection (#11689).
+    + Key list numbering off `abstractNumId`, fixing numbering for
+      restarted lists (#8367).
+
+  * LaTeX reader:
+
+    + Handle `\hypertarget` with one braced parameter (#7418).
+
+  * DokuWiki reader:
+
+    + Skip non-cell content after table row (#11739).
+
+  * Typst reader:
+
+    + Support `auto_identifiers` extension (#11041).
+      The extension is available for the typst reader but is off by
+      default; enable it with `-f typst+auto_identifiers`. The related
+      `gfm_auto_identifiers` and `ascii_identifiers` extensions are
+      also made available.
+    + Recognize `divider()` for horizontal rule (#11540).
+
+  * HTML reader:
+
+    + Fix unused variable warning in CI (#11704, Robertas).
+    + Strip `language-` from all classes, not just first (#11701).
+      Also combine classes from both code and pre class if they are
+      nested.
+
+  * Powerpoint writer:
+
+    + Keep tables and surrounding text on same slide (#11433, Chris
+      Callison-Burch). Previously, when a slide contained bullet
+      points before and after a table, content would be split across
+      multiple slides or use a two-column layout that didn't preserve
+      the source order.
+
+  * Texinfo writer:
+
+    + Fix spacing bug around HorizontalRule (#11749).
+    + fix escaping in links (#11758). Previously we dropped periods,
+      commas, etc. This was a regression from 2024. All we really need
+      to do is escape the comma.
+
+  * LaTeX writer:
+
+    + Provide a way to use table instead of longtable (#1023).
+      When the `float` class is attached to a table, a standard
+      floating `table` will be generated instead of a `longtable`.
+      Placement can be specified via the `latex-placement` attribute.
+      This will help, especially, those who use two-column layouts,
+      since `longtable` is incompatible with these.
+    + Fix footnotes in definition list headings (#8240).
+
+  * Markdown writer:
+
+    + Fix ordered list indentation bug (#11762).
+    + Improve identification of code language class by looking it up
+      in the syntax map (#11701).
+    + In YAML metadata, put double quotes around strings that are
+      numbers beginning with 0 or ending with 0 and
+      having a decimal point (#11715). Otherwise they will read as
+      YAML numbers and potentially be modified (e.g. 3.10 -> 3.1).
+
+  * Docx writer:
+
+    + Use namespace URI instead of prefix in extractPageLayout (#11697,
+      Robertas).
+
+  * ODT writer:
+
+    + Use starmath for math. This improves appearance and
+      editability of equations. The main code changes are due to
+      @jdpipe (#11470).
+    + Image anchoring, percent dimensions, text width resolution
+      (#11746, Can H. Tartanoglu). Inline images now emit
+      `text:anchor-type=as-char` on their `draw:frame`,
+      anchoring the frame as a character so it flows with the
+      surrounding text. When both width and height are given and the
+      width is a percentage, the width is now resolved against the
+      reference document text area width, mirroring how the docx
+      writer derives its print width from the reference docx section
+      properties. The height follows the aspect ratio.
+
+  * RTF writer:
+
+    + Emit real RTF lists with a list table.
+      Lists were written as plain paragraphs with a literal marker and a
+      hanging indent, carrying none of the `\ls`/`\ilvl` references or the
+      `\listtable`/`\listoverridetable` that the RTF list model (and pandoc's
+      own reader) expect, so lists could not round-trip.
+    + Allow fontsize to be specified (#11750). The fontsize is specified
+      in a variable or metadata field and passed through the renderer via
+      a Reader monad.
+
+  * Typst writer:
+
+    + Fold `lang` into `pickTypstAttributes` (#11673).
+      This ensures that `lang` attributes will be set for both
+      Divs and Spans.
+    + Add support for tight terms in Typst writer (#11748, Amir Dekel).
+      This just affects whether a blank line is emitted in the markup.
+      Note that pandoc's default template contains a show rule for
+      terms that will make these blank lines irrelevant, but this change
+      allows one to use tight lists with custom templates.
+    + Further tight term list improvements. For tight list items
+      consisting of just one Plain block, we no longer create a
+      `#block` for the definition; this allows it to remain on the
+      same line as the term.
+    + Emit `divider()` as horizontal rule (#11540).
+
+  * LaTeX template:
+
+    + The `caption` package is included and a default spacing
+      set between the caption and the table.
+
+  * Typst template:
+
+    + Remove custom show rule for terms. Instead, we use a set rule
+      to set hanging-indent.
+    + Remove old `horizontalRule` definition from default template.
+    + Polyfill `divider` for typst < 0.15.
+    + Allow multiword keywords (#11730, Albert Krewinkel).
+      Typst expects single words as keywords, so keywords consisting of
+      multiple words must be quoted (and should not be wrapped).
+
+  * HTML template:
+
+    + Remove hard-coded font-size for print CSS. Print CSS now uses
+      the inherited font-size.
+
+  * epub.css:
+
+    + Get rid of obsolete #TOC rules (#11747). We don't generate
+      anything with the TOC id in epubs. A table of contents is in
+      `nav#toc` and we have rules for that.
+    + Put clause for all headings before individual h1, h2, ...
+      (#11742). This is more logical, since the individual clauses
+      are meant to override.
+
+  * Text.Pandoc.Shared:
+
+    + Improve `makeSections` (#11745). Previously it would sometimes
+      create doubled section divs. By leaving the inner heading's id
+      on the heading itself, and then consolidating the inner and outer
+      section divs, we can avoid this undesirable result.
+    + `taskListItemToAscii`: handle empty task list case.
+    + `taskListItemFromAscii: handle empty task list case (#11599,
+      Chirag Dhamange).
+
+  * Text.Pandoc.App.CommandLineOptions:
+
+    + Use `optCSL` and `optBibliography` from Opt (#11741). Previously
+      we set `optMetadata` directly, but that had some unintended
+      effects, especially in interacting with defaults files. With
+      this change, a `--csl` on the command line can override one set
+      in a prior defaults file.
+
+  * Text.Pandoc.App:
+
+    + Enable `auto_identifiers` when a table of contents is requested
+      (#11041). Table-of-contents entries link to heading identifiers,
+      so when `--toc/--table-of-contents` is given, force the
+      `auto_identifiers` extension on for the input format even when it
+      is off by default (as it now is for typst).  This makes
+      typst-to-markdown `--toc` produce working links.
+
+  * Text.Pandoc.Writers.Shared:
+
+    + `htmlAttrs` - don't add `data-` prefix for `markdown` (#11685).
+      This is necessary for the `markdown_attribute` extension to
+      work properly.
+
+  * Ensure that IO error messages go to stderr (#11710).
+
+  * Use emojis 0.1.5, texmath 0.13.2,typst 0.11, typst-symbols 0.3,
+    pandoc-types 1.23.1.2, djot 0.1.4.1, commonmark-extensions 0.2.7.1,
+    skylighting-format-blaze-html 0.1.2.1.
+
+  * Add Makefile rule to update all-cabal-hashes in flake.lock.
+
+  * MANUAL.txt:
+
+    + Clarify comment about table types (#11719).
+    + Small clarification in image section (#11760).
+    + Rewrite "A note on security." Clarify the risks of using
+      pandoc in a web service and explain how to do so more safely.
+      Note some specific vulnerabilities with the pdf-engine `wkhtmltopdf`.
+      This incorporates the suggestions made in #11262 and also
+      benefits from a report by Kai Aizen.
+    + Clarify `native_numbering` extension (#11599).
+    + Include Lua filter to set float attribute on tables.
+    + Clarify expectations for EPUB metadata (#11723).
+    + Improve instructions for specifying EPUB identifier (#11723).
+    + Fix typo (#11720, Scott Talbert).
+
+  * Fix typo in lua-filters.md (#11724, Enrico Spinielli).
+
+  * Revamp `flake.nix` to use `haskell.nix` (#11707).
+    This allows the project to be built using `nix build` and run
+    using `nix run`. @srid deserves credit for most of this.
+    stack.yaml is used as a source of truth for the versions to use,
+    including for git repositories.
+
+  * Change symlink to regular file for COPYING.md in
+    pandoc-cli, pandoc-lua-engine, pandoc-server.
+
 ## pandoc 3.10 (2026-06-03)
 
   * Add `--typst-input` CLI option (#11588). This allows one to
