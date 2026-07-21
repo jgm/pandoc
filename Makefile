@@ -56,7 +56,7 @@ test:  ## unoptimized build and run tests with cabal
 .PHONY: test
 
 flake.lock: flake.nix stack.yaml
-	nix flake update update-cabal-hashes
+	nix flake update all-cabal-hashes
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
