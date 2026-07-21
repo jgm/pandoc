@@ -221,6 +221,7 @@ It can convert *to*
   Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
 - `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
 - `textile` ([Textile](https://textile-lang.com))
+- `t2t` ([txt2tags](https://txt2tags.org))
 - `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
   and JavaScript slide show)
 - `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
