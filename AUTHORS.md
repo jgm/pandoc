@@ -65,6 +65,7 @@
 - Caleb McDaniel
 - Caleb Mclennan
 - Calvin Beck
+- Can H. Tartanoglu
 - Carlos Scheidegger
 - Carlos Sosa
 - Carsten Allefeld
@@ -76,6 +77,7 @@
 - Charanjit Singh
 - Charles Tapley Hoyt
 - Charlotte Koch
+- Chirag Dhamange
 - Chris Black
 - Chris Callison-Burch
 - Christian Conkle
@@ -119,6 +121,7 @@
 - Emerson Harkin
 - Emily Bourke
 - Emily Eisenberg
+- Enrico Spinielli
 - Eric Kow
 - Eric Schrijver
 - Eric Seidel
@@ -362,6 +365,7 @@
 - Recai Oktaş
 - Repetitive
 - Reuben Thomas
+- Robertas
 - Rowan Rodrik van der Molen
 - Roland Hieber
 - Roman Beránek
@@ -378,6 +382,7 @@
 - Santiago Zarate
 - Sascha Wilde
 - Scott Morrison
+- Scott Talbert
 - Sean Soon
 - Sebastian Talmon
 - Sebbones
@@ -422,6 +427,7 @@
 - Timm Albers
 - Timothy Humphries
 - Tiziano Müller
+- Tobias Deiminger
 - Todd Sifleet
 - Tomas Dahlqvist
 - TomBen
@@ -490,6 +496,7 @@
 - kaizshang91
 - lawcho
 - lifeunleaded
+- luginf
 - lux-lth
 - luz paz
 - lwolfsonkin
