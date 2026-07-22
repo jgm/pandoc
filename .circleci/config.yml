@@ -172,27 +172,10 @@ jobs:
       - store_artifacts:
           path: pandoc.wasm.zip
 
-# Each build is gated behind an approval job, which is the CircleCI equivalent of
-# Cirrus's `trigger_type: manual` — nothing runs until you click "Approve" in the UI.
 workflows:
   release:
     jobs:
-      - hold_macos_arm64:
-          type: approval
-      - macos_arm64:
-          requires: [hold_macos_arm64]
-
-      - hold_linux_amd64:
-          type: approval
-      - linux_amd64:
-          requires: [hold_linux_amd64]
-
-      - hold_linux_arm64:
-          type: approval
-      - linux_arm64:
-          requires: [hold_linux_arm64]
-
-      - hold_wasm:
-          type: approval
-      - wasm:
-          requires: [hold_wasm]
+      - macos_arm64
+      - linux_amd64
+      - linux_arm64
+      - wasm
