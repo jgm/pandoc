@@ -1,0 +1,64 @@
+<text>
+  Simple table with caption:
+</text>
+<table>
+  <caption>Demonstration of simple table syntax.</caption>
+  <ched/>Right<ched/>Left<ched/>Center<ched/>Default<nl/><fcel/>12<fcel/>12<fcel/>12<fcel/>12<nl/>
+  <fcel/>123<fcel/>123<fcel/>123<fcel/>123<nl/>
+  <fcel/>1<fcel/>1<fcel/>1<fcel/>1<nl/>
+</table>
+<text>
+  Simple table without caption:
+</text>
+<table>
+  <ched/>Right<ched/>Left<ched/>Center<ched/>Default<nl/><fcel/>12<fcel/>12<fcel/>12<fcel/>12<nl/>
+  <fcel/>123<fcel/>123<fcel/>123<fcel/>123<nl/>
+  <fcel/>1<fcel/>1<fcel/>1<fcel/>1<nl/>
+</table>
+<text>
+  Simple table indented two spaces:
+</text>
+<table>
+  <caption>Demonstration of simple table syntax.</caption>
+  <ched/>Right<ched/>Left<ched/>Center<ched/>Default<nl/><fcel/>12<fcel/>12<fcel/>12<fcel/>12<nl/>
+  <fcel/>123<fcel/>123<fcel/>123<fcel/>123<nl/>
+  <fcel/>1<fcel/>1<fcel/>1<fcel/>1<nl/>
+</table>
+<text>
+  Multiline table with caption:
+</text>
+<table>
+  <caption>Here’s the caption. It may span multiple lines.</caption>
+  <ched/>Centered Header<ched/>Left Aligned<ched/>Right Aligned<ched/>Default
+  aligned<nl/><fcel/>First<fcel/>row<fcel/>12.0<fcel/>Example of a row that
+  spans multiple lines.<nl/>
+  <fcel/>Second<fcel/>row<fcel/>5.0<fcel/>Here’s another one. Note the blank
+  line between rows.<nl/>
+</table>
+<text>
+  Multiline table without caption:
+</text>
+<table>
+  <ched/>Centered Header<ched/>Left Aligned<ched/>Right Aligned<ched/>Default
+  aligned<nl/><fcel/>First<fcel/>row<fcel/>12.0<fcel/>Example of a row that
+  spans multiple lines.<nl/>
+  <fcel/>Second<fcel/>row<fcel/>5.0<fcel/>Here’s another one. Note the blank
+  line between rows.<nl/>
+</table>
+<text>
+  Table without column headers:
+</text>
+<table>
+  <fcel/>12<fcel/>12<fcel/>12<fcel/>12<nl/>
+  <fcel/>123<fcel/>123<fcel/>123<fcel/>123<nl/>
+  <fcel/>1<fcel/>1<fcel/>1<fcel/>1<nl/>
+</table>
+<text>
+  Multiline table without column headers:
+</text>
+<table>
+  <fcel/>First<fcel/>row<fcel/>12.0<fcel/>Example of a row that spans multiple
+  lines.<nl/>
+  <fcel/>Second<fcel/>row<fcel/>5.0<fcel/>Here’s another one. Note the blank
+  line between rows.<nl/>
+</table>
