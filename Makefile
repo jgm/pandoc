@@ -19,7 +19,7 @@ BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --non
 pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
 OPTIMIZE_WASM?=1
 
-all: build test binpath flake.lock ## build executable and run tests
+all: build test binpath ## build executable and run tests
 .PHONY: all
 
 build: ## build executable
