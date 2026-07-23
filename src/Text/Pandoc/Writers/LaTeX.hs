@@ -663,9 +663,8 @@ blockToLaTeX (DefinitionList lst) = do
   let spacing = if all (isTightList . snd) lst
                    then text "\\tightlist"
                    else empty
-  notes <- getAccumulatedNotes
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$
-               "\\end{description}" $$ notes
+               "\\end{description}"
 blockToLaTeX HorizontalRule =
             return
   "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}"
@@ -705,7 +704,6 @@ blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
         Table {}  -> Any True
         _         -> Any False)
   st <- get
-  footnotes <- getAccumulatedNotes
   return $ (case () of
     _ | containsTable body ->
           -- placing a longtable in a figure or center environment does
@@ -718,7 +716,6 @@ blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
     _ | isSubfigure ->
           innards
     _ ->  cr <> "\\begin{figure}" <> placement $$ innards $$ "\\end{figure}")
-    $$ footnotes
 
 toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
 toSubfigure nsubfigs blk = do
@@ -738,7 +735,16 @@ toSubfigure nsubfigs blk = do
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =
-  vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
+  vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX' b) lst
+ where
+   blockToLaTeX' b = do
+     res <- blockToLaTeX b
+     externalNotes <- gets stExternalNotes
+     if externalNotes
+        then pure res
+        else do
+          notes <- getAccumulatedNotes
+          pure $ res $$ notes
 
 listItemToLaTeX :: PandocMonad m => Bool -> [Block] -> LW m (Doc Text)
 listItemToLaTeX isOrdered lst
@@ -1222,10 +1228,9 @@ inlineToLaTeX (Image attr@(_,_,kvs) description (source, _)) = do
         options <> braces (literal source''))
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
-  externalNotes <- gets stExternalNotes
-  modify (\s -> s{stInNote = True, stExternalNotes = True})
-  contents' <- blockListToLaTeX contents
-  modify (\s -> s {stInNote = False, stExternalNotes = externalNotes})
+  modify (\s -> s{stInNote = True })
+  contents' <- withExternalNotes $ blockListToLaTeX contents
+  modify (\s -> s {stInNote = False })
   let optnl = case reverse contents of
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
@@ -1239,6 +1244,7 @@ inlineToLaTeX (Note contents) = do
                            then text "<.->[frame]"
                            else text "<\\value{beamerpauses}->[frame]"
                       else empty
+  externalNotes <- gets stExternalNotes
   if externalNotes
      then do
        modify $ \st -> st{ stNotes = noteContents : stNotes st }
