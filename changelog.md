@@ -186,7 +186,7 @@
       on the heading itself, and then consolidating the inner and outer
       section divs, we can avoid this undesirable result.
     + `taskListItemToAscii`: handle empty task list case.
-    + `taskListItemFromAscii: handle empty task list case (#11599,
+    + `taskListItemFromAscii`: handle empty task list case (#11599,
       Chirag Dhamange).
 
   * Text.Pandoc.App.CommandLineOptions:
