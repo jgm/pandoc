@@ -29859,7 +29859,7 @@
 
   * Fixed unicode/utf-8 translation
 
-## pandoc 0.1 (2006-08-14)
+## pandoc 0.1 (2006-08-03)
 
   * Initial creation of debian package
 
