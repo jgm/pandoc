@@ -302,7 +302,7 @@ header when requesting a document from a URL:
 
     ::: {#output-formats}
     - `ansi` (text with [ANSI escape codes], for terminal viewing)
-    - `asciidoc` (modern [AsciiDoc] as interpreted by [AsciiDoctor])
+    - `asciidoc` (modern [AsciiDoc] as interpreted by [Asciidoctor])
     - `asciidoc_legacy` ([AsciiDoc] as interpreted by [`asciidoc-py`]).
     - `asciidoctor` (deprecated synonym for `asciidoc`)
     - `bbcode` [BBCode]
@@ -557,7 +557,7 @@ header when requesting a document from a URL:
 [RIS]: https://en.wikipedia.org/wiki/RIS_(file_format)
 [Emacs Org mode]: https://orgmode.org
 [AsciiDoc]: https://asciidoc.org/
-[AsciiDoctor]: https://asciidoctor.org/
+[Asciidoctor]: https://asciidoctor.org/
 [`asciidoc-py`]: https://github.com/asciidoc-py/asciidoc-py
 [DZSlides]: https://paulrouget.com/dzslides/
 [Word docx]: https://en.wikipedia.org/wiki/Office_Open_XML
