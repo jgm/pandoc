@@ -191,7 +191,7 @@ window.pandocApp = function() {
       ansi: 'ANSI terminal',
       asciidoc: 'modern AsciiDoc',
       asciidoc_legacy: 'AsciiDoc for asciidoc-py',
-      asciidoctor: 'AsciiDoctor (= modern AsciiDoc)',
+      asciidoctor: 'Asciidoctor (= modern AsciiDoc)',
       bbcode: 'BBCode',
       beamer: 'LaTeX Beamer slides',
       biblatex: 'BibLaTeX bibliography',

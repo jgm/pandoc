@@ -125,7 +125,7 @@ It can convert *to*
   codes](https://en.wikipedia.org/wiki/ANSI_escape_code), for terminal
   viewing)
 - `asciidoc` (modern [AsciiDoc](https://asciidoc.org/) as interpreted by
-  [AsciiDoctor](https://asciidoctor.org/))
+  [Asciidoctor](https://asciidoctor.org/))
 - `asciidoc_legacy` ([AsciiDoc](https://asciidoc.org/) as interpreted by
   [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
 - `asciidoctor` (deprecated synonym for `asciidoc`)
