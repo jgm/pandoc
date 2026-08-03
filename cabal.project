@@ -28,6 +28,7 @@ if arch(wasm32)
   package lua
     flags: +cross-compile
     ghc-options: -optc-mllvm
+                 -optc-wasm-use-legacy-eh=false
                  -optc-wasm-enable-sjlj
                  -optc-D_WASI_EMULATED_PROCESS_CLOCKS
                  -optc-D_WASI_EMULATED_SIGNAL
