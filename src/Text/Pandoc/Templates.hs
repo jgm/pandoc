@@ -47,7 +47,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem,
                                       getCommonState, modifyCommonState,
                                       toTextM)
 import Text.Pandoc.Data (readDataFile)
-import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Except (throwError, tryError)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Error
@@ -74,24 +74,22 @@ instance PandocMonad m => TemplateMonad (WithPartials m) where
 -- | Retrieve text for a template.
 getTemplate :: PandocMonad m => FilePath -> m Text
 getTemplate tp =
-  ((do surl <- stSourceURL <$> getCommonState
+   (do surl <- stSourceURL <$> getCommonState
        -- we don't want to look for templates remotely
        -- unless the full URL is specified:
-       modifyCommonState $ \st -> st{
-         stSourceURL = Nothing }
-       (bs, _) <- fetchItem $ T.pack tp
-       modifyCommonState $ \st -> st{
-         stSourceURL = surl }
-       return bs)
-   `catchError`
-   (\e -> case e of
+       modifyCommonState $ \st -> st{ stSourceURL = Nothing }
+       res <- tryError $ fetchItem $ T.pack tp
+       modifyCommonState $ \st -> st{ stSourceURL = surl }
+       case res of
+         Right (bs, _) -> return bs
+         Left e -> case e of
              PandocResourceNotFound _ ->
                 -- see #5987 on reason for takeFileName
                 readDataFile ("templates" </> takeFileName tp)
              PandocIOError _ ioe | isDoesNotExistError ioe ->
                 -- see #5987 on reason for takeFileName
                 readDataFile ("templates" </> takeFileName tp)
-             _ -> throwError e)) >>= toTextM tp
+             _ -> throwError e) >>= toTextM tp
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: PandocMonad m
