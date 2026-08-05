@@ -16,6 +16,7 @@ module Text.Pandoc.Readers.HTML.TagCategories
   , eitherBlockOrInline
   , epubTags
   , blockTags
+  , voidTags
   , sectioningContent
   , groupingContent
   )
@@ -67,6 +68,11 @@ epubTags = fromList ["case", "switch", "default"]
 
 blockTags :: Set Text
 blockTags = unions [blockHtmlTags, blockDocBookTags, epubTags]
+
+voidTags :: Set Text
+voidTags  = fromList
+  ["area", "base", "br", "col", "embed", "hr", "img", "input",
+   "link", "meta", "param", "source", "track", "wbr"]
 
 sectioningContent :: [Text]
 sectioningContent = ["article", "aside", "nav", "section"]

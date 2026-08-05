@@ -50,6 +50,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isInlineTag, isTextTag)
+import Text.Pandoc.Readers.HTML.TagCategories (voidTags)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
@@ -1191,7 +1192,7 @@ rawHtmlBlocks = do
                  gobbleAtMostSpaces indentlevel
                  notFollowedBy' closer
                  block
-  contents <- if selfClosing
+  contents <- if selfClosing || tagtype `Set.member` voidTags
                  then return mempty
                  else mconcat <$> many block'
   result <-
