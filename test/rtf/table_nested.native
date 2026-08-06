@@ -1,0 +1,129 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Table
+                      ( "" , [] , [] )
+                      (Caption Nothing [])
+                      [ ( AlignDefault , ColWidthDefault ) ]
+                      (TableHead ( "" , [] , [] ) [])
+                      [ TableBody
+                          ( "" , [] , [] )
+                          (RowHeadColumns 0)
+                          []
+                          [ Row
+                              ( "" , [] , [] )
+                              [ Cell
+                                  ( "" , [] , [] )
+                                  AlignDefault
+                                  (RowSpan 1)
+                                  (ColSpan 1)
+                                  [ Para
+                                      [ Str "Level"
+                                      , Space
+                                      , Str "two"
+                                      , Space
+                                      , Str "before"
+                                      ]
+                                  , Table
+                                      ( "" , [] , [] )
+                                      (Caption Nothing [])
+                                      [ ( AlignDefault
+                                        , ColWidthDefault
+                                        )
+                                      , ( AlignDefault
+                                        , ColWidthDefault
+                                        )
+                                      ]
+                                      (TableHead ( "" , [] , [] ) [])
+                                      [ TableBody
+                                          ( "" , [] , [] )
+                                          (RowHeadColumns 0)
+                                          []
+                                          [ Row
+                                              ( "" , [] , [] )
+                                              [ Cell
+                                                  ( "" , [] , [] )
+                                                  AlignDefault
+                                                  (RowSpan 1)
+                                                  (ColSpan 1)
+                                                  [ Para
+                                                      [ Str "Deep"
+                                                      , Space
+                                                      , Str "A"
+                                                      ]
+                                                  ]
+                                              , Cell
+                                                  ( "" , [] , [] )
+                                                  AlignDefault
+                                                  (RowSpan 1)
+                                                  (ColSpan 1)
+                                                  [ Para
+                                                      [ Str "Deep"
+                                                      , Space
+                                                      , Str "B"
+                                                      ]
+                                                  ]
+                                              ]
+                                          , Row
+                                              ( "" , [] , [] )
+                                              [ Cell
+                                                  ( "" , [] , [] )
+                                                  AlignDefault
+                                                  (RowSpan 1)
+                                                  (ColSpan 1)
+                                                  [ Para
+                                                      [ Str "Deep"
+                                                      , Space
+                                                      , Str "C"
+                                                      ]
+                                                  ]
+                                              , Cell
+                                                  ( "" , [] , [] )
+                                                  AlignDefault
+                                                  (RowSpan 1)
+                                                  (ColSpan 1)
+                                                  [ Para
+                                                      [ Str "Deep"
+                                                      , Space
+                                                      , Str "D"
+                                                      ]
+                                                  ]
+                                              ]
+                                          ]
+                                      ]
+                                      (TableFoot ( "" , [] , [] ) [])
+                                  , Para
+                                      [ Str "Level"
+                                      , Space
+                                      , Str "two"
+                                      , Space
+                                      , Str "after"
+                                      ]
+                                  ]
+                              ]
+                          ]
+                      ]
+                      (TableFoot ( "" , [] , [] ) [])
+                  , Para [ Str "Outer" , Space , Str "after" ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Outside" , Space , Str "table" ]
+  ]
