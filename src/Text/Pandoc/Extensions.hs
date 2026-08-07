@@ -477,6 +477,7 @@ getDefaultExtensions "markua"          = extensionsFromList
 getDefaultExtensions "typst"           = extensionsFromList [Ext_citations,
                                                              Ext_smart]
 getDefaultExtensions "dokuwiki"        = extensionsFromList [Ext_smart]
+getDefaultExtensions "doclang"         = extensionsFromList []
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 

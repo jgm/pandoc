@@ -34,6 +34,7 @@ module Text.Pandoc.Writers
     , writeDjot
     , writeDocBook4
     , writeDocBook5
+    , writeDocLang
     , writeDocx
     , writeDokuWiki
     , writeEPUB2
@@ -108,6 +109,7 @@ import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
 import Text.Pandoc.Writers.Djot
+import Text.Pandoc.Writers.DocLang (writeDocLang)
 import Text.Pandoc.Writers.DocBook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
@@ -223,6 +225,7 @@ writers = [
   ,("markua"       , TextWriter writeMarkua)
   ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
   ,("djot"         , TextWriter writeDjot)
+  ,("doclang"      , TextWriter writeDocLang)
   ,("ansi"         , TextWriter writeANSI)
   ,("xml"          , TextWriter writeXML)
   ,("vimdoc"       , TextWriter writeVimdoc)
