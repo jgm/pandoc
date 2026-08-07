@@ -186,9 +186,11 @@ blockToTypst block =
     Plain inlines -> inlinesToTypst inlines
     Para inlines -> do
       ($$ blankline) <$> inlinesToTypst inlines
-    Header level (ident,cls,_) inlines -> do
+    Header level (ident,cls,kvs) inlines -> do
       contents <- inlinesToTypst inlines
-      let lab = toLabel FreestandingLabel ident
+      let lab = case lookup "typst-label" kvs of
+                  Just l -> toLabel FreestandingLabel l
+                  Nothing  -> toLabel FreestandingLabel ident
       let headingAttrs =
             ["outlined: false" | "unlisted" `elem` cls] ++
             ["numbering: none" | "unnumbered" `elem` cls]
@@ -270,7 +272,9 @@ blockToTypst block =
                     else vsep
       ($$ blankline) . concat' <$> mapM defListItemToTypst items
     Table (ident,tabclasses,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
-      let lab = toLabel FreestandingLabel ident
+      let lab = case lookup "typst-label" tabkvs of
+                  Just l -> toLabel FreestandingLabel l
+                  Nothing -> toLabel FreestandingLabel ident
       capt' <- if null caption
                   then return mempty
                   else do
@@ -369,7 +373,7 @@ blockToTypst block =
               $$ ")")
             $$ lab
           $$ blankline
-    Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
+    Figure (ident,_,kvs) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
       opts <-  gets stOptions
       let toImage (Image attr inlines (src, _)) =
@@ -380,7 +384,9 @@ blockToTypst block =
                      [Para [img]] | Just i <- toImage img -> pure i
                      [Plain [img]] | Just i <- toImage img -> pure i
                      _ -> brackets <$> blocksToTypst blocks
-      let lab = toLabel FreestandingLabel ident
+      let lab = case lookup "typst-label" kvs of
+                  Just l -> toLabel FreestandingLabel l
+                  Nothing -> toLabel FreestandingLabel ident
       return $ "#figure(" <> nest 2 ((contents <> ",")
                                      $$
                                      ("caption: [" $$ nest 2 caption $$ "]")
@@ -389,7 +395,9 @@ blockToTypst block =
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
     Div (ident,_,kvs) blocks -> do
-      let lab = toLabel FreestandingLabel ident
+      let lab = case lookup "typst-label" kvs of
+                  Just l -> toLabel FreestandingLabel l
+                  Nothing -> toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
@@ -497,7 +505,9 @@ inlineToTypst inline =
     Subscript inlines -> textstyle "#sub" inlines
     SmallCaps inlines -> textstyle "#smallcaps" inlines
     Span (ident,cls,kvs) inlines -> do
-      let lab = toLabel FreestandingLabel ident
+      let lab = case lookup "typst-label" kvs of
+                  Just l -> toLabel FreestandingLabel l
+                  Nothing -> toLabel FreestandingLabel ident
       let (_, typstTextAttrs) = pickTypstAttrs kvs
       contents <- inlinesToTypst inlines
       let addHl x = "#highlight" <> brackets x

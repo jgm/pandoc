@@ -65,6 +65,13 @@ it produces Typst output
 
 The Typst Writer does not check the validity of `prop` or the value. Since Typst is a statically typed language, improper property names or values usually result in compilation failure.
 
+Typst labels
+------------
+
+The attribute `typst-label` will produce a typst label (overriding
+the identifier attribute if present). This provides a way to use
+labels for styling. (Labels need not be unique in typst.)
+
 Supported elements
 ------------------
 
