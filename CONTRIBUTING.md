@@ -445,12 +445,6 @@ WriterOptions, you'll also need to
 - in pandoc-lua-engine: Text.Pandoc.Lua.Marshal.WriterOptions
   and/or Text.Pandoc.Lua.Marshal.ReaderOptions
 
-Lua filters
------------
-
-If you've written a useful pandoc [lua filter](./doc/lua-filters.md),
-you may want to consider submitting a pull request to the
-[lua-filters repository](https://github.com/pandoc/lua-filters).
 
 [open issues]: https://github.com/jgm/pandoc/issues
 [closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
