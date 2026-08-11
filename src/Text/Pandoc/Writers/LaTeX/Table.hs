@@ -56,7 +56,11 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   beamer <- gets stBeamer
   let float = "float" `elem` classes
   let renderTable = do
-       capt <- captionToLaTeX inlnsToLaTeX caption ident
+       let unnumbered = "unnumbered" `elem` classes
+       capt <- case caption of
+                 Caption Nothing []
+                   | unnumbered || T.null ident -> pure mempty
+                 _ -> captionToLaTeX inlnsToLaTeX caption ident
        let isSimpleTable =
              all ((== ColWidthDefault) . snd) specs &&
              all (all isSimpleCell)
@@ -70,9 +74,15 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
        let colCount = ColumnCount $ length specs
        let mkHead = headToLaTeX blksToLaTeX isSimpleTable colCount
        let mkRow = rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell
-       if float
-          then tableToLaTeXTable placement colDesc mkHead mkRow capt thead tbodies tfoot
-          else tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot
+       let makeUnnumbered x =
+             "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
+       let makeTable = if float
+                          then tableToLaTeXTable placement
+                          else tableToLaTeXLongtable
+       (if unnumbered || isEmpty capt
+          then makeUnnumbered
+          else id) <$>
+          makeTable colDesc mkHead mkRow capt thead tbodies tfoot
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
   if float || beamer
@@ -105,10 +115,8 @@ tableToLaTeXTable placement colDesc mkHead mkRow capt thead tbodies tfoot = do
                   else "\\midrule\\noalign{}" $$ vcat lastfoot)
               $$ "\\bottomrule\\noalign{}"
   modify $ \s -> s{ stTable = True }
-  let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
-  return
-    $ (if null capt then makeUnnumbered else id)
-    $ "\\begin{table}" <> placement
+  return $
+       "\\begin{table}" <> placement
     $$ "\\centering"
     $$ (if hasTopCaption
            then capt <> "\\tabularnewline"
@@ -172,10 +180,8 @@ tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
                      else mempty)
   modify $ \s -> s{ stTable = True }
   beamer <- gets stBeamer
-  let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
-  return
-    $ (if null capt then makeUnnumbered else id)
-    $ "\\begin{longtable}[]" <> colDesc
+  return $
+       "\\begin{longtable}[]" <> colDesc
     $$ head'
     $$ "\\endhead"
     $$ vcat
