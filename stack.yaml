@@ -19,7 +19,6 @@ extra-deps:
 - hslua-objectorientation-2.5.0
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
-- asciidoc-0.1.0.3
 - commonmark-0.3
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7.1
@@ -28,7 +27,10 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
 - typst-0.11
-- texmath-0.13.2
+- git: https://github.com/jgm/texmath.git
+  commit: 714560afa4bd490464b1a29f8d0acfd8814f1516
+- git: https://github.com/jgm/asciidoc-hs.git
+  commit: ec5a6b8e5a3f810afa544d01794fc7e44dd73966
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
