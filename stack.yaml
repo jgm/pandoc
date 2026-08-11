@@ -27,10 +27,8 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
 - typst-0.11
-- git: https://github.com/jgm/texmath.git
-  commit: 714560afa4bd490464b1a29f8d0acfd8814f1516
-- git: https://github.com/jgm/asciidoc-hs.git
-  commit: ec5a6b8e5a3f810afa544d01794fc7e44dd73966
+- asciidoc-0.1.0.4
+- texmath-0.13.2.1
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
