@@ -26,6 +26,10 @@ make man
 #+begin_src sh :results output file :file LOG.md
 git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'  * %s%n    %aN%n%w(78,4,4)%b' | sed -e '/^ *John MacFarlane$/d' | sed -e 's/  *$//'
 #+end_src
+*** TODO Update flake.lock.
+#+begin_src sh
+make flake.lock
+#+end_src
 *** TODO prerelease checks
 #+begin_src sh :results output verbatim
 make prerelease
