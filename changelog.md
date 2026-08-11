@@ -1,5 +1,53 @@
 # Revision history for pandoc
 
+## pandoc 3.10.2 (2026-08-11)
+
+  * Markdown reader:
+
+    + Raw HTML: fix handling of void `hr` element (#11793).
+    + Add `voidTags` to unexported module
+      Text.Pandoc.Readers.HTML.TagCategories.
+
+  * LaTeX writer:
+
+    + Omit empty caption on unnumbered tables (#11795).
+    + Emit accumulated `footnotetext` at the first available
+      opportunity (#11773).
+
+  * Typst writer:
+
+    + Don't alter curly quotes in strings, even with `smart` (#11788).
+      This reverts commit 04848401d5711d0da74e6e32a7aedc6c2d661a71.
+    + Make writer sensitive to `typst-label` attribute (#11794).
+      If this attribute is set, the writer will output a label.
+      (This overrides labels based on identifiers, when identifiers
+      are present.)
+
+  * Typst template: rename `horizontalrule` to `horizontalRule` , so
+    it matches the polyfill. (#11784, Ian Max Andolina).
+
+  * WASM build: restore legacy exception handling,
+    for compatibility with wasmtime (#11787).
+
+  * Use new release of asciidoc (fixing problems with row/colspans
+    and footers in tables).
+
+  * Use new release of texmath (fixing problems with equations containing
+    `\tag`, `\label`, or comments).
+
+  * `MANUAL.txt`: Correct Asciidoctor name casing (gemmaro, #11782).
+
+  * `INSTALL.md`: Update Fedora link to pandoc-cli package (#11798,
+    Philipp Gillé).
+
+  * `CONTRIBUTING.md`: remove suggestion to submit Lua filters (#11800).
+
+  * Add `doc/twenty-years-of-pandoc.md`.
+
+  * Changelog - fix pandoc 0.1 release date.
+
+  * Add `release-announcements.txt` (scraped from pandoc-announce).
+
 ## pandoc 3.10.1 (2026-07-21)
 
   * New output format `t2t` (Txt2Tags markup, <https://txt2tags.org>))
