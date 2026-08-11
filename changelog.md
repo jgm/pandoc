@@ -5,8 +5,6 @@
   * Markdown reader:
 
     + Raw HTML: fix handling of void `hr` element (#11793).
-    + Add `voidTags` to unexported module
-      Text.Pandoc.Readers.HTML.TagCategories.
 
   * LaTeX writer:
 
@@ -25,6 +23,8 @@
 
   * Typst template: rename `horizontalrule` to `horizontalRule` , so
     it matches the polyfill. (#11784, Ian Max Andolina).
+
+  * Text.Pandoc.Readers.HTML.TagCategories (unexported): export `voidTags`.
 
   * WASM build: restore legacy exception handling,
     for compatibility with wasmtime (#11787).
