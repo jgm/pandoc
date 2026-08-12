@@ -89,6 +89,29 @@
                 srcDirs)
             (builtins.filter builtins.isAttrs stackExtraDeps));
 
+          # Fetch straight from Hackage, bypassing all-cabal-hashes/callHackage.
+          hackageSrc = name: version: hash:
+            pkgs.fetchzip {
+              url = "mirror://hackage/${name}-${version}/${name}-${version}.tar.gz";
+              inherit hash;
+            };
+
+          # name -> version, fetched by URL rather than via callHackage.
+          directHackageDeps = {
+            texmath = "0.13.2.1";   # <- put the real versions here
+            asciidoc = "0.1.0.4";
+          };
+          directHackageHashes = {
+            texmath = "sha256-Y26TvckFKQDb0MNFFwgFtYvWUb41sO+ri0arYwCQNes=";
+            asciidoc = "sha256-kUFbnkkHUMXhy8+zV3iIWpe/sq2PVmlX56zHDvtn68o=";
+          };
+
+          directSources = lib.mapAttrs
+            (name: version: {
+              source = hackageSrc name version directHackageHashes.${name};
+            })
+            directHackageDeps;
+
         in
         {
         haskellProjects.default = {
@@ -111,7 +134,8 @@
             pandoc-server.source = inputs.self + "/pandoc-server";
           }
           // gitSources
-          // lib.mapAttrs (_: version: { source = version; }) bumpedDeps;
+          // lib.mapAttrs (_: version: { source = version; }) bumpedDeps
+          // directSources;
 
           settings = {
             pandoc = {
@@ -141,7 +165,9 @@
             # The git sources (texmath) and the bumped Hackage deps: skip
             # tests/haddock and relax stale bounds against this GHC's boot libs.
           } // lib.genAttrs
-            (builtins.attrNames bumpedDeps ++ builtins.attrNames gitSources)
+            (builtins.attrNames bumpedDeps
+             ++ builtins.attrNames gitSources
+             ++ builtins.attrNames directHackageDeps)
             (_: { check = false; haddock = false; jailbreak = true; });
 
           # Dev shell (`nix develop`). haskell-flake already provides
