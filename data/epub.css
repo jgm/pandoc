@@ -1,4 +1,20 @@
 /* This defines styles and classes used in the book */
+
+/* Light/Dark color scheme support.
+   `color-scheme: light dark` on :root is REQUIRED to enable the light-dark()
+   color function (CSS Color Module Level 5) and also lets the reading system
+   flip its own canvas/scrollbars to dark. Individual colors below use
+   light-dark(<light-value>, <dark-value>); the dark value uses the
+   designer-specified Breeze dark palette (text #cfcfc2, background #232629)
+   shipped with pandoc's bundled "breezedark" theme, so the document and its
+   code blocks share one coherent dark aesthetic instead of a mechanical
+   inversion.
+   For reading systems that do NOT support light-dark(), each declaration is
+   preceded by a plain fallback using the original light value, so the rule is
+   not dropped and the original look is preserved (graceful degradation). */
+:root {
+  color-scheme: light dark;
+}
 @page {
   margin: 10px;
 }
@@ -19,6 +35,8 @@ html {
   line-height: 1.2;
   font-family: Georgia, serif;
   color: #1a1a1a;
+  color: light-dark(#1a1a1a, #cfcfc2);
+  background-color: light-dark(transparent, #232629);
 }
 p {
   text-indent: 0;
@@ -101,6 +119,7 @@ pre code {
 }
 hr {
   background-color: #1a1a1a;
+  background-color: light-dark(#1a1a1a, #cfcfc2);
   border: none;
   height: 1px;
   margin: 1em 0;
@@ -118,13 +137,16 @@ table caption {
 tbody {
   margin-top: 0.5em;
   border-top: 1px solid #1a1a1a;
+  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
   border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid light-dark(#1a1a1a, #cfcfc2);
 }
 th, td {
   padding: 0.25em 0.5em 0.25em 0.5em;
 }
 th {
   border-top: 1px solid #1a1a1a;
+  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
 }
 header {
   margin-bottom: 4em;
