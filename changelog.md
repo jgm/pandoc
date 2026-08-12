@@ -26,6 +26,8 @@
 
   * Text.Pandoc.Readers.HTML.TagCategories (unexported): export `voidTags`.
 
+  * epub.css: Add support for dark mode (k6G52m4Dz75W).
+
   * WASM build: restore legacy exception handling,
     for compatibility with wasmtime (#11787).
 
