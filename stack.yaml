@@ -23,12 +23,13 @@ extra-deps:
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7.1
 - citeproc-0.13.0.1
-- djot-0.1.4.1
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
 - typst-0.11
 - asciidoc-0.1.0.4
 - texmath-0.13.2.1
+- git: https://github.com/jgm/djoths.git
+  commit: cf33a78262a60f0aae29853989f7ba370c57d7be
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
