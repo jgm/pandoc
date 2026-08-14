@@ -21,7 +21,7 @@ import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
                   GeneralCategory(OpenPunctuation, InitialQuote, FinalQuote,
                                   DashPunctuation, OtherSymbol))
-import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
+import Data.List (deleteFirstsBy, elemIndex, partition, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
@@ -45,6 +45,7 @@ import Text.Pandoc.Walk (walkM)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Time.Format
 import System.FilePath (takeDirectory)
+import Data.Containers.ListUtils (nubOrd)
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -1088,7 +1089,7 @@ addNewRole roleText fields = do
           classFieldClasses = maybe [role] T.words (lookup "class" fields)
 
           -- nub in case role name & language class are the same
-          in nub (classFieldClasses ++ codeLanguageClass ++ oldClasses)
+          in nubOrd (classFieldClasses ++ codeLanguageClass ++ oldClasses)
 
         attr = let (ident, baseClasses, keyValues) = baseAttr
                in (ident, updateClasses baseClasses, keyValues)
