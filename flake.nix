@@ -98,12 +98,10 @@
 
           # name -> version, fetched by URL rather than via callHackage.
           directHackageDeps = {
-            texmath = "0.13.2.1";   # <- put the real versions here
-            asciidoc = "0.1.0.4";
+            # texmath = "0.13.2.1";
           };
           directHackageHashes = {
-            texmath = "sha256-Y26TvckFKQDb0MNFFwgFtYvWUb41sO+ri0arYwCQNes=";
-            asciidoc = "sha256-kUFbnkkHUMXhy8+zV3iIWpe/sq2PVmlX56zHDvtn68o=";
+            # texmath = "sha256-Y26TvckFKQDb0MNFFwgFtYvWUb41sO+ri0arYwCQNes=";
           };
 
           directSources = lib.mapAttrs
