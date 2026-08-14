@@ -6,6 +6,10 @@
 #
 - arguments: [--color=auto, --cpp-ansi]
 
+- functions:
+  - {name: nub, within: []}
+# - {name: Prelude.error, within: [Tests.Lua,Tests.Lua.*]}
+
 # Ignore some builtin hints
 #
 - ignore: {name: "Avoid lambda"}
