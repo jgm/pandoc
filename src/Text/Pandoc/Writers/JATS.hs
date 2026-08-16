@@ -366,12 +366,13 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
                      [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                                                       "content-type"]]
   let boxed_attr = [(k,v) | (k,v) <- kvs, k `elem` ["orientation", "position"]]
-  let attr = generic_attr <> boxed_attr
+  let isPlain Plain{} = True
+      isPlain _ = False
   return $
-    if null attr
+    if null generic_attr && null boxed_attr
     then contents
     else -- The contents must be wrapped in an appropriate element.
-      let element = if null boxed_attr
+      let element = if null boxed_attr && all isPlain bs
                     then "p"
                     else "boxed-text"
       in inTags True element (generic_attr <> boxed_attr) contents
