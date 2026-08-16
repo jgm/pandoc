@@ -418,9 +418,45 @@ bar
 
 Interpreted markdown in a table:
 
+```=html
+<table>
+```
+
+```=html
+<tr>
+```
+
+```=html
+<td>
+```
+
 This is _emphasized_
 
+```=html
+</td>
+```
+
+```=html
+<td>
+```
+
 And this is *strong*
+
+```=html
+</td>
+```
+
+```=html
+</tr>
+```
+
+```=html
+</table>
+```
+
+```=html
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+```
 
 Here's a simple block:
 
@@ -458,7 +494,24 @@ foo
 
 This should just be an HTML comment:
 
+```=html
+<!-- Comment -->
+```
+
 Multiline:
+
+```=html
+<!--
+Blah
+Blah
+-->
+```
+
+```=html
+<!--
+    This is another comment.
+-->
+```
 
 Code block:
 
@@ -468,6 +521,10 @@ Code block:
 
 Just plain comment, with trailing spaces on the line:
 
+```=html
+<!-- foo -->
+```
+
 Code:
 
 ```
@@ -475,6 +532,42 @@ Code:
 ```
 
 Hr's:
+
+```=html
+<hr>
+```
+
+```=html
+<hr />
+```
+
+```=html
+<hr />
+```
+
+```=html
+<hr>
+```
+
+```=html
+<hr />
+```
+
+```=html
+<hr />
+```
+
+```=html
+<hr class="foo" id="bar" />
+```
+
+```=html
+<hr class="foo" id="bar" />
+```
+
+```=html
+<hr class="foo" id="bar">
+```
 
 * * * *
 
@@ -533,7 +626,7 @@ Ellipses...and...and....
 {#latex}
 # LaTeX
 
--
+- `\cite[22-23]{smith.1899}`{=tex}
 - $`2+2=4`
 - $`x \in y`
 - $`\alpha \wedge \omega`
@@ -552,6 +645,14 @@ These shouldn't be math:
 - Escaped `$`\: $73 _this should be emphasized_ 23$.
 
 Here's a LaTeX table:
+
+```=tex
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+```
 
 * * * *
 

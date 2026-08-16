@@ -29,7 +29,7 @@ extra-deps:
 - asciidoc-0.1.0.4
 - texmath-0.13.2.1
 - git: https://github.com/jgm/djoths.git
-  commit: cf33a78262a60f0aae29853989f7ba370c57d7be
+  commit: 1aa9850accad90b8efdcaaab72f68d445ed1d7ab
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
