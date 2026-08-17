@@ -575,9 +575,6 @@ inlineHandlers = M.fromList
       (if display then B.displayMath else B.math) . writeTeX <$> pMathMany body)
   ,("pad", \_ _ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pInlines)
-  ,("block", \_ mbident fields ->
-      maybe id (\ident -> B.spanWith (ident, [], [])) mbident
-        <$> (getField "body" fields >>= pWithContents pInlines))
   ,("rotate", \_ _ fields -> do
       body <- getField "body" fields >>= pWithContents pInlines
       let kvs = case M.lookup "angle" fields of
