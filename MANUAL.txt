@@ -3505,7 +3505,9 @@ The `--css` option also affects the output.
 :    Number of columns for body text.
 
 `thanks`
-:   contents of acknowledgments footnote after document title
+:   contents of acknowledgments footnote after document title.
+    (Note: as of typst 0.15, this does not work properly,
+    due to an upstream issue; see jgm/pandoc#11807.)
 
 `mathfont`, `codefont`
 :    Name of system font to use for math and code, respectively.
