@@ -92,7 +92,7 @@ readHtml opts inp = do
   result <- flip runReaderT def $
        runParserT parseDoc
        (HTMLState def{ stateOptions = opts }
-         [] Nothing Set.empty [] M.empty opts False)
+         [] Nothing Set.empty [] M.empty opts False False)
        "source" tags
   case result of
     Right doc -> return doc
@@ -222,7 +222,7 @@ block = ((do
         "h5" -> pHeader
         "h6" -> pHeader
         "blockquote" -> pBlockQuote
-        "pre" -> pCodeBlock
+        "pre" -> pCodeBlock <|> pPreBlock
         "ul" -> pBulletList
         "ol" -> pOrderedList
         "dl" -> pDefinitionList
@@ -646,6 +646,15 @@ pFigure = do
                         (B.simpleCaption (mconcat captions))
                         (mconcat rest)
 
+pPreBlock :: PandocMonad m => TagParser m Blocks
+pPreBlock = try $ do
+  pSatisfy (matchTagOpen "pre" [])
+  oldInPre <- inPre <$> getState
+  updateState $ \st -> st{ inPre = True }
+  contents <- mconcat <$> manyTill block (pCloses "pre" <|> eof)
+  updateState $ \st -> st{ inPre = oldInPre }
+  return contents
+
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
   TagOpen _ attr' <- pSatisfy (matchTagOpen "pre" [])
@@ -1062,10 +1071,20 @@ pBad = do
   return $ B.str $ T.singleton c'
 
 pSpace :: PandocMonad m => InlinesParser m Inlines
-pSpace = many1 (satisfy isSpace) >>= \xs ->
-            if '\n' `elem` xs
-               then return B.softbreak
-               else return B.space
+pSpace = do
+  inpre <- inPre <$> getState
+  xs <- many1 (satisfy isSpace)
+  if inpre
+     then return $ makePreInlines xs
+     else if '\n' `elem` xs
+             then return B.softbreak
+             else return B.space
+ where
+  makePreInlines cs =
+    let chunks = splitWhen (=='\n') cs
+        tostr = B.str . T.pack . map (\c -> if c == ' ' then '\160' else c)
+    in  mconcat $ filter (/= B.str "")
+                $ L.intersperse B.linebreak (map tostr chunks)
 
 getTagName :: Tag Text -> Maybe Text
 getTagName (TagOpen t _) = Just t

@@ -53,6 +53,7 @@ data HTMLState = HTMLState
   , macros      :: Map Text Macro
   , readerOpts  :: ReaderOptions
   , inFootnotes :: Bool
+  , inPre       :: Bool
   }
 
 -- | Local HTML parser state
