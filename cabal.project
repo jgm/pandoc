@@ -12,6 +12,11 @@ source-repository-package
   location: https://github.com/jgm/djoths.git
   tag: 1aa9850accad90b8efdcaaab72f68d445ed1d7ab
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/asciidoc-hs.git
+  tag: 7d6e37919bb4c0560b3c7ec8f4c9b4da7575f1d1
+
 package pandoc
   flags: +embed_data_files +http
 
