@@ -55,8 +55,8 @@ import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.Image (svgToPng)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
-                            IpynbOutput (..), OptInfo(..))
+import Text.Pandoc.App.Opt (defaultOpts, IpynbOutput (..), LineEnding (..),
+                            Opt (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options, handleOptInfo, versionInfo)
 import Text.Pandoc.App.Input (InputParameters (..), readInput)

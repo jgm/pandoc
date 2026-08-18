@@ -431,12 +431,21 @@ header when requesting a document from a URL:
     overridden or extended by subsequent options on the command
     line.
 
+`--completion=`*SHELL*
+
+:   Generate a shell completion script for the given shell, one of
+    `bash`, `zsh`, or `fish`.  To enable completion with pandoc,
+    evaluate the output of this command in your shell's startup
+    file.  For example, for bash add this to your `.bashrc`:
+
+        eval "$(pandoc --completion=bash)"
+
+    The generated scripts are produced from pandoc's list of options
+    and do not require pandoc to be invoked while completing.
+
 `--bash-completion`
 
-:   Generate a bash completion script.  To enable bash completion
-    with pandoc, add this to your `.bashrc`:
-
-        eval "$(pandoc --bash-completion)"
+:   *Deprecated.  Use `--completion=bash` instead.*
 
 `--sandbox[=true|false]`
 
