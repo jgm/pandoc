@@ -153,9 +153,6 @@ $endif$
   \setcounter{tocdepth}{$toc-depth$}
   \tableofcontents
 \end{frame}
-\setcounter{tocdepth}{$toc-depth$}
-\tableofcontents
-}
 $endif$
 $if(lof)$
 \listoffigures
