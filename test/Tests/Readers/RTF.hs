@@ -40,4 +40,6 @@ tests = map rtfTest [ "footnote"
                     , "bookmark"
                     , "table_simple"
                     , "table_error_codes"
+                    , "table_nested"
+                    , "table_nested_malformed_itap"
                     ]

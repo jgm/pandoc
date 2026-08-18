@@ -1,0 +1,89 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Table
+                      ( "" , [] , [] )
+                      (Caption Nothing [])
+                      [ ( AlignDefault , ColWidthDefault ) ]
+                      (TableHead ( "" , [] , [] ) [])
+                      [ TableBody
+                          ( "" , [] , [] )
+                          (RowHeadColumns 0)
+                          []
+                          [ Row
+                              ( "" , [] , [] )
+                              [ Cell
+                                  ( "" , [] , [] )
+                                  AlignDefault
+                                  (RowSpan 1)
+                                  (ColSpan 1)
+                                  [ Para
+                                      [ Str "Parent"
+                                      , Space
+                                      , Str "before"
+                                      ]
+                                  , Table
+                                      ( "" , [] , [] )
+                                      (Caption Nothing [])
+                                      [ ( AlignDefault
+                                        , ColWidthDefault
+                                        )
+                                      ]
+                                      (TableHead ( "" , [] , [] ) [])
+                                      [ TableBody
+                                          ( "" , [] , [] )
+                                          (RowHeadColumns 0)
+                                          []
+                                          [ Row
+                                              ( "" , [] , [] )
+                                              [ Cell
+                                                  ( "" , [] , [] )
+                                                  AlignDefault
+                                                  (RowSpan 1)
+                                                  (ColSpan 1)
+                                                  [ Para
+                                                      [ Str "Child"
+                                                      , Space
+                                                      , Str "at"
+                                                      , Space
+                                                      , Str "skipped"
+                                                      , Space
+                                                      , Str "level"
+                                                      ]
+                                                  ]
+                                              ]
+                                          ]
+                                      ]
+                                      (TableFoot ( "" , [] , [] ) [])
+                                  , Para
+                                      [ Str "Parent"
+                                      , Space
+                                      , Str "after"
+                                      ]
+                                  ]
+                              ]
+                          ]
+                      ]
+                      (TableFoot ( "" , [] , [] ) [])
+                  , Para [ Str "Outer" , Space , Str "cell" ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]
