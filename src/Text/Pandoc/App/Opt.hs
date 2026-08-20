@@ -20,14 +20,20 @@ Options for pandoc when used as an app.
 module Text.Pandoc.App.Opt (
             Opt(..)
           , OptInfo(..)
+          , CompletionShell(..)
           , LineEnding (..)
           , IpynbOutput (..)
           , DefaultsState (..)
           , defaultOpts
           , applyDefaults
           , fullDefaultsPath
+          , CompletionKind(..)
+          , OptionSpec(..)
+          , toOptDescr
+          , option
           ) where
-import Control.Monad.Except (throwError)
+import System.Console.GetOpt (OptDescr (..), ArgDescr (..))
+import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Trans (MonadIO, liftIO, lift)
 import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
@@ -85,9 +91,57 @@ data IpynbOutput =
 $(deriveJSON
    defaultOptions{ fieldLabelModifier = map toLower . drop 11 } ''IpynbOutput)
 
+-- | The shell for which a completion script is requested.
+data CompletionShell = Bash | Zsh | Fish
+  deriving (Show, Generic)
+
+-- | What kind of value an option expects, and hence how it should be
+-- completed in zsh/fish/bash.
+data CompletionKind
+  = OptFlag          -- ^ a boolean flag, no value
+  | InputFormats     -- ^ an input (reader) format
+  | OutputFormats    -- ^ an output (writer) format
+  | HighlightStyles  -- ^ a highlighting style
+  | DataFiles        -- ^ a pandoc data file
+  | Engines          -- ^ a PDF engine program
+  | Files            -- ^ a file path
+  | Fixed [String]   -- ^ one of a fixed set of values
+  deriving (Show)
+
+-- | The single source of truth for a command-line option: its short and
+-- long names, its argument parser, and the metadata needed to generate
+-- shell completions.  Everything else (option parsing, usage messages,
+-- and completion scripts) is derived from this one structure, so an
+-- option is declared in exactly one place.
+data OptionSpec = OptionSpec
+  { optShorts     :: [Char]
+  , optLongs      :: [String]
+  , optArgument   :: ArgDescr (Opt -> ExceptT OptInfo IO Opt)
+  , optCompletion :: CompletionKind
+  , optCompDesc   :: Text
+  }
+
+-- | Convert an 'OptionSpec' into the 'OptDescr' that GetOpt consumes.
+-- The GetOpt usage description is left empty (the help text is
+-- documented in the manual, not the --help summary).
+toOptDescr :: OptionSpec -> OptDescr (Opt -> ExceptT OptInfo IO Opt)
+toOptDescr (OptionSpec shorts longs arg _ _) =
+  Option shorts longs arg ""
+
+-- | Smart constructor for an 'OptionSpec'.  The completion kind and
+-- description are supplied alongside the rest of the option, so the
+-- single declaration fully describes both parsing and completion.
+option :: [Char]
+       -> [String]
+       -> ArgDescr (Opt -> ExceptT OptInfo IO Opt)
+       -> CompletionKind
+       -> Text
+       -> OptionSpec
+option = OptionSpec
+
 -- | Option parser results requesting informational output.
 data OptInfo =
-     BashCompletion
+     Completion CompletionShell
    | ListInputFormats
    | ListOutputFormats
    | ListExtensions (Maybe Text)

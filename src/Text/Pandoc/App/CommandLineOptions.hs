@@ -19,6 +19,7 @@ module Text.Pandoc.App.CommandLineOptions (
           , parseOptionsFromArgs
           , handleOptInfo
           , options
+          , OptionSpec(..)
           , engines
           , setVariable
           , versionInfo
@@ -49,14 +50,16 @@ import Text.DocTemplates (Context (..), ToContext (toVal), Val (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Data.Version (showVersion)
+import Text.Pandoc.App.Completion (generateCompletion)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             DefaultsState (..), applyDefaults,
-                            fullDefaultsPath, OptInfo(..))
+                            fullDefaultsPath, OptInfo(..), CompletionShell(..),
+                            OptionSpec(..), option, toOptDescr,
+                            CompletionKind(..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
 import Text.Pandoc.Scripting (ScriptingEngine (..), customTemplate)
 import Text.Pandoc.Shared (safeStrRead)
-import Text.Printf
 import qualified Control.Exception as E
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import qualified Data.ByteString as BS
@@ -66,7 +69,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
-parseOptions :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
+parseOptions :: [OptionSpec]
              -> Opt -> IO (Either OptInfo Opt)
 parseOptions options' defaults = do
   rawArgs <- liftIO getArgs
@@ -74,11 +77,11 @@ parseOptions options' defaults = do
   parseOptionsFromArgs options' defaults prg rawArgs
 
 parseOptionsFromArgs
-  :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
+  :: [OptionSpec]
   -> Opt -> String -> [String] -> IO (Either OptInfo Opt)
 parseOptionsFromArgs options' defaults prg rawArgs = do
   let (actions, args, unrecognizedOpts, errors) =
-           getOpt' Permute options' (preprocessArgs rawArgs)
+           getOpt' Permute (map toOptDescr options') (preprocessArgs rawArgs)
 
   let unknownOptionErrors =
        foldr (handleUnrecognizedOption . takeWhile (/= '=')) []
@@ -111,20 +114,12 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
 handleOptInfo :: ScriptingEngine -> OptInfo -> IO ()
 handleOptInfo engine info = E.handle (handleError . Left) $ do
   case info of
-    BashCompletion -> do
+    Completion shell -> do
       datafiles <- getDataFileNames
-      tpl <- runIOorExplode $
-               UTF8.toString <$>
-                 readDefaultDataFile "bash_completion.tpl"
-      let optnames (Option shorts longs _ _) =
-            map (\c -> ['-',c]) shorts ++
-            map ("--" ++) longs
-      let allopts = unwords (concatMap optnames options)
-      UTF8.hPutStrLn stdout $ T.pack $ printf tpl allopts
-          (T.unpack $ T.unwords readersNames)
-          (T.unpack $ T.unwords writersNames)
-          (T.unpack $ T.unwords $ map fst highlightingStyles)
-          (unwords datafiles)
+      script <- generateCompletion shell options
+        readersNames writersNames
+        (map fst highlightingStyles) pdfEngines datafiles
+      UTF8.hPutStrLn stdout script
     ListInputFormats -> mapM_ (UTF8.hPutStrLn stdout) readersNames
     ListOutputFormats -> mapM_ (UTF8.hPutStrLn stdout) writersNames
     ListExtensions mbfmt -> do
@@ -200,7 +195,7 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
     Help -> do
       prg <- getProgName
       mapM_ (UTF8.hPutStrLn stdout . T.stripEnd . T.pack) $
-        lines $ usageMessage prg options
+        lines $ usageMessage prg (map toOptDescr options)
     OptError e -> E.throwIO e
   exitSuccess
 
@@ -253,12 +248,12 @@ isShortBooleanOpt :: Char -> Bool
 isShortBooleanOpt = (`Set.member` shortBooleanOpts)
  where
   shortBooleanOpts =
-     Set.fromList [c | Option [c] _ (OptArg _ "true|false") _ <- options]
+     Set.fromList [c | OptionSpec [c] _ (OptArg _ "true|false") _ _ <- options]
 
 isShortOpt :: Char -> Bool
 isShortOpt = (`Set.member` shortOpts)
  where
-  shortOpts = Set.fromList $ concat [cs | Option cs _ _ _ <- options]
+  shortOpts = Set.fromList $ concat [cs | OptionSpec cs _ _ _ _ <- options]
 
 splitArg :: String -> [String]
 splitArg (c:d:cs)
@@ -270,51 +265,57 @@ splitArg [] = []
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
-options :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
+options :: [OptionSpec]
 options =
-    [ Option "fr" ["from","read"]
+    [ option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> return opt { optFrom = Just $ T.pack arg })
                   "FORMAT")
-                 ""
+                 InputFormats
+                 (T.pack "Reader format")
 
-    , Option "tw" ["to","write"]
+    , option "tw" ["to","write"]
                  (ReqArg
                   (\arg opt -> return opt { optTo = Just $ T.pack arg })
                   "FORMAT")
-                 ""
+                 OutputFormats
+                 (T.pack "Writer format")
 
-    , Option "o" ["output"]
+    , option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile =
                                              Just (normalizePath arg) })
                   "FILE")
-                 "" -- "Name of output file"
+                 Files
+                 (T.pack "Output file")
 
-    , Option "" ["data-dir"]
+    , option "" ["data-dir"]
                  (ReqArg
                   (\arg opt -> return opt { optDataDir =
                                   Just (normalizePath arg) })
                  "DIRECTORY") -- "Directory containing pandoc data files."
-                ""
+                Files
+                (T.pack "Directory for data files")
 
-    , Option "M" ["metadata"]
+    , option "M" ["metadata"]
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
                      return opt{ optMetadata = addMeta key val $
                                                  optMetadata opt })
                   "KEY[=VALUE]")
-                 ""
+                 Files
+                 (T.pack "Metadata field KEY=VALUE")
 
-    , Option "" ["metadata-file"]
+    , option "" ["metadata-file"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadataFiles =
                       optMetadataFiles opt ++ [normalizePath arg] })
                   "FILE")
-                 ""
+                 Files
+                 (T.pack "Metadata file")
 
-    , Option "d" ["defaults"]
+    , option "d" ["defaults"]
                  (ReqArg
                   (\arg opt -> do
                      res <- liftIO $ runIO $ do
@@ -328,40 +329,45 @@ options =
                        Right x -> return x
                   )
                   "FILE")
-                ""
+                Files
+                (T.pack "Defaults file")
 
-    , Option "" ["file-scope"]
+    , option "" ["file-scope"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--file-scope" arg
                         return opt { optFileScope = boolValue })
                   "true|false")
-                 "" -- "Parse input files before combining"
+                 OptFlag
+                 (T.pack "Parse files before combining")
 
-    , Option "" ["sandbox"]
+    , option "" ["sandbox"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--sandbox" arg
                         return opt { optSandbox = boolValue })
                   "true|false")
-                 ""
+                 OptFlag
+                 (T.pack "Run pandoc in a sandbox")
 
-     , Option "s" ["standalone"]
+     , option "s" ["standalone"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--standalone/-s" arg
                         return opt { optStandalone = boolValue })
                   "true|false")
-                 "" -- "Include needed header and footer on output"
+                 OptFlag
+                 (T.pack "Include header and footer")
 
-    , Option "" ["template"]
+    , option "" ["template"]
                  (ReqArg
                   (\arg opt ->
                      return opt{ optTemplate = Just (normalizePath arg) })
                   "FILE")
-                 "" -- "Use custom template"
+                 Files
+                 (T.pack "Custom template file")
 
-    , Option "V" ["variable"]
+    , option "V" ["variable"]
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
@@ -369,9 +375,10 @@ options =
                                   setVariable (T.pack key) (T.pack val) $
                                     optVariables opt })
                   "KEY[=VALUE]")
-                 ""
+                 Files
+                 (T.pack "Template variable KEY=VALUE")
 
-    , Option "" ["variable-json"]
+    , option "" ["variable-json"]
                  (ReqArg
                   (\arg opt -> do
                      let (key, json) = splitField arg
@@ -386,9 +393,10 @@ options =
                           "Could not parse '" <> T.pack json <> "' as JSON:\n" <>
                            T.pack err')
                   "KEY[:JSON]")
-                 ""
+                 Files
+                 (T.pack "Template variable KEY=JSON")
 
-    , Option "" ["wrap"]
+    , option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->
                     case arg of
@@ -398,25 +406,28 @@ options =
                       _      -> optError $ PandocOptionError
                                  "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
-                 "" -- "Option for wrapping text in output"
+                 (Fixed ["auto","none","preserve"])
+                 (T.pack "Text wrapping mode")
 
-    , Option "" ["ascii"]
+    , option "" ["ascii"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--ascii" arg
                         return opt { optAscii = boolValue })
                   "true|false")
-                 ""  -- "Prefer ASCII output"
+                 OptFlag
+                 (T.pack "Prefer ASCII output")
 
-    , Option "" ["toc", "table-of-contents"]
+    , option "" ["toc", "table-of-contents"]
                 (OptArg
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--toc/--table-of-contents" arg
                         return opt { optTableOfContents = boolValue })
                  "true|false")
-               "" -- "Include table of contents"
+               OptFlag
+               (T.pack "Include table of contents")
 
-    , Option "" ["toc-depth"]
+    , option "" ["toc-depth"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -425,33 +436,37 @@ options =
                            _ -> optError $ PandocOptionError
                                 "Argument of --toc-depth must be a number 1-6")
                  "NUMBER")
-                 "" -- "Number of levels to include in TOC"
+                 Files
+                 (T.pack "Number of TOC levels")
 
-    , Option "" ["lof", "list-of-figures"]
+    , option "" ["lof", "list-of-figures"]
                 (OptArg
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--lof/--list-of-figures" arg
                         return opt { optListOfFigures = boolValue })
                  "true|false")
-               "" -- "Include list of figures"
+               OptFlag
+               (T.pack "Include list of figures")
 
-    , Option "" ["lot", "list-of-tables"]
+    , option "" ["lot", "list-of-tables"]
                 (OptArg
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--lot/--list-of-tables" arg
                         return opt { optListOfTables = boolValue })
                  "true|false")
-               "" -- "Include list of tables"
+               OptFlag
+               (T.pack "Include list of tables")
 
-    , Option "N" ["number-sections"]
+    , option "N" ["number-sections"]
                   (OptArg
                    (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--number-sections/-N" arg
                         return opt { optNumberSections = boolValue })
                   "true|false")
-                 "" -- "Number sections"
+                 OptFlag
+                 (T.pack "Number section headings")
 
-    , Option "" ["number-offset"]
+    , option "" ["number-offset"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead ("[" <> arg <> "]") of
@@ -460,9 +475,10 @@ options =
                            _      -> optError $ PandocOptionError
                                        "could not parse argument of --number-offset")
                  "NUMBERS")
-                 "" -- "Starting number for sections, subsections, etc."
+                 Files
+                 (T.pack "Starting number for sections")
 
-    , Option "" ["top-level-division"]
+    , option "" ["top-level-division"]
                  (ReqArg
                   (\arg opt ->
                       case arg of
@@ -478,57 +494,64 @@ options =
                                 "Argument of --top-level division must be " <>
                                 "section,  chapter, part, or default" )
                    "section|chapter|part")
-                 "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
+                 (Fixed ["section","chapter","part"])
+                 (T.pack "Top-level document division")
 
-    , Option "" ["extract-media"]
+    , option "" ["extract-media"]
                  (ReqArg
                   (\arg opt ->
                     return opt { optExtractMedia =
                                   Just (normalizePath arg) })
                   "PATH")
-                 "" -- "Directory to which to extract embedded media"
+                 Files
+                 (T.pack "Directory to extract media into")
 
-    , Option "" ["resource-path"]
+    , option "" ["resource-path"]
                 (ReqArg
                   (\arg opt -> return opt { optResourcePath =
                                    splitSearchPath arg ++
                                     optResourcePath opt })
                    "SEARCHPATH")
-                  "" -- "Paths to search for images and other resources"
+                  Files
+                  (T.pack "Search path for resources")
 
-    , Option "H" ["include-in-header"]
+    , option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeInHeader =
                                              optIncludeInHeader opt ++
                                              [normalizePath arg] })
                   "FILE")
-                 "" -- "File to include at end of header (implies -s)"
+                 Files
+                 (T.pack "File to include in the header")
 
-    , Option "B" ["include-before-body"]
+    , option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeBeforeBody =
                                             optIncludeBeforeBody opt ++
                                             [normalizePath arg] })
                   "FILE")
-                 "" -- "File to include before document body"
+                 Files
+                 (T.pack "File to include before the body")
 
-    , Option "A" ["include-after-body"]
+    , option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeAfterBody =
                                             optIncludeAfterBody opt ++
                                             [normalizePath arg] })
                   "FILE")
-                 "" -- "File to include after document body"
+                 Files
+                 (T.pack "File to include after the body")
 
-    , Option "" ["no-highlight"]
+    , option "" ["no-highlight"]
                 (NoArg
                  (\opt -> do
                      deprecatedOption "--no-highlight"
                        "Use --syntax-highlighting=none instead."
                      return opt { optSyntaxHighlighting = NoHighlightingString }))
-                 "" -- "Don't highlight source code"
+                 OptFlag
+                 (T.pack "Disable syntax highlighting")
 
-    , Option "" ["highlight-style"]
+    , option "" ["highlight-style"]
                 (ReqArg
                  (\arg opt -> do
                      deprecatedOption "--highlight-style"
@@ -536,25 +559,28 @@ options =
                      return opt{ optSyntaxHighlighting =
                                  T.pack $ normalizePath arg })
                  "STYLE|FILE")
-                 "" -- "Style for highlighted code"
+                 HighlightStyles
+                 (T.pack "Highlighting style")
 
-    , Option "" ["syntax-definition"]
+    , option "" ["syntax-definition"]
                 (ReqArg
                  (\arg opt ->
                    return opt{ optSyntaxDefinitions = normalizePath arg :
                                 optSyntaxDefinitions opt })
                  "FILE")
-                "" -- "Syntax definition (xml) file"
+                Files
+                (T.pack "Syntax definition XML file")
 
-    , Option "" ["syntax-highlighting"]
+    , option "" ["syntax-highlighting"]
                 (ReqArg
                  (\arg opt -> return opt{ optSyntaxHighlighting =
                                  T.pack $ normalizePath arg })
                  "none|default|idiomatic|<stylename>|<themepath>")
-                 "" -- "syntax highlighting method for code"
+                 (Fixed ["none","default","idiomatic"])
+                 (T.pack "Syntax highlighting method")
 
 
-    , Option "" ["dpi"]
+    , option "" ["dpi"]
                  (ReqArg
                   (\arg opt ->
                     case safeStrRead arg of
@@ -562,9 +588,10 @@ options =
                          _              -> optError $ PandocOptionError
                                         "Argument of --dpi must be a number greater than 0")
                   "NUMBER")
-                 "" -- "Dpi (default 96)"
+                 Files
+                 (T.pack "DPI for imported images")
 
-    , Option "" ["eol"]
+    , option "" ["eol"]
                  (ReqArg
                   (\arg opt ->
                     case toLower <$> arg of
@@ -575,9 +602,10 @@ options =
                       _      -> optError $ PandocOptionError
                                 "Argument of --eol must be crlf, lf, or native")
                   "crlf|lf|native")
-                 "" -- "EOL (default OS-dependent)"
+                 (Fixed ["crlf","lf","native"])
+                 (T.pack "End-of-line characters")
 
-    , Option "" ["columns"]
+    , option "" ["columns"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -585,17 +613,19 @@ options =
                            _              -> optError $ PandocOptionError
                                    "Argument of --columns must be a number greater than 0")
                  "NUMBER")
-                 "" -- "Length of line in characters"
+                 Files
+                 (T.pack "Line length in characters")
 
-    , Option "p" ["preserve-tabs"]
+    , option "p" ["preserve-tabs"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--preserve-tabs/-p" arg
                         return opt { optPreserveTabs = boolValue })
                   "true|false")
-                 "" -- "Preserve tabs instead of converting to spaces"
+                 OptFlag
+                 (T.pack "Preserve tabs")
 
-    , Option "" ["tab-stop"]
+    , option "" ["tab-stop"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -603,9 +633,10 @@ options =
                            _              -> optError $ PandocOptionError
                                   "Argument of --tab-stop must be a number greater than 0")
                   "NUMBER")
-                 "" -- "Tab stop (default 4)"
+                 Files
+                 (T.pack "Tab stop width")
 
-    , Option "" ["pdf-engine"]
+    , option "" ["pdf-engine"]
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg
@@ -616,109 +647,123 @@ options =
                               "Argument of --pdf-engine must be one of\n"
                                ++ concatMap (\e -> "\t" <> e <> "\n") pdfEngines)
                   "PROGRAM")
-                 "" -- "Name of program to use in generating PDF"
+                 Engines
+                 (T.pack "Program used to produce PDF")
 
-    , Option "" ["pdf-engine-opt"]
+    , option "" ["pdf-engine-opt"]
                  (ReqArg
                   (\arg opt -> do
                       let oldArgs = optPdfEngineOpts opt
                       return opt { optPdfEngineOpts = oldArgs ++ [arg]})
                   "STRING")
-                 "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
+                 Files
+                 (T.pack "Flag to pass to the PDF engine")
 
-    , Option "" ["reference-doc"]
+    , option "" ["reference-doc"]
                  (ReqArg
                   (\arg opt ->
                     return opt { optReferenceDoc = Just $ normalizePath arg })
                   "FILE")
-                 "" -- "Path of custom reference doc"
+                 Files
+                 (T.pack "Custom reference doc")
 
-    , Option "" ["self-contained"]
+    , option "" ["self-contained"]
                  (OptArg
                   (\arg opt -> do
                         deprecatedOption "--self-contained" "use --embed-resources --standalone"
                         boolValue <- readBoolFromOptArg "--self-contained" arg
                         return opt { optSelfContained = boolValue })
                     "true|false")
-                 "" -- "Make slide shows include all the needed js and css (deprecated)"
+                 OptFlag
+                 (T.pack "Embed resources (deprecated)")
 
-    , Option "" ["embed-resources"] -- maybe True (\argStr -> argStr == "true") arg
+    , option "" ["embed-resources"] -- maybe True (\argStr -> argStr == "true") arg
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--embed-resources" arg
                         return opt { optEmbedResources =  boolValue })
                   "true|false")
-                 "" -- "Make slide shows include all the needed js and css"
+                 OptFlag
+                 (T.pack "Embed referenced resources")
 
-    , Option "" ["link-images"] -- maybe True (\argStr -> argStr == "true") arg
+    , option "" ["link-images"] -- maybe True (\argStr -> argStr == "true") arg
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--link-images" arg
                         return opt { optLinkImages =  boolValue })
                   "true|false")
-                 "" -- "Link images in ODT rather than embedding them"
+                 OptFlag
+                 (T.pack "Link images in ODT rather than embedding")
 
-    , Option "" ["request-header"]
+    , option "" ["request-header"]
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
                      return opt{ optRequestHeaders =
                        (T.pack key, T.pack val) : optRequestHeaders opt })
                   "NAME=VALUE")
-                 ""
+                 Files
+                 (T.pack "HTTP header NAME=VALUE")
 
-    , Option "" ["no-check-certificate"]
+    , option "" ["no-check-certificate"]
                 (OptArg
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--no-check-certificate" arg
                         return opt { optNoCheckCertificate = boolValue })
                  "true|false")
-                "" -- "Disable certificate validation"
+                OptFlag
+                (T.pack "Disable certificate validation")
 
-    , Option "" ["abbreviations"]
+    , option "" ["abbreviations"]
                 (ReqArg
                  (\arg opt -> return opt { optAbbreviations =
                                             Just $ normalizePath arg })
                 "FILE")
-                "" -- "Specify file for custom abbreviations"
+                Files
+                (T.pack "File with abbreviations")
 
-    , Option "" ["typst-input"]
+    , option "" ["typst-input"]
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
                      return opt{ optTypstInputs = (T.pack key, T.pack val) : optTypstInputs opt })
                   "KEY=VALUE")
-                 ""
+                 Files
+                 (T.pack "Typst variable KEY=VALUE")
 
-    , Option "" ["indented-code-classes"]
+    , option "" ["indented-code-classes"]
                   (ReqArg
                    (\arg opt -> return opt { optIndentedCodeClasses = T.words $
                                              T.map (\c -> if c == ',' then ' ' else c) $
                                              T.pack arg })
                    "STRING")
-                  "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
+                  Files
+                  (T.pack "Classes for indented code blocks")
 
-    , Option "" ["default-image-extension"]
+    , option "" ["default-image-extension"]
                  (ReqArg
                   (\arg opt -> return opt { optDefaultImageExtension = T.pack arg })
                    "extension")
-                  "" -- "Default extension for extensionless images"
+                  Files
+                  (T.pack "Default extension for images")
 
-    , Option "F" ["filter"]
+    , option "F" ["filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
                       optFilters opt ++ [JSONFilter (normalizePath arg)] })
                   "PROGRAM")
-                 "" -- "External JSON filter"
+                 Files
+                 (T.pack "External JSON filter")
 
-    , Option "L" ["lua-filter"]
+    , option "L" ["lua-filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
                       optFilters opt ++ [LuaFilter (normalizePath arg)] })
                   "SCRIPTPATH")
-                 "" -- "Lua filter"
+                 Files
+                 (T.pack "Lua filter script")
 
-    , Option "" ["shift-heading-level-by"]
+    , option "" ["shift-heading-level-by"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -727,9 +772,10 @@ options =
                            _              -> optError $ PandocOptionError
                                                "Argument of --shift-heading-level-by must be an integer")
                   "NUMBER")
-                 "" -- "Shift heading level"
+                 Files
+                 (T.pack "Shift heading level by N")
 
-    , Option "" ["base-header-level"]
+    , option "" ["base-header-level"]
                  (ReqArg
                   (\arg opt -> do
                       deprecatedOption "--base-header-level"
@@ -740,9 +786,10 @@ options =
                            _              -> optError $ PandocOptionError
                                                "Argument of --base-header-level must be 1-5")
                   "NUMBER")
-                 "" -- "Headers base level"
+                 Files
+                 (T.pack "Base header level (deprecated)")
 
-    , Option "" ["track-changes"]
+    , option "" ["track-changes"]
                  (ReqArg
                   (\arg opt -> do
                      action <- case arg of
@@ -753,25 +800,28 @@ options =
                                "Argument of --track-changes must be accept, reject, or all"
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
-                 "" -- "Accepting or reject MS Word track-changes.""
+                 (Fixed ["accept","reject","all"])
+                 (T.pack "Handling of Word track-changes")
 
-    , Option "" ["strip-comments"]
+    , option "" ["strip-comments"]
                 (OptArg
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--strip-comments" arg
                         return opt { optStripComments = boolValue })
                  "true|false")
-               "" -- "Strip HTML comments"
+               OptFlag
+               (T.pack "Strip HTML comments")
 
-    , Option "" ["reference-links"]
+    , option "" ["reference-links"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--reference-links" arg
                         return opt { optReferenceLinks = boolValue })
                   "true|false")
-                 "" -- "Use reference links in parsing HTML"
+                 OptFlag
+                 (T.pack "Use reference links in HTML")
 
-    , Option "" ["reference-location"]
+    , option "" ["reference-location"]
                  (ReqArg
                   (\arg opt -> do
                      action <- case arg of
@@ -782,9 +832,10 @@ options =
                                "Argument of --reference-location must be block, section, or document"
                      return opt { optReferenceLocation = action })
                   "block|section|document")
-                 "" -- "Specify where reference links and footnotes go"
+                 (Fixed ["block","section","document"])
+                 (T.pack "Location of references")
 
-    , Option "" ["figure-caption-position"]
+    , option "" ["figure-caption-position"]
                  (ReqArg
                   (\arg opt -> do
                      pos <- case arg of
@@ -794,9 +845,10 @@ options =
                                "Argument of --figure-caption-position must be above or below"
                      return opt { optFigureCaptionPosition = pos })
                   "above|below")
-                 "" -- "Specify where figure captions go"
+                 (Fixed ["above","below"])
+                 (T.pack "Figure caption position")
 
-    , Option "" ["table-caption-position"]
+    , option "" ["table-caption-position"]
                  (ReqArg
                   (\arg opt -> do
                      pos <- case arg of
@@ -806,9 +858,10 @@ options =
                                "Argument of --table-caption-position must be above or below"
                      return opt { optTableCaptionPosition = pos })
                   "above|below")
-                 "" -- "Specify where table captions go"
+                 (Fixed ["above","below"])
+                 (T.pack "Table caption position")
 
-    , Option "" ["markdown-headings"]
+    , option "" ["markdown-headings"]
                   (ReqArg
                     (\arg opt -> do
                       headingFormat <- case arg of
@@ -819,17 +872,19 @@ options =
                       pure opt { optSetextHeaders = headingFormat }
                     )
                   "setext|atx")
-                  ""
+                  (Fixed ["setext","atx"])
+                  (T.pack "Markdown heading style")
 
-    , Option "" ["list-tables"]
+    , option "" ["list-tables"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--list-tables" arg
                         return opt { optListTables = boolValue })
                   "true|false")
-                 "" -- "Use list tables for RST"
+                 OptFlag
+                 (T.pack "Use list tables for RST")
 
-    , Option "" ["listings"]
+    , option "" ["listings"]
                  (OptArg
                   (\arg opt -> do
                       deprecatedOption "--listings"
@@ -841,17 +896,19 @@ options =
                                    IdiomaticHighlightingString }
                         else opt)
                   "true|false")
-                 "" -- "Use listings package for LaTeX code blocks"
+                 OptFlag
+                 (T.pack "Use listings package (deprecated)")
 
-    , Option "i" ["incremental"]
+    , option "i" ["incremental"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--incremental/-i" arg
                         return opt { optIncremental = boolValue })
                   "true|false")
-                 "" -- "Make list items display incrementally in Slidy/Slideous/S5"
+                 OptFlag
+                 (T.pack "Make list items display incrementally")
 
-    , Option "" ["slide-level"]
+    , option "" ["slide-level"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -860,25 +917,28 @@ options =
                            _      -> optError $ PandocOptionError
                                     "Argument of --slide-level must be a number between 0 and 6")
                  "NUMBER")
-                 "" -- "Force header level for slides"
+                 Files
+                 (T.pack "Header level used for slides")
 
-    , Option "" ["section-divs"]
+    , option "" ["section-divs"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--section-divs" arg
                         return opt { optSectionDivs = boolValue })
                   "true|false")
-                 "" -- "Put sections in div tags in HTML"
+                 OptFlag
+                 (T.pack "Wrap sections in div tags")
 
-    , Option "" ["html-q-tags"]
+    , option "" ["html-q-tags"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--html-q-tags" arg
                         return opt { optHtmlQTags = boolValue })
                   "true|false")
-                 "" -- "Use <q> tags for quotes in HTML"
+                 OptFlag
+                 (T.pack "Use q tags for quotes in HTML")
 
-    , Option "" ["email-obfuscation"]
+    , option "" ["email-obfuscation"]
                  (ReqArg
                   (\arg opt -> do
                      method <- case arg of
@@ -889,15 +949,17 @@ options =
                                "Argument of --email-obfuscation must be references, javascript, or none"
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
-                 "" -- "Method for obfuscating email in HTML"
+                 (Fixed ["references","javascript","none"])
+                 (T.pack "Email obfuscation method")
 
-     , Option "" ["id-prefix"]
+     , option "" ["id-prefix"]
                   (ReqArg
                    (\arg opt -> return opt { optIdentifierPrefix = T.pack arg })
                    "STRING")
-                  "" -- "Prefix to add to automatically generated HTML identifiers"
+                  Files
+                  (T.pack "Prefix for auto identifiers")
 
-    , Option "T" ["title-prefix"]
+    , option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt ->
                     return opt {
@@ -906,23 +968,26 @@ options =
                            optVariables opt,
                        optStandalone = True })
                   "STRING")
-                 "" -- "String to prefix to HTML window title"
+                 Files
+                 (T.pack "Window title prefix")
 
-    , Option "c" ["css"]
+    , option "c" ["css"]
                  (ReqArg
                   (\arg opt -> return opt{ optCss = optCss opt ++ [arg] })
                   -- add new link to end, so it is included in proper order
                   "URL")
-                 "" -- "Link to CSS style sheet"
+                 Files
+                 (T.pack "CSS style sheet")
 
-    , Option "" ["epub-subdirectory"]
+    , option "" ["epub-subdirectory"]
              (ReqArg
                   (\arg opt ->
                      return opt { optEpubSubdirectory = arg })
                   "DIRNAME")
-                 "" -- "Name of subdirectory for epub content in OCF container"
+                 Files
+                 (T.pack "EPUB content subdirectory")
 
-    , Option "" ["epub-cover-image"]
+    , option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
                      return opt { optVariables =
@@ -930,32 +995,36 @@ options =
                          (T.pack $ normalizePath arg) $
                          optVariables opt })
                   "FILE")
-                 "" -- "Path of epub cover image"
+                 Files
+                 (T.pack "EPUB cover image")
 
-    , Option "" ["epub-title-page"]
+    , option "" ["epub-title-page"]
                  (OptArg
                   (\arg opt -> do
                      boolValue <- readBoolFromOptArg "--epub-title-page" arg
                      return opt{ optEpubTitlePage = boolValue })
                  "true|false")
-                 ""
+                 Files
+                 (T.pack "URL or file for EPUB title page")
 
-    , Option "" ["epub-metadata"]
+    , option "" ["epub-metadata"]
                  (ReqArg
                   (\arg opt -> return opt { optEpubMetadata = Just $
                                              normalizePath arg })
                   "FILE")
-                 "" -- "Path of epub metadata file"
+                 Files
+                 (T.pack "EPUB metadata file")
 
-    , Option "" ["epub-embed-font"]
+    , option "" ["epub-embed-font"]
                  (ReqArg
                   (\arg opt ->
                      return opt{ optEpubFonts = normalizePath arg :
                                                 optEpubFonts opt })
                   "FILE")
-                 "" -- "Directory of fonts to embed"
+                 Files
+                 (T.pack "Font file to embed in EPUB")
 
-    , Option "" ["split-level"]
+    , option "" ["split-level"]
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
@@ -964,16 +1033,18 @@ options =
                            _      -> optError $ PandocOptionError
                                     "Argument of --split-level must be a number between 1 and 6")
                  "NUMBER")
-                 "" -- "Header level at which to split documents in chunked HTML or EPUB"
+                 Files
+                 (T.pack "Split level for chunked HTML or EPUB")
 
-    , Option "" ["chunk-template"]
+    , option "" ["chunk-template"]
                  (ReqArg
                   (\arg opt ->
                      return opt{ optChunkTemplate = Just (T.pack arg) })
                  "PATHTEMPLATE")
-                 "" -- "Template for file paths in chunkedhtml"
+                 Files
+                 (T.pack "Template for chunked HTML paths")
 
-    , Option "" ["epub-chapter-level"]
+    , option "" ["epub-chapter-level"]
                  (ReqArg
                   (\arg opt -> do
                       deprecatedOption "--epub-chapter-level"
@@ -984,9 +1055,10 @@ options =
                            _      -> optError $ PandocOptionError
                                     "Argument of --epub-chapter-level must be a number between 1 and 6")
                  "NUMBER")
-                 "" -- "Header level at which to split documents in chunked HTML or EPUB"
+                 Files
+                 (T.pack "Split level (deprecated)")
 
-    , Option "" ["ipynb-output"]
+    , option "" ["ipynb-output"]
                  (ReqArg
                   (\arg opt ->
                     case arg of
@@ -996,188 +1068,227 @@ options =
                       _ -> optError $ PandocOptionError
                              "Argument of --ipynb-output must be all, none, or best")
                  "all|none|best")
-                 "" -- "Starting number for sections, subsections, etc."
+                 (Fixed ["all","none","best"])
+                 (T.pack "Handling of ipynb output cells")
 
-    , Option "C" ["citeproc"]
+    , option "C" ["citeproc"]
                  (NoArg
                   (\opt -> return opt { optFilters =
                       optFilters opt ++ [CiteprocFilter] }))
-                 "" -- "Process citations"
+                 OptFlag
+                 (T.pack "Process citations")
 
-    , Option "" ["bibliography"]
+    , option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optBibliography =
                                             optBibliography opt ++
                                               [normalizePath arg] })
                    "FILE")
-                 ""
+                 Files
+                 (T.pack "Bibliography file")
 
-     , Option "" ["csl"]
+     , option "" ["csl"]
                  (ReqArg
                   (\arg opt -> do
                     return opt{ optCSL = Just (normalizePath arg) })
                    "FILE")
-                 ""
+                 Files
+                 (T.pack "CSL style file")
 
-     , Option "" ["citation-abbreviations"]
+     , option "" ["citation-abbreviations"]
                  (ReqArg
                   (\arg opt ->
                      return opt{ optMetadata =
                                   addMeta "citation-abbreviations"
                                     (normalizePath arg) $ optMetadata opt })
                    "FILE")
-                 ""
+                 Files
+                 (T.pack "Citation abbreviations file")
 
-    , Option "" ["natbib"]
+    , option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
-                 "" -- "Use natbib cite commands in LaTeX output"
+                 OptFlag
+                 (T.pack "Use natbib citations in LaTeX")
 
-    , Option "" ["biblatex"]
+    , option "" ["biblatex"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Biblatex }))
-                 "" -- "Use biblatex cite commands in LaTeX output"
+                 OptFlag
+                 (T.pack "Use biblatex citations in LaTeX")
 
-    , Option "" ["mathml"]
+    , option "" ["mathml"]
                  (NoArg
                   (\opt ->
                       return opt { optHTMLMathMethod = MathML }))
-                 "" -- "Use mathml for HTML math"
+                 OptFlag
+                 (T.pack "Use MathML for HTML math")
 
-    , Option "" ["webtex"]
+    , option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
                       let url' = maybe defaultWebTeXURL T.pack arg
                       return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
-                 "" -- "Use web service for HTML math"
+                 OptFlag
+                 (T.pack "Use WebTeX for HTML math")
 
-    , Option "" ["mathjax"]
+    , option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
                       let url' = maybe defaultMathJaxURL T.pack arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
-                 "" -- "Use MathJax for HTML math"
+                 OptFlag
+                 (T.pack "Use MathJax for HTML math")
 
-    , Option "" ["katex"]
+    , option "" ["katex"]
                  (OptArg
                   (\arg opt ->
                       return opt
                         { optHTMLMathMethod = KaTeX $
                            maybe defaultKaTeXURL T.pack arg })
                   "URL")
-                  "" -- Use KaTeX for HTML Math
+                  OptFlag
+                  (T.pack "Use KaTeX for HTML math")
 
-    , Option "" ["gladtex"]
+    , option "" ["gladtex"]
                  (NoArg
                   (\opt ->
                       return opt { optHTMLMathMethod = GladTeX }))
-                 "" -- "Use gladtex for HTML math"
+                 OptFlag
+                 (T.pack "Use gladTeX for HTML math")
 
-    , Option "" ["trace"]
+    , option "" ["trace"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--trace" arg
                         return opt { optTrace = boolValue })
                   "true|false")
-                 "" -- "Turn on diagnostic tracing in readers."
+                 OptFlag
+                 (T.pack "Turn on diagnostic tracing")
 
-    , Option "" ["dump-args"]
+    , option "" ["dump-args"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--dump-args" arg
                         return opt { optDumpArgs = boolValue })
                   "true|false")
-                 "" -- "Print output filename and arguments to stdout."
+                 OptFlag
+                 (T.pack "Print output filename and arguments")
 
-    , Option "" ["ignore-args"]
+    , option "" ["ignore-args"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--ignore-args" arg
                         return opt { optIgnoreArgs = boolValue })
                   "true|false")
-                 "" -- "Ignore command-line arguments."
+                 OptFlag
+                 (T.pack "Ignore command-line arguments")
 
-    , Option "" ["verbose"]
+    , option "" ["verbose"]
                  (NoArg
                   (\opt -> return opt { optVerbosity = INFO }))
-                 "" -- "Verbose diagnostic output."
+                 OptFlag
+                 (T.pack "Verbose diagnostic output")
 
-    , Option "" ["quiet"]
+    , option "" ["quiet"]
                  (NoArg
                   (\opt -> return opt { optVerbosity = ERROR }))
-                 "" -- "Suppress warnings."
+                 OptFlag
+                 (T.pack "Suppress warning messages")
 
-    , Option "" ["fail-if-warnings"]
+    , option "" ["fail-if-warnings"]
                  (OptArg
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg "--fail-if-warnings" arg
                         return opt { optFailIfWarnings = boolValue })
                   "true|false")
-                 "" -- "Exit with error status if there were  warnings."
+                 OptFlag
+                 (T.pack "Exit with error status if there were warnings")
 
-    , Option "" ["log"]
+    , option "" ["log"]
                  (ReqArg
                   (\arg opt -> return opt{ optLogFile = Just $
                                             normalizePath arg })
                 "FILE")
-                "" -- "Log messages in JSON format to this file."
+                Files
+                (T.pack "Log messages in JSON format to this file")
 
-    , Option "" ["bash-completion"]
-                 (NoArg (\_ -> optInfo BashCompletion))
-                 "" -- "Print bash completion script"
+    , option "" ["completion"]
+                 (ReqArg
+                  (\arg _opt -> optInfo $ parseCompletionShell arg)
+                  "SHELL")
+                 OptFlag
+                 (T.pack "Shell for which to print the completion script")
 
-    , Option "" ["list-input-formats"]
+    , option "" ["bash-completion"]
+                 (NoArg (\_ -> do
+                    deprecatedOption "--bash-completion" "use --completion=bash"
+                    optInfo $ Completion Bash))
+                 OptFlag
+                 (T.pack "Print bash completion script (deprecated)")
+
+    , option "" ["list-input-formats"]
                  (NoArg (\_ -> optInfo ListInputFormats))
-                 ""
+                 OptFlag
+                 (T.pack "List supported input formats")
 
-    , Option "" ["list-output-formats"]
+    , option "" ["list-output-formats"]
                  (NoArg (\_ -> optInfo ListOutputFormats))
-                 ""
+                 OptFlag
+                 (T.pack "List supported output formats")
 
-    , Option "" ["list-extensions"]
+    , option "" ["list-extensions"]
                  (OptArg (\arg _ -> optInfo $ ListExtensions $ T.pack <$> arg)
                  "FORMAT")
-                 ""
+                 OptFlag
+                 (T.pack "List supported extensions")
 
-    , Option "" ["list-highlight-languages"]
+    , option "" ["list-highlight-languages"]
                  (NoArg (\_ -> optInfo ListHighlightLanguages))
-                 ""
+                 OptFlag
+                 (T.pack "List highlighting languages")
 
-    , Option "" ["list-highlight-styles"]
+    , option "" ["list-highlight-styles"]
                  (NoArg (\_ -> optInfo ListHighlightStyles))
-                 ""
+                 OptFlag
+                 (T.pack "List highlighting styles")
 
-    , Option "D" ["print-default-template"]
+    , option "D" ["print-default-template"]
                  (ReqArg
                   (\arg opts -> optInfo $
                     PrintDefaultTemplate (optOutputFile opts) (T.pack arg))
                  "FORMAT")
-                 "" -- "Print default template for FORMAT"
+                 OutputFormats
+                 (T.pack "Format to print template for")
 
-    , Option "" ["print-default-data-file"]
+    , option "" ["print-default-data-file"]
                  (ReqArg
                   (\arg opts -> optInfo $
                     PrintDefaultDataFile (optOutputFile opts) (T.pack arg))
                  "FILE")
-                  "" -- "Print default data file"
+                  DataFiles
+                  (T.pack "Data file to print")
 
-    , Option "" ["print-highlight-style"]
+    , option "" ["print-highlight-style"]
                  (ReqArg
                   (\arg opts ->
                     optInfo $ PrintHighlightStyle (optOutputFile opts)
                                (T.pack arg))
                   "STYLE|FILE")
-                 "" -- "Print default template for FORMAT"
+                 HighlightStyles
+                 (T.pack "Highlighting style")
 
-    , Option "v" ["version"]
+    , option "v" ["version"]
                  (NoArg (\_ -> optInfo VersionInfo))
-                 "" -- "Print version"
+                 OptFlag
+                 (T.pack "Print version")
 
-    , Option "h" ["help"]
+    , option "h" ["help"]
                  (NoArg (\_ -> optInfo Help))
-                 "" -- "Show help"
+                 OptFlag
+                 (T.pack "Show help")
     ]
 
 optError :: PandocError -> ExceptT OptInfo IO a
@@ -1185,6 +1296,15 @@ optError = throwError . OptError
 
 optInfo :: OptInfo -> ExceptT OptInfo IO a
 optInfo = throwError
+
+parseCompletionShell :: String -> OptInfo
+parseCompletionShell "bash" = Completion Bash
+parseCompletionShell "zsh"  = Completion Zsh
+parseCompletionShell "fish" = Completion Fish
+parseCompletionShell s =
+  OptError $ PandocOptionError $
+    "Unknown completion shell '" <> T.pack s <>
+    "'.  Expected one of: bash, zsh, fish."
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> ExceptT OptInfo IO Opt)] -> String

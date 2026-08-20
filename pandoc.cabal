@@ -201,8 +201,6 @@ data-files:
                  data/creole.lua
                  -- lua init script
                  data/init.lua
-                 -- bash completion template
-                 data/bash_completion.tpl
                  -- citeproc
                  data/default.csl
                  citeproc/biblatex-localization/*.lbx.strings
@@ -719,6 +717,7 @@ library
                    Text.Pandoc.Transforms,
                    Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
+                   Text.Pandoc.App.Completion,
                    Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
