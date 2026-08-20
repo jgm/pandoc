@@ -436,12 +436,21 @@ header when requesting a document from a URL:
 :   Generate a shell completion script for the given shell, one of
     `bash`, `zsh`, or `fish`.  To enable completion with pandoc,
     evaluate the output of this command in your shell's startup
-    file.  For example, for bash add this to your `.bashrc`:
+    file.  For example, for bash, add this to your `.bashrc`:
 
         eval "$(pandoc --completion=bash)"
 
-    The generated scripts are produced from pandoc's list of options
-    and do not require pandoc to be invoked while completing.
+    For zsh, you will need to create a directory to store zsh
+    completions (e.g., `~/.local/share/zsh/site-functions`) or use
+    one of the existing directories listed by `zsh --pathdirs`.
+    Create the pandoc completion script in that directory:
+
+        pandoc --completion=zsh > ~/.local/share/zsh/site-functions/_pandoc
+
+    Then add these lines to your `.zshrc`:
+
+        fpath=(~/.local/share/zsh $fpath)
+        autoload -Uz compinit && compinit
 
 `--bash-completion`
 
