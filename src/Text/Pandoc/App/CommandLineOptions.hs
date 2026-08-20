@@ -670,7 +670,8 @@ options =
     , option "" ["self-contained"]
                  (OptArg
                   (\arg opt -> do
-                        deprecatedOption "--self-contained" "use --embed-resources --standalone"
+                        deprecatedOption "--self-contained"
+                          "Use --embed-resources --standalone instead."
                         boolValue <- readBoolFromOptArg "--self-contained" arg
                         return opt { optSelfContained = boolValue })
                     "true|false")
@@ -1048,7 +1049,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                       deprecatedOption "--epub-chapter-level"
-                                       "use --split-level"
+                                       "Use --split-level instead."
                       case safeStrRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
@@ -1224,7 +1225,8 @@ options =
 
     , option "" ["bash-completion"]
                  (NoArg (\_ -> do
-                    deprecatedOption "--bash-completion" "use --completion=bash"
+                    deprecatedOption "--bash-completion"
+                       "Use --completion=bash instead."
                     optInfo $ Completion Bash))
                  OptFlag
                  (T.pack "Print bash completion script (deprecated)")
