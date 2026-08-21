@@ -25,7 +25,6 @@ import Data.Text (Text)
 import qualified Data.List as L
 import qualified Data.Text as T
 import System.Console.GetOpt (ArgDescr (..))
-
 import Text.Pandoc.App.Opt (CompletionShell (..), OptionSpec (..),
                             CompletionKind (..))
 
@@ -37,6 +36,7 @@ generateCompletion :: CompletionShell
                    -> [Text]         -- ^ input formats
                    -> [Text]         -- ^ output formats
                    -> [Text]         -- ^ highlighting style names
+                   -> [Text]         -- ^ math methods
                    -> [String]       -- ^ PDF engines
                    -> [String]       -- ^ data files
                    -> IO Text
@@ -79,6 +79,7 @@ prevSource :: CompletionKind  -- ^ completion kind
 prevSource InputFormats    _ = "${informats}"
 prevSource OutputFormats   _ = "${outformats}"
 prevSource HighlightStyles _ = "${highlight_styles}"
+prevSource MathMethods _     = "${math_methods}"
 prevSource DataFiles       _ = "${datafiles}"
 prevSource Engines         e = e
 prevSource (Fixed vs)      _ = unwords vs
@@ -93,13 +94,14 @@ prevSource Files           _ = ""
 -- was previously generated from @data/bash_completion.tpl@.  The list
 -- of options completed per value (the @case "${prev}"@ arms) is derived
 -- from the option list, so it cannot drift from the actual options.
-bashScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] -> [String]
-           -> [String] -> IO Text
-bashScript opts informats outformats hstyles engines datafiles = do
+bashScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] ->
+              [Text] -> [String] -> [String] -> IO Text
+bashScript opts informats outformats hstyles mmethods engines datafiles = do
   let optsStr   = allOptionNames opts
       infStr    = unwords (map T.unpack informats)
       outfStr   = unwords (map T.unpack outformats)
       hsStr     = unwords (map T.unpack hstyles)
+      mmStr     = unwords (map T.unpack mmethods)
       dfStr     = unwords datafiles
       engStr    = unwords engines
       caseBody  = concatMap armToLines (bashCaseArms opts engStr)
@@ -110,7 +112,7 @@ bashScript opts informats outformats hstyles engines datafiles = do
     , ""
     , "_pandoc()"
     , "{"
-    , "    local cur prev opts informats outformats highlight_styles datafiles"
+    , "    local cur prev opts informats outformats highlight_styles math_methods datafiles"
     , "    COMPREPLY=()"
     , "    cur=\"${COMP_WORDS[COMP_CWORD]}\""
     , "    prev=\"${COMP_WORDS[COMP_CWORD-1]}\""
@@ -120,6 +122,7 @@ bashScript opts informats outformats hstyles engines datafiles = do
     , T.pack $ "    informats=\"" ++ infStr ++ "\""
     , T.pack $ "    outformats=\"" ++ outfStr ++ "\""
     , T.pack $ "    highlight_styles=\"" ++ hsStr ++ "\""
+    , T.pack $ "    math_methods=\"" ++ mmStr ++ "\""
     , T.pack $ "    datafiles=\"" ++ dfStr ++ "\""
     , ""
     , "    case \"${prev}\" in"
@@ -182,15 +185,21 @@ armToLines (src, names) =
 -- zsh
 ----------------------------------------------------------------------
 
-zshScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] -> [String]
+zshScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] -> [Text] -> [String]
           -> [String] -> IO Text
-zshScript opts informats outformats hstyles engines datafiles = do
-  let infStr  = unwords (map T.unpack informats)
-      outfStr = unwords (map T.unpack outformats)
-      hsStr   = unwords (map T.unpack hstyles)
-      dfStr   = unwords datafiles
-      engStr  = unwords engines
-      action k mbP = T.pack $ zshAction k mbP infStr outfStr hsStr dfStr engStr
+zshScript opts informats outformats hstyles mmethods engines datafiles = do
+  let action k mbP =
+        case k of
+           OptFlag -> ""
+           Files -> ":" <> maybe "FILE" T.pack mbP <> ":_files"
+           Fixed vs -> ":" <> maybe "VALUE" T.pack mbP
+                          <> ":(" <> T.pack (unwords vs) <> ")"
+           InputFormats -> ":FORMAT:(" <> T.unwords informats <> ")"
+           OutputFormats -> ":FORMAT:(" <> T.unwords outformats <> ")"
+           HighlightStyles -> ":STYLE:(" <> T.unwords hstyles <> ")"
+           MathMethods -> ":METHOD:(" <> T.unwords mmethods <> ")"
+           DataFiles -> ":FILE:(" <> T.pack (unwords datafiles) <> ")"
+           Engines -> ":PROGRAM:(" <> T.pack (unwords engines) <> ")"
       optLines = concat
         [ zshOptionLine o action
         | o@(OptionSpec _shorts _longs _ad _ _) <- opts ]
@@ -222,21 +231,6 @@ zshOptionLine (OptionSpec shorts longs ad k desc) action =
                   T.pack ("]") <> act <> T.pack "'"
   in map line (map (\c -> '-' : [c]) shorts ++ map ("--" ++) longs)
 
--- | The zsh completion action for a given kind.  All lists are embedded
--- statically.
-zshAction :: CompletionKind -> Maybe String -> String -> String -> String
-          -> String -> String -> String
-zshAction OptFlag _ _ _ _ _ _ = ""
-zshAction Files mbP _ _ _ _ _ =
-  ":" ++ maybe "FILE" id mbP ++ ":_files"
-zshAction (Fixed vs) mbP _ _ _ _ _ =
-  ":" ++ maybe "VALUE" id mbP ++ ":(" ++ unwords vs ++ ")"
-zshAction InputFormats _ inf _ _ _ _ = ":FORMAT:(" ++ inf ++ ")"
-zshAction OutputFormats _ _ outf _ _ _ = ":FORMAT:(" ++ outf ++ ")"
-zshAction HighlightStyles _ _ _ hs _ _ = ":STYLE:(" ++ hs ++ ")"
-zshAction DataFiles _ _ _ _ df _ = ":FILE:(" ++ df ++ ")"
-zshAction Engines _ _ _ _ _ eng = ":PROGRAM:(" ++ eng ++ ")"
-
 -- | Escape a description for embedding inside a single-quoted zsh
 -- @_arguments@ spec.  Single quotes are the only character that needs
 -- special treatment; the descriptions are kept free of colons and
@@ -248,15 +242,20 @@ escapeZshDesc = T.replace "'" "'\\''"
 -- fish
 ----------------------------------------------------------------------
 
-fishScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] -> [String]
-           -> [String] -> IO Text
-fishScript opts informats outformats hstyles engines datafiles = do
-  let infStr  = unwords (map T.unpack informats)
-      outfStr = unwords (map T.unpack outformats)
-      hsStr   = unwords (map T.unpack hstyles)
-      dfStr   = unwords datafiles
-      engStr  = unwords engines
-      argPart k mbP = T.pack $ fishArg k mbP infStr outfStr hsStr dfStr engStr
+fishScript :: [OptionSpec] -> [Text] -> [Text] -> [Text] -> [Text]
+           -> [String] -> [String] -> IO Text
+fishScript opts informats outformats hstyles mmethods engines datafiles = do
+  let argPart k _mbP =
+         case k of
+           OptFlag -> ""
+           Files -> " -r"
+           Fixed vs -> " -r -a \"" <> T.pack (unwords vs) <> "\""
+           InputFormats -> " -r -a \"" <> T.unwords informats <> "\""
+           OutputFormats -> " -r -a \"" <> T.unwords outformats <> "\""
+           HighlightStyles -> " -r -a \"" <> T.unwords hstyles <> "\""
+           MathMethods -> " -r -a \"" <> T.unwords mmethods <> "\""
+           DataFiles -> " -r -a \"" <> T.pack (unwords datafiles) <> "\""
+           Engines -> " -r -a \"" <> T.pack (unwords engines) <> "\""
       optLines = concat
         [ fishOptionLine o argPart
         | o@(OptionSpec _shorts _longs _ad _ _) <- opts ]
@@ -276,17 +275,6 @@ fishOptionLine (OptionSpec shorts longs ad k desc) argPart =
        T.pack (" -l " ++ l) <> descPart <>
        argPart k (placeholder ad)
      | l <- take 1 longs ]
-
-fishArg :: CompletionKind -> Maybe String -> String -> String -> String
-        -> String -> String -> String
-fishArg OptFlag _ _ _ _ _ _ = ""
-fishArg Files _ _ _ _ _ _ = " -r"
-fishArg (Fixed vs) _ _ _ _ _ _ = " -r -a \"" ++ unwords vs ++ "\""
-fishArg InputFormats _ inf _ _ _ _ = " -r -a \"" ++ inf ++ "\""
-fishArg OutputFormats _ _ outf _ _ _ = " -r -a \"" ++ outf ++ "\""
-fishArg HighlightStyles _ _ _ hs _ _ = " -r -a \"" ++ hs ++ "\""
-fishArg DataFiles _ _ _ _ df _ = " -r -a \"" ++ df ++ "\""
-fishArg Engines _ _ _ _ _ eng = " -r -a \"" ++ eng ++ "\""
 
 -- | Escape a description for a fish completion @-d@ argument, which is
 -- wrapped in double quotes.

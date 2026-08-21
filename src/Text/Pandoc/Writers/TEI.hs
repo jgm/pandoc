@@ -46,7 +46,7 @@ writeTEI opts doc = do
                  meta
   main    <- fromBlocks blocks
   let context = defField "body" main
-              $ defField "mathml" (case writerHTMLMathMethod opts of
+              $ defField "mathml" (case writerMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
   return $ render colwidth $

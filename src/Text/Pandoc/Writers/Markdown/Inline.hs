@@ -510,7 +510,7 @@ inlineToMarkdown opts (Math InlineMath str) = do
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> return $ "`" <> literal str <> "`" <> "$"
-      | otherwise -> case writerHTMLMathMethod opts of
+      | otherwise -> case writerMathMethod opts of
           WebTeX url ->
              inlineToMarkdown opts
                   (Image nullAttr [Str str'] (url <> urlEncode str', str'))
@@ -535,7 +535,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                                                         ("format", "latex"))
         return $ blankline <> attributes <> cr <> literal "```" <> cr
             <> literal str <> cr <> literal "```" <> blankline
-      | otherwise -> case writerHTMLMathMethod opts of
+      | otherwise -> case writerMathMethod opts of
           WebTeX url ->
             let str' = T.strip str
              in (\x -> blankline <> x <> blankline) `fmap`

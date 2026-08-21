@@ -48,7 +48,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
 import Text.Pandoc.URI (urlEncode)
-import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
+import Text.Pandoc.Options (EPUBVersion (..), MathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
 import Text.Pandoc.Shared (normalizeDate, renderTags',
@@ -1233,7 +1233,7 @@ transformInline _ _opts (Image attr@(_,_,kvs) lab (src,tit))
     newsrc <- modifyMediaRef $ T.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
 transformInline _ opts x@(Math t m)
-  | WebTeX url <- writerHTMLMathMethod opts = do
+  | WebTeX url <- writerMathMethod opts = do
     newsrc <- modifyMediaRef (T.unpack (url <> urlEncode m))
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
