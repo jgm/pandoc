@@ -1132,7 +1132,7 @@ header when requesting a document from a URL:
     link to will not be incorporated in the document.
     Limitation: resources that are loaded dynamically through
     JavaScript cannot be incorporated; as a result, fonts may
-    be missing when `--mathjax` is used, and some
+    be missing when `--math-method=mathjax` is used, and some
     advanced features (e.g.  zoom or speaker notes) may not work
     in an offline "self-contained" `reveal.js` slide show.
 
@@ -1663,60 +1663,85 @@ header when requesting a document from a URL:
     output. It is intended for use in producing a LaTeX file
     that can be processed with [`bibtex`] or [`biber`].
 
-## Math rendering in HTML {.options}
+## Math rendering {.options}
 
-The default is to render TeX math as far as possible using
-Unicode characters.  Formulas are put inside a `span` with
-`class="math"`, so that they may be styled differently from the
-surrounding text if needed. However, this gives acceptable
-results only for basic math, usually you will want to use
-`--mathjax` or another of the following options.
+`--math-method`=*METHOD*[`:`*URL*]
+
+:   Specify the method used to display TeX math. The following
+    methods are possible (some take an optional URL, separated
+    from the method name by a colon). The default value is `plain`.
+
+    `plain`
+
+      : Render math using Unicode characters, to the extent possible.
+        When this is not possible, fall back to plain TeX.
+
+    `mathjax`[`:`*URL*]
+
+      : Render math using [MathJaX]. TeX math will be put between
+        `\(...\)` (for inline math) or `\[...\]` (for display
+        math) and wrapped in `<span>` tags with class `math`.
+        Then the MathJax JavaScript will render it. The *URL*
+        should point to the `MathJax.js` load script. If a *URL*
+        is not provided, a link to the Cloudflare CDN will be
+        inserted. This method works in HTML and HTML-derived formats.
+
+    `mathml`
+
+      : Convert TeX math to [MathML]. MathML is supported
+        natively by the main web browsers and most e-book
+        readers. This option works in HTML and XML formats.
+
+    `webtex`[`:`*URL*]
+
+      : Convert TeX formulas to `<img>` tags that link to an external script
+        that converts formulas to images. The formula will be URL-encoded
+        and concatenated with the URL provided. For SVG images you can for
+        example use
+        `--math-method=webtex:https://latex.codecogs.com/svg.latex?`.
+        If no URL is specified, the CodeCogs URL generating PNGs
+        will be used (`https://latex.codecogs.com/png.latex?`).
+        Note:  this method works not just in HTML but in Markdown,
+        which is useful if you're targeting a version of Markdown
+        without native math support.
+
+    `katex`[`:`*URL*]
+
+      : Use [KaTeX] to display embedded TeX math in HTML output.
+        The *URL* is the base URL for the KaTeX library. That directory
+        should contain a `katex.min.js` and a `katex.min.css` file.
+        If a *URL* is not provided, a link to the KaTeX CDN will be inserted.
+        This method works in HTML and HTML-derived formats.
+
+    `gladtex`
+
+    : Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
+      can then be processed by [GladTeX] to produce SVG images of the typeset
+      formulas and an HTML file with these images embedded.
+
+          pandoc -s --math-method=gladtex input.md -o myfile.htex
+          gladtex -d image_dir myfile.htex
+          # produces myfile.html and images in image_dir
 
 `--mathjax`[`=`*URL*]
 
-:   Use [MathJax] to display embedded TeX math in HTML output.
-    TeX math will be put between `\(...\)` (for inline math)
-    or `\[...\]` (for display math) and wrapped in `<span>` tags
-    with class `math`. Then the MathJax JavaScript will render it.
-    The *URL* should point to the `MathJax.js` load script.
-    If a *URL* is not provided, a link to the Cloudflare CDN will
-    be inserted.
+:   *Deprecated.  Use `--math-method=mathjax`[`:`*URL*] instead.*
 
 `--mathml`
 
-:   Convert TeX math to [MathML] (in `epub3`, `docbook4`,
-    `docbook5`, `jats`, `html4` and `html5`).  This is the
-    default in `odt` output. MathML is supported natively by
-    the main web browsers and select e-book readers.
+:   *Deprecated.  Use `--math-method=mathml` instead.*
 
 `--webtex`[`=`*URL*]
 
-:   Convert TeX formulas to `<img>` tags that link to an external script
-    that converts formulas to images. The formula will be URL-encoded
-    and concatenated with the URL provided. For SVG images you can for
-    example use `--webtex https://latex.codecogs.com/svg.latex?`.
-    If no URL is specified, the CodeCogs URL generating PNGs
-    will be used (`https://latex.codecogs.com/png.latex?`).
-    Note:  the `--webtex` option will affect Markdown output
-    as well as HTML, which is useful if you're targeting a
-    version of Markdown without native math support.
+:   *Deprecated.  Use `--math-method=webtex`[`:`*URL*] instead.*
 
 `--katex`[`=`*URL*]
 
-:   Use [KaTeX] to display embedded TeX math in HTML output.
-    The *URL* is the base URL for the KaTeX library. That directory
-    should contain a `katex.min.js` and a `katex.min.css` file.
-    If a *URL* is not provided, a link to the KaTeX CDN will be inserted.
+:   *Deprecated.  Use `--math-method=katex`[`:`*URL*] instead.*
 
 `--gladtex`
 
-:   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
-    can then be processed by [GladTeX] to produce SVG images of the typeset
-    formulas and an HTML file with these images embedded.
-
-        pandoc -s --gladtex input.md -o myfile.htex
-        gladtex -d image_dir myfile.htex
-        # produces myfile.html and images in image_dir
+:   *Deprecated.  Use `--math-method=gladtex` instead.*
 
 [MathML]: https://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
@@ -2317,36 +2342,24 @@ of `filters` (see [Reader options](#reader-options-1)).
 | command line                     | defaults file                     |
 +:=================================+:==================================+
 | ```                              | ``` yaml                          |
-| --mathjax                        | html-math-method:                 |
+| --math-method=mathjax            | math-method     :                 |
 |                                  |   method: mathjax                 |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --mathml                         | html-math-method:                 |
+| --math-method=webtex:URL         | math-method:                      |
+|                                  |   method: webtex                  |
+|                                  |   url: mathjax                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --math-method=mathml             | math-method:                      |
 |                                  |   method: mathml                  |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
-| ```                              | ``` yaml                          |
-| --webtex                         | html-math-method:                 |
-|                                  |   method: webtex                  |
-| ```                              | ```                               |
-+----------------------------------+-----------------------------------+
-| ```                              | ``` yaml                          |
-| --katex                          | html-math-method:                 |
-|                                  |   method: katex                   |
-| ```                              | ```                               |
-+----------------------------------+-----------------------------------+
-| ```                              | ``` yaml                          |
-| --gladtex                        | html-math-method:                 |
-|                                  |   method: gladtex                 |
-| ```                              | ```                               |
-+----------------------------------+-----------------------------------+
-
-In addition to the values listed above, `method` can have the
-value `plain`.
 
 If the command line option accepts a URL argument, an `url:` field can
-be added to `html-math-method:`.
+be added to `math-method:`.
 
 ## Options for wrapper scripts
 
@@ -2975,9 +2988,9 @@ To override or extend some [CSS] for just one document, include for example:
 ### Variables for HTML math
 
 `classoption`
-:   when using `--katex`, you can render display math equations
-    flush left using [YAML metadata](#layout) or with `-M
-    classoption=fleqn`.
+  : when using `--math-method=katex`, you can render display
+    math equations flush left using [YAML metadata](#layout) or
+    with `-M classoption=fleqn`.
 
 ### Variables for HTML slides
 
@@ -5499,7 +5512,7 @@ ODT
   ~ It will be rendered, if possible, using MathML.
 
 DocBook
-  ~ If the `--mathml` flag is used, it will be rendered using MathML
+  ~ If `--math-method=mathml` is used, it will be rendered using MathML
     in an `inlineequation` or `informalequation` tag.  Otherwise it
     will be rendered, if possible, using Unicode characters.
 
@@ -5507,7 +5520,7 @@ Docx and PowerPoint
   ~ It will be rendered using OMML math markup.
 
 FictionBook2
-  ~ If the `--webtex` option is used, formulas are rendered as images
+  ~ If `--math-method=webtex` is used, formulas are rendered as images
     using CodeCogs or other compatible web service, downloaded
     and embedded in the e-book. Otherwise, they will appear verbatim.
 

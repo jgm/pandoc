@@ -45,7 +45,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.MIME (getMimeType)
-import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
+import Text.Pandoc.Options (MathMethod (..), WriterOptions (..))
 import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
@@ -189,7 +189,7 @@ makeWithWkhtmltopdf :: (PandocMonad m, MonadIO m)
                     -> Pandoc              -- ^ document
                     -> m (Either ByteString ByteString)
 makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
-  let mathArgs = case writerHTMLMathMethod opts of
+  let mathArgs = case writerMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
                                     "--window-status", "mathjax_loaded"]

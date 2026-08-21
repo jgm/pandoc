@@ -210,7 +210,7 @@ docToJATS opts (Pandoc meta blocks') = do
               $ addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
-              $ defField "mathml" (case writerHTMLMathMethod opts of
+              $ defField "mathml" (case writerMathMethod opts of
                                         MathML -> True
                                         _      -> False) metadata
   return $ render colwidth $

@@ -314,7 +314,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   st <- get
   let html5 = stHtml5 st
   let thebody = blocks' >> notes
-  let math = layoutMarkup $ case writerHTMLMathMethod opts of
+  let math = layoutMarkup $ case writerMathMethod opts of
         MathJax url
           | slideVariant /= RevealJsSlides ->
           -- mathjax is handled via a special plugin in revealjs
@@ -379,12 +379,12 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       then defField "math" math
                       else id) .
                   defField "abstract-title" abstractTitle .
-                  (case writerHTMLMathMethod opts of
+                  (case writerMathMethod opts of
                         MathJax u -> defField "mathjax" True .
                                      defField "mathjaxurl"
                                        (literal $ T.takeWhile (/='?') u)
                         _         -> defField "mathjax" False) .
-                  (case writerHTMLMathMethod opts of
+                  (case writerMathMethod opts of
                         PlainMath -> defField "displaymath-css" True
                         WebTeX _  -> defField "displaymath-css" True
                         _         -> id) .
@@ -938,7 +938,7 @@ blockToHtmlInner opts (RawBlock f str) = do
   if ishtml
      then return $ preEscapedText str
      else if (f == Format "latex" || f == Format "tex") &&
-             allowsMathEnvironments (writerHTMLMathMethod opts) &&
+             allowsMathEnvironments (writerMathMethod opts) &&
              isMathEnvironment str
              then do
                modify (\st -> st {stMath = True})
@@ -1520,7 +1520,7 @@ inlineToHtml opts inline = do
       modify (\st -> st {stMath = True})
       let mathClass = toValue $ ("math " :: Text) <>
                       if t == InlineMath then "inline" else "display"
-      case writerHTMLMathMethod opts of
+      case writerMathMethod opts of
            WebTeX url -> do
               let imtag = if html5 then H5.img else H.img
               let str' = T.strip str
@@ -1565,7 +1565,7 @@ inlineToHtml opts inline = do
          then return $ preEscapedText str
          else do
            let istex = f == Format "latex" || f == Format "tex"
-           let mm = writerHTMLMathMethod opts
+           let mm = writerMathMethod opts
            case istex of
              True
                | allowsMathEnvironments mm && isMathEnvironment str
@@ -1773,14 +1773,14 @@ isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
                      , "Vmatrix"
                      , "vmatrix" ]
 
-allowsMathEnvironments :: HTMLMathMethod -> Bool
+allowsMathEnvironments :: MathMethod -> Bool
 allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments (KaTeX _)   = True
 allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
 
-allowsRef :: HTMLMathMethod -> Bool
+allowsRef :: MathMethod -> Bool
 allowsRef (MathJax _) = True
 allowsRef _           = False
 

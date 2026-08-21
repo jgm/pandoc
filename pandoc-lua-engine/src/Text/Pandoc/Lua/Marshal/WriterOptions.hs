@@ -122,8 +122,8 @@ typeWriterOptions = deftype "WriterOptions"
 
   , property "html_math_method"
     "How to print math in HTML"
-    (pushViaJSON, writerHTMLMathMethod)
-    (peekViaJSON, \opts x -> opts{ writerHTMLMathMethod = x })
+    (pushViaJSON, writerMathMethod)
+    (peekViaJSON, \opts x -> opts{ writerMathMethod = x })
 
   , property "link_images"
     "Include links to images instead of embedding in ODT"
