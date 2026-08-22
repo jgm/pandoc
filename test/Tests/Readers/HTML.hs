@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-deprecations #-}
 {- |
    Module      : Tests.Readers.HTML
    Copyright   : © 2006-2024 John MacFarlane
