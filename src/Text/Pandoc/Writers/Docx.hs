@@ -98,6 +98,7 @@ writeDocx opts doc = do
 
   let env = defaultWriterEnv {
           envRTL = isRTLmeta
+        , envLang = getLang opts meta
         , envChangesAuthor = fromMaybe "unknown" username
         , envChangesDate   = T.pack $ formatTime defaultTimeLocale "%FT%XZ" utctime
         , envPrintWidth = maybe 420 (`quot` 20) pgContentWidth
