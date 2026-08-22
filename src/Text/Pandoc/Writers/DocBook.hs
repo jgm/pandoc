@@ -113,7 +113,7 @@ writeDocBook opts doc = do
                  meta'
   main <- fromBlocks blocks
   let context = defField "body" main
-              $ defField "mathml" (case writerHTMLMathMethod opts of
+              $ defField "mathml" (case writerMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
   return $ render colwidth $
@@ -401,7 +401,7 @@ inlineToDocBook opts (Span (ident,_,_) ils) = do
 inlineToDocBook _ (Code _ str) =
   return $ inTagsSimple "literal" $ literal (escapeStringForXML str)
 inlineToDocBook opts (Math t str)
-  | isMathML (writerHTMLMathMethod opts) = do
+  | isMathML (writerMathMethod opts) = do
     res <- convertMath writeMathML t str
     case res of
          Right r  -> return $ inTagsSimple tagtype
@@ -465,7 +465,7 @@ inlineToDocBook opts (Image attr ils (src, tit)) = return $
 inlineToDocBook opts (Note contents) =
   inTagsIndented "footnote" <$> blocksToDocBook opts contents
 
-isMathML :: HTMLMathMethod -> Bool
+isMathML :: MathMethod -> Bool
 isMathML MathML = True
 isMathML _      = False
 

@@ -27,7 +27,7 @@ module Text.Pandoc.App.CommandLineOptions (
 import Control.Monad.Trans
 import Control.Monad.State.Strict
 import Data.Containers.ListUtils (nubOrd)
-import Data.Aeson (eitherDecode)
+import Data.Aeson (eitherDecode, decode)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
@@ -118,7 +118,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
       datafiles <- getDataFileNames
       script <- generateCompletion shell options
         readersNames writersNames
-        (map fst highlightingStyles) pdfEngines datafiles
+        (map fst highlightingStyles)
+        mathMethods pdfEngines datafiles
       UTF8.hPutStrLn stdout script
     ListInputFormats -> mapM_ (UTF8.hPutStrLn stdout) readersNames
     ListOutputFormats -> mapM_ (UTF8.hPutStrLn stdout) writersNames
@@ -1118,18 +1119,42 @@ options =
                  OptFlag
                  (T.pack "Use biblatex citations in LaTeX")
 
+    , option "" ["math-method"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key, val) = splitField arg
+                     let json = if val == "true"
+                                then show key
+                                else "{\"method\":" <> show key
+                                     <> ",\"url\": " <> show val <> "}"
+                     case decode (UTF8.fromStringLazy json) of
+                       Just method ->
+                         return opt { optMathMethod = method }
+                       Nothing -> optError $ PandocOptionError $
+                           "Unknown math-method '" <> T.pack arg <>
+                           "'.  Expected one of: " <>
+                           "plain, mathml, webtex, mathjax, katex, gladtex."
+                         )
+                 "METHOD")
+                 MathMethods
+                 (T.pack "Specify method for rendering math in HTML")
+
     , option "" ["mathml"]
                  (NoArg
-                  (\opt ->
-                      return opt { optHTMLMathMethod = MathML }))
+                  (\opt -> do
+                      deprecatedOption "--mathml"
+                        "Use --math-method=mathml instead."
+                      return opt { optMathMethod = MathML }))
                  OptFlag
                  (T.pack "Use MathML for HTML math")
 
     , option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
+                      deprecatedOption "--webtex"
+                        "Use --math-method=webtex[:URL] instead."
                       let url' = maybe defaultWebTeXURL T.pack arg
-                      return opt { optHTMLMathMethod = WebTeX url' })
+                      return opt { optMathMethod = WebTeX url' })
                   "URL")
                  OptFlag
                  (T.pack "Use WebTeX for HTML math")
@@ -1137,17 +1162,21 @@ options =
     , option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
+                      deprecatedOption "--mathjax"
+                        "Use --math-method=mathjax[:URL] instead."
                       let url' = maybe defaultMathJaxURL T.pack arg
-                      return opt { optHTMLMathMethod = MathJax url'})
+                      return opt { optMathMethod = MathJax url'})
                   "URL")
                  OptFlag
                  (T.pack "Use MathJax for HTML math")
 
     , option "" ["katex"]
                  (OptArg
-                  (\arg opt ->
+                  (\arg opt -> do
+                      deprecatedOption "--katex"
+                        "Use --math-method=katex[:URL] instead."
                       return opt
-                        { optHTMLMathMethod = KaTeX $
+                        { optMathMethod = KaTeX $
                            maybe defaultKaTeXURL T.pack arg })
                   "URL")
                   OptFlag
@@ -1155,8 +1184,10 @@ options =
 
     , option "" ["gladtex"]
                  (NoArg
-                  (\opt ->
-                      return opt { optHTMLMathMethod = GladTeX }))
+                  (\opt -> do
+                      deprecatedOption "--gladtex"
+                        "Use --math-method=gladtex[:URL] instead."
+                      return opt { optMathMethod = GladTeX }))
                  OptFlag
                  (T.pack "Use gladTeX for HTML math")
 
@@ -1347,6 +1378,9 @@ handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
 
+mathMethods :: [Text]
+mathMethods = ["plain", "mathml", "webtex", "mathjax", "katex", "gladtex"]
+ 
 readersNames :: [Text]
 readersNames = sort (map fst (readers :: [(Text, Reader PandocIO)]))
 

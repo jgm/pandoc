@@ -36,7 +36,7 @@ import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
+import Text.Pandoc.Options (MathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (blocksToInlines, capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Walk (walk)
@@ -454,7 +454,7 @@ toXml (Note bs) = do
 
 insertMath :: PandocMonad m => ImageMode -> Text -> FBM m [Content]
 insertMath immode formula = do
-  htmlMath <- fmap (writerHTMLMathMethod . writerOptions) get
+  htmlMath <- fmap (writerMathMethod . writerOptions) get
   case htmlMath of
     WebTeX url -> do
        let alt = [Code nullAttr formula]

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook EBNF Module V1.1CR1//EN"
+                  "http://www.oasis-open.org/docbook/xml/mathml/1.1CR1/dbmathml.dtd">
 <article>
   <articleinfo>
     <title>Pandoc Test Suite</title>
@@ -1052,39 +1052,39 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          2 + 2 = 4
+          <inlineequation><mml:math><mml:mrow><mml:mn>2</mml:mn><mml:mo>+</mml:mo><mml:mn>2</mml:mn><mml:mo>=</mml:mo><mml:mn>4</mml:mn></mml:mrow></mml:math></inlineequation>
         </para>
       </listitem>
       <listitem>
         <para>
-          <emphasis>x</emphasis> ∈ <emphasis>y</emphasis>
+          <inlineequation><mml:math><mml:mrow><mml:mi>x</mml:mi><mml:mo>∈</mml:mo><mml:mi>y</mml:mi></mml:mrow></mml:math></inlineequation>
         </para>
       </listitem>
       <listitem>
         <para>
-          <emphasis>α</emphasis> ∧ <emphasis>ω</emphasis>
+          <inlineequation><mml:math><mml:mrow><mml:mi>α</mml:mi><mml:mo>∧</mml:mo><mml:mi>ω</mml:mi></mml:mrow></mml:math></inlineequation>
         </para>
       </listitem>
       <listitem>
         <para>
-          223
+          <inlineequation><mml:math><mml:mn>223</mml:mn></mml:math></inlineequation>
         </para>
       </listitem>
       <listitem>
         <para>
-          <emphasis>p</emphasis>-Tree
+          <inlineequation><mml:math><mml:mi>p</mml:mi></mml:math></inlineequation>-Tree
         </para>
       </listitem>
       <listitem>
         <para>
           Here’s some display math:
-          $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+          <informalequation><mml:math><mml:mrow><mml:mfrac><mml:mi>d</mml:mi><mml:mrow><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:mrow></mml:mfrac><mml:mi>f</mml:mi><mml:mo mml:stretchy="false" mml:form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo mml:stretchy="false" mml:form="postfix">)</mml:mo><mml:mo>=</mml:mo><mml:munder><mml:mi mml:mathvariant="normal">lim</mml:mi><mml:mrow><mml:mi>h</mml:mi><mml:mo>→</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:munder><mml:mfrac><mml:mrow><mml:mi>f</mml:mi><mml:mo mml:stretchy="false" mml:form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>+</mml:mo><mml:mi>h</mml:mi><mml:mo mml:stretchy="false" mml:form="postfix">)</mml:mo><mml:mo>−</mml:mo><mml:mi>f</mml:mi><mml:mo mml:stretchy="false" mml:form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo mml:stretchy="false" mml:form="postfix">)</mml:mo></mml:mrow><mml:mi>h</mml:mi></mml:mfrac></mml:mrow></mml:math></informalequation>
         </para>
       </listitem>
       <listitem>
         <para>
           Here’s one that has a line break in it:
-          <emphasis>α</emphasis> + <emphasis>ω</emphasis> × <emphasis>x</emphasis><superscript>2</superscript>.
+          <inlineequation><mml:math><mml:mrow><mml:mi>α</mml:mi><mml:mo>+</mml:mo><mml:mi>ω</mml:mi><mml:mo>×</mml:mo><mml:msup><mml:mi>x</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></inlineequation>.
         </para>
       </listitem>
     </itemizedlist>

@@ -46,7 +46,7 @@ import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING), LogMessage(..))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
-                            WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
+                            WrapOption (WrapAuto), MathMethod (MathML),
                             ReferenceLocation (EndOfDocument),
                             CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
@@ -102,6 +102,7 @@ data CompletionKind
   | InputFormats     -- ^ an input (reader) format
   | OutputFormats    -- ^ an output (writer) format
   | HighlightStyles  -- ^ a highlighting style
+  | MathMethods      -- ^ an html math method
   | DataFiles        -- ^ a pandoc data file
   | Engines          -- ^ a PDF engine program
   | Files            -- ^ a file path
@@ -183,7 +184,7 @@ data Opt = Opt
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optSyntaxHighlighting    :: Text -- ^ Syntax highlighting method for code
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
-    , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
+    , optMathMethod            :: MathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
     , optSplitLevel            :: Int     -- ^ Header level at which to split documents in epub and chunkedhtml
@@ -270,7 +271,8 @@ instance FromJSON Opt where
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
        <*> o .:? "syntax-highlighting" .!= optSyntaxHighlighting defaultOpts
        <*> o .:? "top-level-division" .!= optTopLevelDivision defaultOpts
-       <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
+       <*> ((o .: "math-method") <|> (o .: "html-math-method") <|>
+              pure (optMathMethod defaultOpts))
        <*> o .:? "abbreviations"
        <*> o .:? "reference-doc"
        <*> ((o .:? "split-level") <|> (o .:? "epub-chapter-level"))
@@ -641,8 +643,10 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optSyntaxHighlighting = x })
     "top-level-division" ->
       parseJSON v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
+    "math-method" ->
+      parseJSON v >>= \x -> return (\o -> o{ optMathMethod = x })
     "html-math-method" ->
-      parseJSON v >>= \x -> return (\o -> o{ optHTMLMathMethod = x })
+      parseJSON v >>= \x -> return (\o -> o{ optMathMethod = x })
     "abbreviations" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optAbbreviations = unpack <$> x })
@@ -849,7 +853,7 @@ defaultOpts = Opt
     , optSyntaxDefinitions     = []
     , optSyntaxHighlighting    = DefaultHighlightingString
     , optTopLevelDivision      = TopLevelDefault
-    , optHTMLMathMethod        = PlainMath
+    , optMathMethod            = MathML
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optSplitLevel            = 1

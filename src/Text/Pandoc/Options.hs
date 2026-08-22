@@ -19,7 +19,7 @@ options.
 -}
 module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , ReaderOptions(..)
-                           , HTMLMathMethod (..)
+                           , MathMethod (..)
                            , CiteMethod (..)
                            , ObfuscationMethod (..)
                            , HighlightMethod (..)
@@ -108,17 +108,17 @@ defaultAbbrevs = Set.fromList
 
 data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable, Generic)
 
-data HTMLMathMethod = PlainMath
-                    | WebTeX Text               -- url of TeX->image script.
-                    | GladTeX
-                    | MathML
-                    | MathJax Text              -- url of MathJax.js
-                    | KaTeX Text                -- url of KaTeX files
-                    deriving (Show, Read, Eq, Data, Typeable, Generic)
+data MathMethod = PlainMath
+                | WebTeX Text               -- url of TeX->image script.
+                | GladTeX
+                | MathML
+                | MathJax Text              -- url of MathJax.js
+                | KaTeX Text                -- url of KaTeX files
+                deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromJSON HTMLMathMethod where
+instance FromJSON MathMethod where
    parseJSON node =
-     (withObject "HTMLMathMethod" $ \m -> do
+     (withObject "MathMethod" $ \m -> do
         method <- m .: "method"
         mburl <- m .:? "url"
         case method :: Text of
@@ -142,7 +142,7 @@ instance FromJSON HTMLMathMethod where
                _ -> fail $ "Unknown HTML math method " <>
                              toStringLazy (encode node))
 
-instance ToJSON HTMLMathMethod where
+instance ToJSON MathMethod where
   toJSON PlainMath = String "plain"
   toJSON (WebTeX "") = String "webtex"
   toJSON (WebTeX url) = object ["method" .= String "webtex",
@@ -359,7 +359,7 @@ data WriterOptions = WriterOptions
   , writerListOfFigures     :: Bool   -- ^ Include list of figures
   , writerListOfTables      :: Bool   -- ^ Include list of tables
   , writerIncremental       :: Bool   -- ^ True if lists should be incremental
-  , writerHTMLMathMethod    :: HTMLMathMethod  -- ^ How to print math in HTML
+  , writerMathMethod        :: MathMethod  -- ^ How to print math in HTML
   , writerNumberSections    :: Bool   -- ^ Number sections in LaTeX
   , writerNumberOffset      :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
@@ -402,7 +402,7 @@ instance Default WriterOptions where
                       , writerListOfFigures    = False
                       , writerListOfTables     = False
                       , writerIncremental      = False
-                      , writerHTMLMathMethod   = PlainMath
+                      , writerMathMethod       = MathML
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False
