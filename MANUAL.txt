@@ -1669,7 +1669,7 @@ header when requesting a document from a URL:
 
 :   Specify the method used to display TeX math. The following
     methods are possible (some take an optional URL, separated
-    from the method name by a colon). The default value is `plain`.
+    from the method name by a colon). The default value is `mathml`.
 
     `plain`
 

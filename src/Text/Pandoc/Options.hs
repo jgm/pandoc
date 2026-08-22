@@ -402,7 +402,7 @@ instance Default WriterOptions where
                       , writerListOfFigures    = False
                       , writerListOfTables     = False
                       , writerIncremental      = False
-                      , writerMathMethod       = PlainMath
+                      , writerMathMethod       = MathML
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False
