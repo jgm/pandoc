@@ -46,7 +46,7 @@ import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING), LogMessage(..))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
-                            WrapOption (WrapAuto), MathMethod (PlainMath),
+                            WrapOption (WrapAuto), MathMethod (MathML),
                             ReferenceLocation (EndOfDocument),
                             CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
@@ -853,7 +853,7 @@ defaultOpts = Opt
     , optSyntaxDefinitions     = []
     , optSyntaxHighlighting    = DefaultHighlightingString
     , optTopLevelDivision      = TopLevelDefault
-    , optMathMethod            = PlainMath
+    , optMathMethod            = MathML
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optSplitLevel            = 1
