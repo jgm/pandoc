@@ -139,7 +139,7 @@ tests = [ testGroup "base tag"
           ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
-              withNumTests (if QuickCheckTests numtests == defaultValue
+              withMaxSuccess (if QuickCheckTests numtests == defaultValue
                                  then 25
                                  else numtests) roundTrip
         ]
