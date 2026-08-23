@@ -964,9 +964,20 @@ textStyleAttr m = \case
   Pre    -> Map.insert "style:font-name" "Courier New" .
             Map.insert "style:font-name-asian" "Courier New" .
             Map.insert "style:font-name-complex" "Courier New" $ m
-  Language lang ->
-            Map.insert "fo:language" (langLanguage lang) .
-            maybe id (Map.insert "fo:country") (langRegion lang) $ m
+  Language lang -> addLanguage lang m
+
+addLanguage :: Lang -> Map.Map Text Text -> Map.Map Text Text
+addLanguage lang
+  | isRTLLang lang =
+     Map.insert "style:language-complex" (langLanguage lang) .
+     maybe id (Map.insert "style:country-complex") (langRegion lang)
+  | otherwise =
+     Map.insert "fo:language" (langLanguage lang) .
+     maybe id (Map.insert "fo:country") (langRegion lang)
+
+isRTLLang :: Lang -> Bool
+isRTLLang Lang{ langLanguage = l } =
+  l `elem` ["ar", "he", "fa", "ur", "sd", "ckb", "yi", "dv"]
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
 withLangFromAttr (_,_,kvs) action =
