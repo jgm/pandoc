@@ -20,6 +20,10 @@
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
 
+    <InstallUISequence>
+      <FindRelatedProducts Suppress="yes" />
+    </InstallUISequence>
+
     <InstallExecuteSequence>
       <RemoveExistingProducts After="InstallFinalize"/>
     </InstallExecuteSequence>
