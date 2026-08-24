@@ -4726,6 +4726,17 @@ This only works reliably, though, if the repeated item is in a list
 by itself, because each numbered example list will be numbered
 continuously from its starting number.
 
+In a longer (book-length) work, one might need to reset the example
+list counter at the beginning of each chapter. One can do that using the
+following syntax:
+
+    (1@foo) This item will be numbered 1, and subsequent example
+        list items will be numbered 2, 3, etc.
+
+Any number may be used instead of `1`. Note that if there are several
+example list items in a row, the number only has an effect if placed
+on the first of them.
+
 ### Ending a list ###
 
 What if you want to put an indented code block after a list?

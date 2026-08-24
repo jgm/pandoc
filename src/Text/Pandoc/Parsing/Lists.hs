@@ -112,12 +112,16 @@ decimal = do
 exampleNum :: (Stream s m Char, UpdateSourcePos s Char)
            => ParsecT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
+  mbNum <- safeRead . T.pack <$> many digit
   char '@'
   lab <- T.pack . concat <$>
                     many (many1 alphaNum <|>
                           try (do c <- char '_' <|> char '-'
                                   cs <- many1 alphaNum
                                   return (c:cs)))
+  case mbNum of
+      Nothing -> pure ()
+      Just n -> updateState $ \s -> s{ stateNextExample = n }
   st <- getState
   case M.lookup lab (stateExamples st) of
     Nothing -> do -- new label
