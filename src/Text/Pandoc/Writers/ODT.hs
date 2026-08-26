@@ -35,7 +35,8 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..),
-                            HighlightMethod(Skylighting))
+                            HighlightMethod(Skylighting, DefaultHighlighting))
+import Text.Pandoc.Highlighting (defaultStyle)
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, tshow)
 import Text.Pandoc.Version (pandocVersionText)
@@ -216,6 +217,7 @@ updateStyle opts mbLang arch = do
                      (addListItemStyles .
                       (case writerHighlightMethod opts of
                         Skylighting style -> addHlStyles style
+                        DefaultHighlighting -> addHlStyles defaultStyle
                         _ -> id))
                 $ d )
         | otherwise = pure e

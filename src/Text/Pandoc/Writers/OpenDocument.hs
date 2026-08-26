@@ -458,15 +458,17 @@ blockToOpenDocument o = \case
     OrderedList  a b -> setFirstPara >> orderedList a b
     CodeBlock attrs s -> do
       setFirstPara
-      case writerHighlightMethod o of
-        Skylighting {} ->
-          case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
+      let highlighted =
+            case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
                 Right h  -> return $ flush . vcat $ map (inTags True "text:p"
                                           [("text:style-name",
                                             "Preformatted_20_Text")] . hcat) h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
+      case writerHighlightMethod o of
+        Skylighting {} -> highlighted
+        DefaultHighlighting -> highlighted
         _ -> unhighlighted s
     Table a bc s th tb tf -> setFirstPara >>
                               table o (Ann.toTable a bc s th tb tf)
@@ -713,14 +715,17 @@ inlineToOpenDocument o ils
     Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
-    Code      attrs s -> case writerHighlightMethod o of
-      Skylighting {} ->
-        case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
+    Code      attrs s ->
+      let highlighted =
+            case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
                 Right h  -> inlinedCode $ mconcat $ mconcat h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
-      _ -> unhighlighted s
+      in case writerHighlightMethod o of
+           Skylighting {} -> highlighted
+           DefaultHighlighting -> highlighted
+           _ -> unhighlighted s
     Math      t s -> lift (texMathToInlines t s) >>=
                          inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l

@@ -78,6 +78,8 @@ pandocToMs opts (Pandoc meta blocks) = do
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightMethod opts of
                                      Skylighting sty -> styleToMs sty
+                                     DefaultHighlighting ->
+                                       styleToMs defaultStyle
                                      _ -> mempty
                               else mempty
 
@@ -647,10 +649,17 @@ msFormatter opts _fmtopts =
 
 highlightCode :: PandocMonad m => WriterOptions -> Attr -> Text -> MS m (Doc Text)
 highlightCode opts attr str =
-  case highlight (writerSyntaxMap opts) (msFormatter opts) attr str of
+  case writerHighlightMethod opts of
+    Skylighting _ -> highlighted
+    DefaultHighlighting -> highlighted
+    _ -> unhighlighted
+ where
+  unhighlighted = return $ literal (escapeStr opts str)
+  highlighted =
+    case highlight (writerSyntaxMap opts) (msFormatter opts) attr str of
          Left msg -> do
            unless (T.null msg) $ report $ CouldNotHighlight msg
-           return $ literal (escapeStr opts str)
+           unhighlighted
          Right h -> do
            modify (\st -> st{ stHighlighting = True })
            return h
