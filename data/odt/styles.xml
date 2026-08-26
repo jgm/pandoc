@@ -62,7 +62,7 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       draw:end-line-spacing-vertical="0.1114in"
       style:flow-with-text="false" />
       <style:paragraph-properties style:text-autospace="ideograph-alpha"
-      style:line-break="strict" style:writing-mode="lr-tb"
+      style:line-break="strict" style:writing-mode="page"
       style:font-independent-line-spacing="false">
         <style:tab-stops />
       </style:paragraph-properties>
@@ -292,6 +292,8 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       style:font-family-generic="modern"
       style:font-pitch="fixed"
       fo:font-size="10pt"
+      style:writing-mode="lr-tb"
+      fo:text-align="left"
       style:font-name-asian="Courier New"
       style:font-family-asian="&apos;Courier New&apos;"
       style:font-family-generic-asian="modern"
