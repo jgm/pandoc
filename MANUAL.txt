@@ -2937,17 +2937,24 @@ ODT or pptx.
     to e.g. `20px`, but it also accepts `pt`
     (12pt = 16px in most browsers).
 
-`fontcolor`
+`fontcolor`, `fontcolordark`
 :   sets the CSS `color` property on the `html` element.
 
-`linkcolor`
+`linkcolor`, `linkcolordark`
 :   sets the CSS `color` property on all links.
 
-`monofont`
-:   sets the CSS `font-family` property on `code` elements.
+`quotebordercolor`, `quotebordercolordark`
+:   sets the CSS `border-color` property for the left-border of
+:   `blockquote` elements.
 
-`monobackgroundcolor`
-:   sets the CSS `background-color` property on `code` elements
+`quotecolor`, `quotecolordark`
+:   sets the CSS `color` property for `blockquote` elements.
+
+`monofont`
+:   sets the CSS `font-family` property on `code` and `pre` elements.
+
+`monobackgroundcolor`, `monobackgroundcolordark`
+:   sets the CSS `background-color` property on `code` and `pre` elements
     and adds extra padding.
 
 `linestretch`
@@ -2957,7 +2964,7 @@ ODT or pptx.
 `maxwidth`
 :   sets the CSS `max-width` property (default is 36em).
 
-`backgroundcolor`
+`backgroundcolor`, `backgroundcolordark`
 :   sets the CSS `background-color` property on the `html` element.
 
 `margin-left`, `margin-right`, `margin-top`, `margin-bottom`
@@ -2984,6 +2991,41 @@ To override or extend some [CSS] for just one document, include for example:
     ---
 
 [CSS]: https://developer.mozilla.org/en-US/docs/Learn/CSS
+
+#### Note on `color-scheme`
+
+By default, the browser's chosen `color-scheme` (either `light` or `dark`)
+will affect the color of various unstyled elements like input fields, which are
+generally only applicable if your document is specifically targeting HTML.
+
+By default, Pandoc emits `color-scheme: light dark` to allow the system to
+choose between a default light-mode or dark-mode scheme, but it alters this
+if variables specifically override colors, under the assumption that the user
+wishes for that scheme to always be used.
+
+Currently, this is only per a basic heuristic that checks whether the following
+variables are provided:
+
+* `fontcolor`
+* `fontcolordark`
+* `backgroundcolor`
+* `backgroundcolordark`
+
+And if only one "mode" is provided (light or dark), `color-scheme` is set so
+that this chosen mode is used always, regardless of the system's preference for
+light or dark mode.
+
+Note that there are a few caveats to this, namely that:
+
+* If the browser does not support `light-dark` (older than ~2024), then it will
+  always choose light mode, regardless of this override.
+* When printing, light mode is always chosen, and color variables are ignored.
+* Syntax highlighting is currently unaffected by color scheme.
+
+In general, if you wish to override the theming for a single scheme, you should
+choose to override either the normal `*color` variables (light mode) or the
+`*colordark` variables (dark mode) to ensure that the styles do not conflict
+with other styles added by new versions of Pandoc or the browser itself.
 
 ### Variables for HTML math
 
