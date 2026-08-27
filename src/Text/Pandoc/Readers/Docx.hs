@@ -629,14 +629,20 @@ rowsToRows rows = do
   return (fmap (Pandoc.Row nullAttr) cells)
 
 splitHeaderRows :: Bool -> [Docx.Row] -> ([Docx.Row], [Docx.Row])
-splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
-  $ if hasFirstRowFormatting
-    then L.foldl' f ((take 1 rs, []), True) (drop 1 rs)
-    else L.foldl' f (([], []), False) rs
+splitHeaderRows hasFirstRowFormatting rs =
+  bimap reverse reverse $ fst $
+  if hasFirstRowFormatting
+     then L.foldl' f ((take 1 rs, []), True) (drop 1 rs)
+     else L.foldl' f (([], []), False) rs
   where
     f ((headerRows, bodyRows), previousRowWasHeader) r@(Docx.Row h cs)
       | h == HasTblHeader || (previousRowWasHeader && any isContinuationCell cs)
-        = ((r : headerRows, bodyRows), True)
+        = if null headerRows
+             -- in rare cases we have non-header rows before a header row.
+             -- in this case it's important to retain the order of rows,
+             -- so we promote the preceeding body rows to header rows:
+             then ((r : bodyRows, []), True)
+             else ((r : headerRows, bodyRows), True)
       | otherwise
         = ((headerRows, r : bodyRows), False)
 
