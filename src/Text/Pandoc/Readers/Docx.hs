@@ -74,7 +74,7 @@ import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect)
+import Data.List (delete, intersect, transpose)
 import qualified Data.List as L
 import Data.Char (isSpace)
 import qualified Data.Map as M
@@ -83,6 +83,7 @@ import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
+import Safe (headDef)
 import Citeproc (ItemId(..), Val(TextVal,FancyVal), Reference(..), CitationItem(..))
 import qualified Citeproc
 import Text.Pandoc.Builder as Pandoc
@@ -834,22 +835,22 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
       cap' = caption shortCaption fullCaption
       (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
 
-  let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
-      rowLength :: Docx.Row -> Int
-      rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell _ gridSpan _ _) -> fromIntegral gridSpan) c)
-
   headerCells <- rowsToRows hdr
   bodyCells <- rowsToRows rows
 
-      -- Horizontal column alignment is taken from the first row's cells.
-  let getAlignment (Docx.Cell al colspan _ _) = replicate (fromIntegral colspan)
-                   $ convertAlign al
-      alignments = case rows of
-                     [] -> replicate width Pandoc.AlignDefault
-                     Docx.Row _ cs : _ -> concatMap getAlignment cs
-      widths = map (\n -> if n == 0
+  let widths = map (\n -> if n == 0
                              then ColWidthDefault
                              else ColWidth n) grid
+      -- Horizontal column alignment is taken from the first row's cells.
+      numcols = length widths
+      getAlignment (Docx.Cell al colspan _ _) =
+        take numcols $ replicate (fromIntegral colspan) (convertAlign al) ++
+                       repeat Pandoc.AlignDefault
+      getAlignments (Docx.Row _ cs) = concatMap getAlignment cs
+      alignments = take numcols $
+                   case hdr ++ rows of
+                     [] -> repeat Pandoc.AlignDefault
+                     r : _ -> getAlignments r
 
   extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
   let attr = case mbsty of
