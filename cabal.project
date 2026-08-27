@@ -22,6 +22,11 @@ source-repository-package
   location: https://github.com/jgm/typst-hs.git
   tag: d31df63aeb088cbfd8a4b9c23875938cdac4659e
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 1c62adb8886ddda787c95c7c6f8e497b3d31ef64
+
 package pandoc
   flags: +embed_data_files +http
 

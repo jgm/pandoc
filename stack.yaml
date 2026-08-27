@@ -25,13 +25,14 @@ extra-deps:
 - citeproc-0.13.0.1
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
-- texmath-0.13.2.1
 - git: https://github.com/jgm/djoths.git
   commit: 1aa9850accad90b8efdcaaab72f68d445ed1d7ab
 - git: https://github.com/jgm/asciidoc-hs.git
   commit: 7d6e37919bb4c0560b3c7ec8f4c9b4da7575f1d1
 - git: https://github.com/jgm/typst-hs.git
   commit: d31df63aeb088cbfd8a4b9c23875938cdac4659e
+- git: https://github.com/jgm/texmath.git
+  commit: 1c62adb8886ddda787c95c7c6f8e497b3d31ef64
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
