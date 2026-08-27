@@ -74,7 +74,7 @@ import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect, transpose)
+import Data.List (delete, intersect)
 import qualified Data.List as L
 import Data.Char (isSpace)
 import qualified Data.Map as M
@@ -83,7 +83,6 @@ import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Safe (headDef)
 import Citeproc (ItemId(..), Val(TextVal,FancyVal), Reference(..), CitationItem(..))
 import qualified Citeproc
 import Text.Pandoc.Builder as Pandoc
@@ -100,7 +99,6 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
-import Data.List.NonEmpty (nonEmpty)
 import Data.Aeson (eitherDecode)
 import qualified Data.Text.Lazy as TL
 import Text.Pandoc.UTF8 (fromTextLazy)
