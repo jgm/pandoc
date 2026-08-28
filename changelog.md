@@ -81,7 +81,6 @@
 
   * Text.Pandoc.App.Opt:
 
-    + In unexported type CompletionKind, add MathMethods.
     + In Opt, change `optHTMLMathMethod` to `optMathMethod`. [API  change]
 
   * MSI installer: Fix upgrade detection for per-machine installations
