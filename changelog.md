@@ -14,13 +14,13 @@
     Make `--bash-completion` an alias of `--completion=bash`.
     See the manual for instructions on how to use these completions.
 
- * Text.Pandoc.Options [API change]:
+  * Text.Pandoc.Options [API change]:
 
     - Rename HTMLMathMethod type to MathMethod.
     - Rename `writerHTMLMathMethod` field of WriterOptions to
       `writerMathMethod`.
 
-   * Markdown reader:
+  * Markdown reader:
 
     + Add a syntax `(1@label)` for resetting example list counter
       (#10940). This is needed often at the beginning of a chapter.
