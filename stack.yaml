@@ -27,10 +27,9 @@ extra-deps:
 - typst-symbols-0.3
 - djot-0.1.4.2
 - asciidoc-0.1.0.5
+- texmath-0.13.2.2
 - git: https://github.com/jgm/typst-hs.git
   commit: d31df63aeb088cbfd8a4b9c23875938cdac4659e
-- git: https://github.com/jgm/texmath.git
-  commit: 1c62adb8886ddda787c95c7c6f8e497b3d31ef64
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
