@@ -458,7 +458,10 @@ inlineToMediaWiki (Str str) = do
     if inDefLabel
        then T.intercalate "<nowiki>:</nowiki>" $
               map escapeText $ T.splitOn ":" str
-       else escapeText str
+       else
+          (if "://" `T.isInfixOf` str -- see #11834
+              then inNowiki
+              else id) $ escapeText str
 
 inlineToMediaWiki (Math mt str) = return $ literal $
   "<math display=\"" <>
@@ -1169,3 +1172,6 @@ startsWithListMarker t =
   case T.uncons t of
     Nothing -> False
     Just (c,_) -> c == '#' || c == ':' || c == ';' || c == '*'
+
+inNowiki :: Text -> Text
+inNowiki t = "<nowiki>" <> t <> "</nowiki>"
