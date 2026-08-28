@@ -458,6 +458,7 @@
 - William Rusnack
 - Winnie Hellmann
 - Wout Gevaert
+- Wrong-Code
 - Xavier Olive
 - Yan Pashkovsky
 - Yann Trividic
@@ -547,4 +548,5 @@
 - wiefling
 - willj-dev
 - wuffi
+- wzy
 - λx.x
