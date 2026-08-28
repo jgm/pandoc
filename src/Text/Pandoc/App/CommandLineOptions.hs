@@ -1380,7 +1380,7 @@ handleUnrecognizedOption x =
 
 mathMethods :: [Text]
 mathMethods = ["plain", "mathml", "webtex", "mathjax", "katex", "gladtex"]
- 
+
 readersNames :: [Text]
 readersNames = sort (map fst (readers :: [(Text, Reader PandocIO)]))
 
