@@ -27,7 +27,7 @@
 
   * MediaWiki writer:
 
-    + Put nowiki around possible URLs (#11834). Otherwise they get
+    + Put `<nowiki>` around possible URLs (#11834). Otherwise they get
       linkified automatically.
 
   * Docx reader:
@@ -45,7 +45,7 @@
 
   * HTML reader:
 
-    + Handle pre without code (#11810). Preserve whitespace as
+    + Handle `pre` without `code` (#11810). Preserve whitespace as
       nonbreaking spaces.
 
   * ODT/OpenDocument writers:
@@ -68,7 +68,7 @@
 
   * JATS writer:
 
-    + Fix illegal use of p element inside p (#11809).
+    + Fix illegal use of `p` element inside `p` (#11809).
 
   * Ms writer:
 
