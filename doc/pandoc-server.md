@@ -286,7 +286,7 @@ the first one given is the default.
     cause the first section to be numbered "1" and the first
     subsection "1.2."
 
-`html-math-method` (`"plain"|"webtex"|"gladtex"|"mathml"|"mathjax"|"katex"`)
+`math-method` (`"plain"|"webtex"|"gladtex"|"mathml"|"mathjax"|"katex"`)
 
 :   Determines how math is represented in HTML.
 
