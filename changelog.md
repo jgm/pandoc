@@ -1,5 +1,125 @@
 # Revision history for pandoc
 
+## pandoc 3.11 (2026-08-28)
+
+  * Add `--math-method` option. This replaces (now deprecated but
+    still functional) options `--mathml`, `--mathjax`, `--gladtex`,
+    `--katex`, `--webtex`. The `plain` style can now be specified
+    explicitly. In defaults files, `html-math-method` is now
+    `math-method` (though `html-math-method` will still work).
+
+  * Make `mathml` the default math-method (#11751).
+
+  * Add `--completion={bash,zsh,fish}` (#8542, wzy).
+    Make `--bash-completion` an alias of `--completion=bash`.
+    See the manual for instructions on how to use these completions.
+
+ * Text.Pandoc.Options [API change]:
+
+    - Rename HTMLMathMethod type to MathMethod.
+    - Rename `writerHTMLMathMethod` field of WriterOptions to
+      `writerMathMethod`.
+
+   * Markdown reader:
+
+    + Add a syntax `(1@label)` for resetting example list counter
+      (#10940). This is needed often at the beginning of a chapter.
+
+  * MediaWiki writer:
+
+    + Put nowiki around possible URLs (#11834). Otherwise they get
+      linkified automatically.
+
+  * Docx reader:
+
+    + Handle case where non-header rows come before header rows (#11833).
+    + Improve handling of tables with uneven rows (#11833).
+
+  * RTF Reader:
+
+    + Add support for nested tables (#11218, Alex).
+
+  * Typst reader:
+
+    + Remove handling of 'block' as an inline-level element (#11814).
+
+  * HTML reader:
+
+    + Handle pre without code (#11810). Preserve whitespace as
+      nonbreaking spaces.
+
+  * ODT/OpenDocument writers:
+
+    + Support RTL text direction (#11301). RTL is now properly handled
+      in these cases: `dir: rtl` (or `ltr`) in document metadata; an
+      RTL `lang` in metadata (e.g. `he`, `ar`), unless overridden by
+      `dir`; a `dir` attribute on a Div. Code blocks remain ltr
+      regardless.
+    + Use `style:language-complex` rather than `fo:language` for RTL
+      languages (#11301).
+    + Fix treatment of DefaultHighlighting (#11829).
+
+  * Docx writer:
+
+    + Initialize envLang from `lang` metadata (#11301).
+      This ensures that setting `lang` will affect the whole document.
+      Previously, setting `lang` to `he` was not sufficient to make
+      the document RTL.
+
+  * JATS writer:
+
+    + Fix illegal use of p element inside p (#11809).
+
+  * Ms writer:
+
+    + Fix treatment of DefaultHighlighting (#11829).
+      (Regression from 3.8.)
+
+  * ConTeXt writer:
+
+    + Fix bug in syntax highlighting (#11829). (Regression from 3.8.)
+
+  * Text.Pandoc.App.Opt:
+
+    + In unexported type CompletionKind, add MathMethods.
+    + In Opt, change `optHTMLMathMethod` to `optMathMethod`. [API  change]
+
+  * MSI installer: Fix upgrade detection for per-machine installations
+    (#11827, Wrong-Code). Previously, registry records of previous
+    versions were not being removed.
+
+  * Text.Pandoc.Templates:
+
+    + Fix bug in `getTemplate`. When calling `fetchItem` in
+      `getTemplate`, we temporarily reset the `stSourceURL` in
+      CommonState so that the template is sought locally. Previously, an
+      exception in `fetchItem` would prevent `stSourceURL` from being
+      set back to its original value. This could result in a local file
+      being fetched instead of a remote one. Note that an exception is
+      triggered when one uses e.g. `--template default.html5`; in that
+      case `getTemplate` handles the exception by looking for the file
+      in the user data directory. This patch fixes the bug so that the
+      `stSourceURL` is reset regardless of whether `fetchItem` raises an
+      exception. Thanks to Yingjie Su for identifying the problem.
+
+  * beamer template: remove spurious extra tableofcontents (#11819).
+
+  * Text.Pandoc.App.CommandLineOptions:
+
+    + Export OptionSpec, which can encode the type of completion
+      needed by each option (wzy).
+
+  * Add new unexported module Text.Pandoc.Completion (wzy).
+
+  * Replace a use of `nub` with `nubOrd`.
+
+  * Use latest releases of djot, asciidoc, typst, texmath.
+
+  * MANUAL.txt:
+
+    + Add a note that `thanks` in typst doesn't currently work (#11807).
+    + Note that sourcepos extension works for djot too.
+
 ## pandoc 3.10.2 (2026-08-11)
 
   * Markdown reader:
