@@ -280,6 +280,7 @@ extra-source-files:
                  test/command/7861/metadata/placeholder
                  test/command/11486/scroll.revealjs
                  test/command/11498.png
+                 test/command/11301-styles.opendocument
                  test/asciidoc-reader.adoc
                  test/asciidoc-reader.native
                  test/asciidoc-reader-include.rb
