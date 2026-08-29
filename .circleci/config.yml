@@ -168,7 +168,9 @@ jobs:
           name: Compress artifacts
           command: |
             nix-env -iA nixpkgs.zip
-            zip -r pandoc.wasm.zip pandoc.wasm COPYING.md COPYRIGHT
+            mkdir pandoc
+            mv pandoc.wasm COPYING.md COPYRIGHT pandoc/
+            zip -r pandoc.wasm.zip pandoc-wasm
       - store_artifacts:
           path: pandoc.wasm.zip
 
