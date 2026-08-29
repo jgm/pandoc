@@ -819,7 +819,7 @@ blockQuote = do
     (do guardEnabled Ext_alerts
         case raw of
           (t:ts) | "[!" `T.isPrefixOf` t ->
-              case T.strip t of
+              case T.toUpper (T.strip t) of
                 "[!TIP]" -> pure (Just "tip", ts)
                 "[!WARNING]" -> pure (Just "warning", ts)
                 "[!IMPORTANT]" -> pure (Just "important", ts)
@@ -834,7 +834,7 @@ blockQuote = do
     case mbAlert of
       Nothing -> B.blockQuote <$> contents
       Just alert ->
-        (B.divWith ("", [alert], [])
+        (B.divWith ("", ["alert", alert], [])
           . (B.divWith ("", ["title"], []) (B.para (B.str (T.toTitle alert))) <>))
            <$> contents
 
