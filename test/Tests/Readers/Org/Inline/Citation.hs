@@ -65,7 +65,7 @@ tests =
                 { citationId = "item2"
                 , citationPrefix = []
                 , citationSuffix = []
-                , citationMode = NormalCitation
+                , citationMode = AuthorInText
                 , citationNoteNum = 0
                 , citationHash = 0
                 }
