@@ -87,7 +87,7 @@ data WriterEnv = WriterEnv
   , envInNote         :: Bool
   , envChangesAuthor  :: Text
   , envChangesDate    :: Text
-  , envPrintWidth     :: Integer
+  , envPrintWidth     :: Integer  -- in points
   , envLang           :: Maybe Text
   , envSectPr         :: Maybe Element
   }

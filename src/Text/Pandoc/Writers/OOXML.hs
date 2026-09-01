@@ -89,8 +89,8 @@ isElem ns prefix name element =
 
 type NameSpaces = [(Text, Text)]
 
--- | Scales the image to fit the page
--- sizes are passed in emu
+-- | Scales the image to fit the page if it would overflow.
+-- Sizes are passed in emu.
 fitToPage :: (Double, Double) -> Integer -> (Integer, Integer)
 fitToPage (x, y) pageWidth
   -- Fixes width to the page width and scales the height
