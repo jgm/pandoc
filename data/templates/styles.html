@@ -13,7 +13,10 @@ $if(linestretch)$
   line-height: $linestretch$;
 $endif$
   color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  color: light-dark($if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$, $if(fontcolordark)$$fontcolordark$$else$#fdfdfd$endif$);
   background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
+  background-color: light-dark($if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$, $if(backgroundcolordark)$$backgroundcolordark$$else$#1a1a1a$endif$);
+  color-scheme:$if(fontcolor)$ light$elseif(backgroundcolor)$ light$elseif(fontcolordark)$$elseif(backgroundcolordark)$$else$ light$endif$$if(fontcolordark)$ dark$elseif(backgroundcolordark)$ dark$elseif(fontcolor)$$elseif(backgroundcolor)$$else$ dark$endif$;
 }
 body {
   margin: 0 auto;
@@ -38,11 +41,16 @@ body {
 }
 @media print {
   html {
-    background-color: $if(backgroundcolor)$$backgroundcolor$$else$white$endif$;
+    color-scheme: light only;
   }
-  body {
+  html, body, pre, code {
     background-color: transparent;
+  }
+  body, a, a:visited, blockquote {
     color: black;
+  }
+  pre, code {
+    padding: 0;
   }
   p, h2, h3 {
     orphans: 3;
@@ -55,11 +63,13 @@ body {
 p {
   margin: 1em 0;
 }
-a {
-  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
-}
-a:visited {
-  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
+a, a:visited {
+  color: $if(linkcolor)$$linkcolor$$else$inherit$endif$;
+$if(linkcolor)$
+  color: light-dark($linkcolor$, $if(linkcolordark)$$linkcolordark$$else$inherit$endif$);
+$elseif(linkcolordark)$
+  color: light-dark(inherit, $linkcolordark$);
+$endif$
 }
 img {
   max-width: 100%;
@@ -88,8 +98,11 @@ li > ol, li > ul {
 blockquote {
   margin: 1em 0 1em 1.7em;
   padding-left: 1em;
-  border-left: 2px solid #e6e6e6;
-  color: #606060;
+  border-left: 2px solid;
+  border-color: $if(quotebordercolor)$$quotebordercolor$$else$#e6e6e6$endif$;
+  border-color: light-dark($if(quotebordercolor)$$quotebordercolor$$else$#e6e6e6$endif$, $if(quotebordercolordark)$$quotebordercolordark$$else$#4c4c4c$endif$);
+  color: $if(quotecolor)$$quotecolor$$else$#606060$endif$;
+  color: light-dark($if(quotecolor)$$quotecolor$$else$#606060$endif$, $if(quotecolordark)$$quotecolordark$$else$#b6b6b6$endif$);
 }
 $if(abstract)$
 div.abstract {
@@ -109,6 +122,11 @@ code {
   font-family: $if(monofont)$$monofont$$else$Menlo, Monaco, Consolas, 'Lucida Console', monospace$endif$;
 $if(monobackgroundcolor)$
   background-color: $monobackgroundcolor$;
+  background-color: light-dark($monobackgroundcolor$, $if(monobackgroundcolordark)$$monobackgroundcolordark$$else$inherit$endif$);
+  padding: .2em .4em;
+$elseif(monobackgroundcolordark)$
+  background-color: inherit;
+  background-color: light-dark(inherit, $monobackgroundcolordark$);
   padding: .2em .4em;
 $endif$
   font-size: 85%;
@@ -119,6 +137,11 @@ pre {
   margin: 1em 0;
 $if(monobackgroundcolor)$
   background-color: $monobackgroundcolor$;
+  background-color: light-dark($monobackgroundcolor$, $if(monobackgroundcolordark)$$monobackgroundcolordark$$else$inherit$endif$);
+  padding: 1em;
+$elseif(monobackgroundcolordark)$
+  background-color: inherit;
+  background-color: light-dark(inherit, $monobackgroundcolordark$);
   padding: 1em;
 $endif$
   overflow: auto;
@@ -134,7 +157,7 @@ pre code {
 }
 hr {
   border: none;
-  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid currentColor;
   height: 1px;
   margin: 1em 0;
 }
@@ -156,11 +179,11 @@ $endif$
 }
 tbody {
   margin-top: 0.5em;
-  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
-  border-bottom: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
 }
 th {
-  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  border-top: 1px solid currentColor;
   padding: 0.25em 0.5em 0.25em 0.5em;
 }
 td {
