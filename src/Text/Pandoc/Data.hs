@@ -25,6 +25,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
 import Codec.Archive.Zip
+import Data.List (sort)
 import qualified Data.Text as T
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
@@ -220,10 +221,20 @@ getDataFileNames = do
 #ifdef EMBED_DATA_FILES
   let allDataFiles = map fst dataFiles
 #else
-  allDataFiles <- filter (\x -> x /= "." && x /= "..") <$>
-                      (getDataDir >>= getDirectoryContents)
+  let listDirectoryRecursive d = do
+        xs <- listDirectory d
+        concat <$>
+           mapM (\f -> do
+                      isdir <- doesDirectoryExist (d </> f)
+                      if isdir
+                         then map (f </>) <$> listDirectoryRecursive (d </> f)
+                         else pure [f]) xs
+  ddir <- getDataDir
+  allDataFiles <- ("MANUAL.txt" :) <$>
+                     listDirectoryRecursive (ddir </> "data")
 #endif
-  return $ "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
+  return $ sort $
+    "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
 
 -- | Return appropriate user data directory for platform.  We use
 -- XDG_DATA_HOME (or its default value), but for backwards compatibility,
