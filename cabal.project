@@ -8,9 +8,6 @@ constraints: skylighting-format-blaze-html >= 0.1.2.1,
              crypton >= 1.1.1
 
 
-package pandoc
-  flags: +embed_data_files +http
-
 if arch(wasm32)
   tests: False
 
@@ -39,7 +36,7 @@ if arch(wasm32)
                  -optc-DLUA_STUB_SYSTEM
 
   package pandoc
-    flags: +embed_data_files -http
+    flags: -http
 
   package pandoc-cli
     flags: +lua -repl -server
