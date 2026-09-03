@@ -672,7 +672,7 @@ taskListItemFromAscii :: Extensions -> [Block] -> [Block]
 taskListItemFromAscii = handleTaskListItem fromMd
   where
     fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
-    fromMd (Str "[ ]"                 : Space : is) = Str "☒" : Space : is
+    fromMd (Str "[ ]"                 : Space : is) = Str "☐" : Space : is
     fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
     fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
     fromMd [Str "[" , Space , Str "]"] = [Str "☐"]
