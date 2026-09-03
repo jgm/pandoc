@@ -333,7 +333,7 @@ withNewStyle a = proc x -> do
     isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
-    inlineCode = code . T.concat . map stringify . toList
+    inlineCode = code . stringifyInlines
 
 type PropertyTriple = (ReaderState, TextProperties, Maybe StyleFamily)
 type InlineModifier = Inlines -> Inlines
@@ -653,7 +653,7 @@ read_paragraph    = matchingElement NsText "p" $
                         fStyle <- readStyleByName -< blocks
                         case fStyle of
                           Right style | isPreformattedStyle style -> do
-                            liftA (codeBlock . stringify) $ matchParagraphContent -< blocks
+                            liftA (codeBlock . stringifyInlines) $ matchParagraphContent -< blocks
                           _ ->
                             constructPara $ liftA para $ withNewStyle matchParagraphContent -< blocks
                         where

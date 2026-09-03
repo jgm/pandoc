@@ -28,7 +28,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (trim, stringify, tshow)
+import Text.Pandoc.Shared (trim, stringifyInlines, tshow)
 import Data.List (isPrefixOf, isSuffixOf, groupBy)
 import qualified Safe
 
@@ -177,7 +177,7 @@ nestedText end = innerSpace <|> countChar 1 nonspaceChar
     innerSpace = try $ many1Char spaceChar <* notFollowedBy end
 
 monospaced :: PandocMonad m => DWParser m B.Inlines
-monospaced = try $ B.code . (T.concat . map stringify . B.toList) <$> enclosed (string "''") nestedInlines
+monospaced = try $ B.code . stringifyInlines <$> enclosed (string "''") nestedInlines
 
 subscript :: PandocMonad m => DWParser m B.Inlines
 subscript = try $ B.subscript <$> between (string "<sub>") (try $ string "</sub>") nestedInlines

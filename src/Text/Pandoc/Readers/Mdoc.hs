@@ -42,7 +42,7 @@ import Text.Pandoc.Readers.Mdoc.Standards
 import Text.Parsec (modifyState)
 import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringify, stringifyInlines)
 
 #if !MIN_VERSION_base(4,19,0)
 unsnoc :: [a] -> Maybe ([a], a)
@@ -270,7 +270,7 @@ parseHeader = do
   (Macro m _) <- lookAhead $ macro "Sh" <|> macro "Ss"
   txt <- lineEnclosure m id
   let lvl = if m == "Sh" then 1 else 2
-  when (lvl == 1) $ modifyState $ \s -> s{currentSection = (shToSectionMode . stringify) txt}
+  when (lvl == 1) $ modifyState $ \s -> s{currentSection = (shToSectionMode . stringifyInlines) txt}
   return $ B.header lvl txt
 
 parseNameSection :: PandocMonad m => MdocParser m Blocks
@@ -474,7 +474,7 @@ simpleInline nm xform = do
       return $ openDelim <> xform inlines <> closeDelim
 
 codeLikeInline' :: PandocMonad m => T.Text -> T.Text -> MdocParser m Inlines
-codeLikeInline' nm cl = simpleInline nm (eliminateEmpty (B.codeWith (cls cl) . stringify))
+codeLikeInline' nm cl = simpleInline nm (eliminateEmpty (B.codeWith (cls cl) . stringifyInlines))
 
 codeLikeInline :: PandocMonad m => T.Text -> MdocParser m Inlines
 codeLikeInline nm = codeLikeInline' nm nm
@@ -671,7 +671,7 @@ parseSx = spanLikeInline "Sx"
 parseMt :: PandocMonad m => MdocParser m Inlines
 parseMt = simpleInline "Mt" mailto
   where mailto x | null x = B.link ("mailto:~") "" "~"
-                 | otherwise = B.link ("mailto:" <> stringify x) "" x
+                 | otherwise = B.link ("mailto:" <> stringifyInlines x) "" x
 
 parsePa :: PandocMonad m => MdocParser m Inlines
 parsePa = simpleInline "Pa" p
@@ -713,7 +713,7 @@ parseFl = do
 parseAr :: PandocMonad m => MdocParser m Inlines
 parseAr = simpleInline "Ar" ar
   where ar x | null x = B.codeWith (cls "variable") "file ..."
-             | otherwise = B.codeWith (cls "variable") $ stringify x
+             | otherwise = B.codeWith (cls "variable") $ stringifyInlines x
 
 
 parseCm :: PandocMonad m => MdocParser m Inlines
@@ -729,7 +729,7 @@ parseCd :: PandocMonad m => MdocParser m Inlines
 parseCd = codeLikeInline "Cd"
 
 parseQl :: PandocMonad m => MdocParser m Inlines
-parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
+parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringifyInlines
 
 parseDq :: PandocMonad m => MdocParser m Inlines
 parseDq = lineEnclosure "Dq" B.doubleQuoted
@@ -785,7 +785,7 @@ parseAo = multilineEnclosure "Ao" "Ac" $ \x -> "⟨" <> x <> "⟩"
 parseDl :: PandocMonad m => MdocParser m Blocks
 parseDl = do
   inner <- lineEnclosure "Dl" id
-  return $ B.codeBlock (stringify inner)
+  return $ B.codeBlock (stringifyInlines inner)
 
 parseD1 :: PandocMonad m => MdocParser m Blocks
 parseD1 = do
@@ -801,7 +801,7 @@ parseNm = do
     (Just nm, x) | null x ->
       op <> ok nm <> cl
     (_, x) ->
-      op <> (ok . stringify) x <> cl
+      op <> (ok . stringifyInlines) x <> cl
   where
     ok = B.codeWith (cls "Nm")
 
@@ -1193,7 +1193,7 @@ parseCodeBlock = do
   eol
   lns <- many $ Just . toString <$> (str <|> blank)
             <|> Nothing <$ parseSmToggle
-            <|> Just . stringify <$> parseInline
+            <|> Just . stringifyInlines <$> parseInline
             <|> Just "" <$ emptyMacro "Pp"
   return $ B.codeBlock (T.unlines (catMaybes lns))
 
@@ -1218,7 +1218,7 @@ parseBf = do
   emptyMacro "Ef"
   return $ xform ins
   where
-    code = B.code . stringify
+    code = B.code . stringifyInlines
 
 skipListArgument :: (PandocMonad m) => MdocParser m ()
 skipListArgument =
@@ -1307,7 +1307,7 @@ referenceField :: PandocMonad m => T.Text -> ReferenceField -> MdocParser m ()
 referenceField m field = do
   macro m
   reference <- currentReference <$> getState
-  contents <- stringify <$> litsAndDelimsToInlines
+  contents <- stringifyInlines <$> litsAndDelimsToInlines
   eol
   modifyState $ \s -> s{currentReference = M.insertWith (++) field [contents] reference}
   return ()

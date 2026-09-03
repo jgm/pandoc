@@ -457,7 +457,7 @@ inlineToDocBook opts (Image attr ils (src, tit)) = return $
       alt = if null ils
                then mempty
                else inTagsIndented "textobject" $
-                    inTagsSimple "phrase" $ literal (stringify ils)
+                    inTagsSimple "phrase" $ literal (stringifyInlines ils)
   in  inTagsIndented "inlinemediaobject" $
         inTagsIndented "imageobject"
           (titleDoc $$ imageToDocBook opts attr src)

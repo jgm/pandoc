@@ -29,7 +29,7 @@ import Text.Pandoc.Readers.LaTeX (readLaTeX)
 import Text.Pandoc.Extensions (Extension(..), extensionsFromList)
 import Text.Pandoc.Options (ReaderOptions(..), WriterOptions)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringify, stringifyInlines)
 import Text.Pandoc.Writers.LaTeX (writeLaTeX)
 import Text.Pandoc.Class (runPure)
 import qualified Text.Pandoc.Walk       as Walk
@@ -262,7 +262,7 @@ writeBibtexString opts variant mblang ref =
 
   getVariable v = lookupVariable (toVariable v) ref
 
-  getVariableAsText v = (stringify . valToInlines) <$> getVariable v
+  getVariableAsText v = (stringifyInlines . valToInlines) <$> getVariable v
 
   getYear val =
     case val of
@@ -340,7 +340,7 @@ writeBibtexString opts variant mblang ref =
 
   getContentsFor x = getVariable x >>=
     if isURL x
-       then Just . literal . stringify . valToInlines
+       then Just . literal . stringifyInlines . valToInlines
        else toLaTeX .
             (if x == "title"
                 then titlecase
@@ -381,7 +381,7 @@ itemToReference locale variant item = do
     -- hyphenation:
     let getLangId = do
              langid <- T.strip . T.toLower <$> getRawField "langid"
-             idopts <- T.strip . T.toLower . stringify <$>
+             idopts <- T.strip . T.toLower . stringifyInlines <$>
                            getField "langidopts" <|> return ""
              case (langid, idopts) of
                   ("english","variant=british")    -> return "british"
@@ -1039,17 +1039,17 @@ fixLeadingDash t = case T.uncons t of
 
 getOldDate :: Text -> Bib Date
 getOldDate prefix = do
-  year' <- (readMay . T.unpack . fixLeadingDash . stringify
+  year' <- (readMay . T.unpack . fixLeadingDash . stringifyInlines
               <$> getField (prefix <> "year")) <|> return Nothing
   month' <- (parseMonth <$> getRawField (prefix <> "month"))
             <|> return Nothing
   day' <- (readMay . T.unpack <$> getRawField (prefix <> "day"))
           <|> return Nothing
-  endyear' <- (readMay . T.unpack . fixLeadingDash . stringify
+  endyear' <- (readMay . T.unpack . fixLeadingDash . stringifyInlines
               <$> getField (prefix <> "endyear")) <|> return Nothing
-  endmonth' <- (parseMonth . stringify
+  endmonth' <- (parseMonth . stringifyInlines
                  <$> getField (prefix <> "endmonth")) <|> return Nothing
-  endday' <- (readMay . T.unpack . stringify <$>
+  endday' <- (readMay . T.unpack . stringifyInlines <$>
                  getField (prefix <> "endday")) <|> return Nothing
   let toDateParts (y', m', d') =
               DateParts $

@@ -38,7 +38,7 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (..),
                             HighlightMethod(Skylighting, DefaultHighlighting))
 import Text.Pandoc.Highlighting (defaultStyle)
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, tshow)
+import Text.Pandoc.Shared (stringify, stringifyInlines, tshow)
 import Text.Pandoc.Version (pandocVersionText)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath, getLang,
@@ -165,7 +165,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("office:version","1.3")] ( inTags True "office:meta" []
                  ( metaTag "meta:generator" ("Pandoc/" <> pandocVersionText)
                    $$
-                   metaTag "dc:title" (stringify title)
+                   metaTag "dc:title" (stringifyInlines title)
                    $$
                    metaTag "dc:description"
                           (T.intercalate "\n" (map stringify $
@@ -184,7 +184,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
                          $$ metaTag "meta:creation-date" d
                          $$ metaTag "dc:date" d
                    ) (T.pack $ formatTime defaultTimeLocale "%FT%XZ" utctime)
-                     (T.intercalate "; " (map stringify authors))
+                     (T.intercalate "; " (map stringifyInlines authors))
                    $$
                    vcat userDefinedMeta
                  )

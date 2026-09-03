@@ -264,7 +264,7 @@ inlineToHaddock opts SoftBreak =
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
 inlineToHaddock _ (Link _ txt (src, _)) = do
-  let linktext = literal $ escapeString $ stringify txt
+  let linktext = literal $ escapeString $ stringifyInlines txt
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == src -> True

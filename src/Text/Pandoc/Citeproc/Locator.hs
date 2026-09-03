@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import qualified Data.List as L
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringify, stringifyInlines)
 import Control.Monad (mzero)
 import qualified Data.Map as M
 import Data.Char (isSpace, isPunctuation, isDigit)
@@ -152,7 +152,7 @@ pLocatorLabel' locMap lim = go ""
           -- the pathological case is "p.3"
           t <- anyToken
           ts <- manyTill anyToken (try $ lookAhead lim)
-          let s = acc <> stringify (t:ts)
+          let s = acc <> stringifyInlines (t:ts)
           case M.lookup (T.toCaseFold $ T.strip s) (unLocatorMap locMap) of
             -- try to find a longer one, or return this one
             Just l -> go s <|> return (s, l, False)
@@ -239,7 +239,7 @@ pPageUnit = roman <|> plainUnit
                        notFollowedBy pLocatorPunct >>
                        notFollowedBy pMath >>
                        anyToken)
-          let s = stringify ts
+          let s = stringifyInlines ts
           -- otherwise look for actual digits or -s
           return (T.any isDigit s, s)
 

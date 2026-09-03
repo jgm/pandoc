@@ -33,7 +33,8 @@ import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
                                     setupTranslations )
-import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow, stringify)
+import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow,
+                           stringifyInlines)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
                                  styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
@@ -598,7 +599,7 @@ getAlt (_, _, kvs) imgInlines =
     Just alt -> Just alt
     Nothing -> case imgInlines of
                  [] -> Nothing
-                 _ -> Just (stringify imgInlines)
+                 _ -> Just (stringifyInlines imgInlines)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do

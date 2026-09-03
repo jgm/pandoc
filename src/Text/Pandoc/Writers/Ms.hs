@@ -72,8 +72,8 @@ pandocToMs opts (Pandoc meta blocks) = do
               meta
   main <- blockListToMs opts blocks
   hasInlineMath <- gets stHasInlineMath
-  let titleMeta = (escapeStr opts . stringify) $ docTitle meta
-  let authorsMeta = map (escapeStr opts . stringify) $ docAuthors meta
+  let titleMeta = (escapeStr opts . stringifyInlines) $ docTitle meta
+  let authorsMeta = map (escapeStr opts . stringifyInlines) $ docAuthors meta
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightMethod opts of
@@ -515,7 +515,7 @@ inlineToMs opts (Link _ txt (src, _)) = do
       Nothing -> contents
 inlineToMs opts (Image attr alternate (src, _)) = do
   let desc = literal "[IMAGE: " <>
-             literal (escapeStr opts (stringify alternate)) <> char ']'
+             literal (escapeStr opts (stringifyInlines alternate)) <> char ']'
   let sizeAttrs = getSizeAttrs opts attr
   let ext = takeExtension (T.unpack src)
   let cmd = case ext of

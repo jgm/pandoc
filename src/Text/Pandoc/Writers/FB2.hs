@@ -38,7 +38,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (MathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (blocksToInlines, capitalize, orderedListMarkers,
-                           makeSections, tshow, stringify)
+                           makeSections, tshow, stringifyInlines)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
                                    ensureValidXmlIdentifiers)
@@ -118,7 +118,7 @@ description meta' = do
         im <- insertImage InlineImage img
         return [el "coverpage" im]
   coverpage <- case lookupMeta "cover-image" meta' of
-                    Just (MetaInlines ils) -> coverimage (stringify ils)
+                    Just (MetaInlines ils) -> coverimage (stringifyInlines ils)
                     Just (MetaString s) -> coverimage s
                     _       -> return []
   return $ el "description"

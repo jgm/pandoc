@@ -754,8 +754,8 @@ blockToMarkdown' opts (Figure figattr capt body) = do
                             (i,c,kv)
                               | not (null alt)
                               , Nothing <- lookup "alt" kv
-                              , stringify descr /= stringify alt ->
-                                 (i, c, ("alt", stringify alt) : kv)
+                              , stringifyInlines descr /= stringifyInlines alt ->
+                                 (i, c, ("alt", stringifyInlines alt) : kv)
                             _ -> imgAttr'
           contents <- inlineListToMarkdown opts [Image imgAttr'' descr tgt']
           return $ contents <> blankline

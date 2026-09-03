@@ -37,7 +37,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag, toAttr)
-import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringify,
+import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringifyInlines,
                            stripTrailingNewlines, trim, tshow)
 import Text.Pandoc.XML (fromEntities)
 
@@ -723,7 +723,7 @@ image = try $ do
   let attr = ("", [], kvs)
   caption <-   (B.str fname <$ sym "]]")
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.imageWith attr fname (stringify caption) caption
+  return $ B.imageWith attr fname (stringifyInlines caption) caption
 
 imageOption :: PandocMonad m => MWParser m Text
 imageOption = try $ char '|' *> opt
@@ -753,7 +753,7 @@ internalLink = try $ do
   sym "]]"
   -- see #8525:
   linktrail <- B.text <$> manyChar (satisfy (\c -> isLetter c && not (isCJK c)))
-  let link = B.linkWith (mempty, ["wikilink"], mempty) (addUnderscores pagename) (stringify label) (label <> linktrail)
+  let link = B.linkWith (mempty, ["wikilink"], mempty) (addUnderscores pagename) (stringifyInlines label) (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }

@@ -49,7 +49,7 @@ import Text.Pandoc.Options (MathMethod (..), WriterOptions (..))
 import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
-import Text.Pandoc.Shared (inDirectory, stringify, tshow)
+import Text.Pandoc.Shared (inDirectory, stringify, stringifyInlines, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToContext)
@@ -196,7 +196,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                       _ -> []
   meta' <- metaToContext opts
              (return . literal . stringify)
-             (return . literal . stringify)
+             (return . literal . stringifyInlines)
              meta
   let toArgs (f, mbd) = maybe [] (\d -> ["--" <> f, T.unpack d]) mbd
   let args   = mathArgs ++ concatMap toArgs

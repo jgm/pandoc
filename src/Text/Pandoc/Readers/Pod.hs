@@ -30,7 +30,7 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
-import Text.Pandoc.Shared (stringify, textToIdentifier, tshow)
+import Text.Pandoc.Shared (stringifyInlines, textToIdentifier, tshow)
 import Data.Set (Set)
 import Data.Functor (($>))
 import Data.Maybe (listToMaybe, fromMaybe)
@@ -210,7 +210,7 @@ format = try $ do
   lookAhead (char '<')
   case ctrl of
     'B' -> B.strong <$> argument
-    'C' -> B.code . stringify <$> argument
+    'C' -> B.code . stringifyInlines <$> argument
     'F' -> B.spanWith (mempty, ["filename"], mempty) <$> argument
     'I' -> B.emph <$> argument
     'S' -> argument  -- TODO map nbsps
@@ -218,7 +218,7 @@ format = try $ do
     'Z' -> argument $> mempty
 
     'E' -> do
-      a <- stringify <$> argument
+      a <- stringifyInlines <$> argument
       case entity a of
              -- per spec:
              --   Pod parsers, when faced with some unknown "E<identifier>" code,
@@ -294,9 +294,9 @@ link = do
       let name' = fromMaybe (defaultLinkName dest) name in
           case dest of
             LinkUrl _ href -> B.link href "" name'
-            LinkMan nm Nothing ->  B.linkWith (mempty, mempty, [("manual", stringify nm)]) "" "" name'
-            LinkMan nm (Just sc) -> B.linkWith (mempty, mempty, [("manual", stringify nm), ("section", stringify sc)]) "" "" name'
-            LinkInternal sc -> B.link ("#" <> identifier (stringify sc)) "" name'
+            LinkMan nm Nothing ->  B.linkWith (mempty, mempty, [("manual", stringifyInlines nm)]) "" "" name'
+            LinkMan nm (Just sc) -> B.linkWith (mempty, mempty, [("manual", stringifyInlines nm), ("section", stringifyInlines sc)]) "" "" name'
+            LinkInternal sc -> B.link ("#" <> identifier (stringifyInlines sc)) "" name'
 
     linkName sp ex = optionMaybe $ try $ many
         (try format
@@ -317,7 +317,7 @@ link = do
       rst <- many (format <|> B.str <$> many1Char (podCharLess ex))
       return $ LinkUrl
                  (B.str scheme <> B.str colon <> mconcat rst)
-                 (scheme <> colon <> stringify rst)
+                 (scheme <> colon <> stringifyInlines (mconcat rst))
     quotedSection sp close ex = do
       let mystr = B.str <$> many1Char (podCharLess ('\"':ex) <|> try (char '"' <* notFollowedBy close))
       char '"'

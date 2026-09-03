@@ -286,7 +286,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
               (fmap layoutMarkup . blockListToHtml opts)
               (fmap layoutMarkup . inlineListToHtml opts)
               meta
-  let stringifyHTML = escapeStringForXML . stringify
+  let stringifyHTML = escapeStringForXML . stringifyInlines
   let authsMeta = map (literal . stringifyHTML) $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
   let descriptionMeta = literal $ escapeStringForXML $
@@ -1110,7 +1110,7 @@ blockToHtmlInner opts (Figure attrs (Caption _ captBody)  body) = do
     else foldl (!) H.div (A.class_ "float" : figAttrs) innards
  where
   captionIsAlt capt [Plain [Image (_, _, kv) desc _]] =
-    let alt = fromMaybe (stringify desc) $ lookup "alt" kv
+    let alt = fromMaybe (stringifyInlines desc) $ lookup "alt" kv
     in stringify capt == alt
   captionIsAlt _ _ = False
 
@@ -1601,7 +1601,7 @@ inlineToHtml opts inline = do
                                     else link' ! A.title (toValue tit)
     (Image attr@(_, _, attrList) txt (s, tit)) -> do
                         epubVersion <- gets stEPUBVersion
-                        let alternate = stringify txt
+                        let alternate = stringifyInlines txt
                         slideVariant <- gets stSlideVariant
                         let isReveal = slideVariant == RevealJsSlides
                         attrs <- imgAttrsToHtml opts attr

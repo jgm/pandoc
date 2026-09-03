@@ -678,13 +678,13 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
         where result = "[" <> linktext <> "](" <> (literal src) <> ")"
               attributes = addKeyValueToAttr attr ("title", tit)
     -- Use wikilinks where possible
-    _ | src == stringify txt && useWikilink ->
-        return $ "[[" <> literal (stringify txt) <> "]]"
+    _ | src == stringifyInlines txt && useWikilink ->
+        return $ "[[" <> literal (stringifyInlines txt) <> "]]"
       | useAuto -> return $ "<" <> literal srcSuffix <> ">"
       | useWikilink && isEnabled Ext_wikilinks_title_after_pipe opts -> return $
-        "[[" <> literal src <> "|" <> literal (stringify txt) <> "]]"
+        "[[" <> literal src <> "|" <> literal (stringifyInlines txt) <> "]]"
       | useWikilink && isEnabled Ext_wikilinks_title_before_pipe opts -> return $
-        "[[" <> literal (stringify txt) <> "|" <> literal src <> "]]"
+        "[[" <> literal (stringifyInlines txt) <> "|" <> literal src <> "]]"
       | useRefLinks ->
            let first  = "[" <> linktext <> "]"
                second = if getKey linktext == getKey reftext

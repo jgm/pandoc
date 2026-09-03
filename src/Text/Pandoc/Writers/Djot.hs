@@ -28,8 +28,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, toLegacyTable )
-import Text.Pandoc.Shared (isTightList, tshow, stringify, onlySimpleTableCells,
-                           makeSections)
+import Text.Pandoc.Shared (isTightList, tshow, stringifyInlines,
+                           onlySimpleTableCells, makeSections)
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 
@@ -240,7 +240,7 @@ inlineToDjot (RawInline (Format f) t) =
 inlineToDjot (Link attr ils (src,tit)) = do
   opts <- gets options
   description <- inlinesToDjot ils
-  let ilstring = stringify ils
+  let ilstring = stringifyInlines ils
   let autolink = ilstring == src
   let email = ("mailto:" <> ilstring) == src
   let removeClass name (ident, cls, kvs) = (ident, filter (/= name) cls, kvs)

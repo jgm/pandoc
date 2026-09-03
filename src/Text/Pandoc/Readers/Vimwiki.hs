@@ -74,7 +74,8 @@ import Text.Pandoc.Parsing (ParserState, ParsecT, blanklines, emailAddress,
                             skipMany1, try, option,
                             updateState, getState, (<|>))
 import Text.Pandoc.Sources (ToSources(..), Sources)
-import Text.Pandoc.Shared (splitTextBy, stringify, stripFirstAndLast, tshow)
+import Text.Pandoc.Shared (splitTextBy, stringifyInlines, stripFirstAndLast,
+                           tshow)
 import Text.Pandoc.URI (isURI)
 
 readVimwiki :: (PandocMonad m, ToSources a)
@@ -200,7 +201,7 @@ definitionDef2 = try $ B.plain <$>
 definitionTerm :: PandocMonad m => VwParser m Inlines
 definitionTerm = try $ do
   x <- definitionTerm1 <|> definitionTerm2
-  guard (stringify x /= "")
+  guard (stringifyInlines x /= "")
   return x
 
 definitionTerm1 :: PandocMonad m => VwParser m Inlines
@@ -507,7 +508,7 @@ strong = try $ do
   return $ B.spanWith (makeId contents, [], []) mempty <> B.strong contents
 
 makeId :: Inlines -> Text
-makeId i = T.concat (stringify <$> toList i)
+makeId i = stringifyInlines i
 
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do

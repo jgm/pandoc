@@ -20,7 +20,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Builder hiding (cell)
 import Text.Pandoc.Error (PandocError (PandocParseError))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringifyInlines)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import qualified Text.Jira.Markup as Jira
 
@@ -140,7 +140,7 @@ jiraToPandocInlines = \case
                             in imageWith attr (Jira.fromURL url) title mempty
   Jira.Link lt alias url -> jiraLinkToPandoc lt alias url
   Jira.Linebreak         -> linebreak
-  Jira.Monospaced inlns  -> code . stringify . toList . fromInlines $ inlns
+  Jira.Monospaced inlns  -> code . stringifyInlines . toList . fromInlines $ inlns
   Jira.Space             -> space
   Jira.SpecialChar c     -> str (Data.Text.singleton c)
   Jira.Str t             -> str t

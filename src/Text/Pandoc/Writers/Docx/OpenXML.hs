@@ -241,7 +241,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
   abstractTitle <- case lookupMeta "abstract-title" meta of
       Just (MetaBlocks bs)   -> pure $ stringify bs
-      Just (MetaInlines ils) -> pure $ stringify ils
+      Just (MetaInlines ils) -> pure $ stringifyInlines ils
       Just (MetaString s)    -> pure s
       _                      -> translateTerm Abstract
   abstract <-
@@ -1054,7 +1054,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
               , mknode "wp:effectExtent"
                 [("b","0"),("l","0"),("r","0"),("t","0")] ()
               , mknode "wp:docPr"
-                [ ("descr", stringify alt)
+                [ ("descr", stringifyInlines alt)
                 , ("title", title)
                 , ("id", docprid)
                 , ("name","Picture")

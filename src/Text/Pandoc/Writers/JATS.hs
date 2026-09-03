@@ -445,7 +445,7 @@ blockToJATS opts (Figure (ident, _, kvs) (Caption _short longcapt) body) = do
   -- Remove the alt text from images if it's the same as the caption text.
   let unsetAltIfDupl = \case
         Image attr alt tgt
-          | stringify alt == stringify longcapt -> Image attr [] tgt
+          | stringifyInlines alt == stringify longcapt -> Image attr [] tgt
         inline -> inline
   capt <- if null longcapt
           then pure empty
@@ -487,7 +487,7 @@ inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) (fixCitations lst)
   where
    fixCitations [] = []
    fixCitations (x:xs) | needsFixing x =
-     x : Str (stringify ys) : fixCitations zs
+     x : Str (stringifyInlines ys) : fixCitations zs
      where
        needsFixing (RawInline (Format "jats") z) =
            "<pub-id pub-id-type=" `T.isPrefixOf` z
@@ -616,7 +616,7 @@ inlineToJATS _ (Link _attr [Str t] (T.stripPrefix "mailto:" -> Just email, _))
 inlineToJATS opts (Link (ident,_,kvs) txt (T.uncons -> Just ('#', src), _)) = do
   let attr = mconcat
              [ [("id", escapeNCName ident) | not (T.null ident)]
-             , [("alt", stringify txt) | not (null txt)]
+             , [("alt", stringifyInlines txt) | not (null txt)]
              , [("rid", escapeNCName src)]
              , [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
              , [("ref-type", "bibr") | "ref-" `T.isPrefixOf` src]
@@ -670,7 +670,7 @@ altToJATS alt =
   if null alt
   then Nothing
   else Just . inTagsSimple "alt-text" .
-       hsep . map literal . T.words $ stringify alt
+       hsep . map literal . T.words $ stringifyInlines alt
 
 imageMimeType :: Text -> [(Text, Text)] -> (Text, Text)
 imageMimeType src kvs =

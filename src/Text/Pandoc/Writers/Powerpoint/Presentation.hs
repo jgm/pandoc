@@ -1165,7 +1165,7 @@ metaToDocProps meta =
                    Just (MetaList xs) -> Just $ map Shared.stringify xs
                    _                  -> Nothing
 
-      authors = case map Shared.stringify $ docAuthors meta of
+      authors = case map Shared.stringifyInlines $ docAuthors meta of
                   [] -> Nothing
                   ss -> Just $ T.intercalate "; " ss
 
@@ -1186,7 +1186,7 @@ metaToDocProps meta =
             , dcDescription = description
             , cpCategory = Shared.stringify <$> lookupMeta "category" meta
             , dcDate =
-              let t = Shared.stringify (docDate meta)
+              let t = Shared.stringifyInlines (docDate meta)
               in if T.null t
                  then Nothing
                  else Just t

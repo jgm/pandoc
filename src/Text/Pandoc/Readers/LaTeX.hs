@@ -764,7 +764,7 @@ preamble = mconcat <$> many preambleBlock
 rule :: PandocMonad m => LP m Blocks
 rule = do
   skipopts
-  width <- T.takeWhile (\c -> isDigit c || c == '.') . stringify <$> tok
+  width <- T.takeWhile (\c -> isDigit c || c == '.') . stringifyInlines <$> tok
   _thickness <- tok
   -- 0-width rules are used to fix spacing issues:
   case safeRead width of

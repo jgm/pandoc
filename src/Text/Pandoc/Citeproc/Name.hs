@@ -23,7 +23,7 @@ module Text.Pandoc.Citeproc.Name
     where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringifyInlines)
 import Citeproc.Types
 import Citeproc.Pandoc ()
 import Text.Pandoc.Citeproc.Util (splitStrWhen)
@@ -62,7 +62,7 @@ toName :: Monad m => NameOpts -> [Inline] -> m Name
 toName _ [Str "others"] =
   return emptyName{ nameLiteral = Just "others" }
 toName _ [Span ("",[],[]) ils] = -- corporate author
-  return emptyName{ nameLiteral = Just $ stringify ils }
+  return emptyName{ nameLiteral = Just $ stringifyInlines ils }
 -- extended BibLaTeX name format - see #266
 toName _ ils@(Str ys:_) | T.any (== '=') ys = do
   let commaParts = splitWhen (== Str ",")
@@ -70,17 +70,17 @@ toName _ ils@(Str ys:_) | T.any (== '=') ys = do
                    $ ils
   let addPart ag (Str "given" : Str "=" : xs) =
         ag{ nameGiven = case nameGiven ag of
-                          Nothing -> Just $ stringify xs
-                          Just t  -> Just $ t <> " " <> stringify xs }
+                          Nothing -> Just $ stringifyInlines xs
+                          Just t  -> Just $ t <> " " <> stringifyInlines xs }
       addPart ag (Str "family" : Str "=" : xs) =
-        ag{ nameFamily = Just $ stringify xs }
+        ag{ nameFamily = Just $ stringifyInlines xs }
       addPart ag (Str "prefix" : Str "=" : xs) =
-        ag{ nameDroppingParticle =  Just $ stringify xs }
+        ag{ nameDroppingParticle =  Just $ stringifyInlines xs }
       addPart ag (Str "useprefix" : Str "=" : Str "true" : _) =
         ag{ nameNonDroppingParticle = nameDroppingParticle ag
           , nameDroppingParticle    = Nothing }
       addPart ag (Str "suffix" : Str "=" : xs) =
-        ag{ nameSuffix = Just $ stringify xs }
+        ag{ nameSuffix = Just $ stringifyInlines xs }
       addPart ag (Space : xs) = addPart ag xs
       addPart ag _ = ag
   return $ L.foldl' addPart emptyName commaParts
@@ -117,10 +117,10 @@ toName opts ils = do
                  case break isCapitalized vonlast of
                         (vs@(_:_), []) -> (init vs, [last vs])
                         (vs, ws)       -> (vs, ws)
-  let prefix = T.unwords $ map stringify von
-  let family = T.unwords $ map stringify lastname
-  let suffix = T.unwords $ map stringify jr
-  let given = T.unwords $ map stringify first
+  let prefix = T.unwords $ map stringifyInlines von
+  let family = T.unwords $ map stringifyInlines lastname
+  let suffix = T.unwords $ map stringifyInlines jr
+  let given = T.unwords $ map stringifyInlines first
   return
     Name {  nameFamily              = if T.null family
                                          then Nothing

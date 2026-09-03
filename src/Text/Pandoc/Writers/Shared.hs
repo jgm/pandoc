@@ -77,7 +77,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing (runParser, eof, defaultParserState,
                             anyOrderedListMarker)
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
+import Text.Pandoc.Shared (stringify, stringifyInlines, makeSections,
+                           blocksToInlines)
 import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML, rdfaAttributes, html5Attributes)
@@ -646,7 +647,7 @@ lookupMetaString :: Text -> Meta -> Text
 lookupMetaString key meta =
   case lookupMeta key meta of
          Just (MetaString s)    -> s
-         Just (MetaInlines ils) -> stringify ils
+         Just (MetaInlines ils) -> stringifyInlines ils
          Just (MetaBlocks bs)   -> stringify bs
          Just (MetaBool b)      -> T.pack (show b)
          _                      -> ""

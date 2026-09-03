@@ -52,7 +52,7 @@ import Text.Pandoc.Options (EPUBVersion (..), MathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
 import Text.Pandoc.Shared (normalizeDate, renderTags',
-                           stringify, uniqueIdent, tshow)
+                           stringify, stringifyInlines, uniqueIdent, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Walk (walk, walkM)
@@ -215,7 +215,7 @@ getEPUBMetadata opts meta = do
        if any (\c -> creatorRole c == Just "aut") $ epubCreator m
           then return m
           else do
-            let authors' = map stringify $ docAuthors meta
+            let authors' = map stringifyInlines $ docAuthors meta
             let toAuthor name = Creator{ creatorText = name
                                        , creatorRole = Just "aut"
                                        , creatorFileAs = Nothing }
@@ -280,7 +280,7 @@ addMetadataFromXML _ md = md
 
 metaValueToString :: MetaValue -> Text
 metaValueToString (MetaString s)    = s
-metaValueToString (MetaInlines ils) = stringify ils
+metaValueToString (MetaInlines ils) = stringifyInlines ils
 metaValueToString (MetaBlocks bs)   = stringify bs
 metaValueToString (MetaBool True)   = "true"
 metaValueToString (MetaBool False)  = "false"
@@ -483,7 +483,7 @@ pandocToEPUB version opts doc = do
                         [] -> case epubTitle metadata of
                                    []    -> "UNTITLED"
                                    (x:_) -> titleText x
-                        x  -> stringify x
+                        x  -> stringifyInlines x
 
   -- stylesheet
   stylesheets <- case epubStylesheets metadata of
@@ -859,7 +859,7 @@ createTocEntry opts meta metadata plainTitle (Node _ secs) = do
           let secnum' = case secNumber secinfo of
                           Just t -> t <> " "
                           Nothing -> ""
-          let title' = secnum' <> stringify (secTitle secinfo)
+          let title' = secnum' <> stringifyInlines (secTitle secinfo)
           return $ Just $ unode "navPoint" !
                    [("id", "navPoint-" <> tshow n)] $
                       [ unode "navLabel" $ unode "text" title'
@@ -869,7 +869,7 @@ createTocEntry opts meta metadata plainTitle (Node _ secs) = do
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
                   [ unode "navLabel" $ unode "text"
-                     (stringify $ docTitle' meta)
+                     (stringifyInlines $ docTitle' meta)
                   , unode "content" ! [("src", "text/title_page.xhtml")]
                   $ () ]
 
@@ -934,7 +934,7 @@ createNavEntry opts meta metadata
                                     opts{ writerTemplate = Nothing }
                                     (Pandoc nullMeta
                                       [Plain $ walk clean title'])) of
-                                  Left _  -> stringify title'
+                                  Left _  -> stringifyInlines title'
                                   Right x -> x
           let titElements = either (const []) id $
                                   parseXMLContents (TL.fromStrict titRendered)

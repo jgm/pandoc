@@ -67,7 +67,7 @@ import Text.TeXMath
 import Text.Pandoc.Logging (LogMessage(PowerpointTemplateWarning))
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
-import Text.Pandoc.Shared (tshow, stringify)
+import Text.Pandoc.Shared (tshow, stringify, stringifyInlines)
 import Skylighting (fromColor)
 
 -- |The 'EMU' type is used to specify sizes in English Metric Units.
@@ -661,7 +661,7 @@ presentationToArchive opts meta pres = do
   context <- metaToContext opts{ writerTemplate =
                                   writerTemplate opts <|> Just mempty }
                 (return . literal . stringify)
-                (return . literal . stringify) meta
+                (return . literal . stringifyInlines) meta
 
   let env = def { envRefArchive = refArchive
                 , envDistArchive = distArchive

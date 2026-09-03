@@ -25,7 +25,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
                             WrapOption (..))
-import Text.Pandoc.Shared (linesToPara, stringify)
+import Text.Pandoc.Shared (linesToPara, stringifyInlines)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
@@ -253,7 +253,7 @@ imageToJira :: PandocMonad m
             -> JiraConverter m [Jira.Inline]
 imageToJira (_, classes, kvs) caption src title =
   let imageWithParams ps = Jira.Image ps (Jira.URL src)
-      alt = stringify caption
+      alt = stringifyInlines caption
   in pure . singleton . imageWithParams $
      if "thumbnail" `elem` classes
      then [Jira.Parameter "thumbnail" ""]
@@ -270,7 +270,8 @@ toJiraLink :: PandocMonad m
            -> JiraConverter m [Jira.Inline]
 toJiraLink (_, classes, _) (url, _) alias = do
   let (linkType, url') = toLinkType url
-  description <- if url `elem` [stringify alias, "mailto:" <> stringify alias]
+  description <- if url `elem` [stringifyInlines alias,
+                                "mailto:" <> stringifyInlines alias]
                  then pure mempty
                  else toJiraInlines alias
   pure . singleton $ Jira.Link linkType description (Jira.URL url')

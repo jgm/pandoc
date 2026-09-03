@@ -121,8 +121,10 @@ metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
 metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
  where f (k,v) =
          case v of
-           [[Plain ils]] ->  setMeta (T.toLower (stringify k)) $ MetaInlines ils
-           _ -> setMeta (T.toLower (stringify k)) $ mconcat $ map fromList v
+           [[Plain ils]] ->  setMeta (T.toLower (stringifyInlines k)) $
+                                MetaInlines ils
+           _ -> setMeta (T.toLower (stringifyInlines k)) $
+                  mconcat $ map fromList v
        adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
                                            $ M.mapKeys (\k ->
                                                  if k == "authors"
@@ -433,7 +435,7 @@ doubleHeader = do
         Nothing  -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr@(ident,_,_) <- registerHeader nullAttr txt
-  let key = toKey (stringify txt)
+  let key = toKey (stringifyInlines txt)
   updateState $ \s ->
     s { stateKeys = M.insert key (("#" <> ident,""), nullAttr) $ stateKeys s }
   return $ B.headerWith attr level txt
@@ -465,7 +467,7 @@ singleHeader = do
         Nothing  -> (headerTable ++ [SingleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr@(ident,_,_) <- registerHeader nullAttr txt
-  let key = toKey (stringify txt)
+  let key = toKey (stringifyInlines txt)
   updateState $ \s ->
     s { stateKeys = M.insert key (("#" <> ident,""), nullAttr) $ stateKeys s }
   return $ B.headerWith attr level txt
@@ -1763,7 +1765,7 @@ explicitLink = try $ do
   let label'' = if label' == mempty
                    then B.str src
                    else label'
-  let key = toKey $ stringify label'
+  let key = toKey $ stringifyInlines label'
   unless (key == Key mempty) $ do
     updateState $ \s -> s{
       stateKeys = M.insert key ((src',""), nullAttr) $ stateKeys s }

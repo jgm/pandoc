@@ -9,7 +9,7 @@ where
 import Citeproc.Types
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Shared (stringify, blocksToInlines')
+import Text.Pandoc.Shared (stringify, stringifyInlines, blocksToInlines')
 import Data.Maybe
 import Safe
 import qualified Data.Set as Set
@@ -21,7 +21,7 @@ import Control.Applicative ((<|>))
 
 metaValueToText :: MetaValue -> Maybe Text
 metaValueToText (MetaString t) = Just t
-metaValueToText (MetaInlines ils) = Just $ stringify ils
+metaValueToText (MetaInlines ils) = Just $ stringifyInlines ils
 metaValueToText (MetaBlocks bls) = Just $ stringify bls
 metaValueToText (MetaList xs) = T.unwords <$> mapM metaValueToText xs
 metaValueToText _ = Nothing
@@ -31,7 +31,7 @@ metaValueToBool (MetaBool b) = Just b
 metaValueToBool (MetaString "true") = Just True
 metaValueToBool (MetaString "false") = Just False
 metaValueToBool (MetaInlines ils) =
-  metaValueToBool (MetaString (stringify ils))
+  metaValueToBool (MetaString (stringifyInlines ils))
 metaValueToBool _ = Nothing
 
 referenceToMetaValue :: Reference Inlines -> MetaValue

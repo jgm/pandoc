@@ -65,7 +65,8 @@ showDateTimeRFC822 = T.pack . formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
 
 convertDate :: [Inline] -> Text
 convertDate ils = maybe "" showDateTimeRFC822 $
-  parseTimeM True defaultTimeLocale "%F" . T.unpack =<< normalizeDate (stringify ils)
+  parseTimeM True defaultTimeLocale "%F" . T.unpack =<<
+    normalizeDate (stringifyInlines ils)
 
 -- | Convert a Block to OPML.
 blockToOPML :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)

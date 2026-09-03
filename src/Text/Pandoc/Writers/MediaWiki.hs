@@ -147,7 +147,7 @@ blockToMediaWiki b@(RawBlock f str)
 blockToMediaWiki HorizontalRule = return $ blankline <> literal "-----" <> blankline
 
 blockToMediaWiki (Header level (ident,_,_) inlines) = do
-  let autoId = T.replace " " "_" $ stringify inlines
+  let autoId = T.replace " " "_" $ stringifyInlines inlines
   contents <- inlineListToMediaWiki inlines
   let eqs = literal $ T.replicate level "="
   return $

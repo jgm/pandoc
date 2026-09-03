@@ -186,9 +186,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   biblioTitle <- inlineListToLaTeX lastHeader
   st <- get
   titleMeta <- escapeCommas <$> -- see #10501
-                stringToLaTeX TextString (stringify $ docTitle meta)
-  subtitleMeta <- stringToLaTeX TextString (stringify $ lookupMetaInlines "subtitle" meta)
-  authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+                stringToLaTeX TextString (stringifyInlines $ docTitle meta)
+  subtitleMeta <- stringToLaTeX TextString
+                    (stringifyInlines $ lookupMetaInlines "subtitle" meta)
+  authorsMeta <- mapM (stringToLaTeX TextString . stringifyInlines) $
+                   docAuthors meta
   -- The trailer ID is as hash used to identify the PDF. Taking control of its
   -- value is important when aiming for reproducible PDF generation. Setting
   -- `SOURCE_DATE_EPOCH` is the traditional method used to control
@@ -809,7 +811,7 @@ sectionHeader classes ident level lst = do
   let unnumbered = "unnumbered" `elem` classes
   let unlisted = "unlisted" `elem` classes
   txt <- inlineListToLaTeX lst
-  plain <- stringToLaTeX TextString $ T.concat $ map stringify lst
+  plain <- stringToLaTeX TextString $ stringifyInlines lst
   let removeInvalidInline (Note _)             = []
       removeInvalidInline (Span (id', _, _) _) | not (T.null id') = []
       removeInvalidInline Image{}            = []
@@ -1183,7 +1185,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) description (source, _)) = do
                      Nothing
                        | null description -> pure Nothing
                        | otherwise -> Just <$> stringToLaTeX TextString
-                                                  (stringify description)
+                                              (stringifyInlines description)
   let showDim dir = let d = text (show dir) <> "="
                     in case dimension dir attr of
                          Just (Pixel a)   ->

@@ -16,7 +16,7 @@ module Text.Pandoc.Writers.ChunkedHTML (
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..))
-import Text.Pandoc.Shared (stringify, tshow)
+import Text.Pandoc.Shared (stringifyInlines, tshow)
 import Text.Pandoc.Class (PandocMonad, getPOSIXTime, runPure,
                           fetchItem, insertMedia, getMediaBag)
 import Text.Pandoc.MediaBag (mediaItems)
@@ -133,7 +133,8 @@ chunkToEntry opts meta topChunk chunk = do
  where
   opts' = opts{ writerVariables =
                   addContextVars opts' topChunk chunk $ writerVariables opts }
-  meta' = setMeta "pagetitle" (MetaString (stringify $ chunkHeading chunk)) meta
+  meta' = setMeta "pagetitle"
+            (MetaString (stringifyInlines $ chunkHeading chunk)) meta
   blocks = chunkContents chunk
 
 tocTreeToContext :: Tree SecInfo -> Context Text
@@ -146,7 +147,7 @@ tocTreeToContext (Node secinfo subs) =
 secInfoToContext :: SecInfo -> Context Text
 secInfoToContext sec =
   Context $ M.fromList
-  [ ("title", SimpleVal $ literal $ stringify $ secTitle sec)
+  [ ("title", SimpleVal $ literal $ stringifyInlines $ secTitle sec)
   , ("number", maybe NullVal (SimpleVal . literal) (secNumber sec))
   , ("id", SimpleVal $ literal $ secId sec)
   , ("path", SimpleVal $ literal $ secPath sec)

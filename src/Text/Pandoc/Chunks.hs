@@ -28,8 +28,8 @@ module Text.Pandoc.Chunks
   ) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier,
-                           tshow, uniqueIdent)
+import Text.Pandoc.Shared (makeSections, stringifyInlines,
+                           inlineListToIdentifier, tshow, uniqueIdent)
 import Text.Pandoc.Walk (Walkable(..), query)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
@@ -219,7 +219,7 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
      where kvs' = kvs ++ [("nav-path", T.pack chunkpath)]
            secnum = lookup "number" kvs
            chunkpath = resolvePathTemplate pathTemplate chunknum
-                        (stringify ils)
+                        (stringifyInlines ils)
                         divid
                         (fromMaybe "" secnum)
   toChunk chunknum (Div ("",["preamble"],[]) bs) =
@@ -238,7 +238,7 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
       }
     where
       chunkpath = resolvePathTemplate pathTemplate chunknum
-                        (stringify (docTitle meta))
+                        (stringifyInlines (docTitle meta))
                         chunkid
                         "0"
       chunkid = inlineListToIdentifier mempty (docTitle meta) <>
