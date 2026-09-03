@@ -34,6 +34,10 @@ tests = [ testGroup "compactifyDL"
         , testGroup "collapseFilePath" testCollapse
         , testGroup "toLegacyTable" testLegacyTable
         , testGroup "table of contents" testTOC
+        , testGroup "stringifyInlines"
+          [ testProperty "stringifyInlines matches stringify"
+              stringifyInlinesMatchesStringify
+          ]
         , testGroup "makeSections"
           [ testProperty "makeSections is idempotent" makeSectionsIsIdempotent
           , testCase "makeSections is idempotent for test case" $
@@ -44,6 +48,10 @@ tests = [ testGroup "compactifyDL"
                       (makeSections False Nothing d' == d')
           ]
         ]
+
+stringifyInlinesMatchesStringify :: [Inline] -> Bool
+stringifyInlinesMatchesStringify ils =
+  stringifyInlines ils == stringify ils
 
 makeSectionsIsIdempotent :: [Block] -> Bool
 makeSectionsIsIdempotent d =

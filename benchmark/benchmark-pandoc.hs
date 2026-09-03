@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
 import Text.Pandoc.MIME
+import Text.Pandoc.Shared (stringify, stringifyInlines)
 import Control.DeepSeq (force)
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -89,6 +90,19 @@ writerBench imgs doc name = either (const Nothing) Just $
                          writerFun def{ writerExtensions = wexts} d)
                     doc
 
+-- | A large inline sequence exercising both the common constructors
+-- and the ones 'stringify' special-cases ('Quoted', 'Note', 'Cite').
+bigInlines :: [Inline]
+bigInlines = concat $ replicate 1000
+  [ Str "Lorem", Space
+  , Emph [Str "ipsum", Space, Strong [Str "dolor"]], Space
+  , Quoted DoubleQuote [Str "sit", Space, Str "amet"], SoftBreak
+  , Link nullAttr [Str "consectetur"] ("https://example.com", "title")
+  , Space, Code nullAttr "adipiscing", Space
+  , Note [Para [Str "footnote", Space, Emph [Str "text"]]]
+  , Cite [] [Str "elit"], LineBreak
+  ]
+
 main :: IO ()
 main = do
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
@@ -102,4 +116,9 @@ main = do
     , bgroup "readers" $ mapMaybe (readerBench doc . fst)
                          (sortOn fst
                            readers :: [(T.Text, Reader PandocPure)])
+    , env (pure $ force bigInlines) $ \ils ->
+      bgroup "stringify"
+        [ bench "stringify" $ nf stringify ils
+        , bench "stringifyInlines" $ nf stringifyInlines ils
+        ]
     ]

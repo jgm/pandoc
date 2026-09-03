@@ -45,6 +45,7 @@ module Text.Pandoc.Shared (
                      removeFormatting,
                      deNote,
                      stringify,
+                     stringifyInlines,
                      capitalize,
                      compactify,
                      compactifyDL,
@@ -369,23 +370,55 @@ deNote x        = x
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
 stringify :: Walkable Inline a => a -> T.Text
-stringify = query go . walk fixInlines
-  where go :: Inline -> T.Text
-        go Space                                       = " "
-        go SoftBreak                                   = " "
-        go (Str x)                                     = x
-        go (Code _ x)                                  = x
-        go (Math _ x)                                  = x
-        go (RawInline (Format "html") (T.unpack -> ('<':'b':'r':_)))
-                                                       = " " -- see #2105
-        go LineBreak                                   = " "
-        go _                                           = ""
+stringify = T.concat . query go . walk fixInlines
+  where go :: Inline -> [T.Text]
+        go Space        = [" "]
+        go SoftBreak    = [" "]
+        go (Str x)      = [x]
+        go (Code _ x)   = [x]
+        go (Math _ x)   = [x]
+        go (RawInline (Format "html") t)
+          | "<br" `T.isPrefixOf` t = [" "] -- see #2105
+        go LineBreak    = [" "]
+        go _            = []
 
         fixInlines :: Inline -> Inline
         fixInlines (Cite _ ils) = Cite [] ils
         fixInlines (Note _) = Note []
         fixInlines (q@Quoted{}) = deQuote q
         fixInlines x = x
+
+-- | Like 'stringify', but specialized to sequences of inlines
+-- (e.g. @['Inline']@ or 'Inlines').  Produces the same result as
+-- 'stringify' in a single pass, without rebuilding the tree.
+stringifyInlines :: Foldable t => t Inline -> T.Text
+stringifyInlines ils0 = T.concat $ foldr go [] ils0
+  where
+    go :: Inline -> [T.Text] -> [T.Text]
+    go il acc = case il of
+      Str x           -> x : acc
+      Space           -> " " : acc
+      SoftBreak       -> " " : acc
+      Code _ x        -> x : acc
+      Math _ x        -> x : acc
+      LineBreak       -> " " : acc
+      RawInline (Format "html") t
+        | "<br" `T.isPrefixOf` t -> " " : acc -- see #2105
+      RawInline _ _   -> acc
+      Note _          -> acc -- footnotes are skipped
+      Cite _ ils      -> foldr go acc ils -- citation metadata is dropped
+      Quoted SingleQuote ils -> "\8216" : foldr go ("\8217" : acc) ils
+      Quoted DoubleQuote ils -> "\8220" : foldr go ("\8221" : acc) ils
+      Emph ils        -> foldr go acc ils
+      Underline ils   -> foldr go acc ils
+      Strong ils      -> foldr go acc ils
+      Strikeout ils   -> foldr go acc ils
+      Superscript ils -> foldr go acc ils
+      Subscript ils   -> foldr go acc ils
+      SmallCaps ils   -> foldr go acc ils
+      Span _ ils      -> foldr go acc ils
+      Link _ ils _    -> foldr go acc ils
+      Image _ ils _   -> foldr go acc ils
 
 -- | Unwrap 'Quoted' inline elements, enclosing the contents with
 -- English-style Unicode quotes instead.
@@ -463,7 +496,8 @@ figureDiv (ident, classes, kv) (Caption shortcapt longcapt) body =
               , ["figure"] `union` classes
               , kv
               )
-      captkv = maybe mempty (\s -> [("short-caption", stringify s)]) shortcapt
+      captkv = maybe mempty (\s -> [("short-caption", stringifyInlines s)])
+                 shortcapt
       capt = [Div ("", ["caption"], captkv) longcapt | not (null longcapt)]
   in Div divattr (body ++ capt)
 
@@ -475,7 +509,7 @@ isPara _        = False
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: Extensions -> [Inline] -> T.Text
 inlineListToIdentifier exts =
-  textToIdentifier exts . stringify . unEmojify
+  textToIdentifier exts . stringifyInlines . unEmojify
   where
     unEmojify :: [Inline] -> [Inline]
     unEmojify
@@ -743,7 +777,8 @@ formatCode attr = B.fromList . walk fmt . B.toList
     fmt = concatMap go . groupBy (\a b -> isPlaintext a && isPlaintext b)
       where
         go xs
-          | all isPlaintext xs = B.toList $ B.codeWith attr $ stringify xs
+          | all isPlaintext xs = B.toList $ B.codeWith attr $
+                                   stringifyInlines xs
           | otherwise = xs
 
 --
