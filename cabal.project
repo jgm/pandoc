@@ -13,6 +13,11 @@ source-repository-package
   location: https://github.com/jgm/djoths
   tag: 79ba1833042543f505d4a87edd7198413f6b4458
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/typst-hs
+  tag: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
+
 if arch(wasm32)
   tests: False
 
