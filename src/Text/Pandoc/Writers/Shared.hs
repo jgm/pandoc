@@ -800,8 +800,9 @@ splitSentences = go . toList
   isSentenceEnding t =
     case T.unsnoc t of
       Just (t',c)
-        | c == '.' || c == '!' || c == '?'
+        | c == '.'
         , not (isInitial t') -> True
+        | c == '!' || c == '?' -> True
         | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
            case T.unsnoc t' of
              Just (t'',d) -> d == '.' || d == '!' || d == '?' &&
