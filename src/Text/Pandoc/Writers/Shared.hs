@@ -213,7 +213,7 @@ htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
   ])
  where
    formatKey x = text . T.unpack $
-        if (x `Set.member` (html5Attributes <> rdfaAttributes)
+        if ((x `Set.member` html5Attributes || x `Set.member` rdfaAttributes)
             && x /= "label") -- #10048
              || T.any (== ':') x -- e.g. epub: namespace
              || "data-" `T.isPrefixOf` x
