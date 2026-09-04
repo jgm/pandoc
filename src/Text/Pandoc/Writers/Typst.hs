@@ -403,7 +403,7 @@ blockToTypst block =
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
         $$ toTypstPoundSetText typstTextAttrs
-        $$ contents
+        $$ chomp contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
@@ -411,7 +411,7 @@ defListItemToTypst (term, defns) = do
   modify $ \st -> st{ stEscapeContext = TermContext }
   term' <- inlinesToTypst term
   modify $ \st -> st{ stEscapeContext = NormalContext }
-  defns' <- mapM blocksToTypst defns
+  defns' <- mapM (fmap chomp . blocksToTypst) defns
   return $
     case defns of
       [[Plain _]] -> hang 4 (nowrap ("/ " <> term' <> ": ")) (vcat defns')
