@@ -25,7 +25,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Crypto.Hash (hashWith, SHA1(SHA1))
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isLetter, isSpace)
+import Data.Char (isLetter, isSpace, isAlphaNum)
 import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
@@ -1140,14 +1140,18 @@ wrapBookmark ident contents = do
   return $ Elem bookmarkStart : contents ++ [Elem bookmarkEnd]
 
 -- Word imposes a 40 character limit on bookmark names and requires
--- that they begin with a letter.  So we just use a hash of the
--- identifier when otherwise we'd have an illegal bookmark name.
+-- that they begin with a letter or @_@ and contain only letters,
+-- numbers or underscores. Bookmarks beginning with @_@ are
+-- hidden in the user interface (and in particular hidden from screen
+-- readers, which we want); these are to be used for cross-references.
+-- When the id is otherwise illegal we use a hash of the identifier.
 toBookmarkName :: Text -> Text
 toBookmarkName s
-  | Just (c, _) <- T.uncons s
-  , isLetter c
-  , T.length s <= 40 = s
-  | otherwise = T.pack $ 'X' : drop 1 (show (hashWith SHA1 (fromText s)))
+  | T.length s < 40
+  , T.all (\c -> isAlphaNum c || c == '_') s
+    = "_" <> s
+  | otherwise = "_" <> T.pack (drop 1 (show (hashWith SHA1 (fromText s))))
+  -- we drop 1 because a SHA1 is 40 characters and we need room for the `_`
 
 maxListLevel :: Int
 maxListLevel = 8
