@@ -608,8 +608,8 @@ gridRow opts blocksToDoc = mapM renderCell
 lookupMetaBool :: Text -> Meta -> Bool
 lookupMetaBool key meta =
   case lookupMeta key meta of
-      Just (MetaBlocks _)  -> True
-      Just (MetaInlines _) -> True
+      Just (MetaBlocks bs)  -> not (null bs)
+      Just (MetaInlines ils) -> not (null ils)
       Just (MetaString x)  -> not (T.null x)
       Just (MetaBool True) -> True
       _                    -> False
