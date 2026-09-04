@@ -488,7 +488,10 @@ emailPunctChars :: Set.Set Char
 emailPunctChars = Set.fromList "!\"#$%&'*+-/=?^_{|}~;"
 
 uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Text
-uriScheme = oneOfStringsCI (Set.toList schemes)
+uriScheme = oneOfStringsCI schemeList
+
+schemeList :: [Text]
+schemeList = Set.toList schemes
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
 uri :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (Text, Text)
