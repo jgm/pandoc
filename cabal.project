@@ -18,6 +18,11 @@ source-repository-package
   location: https://github.com/jgm/typst-hs
   tag: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath
+  tag: a7451e20f371b451b94136c50fefa882a2852bf1
+
 if arch(wasm32)
   tests: False
 
