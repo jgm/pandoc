@@ -25,7 +25,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Crypto.Hash (hashWith, SHA1(SHA1))
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isLetter, isSpace, isAlphaNum)
+import Data.Char (isSpace, isAlphaNum)
 import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
