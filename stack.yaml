@@ -26,6 +26,8 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
 - asciidoc-0.1.0.5
+- git: https://github.com/jgm/doclayout
+  commit: d98289d576ba621a17e184ca5a1ff9a8d8390542
 - git: https://github.com/jgm/typst-hs
   commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
 - git: https://github.com/jgm/djoths
@@ -36,8 +38,6 @@ extra-deps:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
 - emojis-0.1.5
-# needed because not yet in nixpkgs:
-- doclayout-0.5.0.3
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.51
