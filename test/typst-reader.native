@@ -5346,4 +5346,80 @@ Pandoc
           , Str "2023-05-22"
           ]
       ]
+  , Header 1 ( "" , [] , [] ) [ Str "Citations" ]
+  , Para
+      [ Str "Normal:"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "brown01"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "[brown01]" ]
+      , Space
+      , Str "or"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "brown01"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "[brown01]" ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Prose:"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "brown01"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = AuthorInText
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "[brown01]" ]
+      ]
+  , Para
+      [ Str "Year:"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "brown01"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = SuppressAuthor
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "[brown01]" ]
+      ]
+  , Para
+      [ Str "Author:"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "brown01"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "[brown01]" ]
+      ]
   ]

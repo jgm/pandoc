@@ -468,7 +468,10 @@ inlineHandlers = M.fromList
                 B.citationPrefix = mempty,
                 B.citationSuffix = mempty,
                 B.citationMode = case form of
+                                    "prose" -> B.AuthorInText
                                     "year" -> B.SuppressAuthor
+                                    -- "author" and "full" have no pandoc
+                                    -- equivalent; fall back to normal
                                     _ -> B.NormalCitation,
                 B.citationNoteNum = 0,
                 B.citationHash = 0
