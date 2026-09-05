@@ -26,3 +26,13 @@ The first #count numbers of the sequence are:
 
 #include "undergradmath.typ"
 
+
+= Citations
+
+Normal: #cite(<brown01>) or @brown01.
+
+Prose: #cite(<brown01>, form: "prose")
+
+Year: #cite(<brown01>, form: "year")
+
+Author: #cite(<brown01>, form: "author")
