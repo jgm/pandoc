@@ -364,7 +364,7 @@ blockToTypst block =
             )
             $$ ")"
       return $ if "typst:no-figure" `elem` tabclasses
-        then toTypstBracesSetText typstTextAttrs table
+        then toTypstBracesSetText typstTextAttrs table $$ lab
         else "#figure("
             $$
             nest 2
