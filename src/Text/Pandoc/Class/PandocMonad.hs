@@ -64,6 +64,7 @@ module Text.Pandoc.Class.PandocMonad
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad (when)
+import Data.List (intercalate)
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
                              posixSecondsToUTCTime)
@@ -422,11 +423,21 @@ downloadOrRead s
 -- Extract data from a data URI's path component.
 extractURIData :: String -> (B.ByteString, Maybe MimeType)
 extractURIData upath =
-  case break (== ';') (filter (/= ' ') mimespec) of
-     (mime', ";base64") -> (decodeLenient contents, Just (T.pack mime'))
-     (mime', _) -> (contents, Just (T.pack mime'))
+  if isBase64
+     then (decodeLenient contents, Just mime)
+     else (contents, Just mime)
   where
     (mimespec, rest) = break (== ',') $ unEscapeString upath
+    -- The base64 indicator is the final parameter of the media type
+    -- and may follow other parameters, e.g.
+    -- data:text/plain;charset=utf-8;base64,...
+    metaParts = splitParts (filter (/= ' ') mimespec)
+    splitParts s = case break (== ';') s of
+                     (x, [])    -> [x]
+                     (x, _:s')  -> x : splitParts s'
+    isBase64 = length metaParts > 1 && last metaParts == "base64"
+    mime = T.pack $ intercalate ";" $
+             if isBase64 then init metaParts else metaParts
     contents = UTF8.fromString $ drop 1 rest
 
 -- | Checks if the file path is relative to a parent directory.
