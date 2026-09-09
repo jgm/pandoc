@@ -47,7 +47,8 @@ import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX ( posixSecondsToUTCTime )
 import Data.Time.LocalTime (TimeZone, utc)
 import Data.Word (Word8)
-import System.Directory (doesDirectoryExist, getDirectoryContents)
+import System.Directory (canonicalizePath, doesDirectoryExist,
+                         getDirectoryContents)
 import System.FilePath ((</>))
 import System.FilePath.Glob (match, compile)
 import System.Random (StdGen, mkStdGen)
@@ -57,6 +58,7 @@ import Text.Pandoc.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified System.Directory as Directory (getModificationTime)
 
@@ -143,20 +145,27 @@ getFileInfo fp tree =
 -- | Add the specified file to the FileTree. If file
 -- is a directory, add its contents recursively.
 addToFileTree :: FileTree -> FilePath -> IO FileTree
-addToFileTree tree fp = do
-  isdir <- doesDirectoryExist fp
-  if isdir
-     then do -- recursively add contents of directories
-       let isSpecial ".." = True
-           isSpecial "."  = True
-           isSpecial _    = False
-       fs <- map (fp </>) . filter (not . isSpecial) <$> getDirectoryContents fp
-       foldM addToFileTree tree fs
-     else do
-       contents <- B.readFile fp
-       mtime <- Directory.getModificationTime fp
-       return $ insertInFileTree fp FileInfo{ infoFileMTime = mtime
-                                            , infoFileContents = contents } tree
+addToFileTree = go Set.empty
+ where
+  go ancestors tree fp = do
+    isdir <- doesDirectoryExist fp
+    if isdir
+       then do -- recursively add contents of directories
+         canonical <- canonicalizePath fp
+         if canonical `Set.member` ancestors
+            then return tree  -- don't follow symlink cycles
+            else do
+              let isSpecial ".." = True
+                  isSpecial "."  = True
+                  isSpecial _    = False
+              fs <- map (fp </>) . filter (not . isSpecial) <$>
+                      getDirectoryContents fp
+              foldM (go (Set.insert canonical ancestors)) tree fs
+       else do
+         contents <- B.readFile fp
+         mtime <- Directory.getModificationTime fp
+         return $ insertInFileTree fp FileInfo{ infoFileMTime = mtime
+                                              , infoFileContents = contents } tree
 
 -- | Insert an ersatz file into the 'FileTree'.
 insertInFileTree :: FilePath -> FileInfo -> FileTree -> FileTree
