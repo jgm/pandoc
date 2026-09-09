@@ -15,13 +15,13 @@ Typst properties
 [Typst](https://typst.app/) allows specification of visual and layout properties as parameters to elements
 
 ```typst
-#block(fill=orange)[Hello]
+#block(fill: orange)[Hello]
 ```
 
 and set-rules
 
 ```typst
-#set text(fill=blue); Hello
+#set text(fill: blue); Hello
 ```
 
 The parameter values are [Typst code](https://typst.app/docs/reference/syntax/#modes) that can use any features of the Typst language.
