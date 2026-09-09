@@ -23,7 +23,7 @@ module Text.Pandoc.MediaBag (
                      mediaDirectory,
                      mediaItems
                      ) where
-import Crypto.Hash (hashWith, SHA1(SHA1))
+import Crypto.Hash (hashlazy, Digest, SHA1)
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
@@ -94,7 +94,7 @@ insertMedia fp mbMime contents (MediaBag mediamap)
   fp' = canonicalize fp
   fp'' = unEscapeString $ T.unpack fp'
   uri = parseURI fp
-  hashpath = show (hashWith SHA1 (BL.toStrict contents)) <> ext
+  hashpath = show (hashlazy contents :: Digest SHA1) <> ext
   newpath = if Posix.isRelative fp''
                  && Windows.isRelative fp''
                  && isNothing uri
