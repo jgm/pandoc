@@ -50,9 +50,7 @@ import System.IO hiding (getContents, hGetContents, hPutStr, hPutStrLn, putStr,
                   putStrLn, readFile, writeFile)
 
 readFile :: FilePath -> IO Text
-readFile f = do
-  h <- openFile (encodePath f) ReadMode
-  hGetContents h
+readFile f = withFile (encodePath f) ReadMode hGetContents
 
 getContents :: IO Text
 getContents = hGetContents stdin
