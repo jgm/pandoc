@@ -144,7 +144,6 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   getCommonState :: m CommonState
   -- | Set the value of the 'CommonState' used by all instances
   -- of 'PandocMonad'.
-  -- | Get the value of a specific field of 'CommonState'.
   putCommonState :: CommonState -> m ()
   -- | Get the value of a specific field of 'CommonState'.
   getsCommonState :: (CommonState -> a) -> m a
@@ -296,7 +295,7 @@ getRequestHeaders = getsCommonState stRequestHeaders
 setRequestHeaders :: PandocMonad m => [(T.Text, T.Text)] -> m ()
 setRequestHeaders hs = modifyCommonState $ \st -> st{ stRequestHeaders = hs }
 
--- | Get the absolute UL or directory of first source file.
+-- | Get the absolute URL or directory of first source file.
 getSourceURL :: PandocMonad m => m (Maybe T.Text)
 getSourceURL = getsCommonState stSourceURL
 
