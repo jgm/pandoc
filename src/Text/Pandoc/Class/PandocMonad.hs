@@ -479,7 +479,11 @@ toTextM fp bs =
      if "\xEF\xBB\xBF" `B.isPrefixOf` bs'
         then B.drop 3 bs'
         else bs'
-   filterCRs = B.filter (/=13)
+   -- Only allocate a filtered copy if a CR is actually present;
+   -- B.elem compiles to a fast memchr.
+   filterCRs bs' = if 13 `B.elem` bs'
+                      then B.filter (/=13) bs'
+                      else bs'
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
 -- searches for the data file relative to @/subdir/@. Returns @Nothing@
