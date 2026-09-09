@@ -64,6 +64,7 @@ module Text.Pandoc.Class.PandocMonad
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad (when)
+import Data.Char (chr, digitToInt, isHexDigit)
 import Data.List (intercalate)
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
@@ -86,10 +87,10 @@ import Text.Pandoc.Shared (safeRead, makeCanonical, tshow)
 import Text.Pandoc.URI (uriPathToPath, pBase64DataURI)
 import qualified Data.Attoparsec.Text as A
 import Text.Pandoc.Walk (walkM)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Data.ByteString.Base64 (decodeLenient)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Debug.Trace
@@ -427,18 +428,29 @@ extractURIData upath =
      then (decodeLenient contents, Just mime)
      else (contents, Just mime)
   where
-    (mimespec, rest) = break (== ',') $ unEscapeString upath
+    (mimespec, rest) = break (== ',') upath
     -- The base64 indicator is the final parameter of the media type
     -- and may follow other parameters, e.g.
     -- data:text/plain;charset=utf-8;base64,...
-    metaParts = splitParts (filter (/= ' ') mimespec)
+    metaParts = splitParts (filter (/= ' ') (unEscapeString mimespec))
     splitParts s = case break (== ';') s of
                      (x, [])    -> [x]
                      (x, _:s')  -> x : splitParts s'
     isBase64 = length metaParts > 1 && last metaParts == "base64"
     mime = T.pack $ intercalate ";" $
              if isBase64 then init metaParts else metaParts
-    contents = UTF8.fromString $ drop 1 rest
+    -- Percent-escapes in a data URI represent raw octets (RFC 2397),
+    -- so we decode them to bytes directly.  (unEscapeString cannot be
+    -- used here: it UTF-8-decodes consecutive escapes, which corrupts
+    -- binary data when the result is re-encoded.)
+    contents = unEscapeBytes $ drop 1 rest
+    unEscapeBytes = B8.pack . go
+      where
+        go ('%':x:y:cs)
+          | isHexDigit x, isHexDigit y
+            = chr (digitToInt x * 16 + digitToInt y) : go cs
+        go (c:cs) = c : go cs
+        go [] = []
 
 -- | Checks if the file path is relative to a parent directory.
 isRelativeToParentDir :: FilePath -> Bool
