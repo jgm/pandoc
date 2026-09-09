@@ -72,7 +72,7 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
 import System.FilePath ((</>), takeExtension, dropExtension,
-                        isRelative, makeRelative)
+                        isRelative, makeRelative, splitDirectories)
 import System.Random (StdGen)
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
@@ -432,8 +432,9 @@ extractURIData upath =
 -- | Checks if the file path is relative to a parent directory.
 isRelativeToParentDir :: FilePath -> Bool
 isRelativeToParentDir fname =
-  let canonical = makeCanonical fname
-   in length canonical >= 2 && take 2 canonical == ".."
+  case splitDirectories (makeCanonical fname) of
+    "..":_ -> True
+    _      -> False
 
 -- | Returns possible user data directory if the file path refers to a file or
 -- subdirectory within it.
