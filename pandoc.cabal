@@ -724,6 +724,7 @@ library
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
                    Text.Pandoc.Class.CommonState,
+                   Text.Pandoc.Class.IO.HTTP,
                    Text.Pandoc.Class.PandocMonad,
                    Text.Pandoc.Class.PandocIO,
                    Text.Pandoc.Class.PandocPure,

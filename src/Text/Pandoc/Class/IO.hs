@@ -41,35 +41,16 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
 import Data.Unique (hashUnique)
-#ifdef PANDOC_HTTP_SUPPORT
-import Data.ByteString.Lazy (toChunks)
-import System.Environment (getEnv)
-import Data.Default (def)
-import Network.Connection (TLSSettings(..))
-import qualified Network.TLS as TLS
-import qualified Network.TLS.Extra as TLS
-import System.X509 (getSystemCertificateStore)
-import Network.HTTP.Client
-       (httpLbs, Manager, responseBody, responseHeaders,
-        Request(port, host, requestHeaders), parseUrlThrow, newManager, HttpException)
-import Network.HTTP.Client.Internal (addProxy)
-import Network.HTTP.Client.TLS (mkManagerSettings)
-import Network.HTTP.Types.Header ( hContentType )
-import Network.Socket (withSocketsDo)
-import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad ( getsCommonState, modifyCommonState )
-import qualified Data.CaseInsensitive as CI
-#endif
-import Network.URI (URI(..), parseURI, unEscapeString)
+import Network.URI (unEscapeString)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>), takeDirectory, takeFileName, normalise, takeExtension)
 import qualified System.FilePath.Posix as Posix
 import System.IO (stderr)
 import System.IO.Error
 import System.Random (StdGen)
+import Text.Pandoc.Class.IO.HTTP (openURL)
 import Text.Pandoc.Class.PandocMonad
-       (PandocMonad,
-        getMediaBag, report, extractURIData)
+       (PandocMonad, getMediaBag, report)
 import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..), messageVerbosity, showLogMessage)
@@ -128,70 +109,6 @@ newStdGen = liftIO System.Random.newStdGen
 -- | Return a new unique integer.
 newUniqueHash :: MonadIO m => m Int
 newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
-
-#ifdef PANDOC_HTTP_SUPPORT
-getManager :: (PandocMonad m, MonadIO m) => m Manager
-getManager = do
-  mbManager <- getsCommonState stManager
-  disableCertificateValidation <- getsCommonState stNoCheckCertificate
-  case mbManager of
-    Just manager -> pure manager
-    Nothing -> do
-      manager <- liftIO $ do
-        certificateStore <- getSystemCertificateStore
-        let tlsSettings = TLSSettings $
-               (TLS.defaultParamsClient "localhost.localdomain" "80")
-                  { TLS.clientSupported = def{ TLS.supportedCiphers =
-                                               TLS.ciphersuite_default
-                                             , TLS.supportedExtendedMainSecret =
-                                                TLS.AllowEMS }
-                  , TLS.clientShared = def
-                      { TLS.sharedCAStore = certificateStore
-                      , TLS.sharedValidationCache =
-                          if disableCertificateValidation
-                             then TLS.ValidationCache
-                                   (\_ _ _ -> return TLS.ValidationCachePass)
-                                   (\_ _ _ -> return ())
-                             else def
-                      }
-                  }
-        let tlsManagerSettings = mkManagerSettings tlsSettings  Nothing
-        newManager tlsManagerSettings
-      modifyCommonState $ \st -> st{ stManager = Just manager }
-      pure manager
-#endif
-
-openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
-openURL u
- | Just (URI{ uriScheme = "data:",
-              uriPath = upath }) <- parseURI (T.unpack u)
-     = pure $ extractURIData upath
-#ifdef PANDOC_HTTP_SUPPORT
- | otherwise = do
-     let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
-     customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
-     report $ Fetching u
-     manager <- getManager
-     res <- liftIO $ E.try $ withSocketsDo $ do
-       proxy <- tryIOError (getEnv "http_proxy")
-       let addProxy' x = case proxy of
-                            Left _ -> return x
-                            Right pr -> parseUrlThrow pr >>= \r ->
-                                return (addProxy (host r) (port r) x)
-       req <- parseUrlThrow (unpack u) >>= addProxy'
-       let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
-       resp <- httpLbs req' manager
-       return (B.concat $ toChunks $ responseBody resp,
-               UTF8.toText `fmap` lookup hContentType (responseHeaders resp))
-
-     case res of
-          Right r -> return r
-          Left (e :: HttpException)
-                  -> throwError $ PandocHttpError u (T.pack (show e))
-#else
- | otherwise =
-     throwError $ PandocHttpError u "pandoc was compiled without HTTP support"
-#endif
 
 -- | Read the lazy ByteString contents from a file path, raising an error on
 -- failure.
