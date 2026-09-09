@@ -103,7 +103,11 @@ toText = T.decodeUtf8 . filterCRs . dropBOM
          if "\xEF\xBB\xBF" `B.isPrefixOf` bs
             then B.drop 3 bs
             else bs
-        filterCRs = B.filter (/='\r')
+        -- Only allocate a filtered copy if a CR is actually present;
+        -- B.elem compiles to a fast memchr.
+        filterCRs bs = if '\r' `B.elem` bs
+                          then B.filter (/='\r') bs
+                          else bs
 
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\\r' characters.
@@ -118,7 +122,13 @@ toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
          if "\xEF\xBB\xBF" `BL.isPrefixOf` bs
             then BL.drop 3 bs
             else bs
-        filterCRs = BL.filter (/='\r')
+        -- Work chunk-wise (rather than using BL.elem on the whole
+        -- input) to preserve laziness; skip allocation for chunks
+        -- that contain no CRs.
+        filterCRs = BL.fromChunks . map filterChunk . BL.toChunks
+        filterChunk bs = if '\r' `B.elem` bs
+                            then B.filter (/='\r') bs
+                            else bs
 
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\\r' characters.
