@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -66,6 +67,7 @@ import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad (when)
 import Data.Char (chr, digitToInt, isHexDigit)
 import Data.List (intercalate)
+import Data.Word (Word8)
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
                              posixSecondsToUTCTime)
@@ -494,9 +496,9 @@ toTextM :: PandocMonad m => FilePath -> B.ByteString -> m T.Text
 toTextM fp bs =
   case TSE.decodeUtf8' . filterCRs . dropBOM $ bs of
     Left (TSE.DecodeError _ (Just w)) ->
-      case B.elemIndex w bs of
-        Just offset ->
-          throwError $ PandocUTF8DecodingError (T.pack fp) offset w
+      case findDecodingError bs of
+        Just (offset, w') ->
+          throwError $ PandocUTF8DecodingError (T.pack fp) offset w'
         Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
     Left e -> throwError $ PandocAppError (tshow e)
     Right t -> return t
@@ -510,6 +512,40 @@ toTextM fp bs =
    filterCRs bs' = if 13 `B.elem` bs'
                       then B.filter (/=13) bs'
                       else bs'
+
+-- Find the offset and value of the first byte at which UTF-8 decoding
+-- fails (RFC 3629).  Used to give an accurate position in decoding
+-- error messages.  (The BOM and CR bytes stripped before decoding are
+-- themselves valid UTF-8, so scanning the unstripped input finds the
+-- same error, at its offset in the original file.)
+findDecodingError :: B.ByteString -> Maybe (Int, Word8)
+findDecodingError = go 0
+ where
+  go !i bs = case B.uncons bs of
+    Nothing -> Nothing
+    Just (w, rest)
+      | w < 0x80  -> go (i + 1) rest
+      | w < 0xC2  -> Just (i, w)  -- continuation byte or overlong lead
+      | w == 0xE0 -> cont i w rest [(0xA0,0xBF),(0x80,0xBF)]
+      | w == 0xED -> cont i w rest [(0x80,0x9F),(0x80,0xBF)]  -- no surrogates
+      | w < 0xE0  -> cont i w rest [(0x80,0xBF)]
+      | w <  0xF0 -> cont i w rest [(0x80,0xBF),(0x80,0xBF)]
+      | w == 0xF0 -> cont i w rest [(0x90,0xBF),(0x80,0xBF),(0x80,0xBF)]
+      | w == 0xF4 -> cont i w rest [(0x80,0x8F),(0x80,0xBF),(0x80,0xBF)]
+      | w <  0xF4 -> cont i w rest [(0x80,0xBF),(0x80,0xBF),(0x80,0xBF)]
+      | otherwise -> Just (i, w)  -- above U+10FFFF
+  -- check that the bytes following the lead byte w at offset i fall
+  -- into the given ranges; report the first byte that does not
+  cont i w = go' (i + 1)
+   where
+    go' !j rest [] = go j rest
+    go' !j rest ((lo,hi):ranges) =
+      case B.uncons rest of
+        Just (b, rest')
+          | b >= lo && b <= hi -> go' (j + 1) rest' ranges
+          | otherwise          -> Just (j, b)
+        -- input ends in the middle of a sequence: report the lead byte
+        Nothing -> Just (i, w)
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
 -- searches for the data file relative to @/subdir/@. Returns @Nothing@
