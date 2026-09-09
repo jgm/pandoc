@@ -227,7 +227,16 @@ setRequestHeader name val = modifyCommonState $ \st ->
 
 -- | Determine whether certificate validation is disabled
 setNoCheckCertificate :: PandocMonad m => Bool -> m ()
-setNoCheckCertificate noCheckCertificate = modifyCommonState $ \st -> st{stNoCheckCertificate = noCheckCertificate}
+setNoCheckCertificate noCheckCertificate = modifyCommonState $ \st ->
+  st{ stNoCheckCertificate = noCheckCertificate
+#ifdef PANDOC_HTTP_SUPPORT
+    -- discard any cached HTTP manager, since it was created with
+    -- TLS settings based on the previous value of this option
+    , stManager = if stNoCheckCertificate st == noCheckCertificate
+                     then stManager st
+                     else Nothing
+#endif
+    }
 
 -- | Initialize the media bag.
 setMediaBag :: PandocMonad m => MediaBag -> m ()
