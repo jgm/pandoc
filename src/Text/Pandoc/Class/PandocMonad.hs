@@ -201,13 +201,15 @@ runSilently action = do
   -- get current settings
   origLog <- getsCommonState stLog
   origVerbosity <- getVerbosity
+  let restore = modifyCommonState
+        (\st -> st { stVerbosity = origVerbosity, stLog = origLog })
   -- reset log level and set verbosity to the minimum
   modifyCommonState (\st -> st { stVerbosity = ERROR, stLog = []})
-  result <- action
+  -- restore the original log and verbosity even if the action fails
+  result <- action `catchError` (\e -> restore *> throwError e)
   -- get log messages reported while running `action`
   newLog <- getsCommonState stLog
-  modifyCommonState (\st -> st { stVerbosity = origVerbosity, stLog = origLog})
-
+  restore
   return (result, newLog)
 
 -- | Set request header to use in HTTP requests.
