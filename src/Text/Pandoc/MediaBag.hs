@@ -27,7 +27,7 @@ import Crypto.Hash (hashlazy, Digest, SHA1)
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (toLower)
 import Data.Data (Data)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Typeable (Typeable)
 import System.FilePath
@@ -41,9 +41,10 @@ import Data.List (isInfixOf)
 
 data MediaItem =
   MediaItem
-  { mediaMimeType :: MimeType
-  , mediaPath :: FilePath
+  { mediaMimeType :: !MimeType
+  , mediaPath :: !FilePath
   , mediaContents :: BL.ByteString
+    -- ^ Left lazy so that contents need not be forced at insert time.
   } deriving (Eq, Ord, Show, Data, Typeable)
 
 -- | A container for a collection of binary resources, with names and
