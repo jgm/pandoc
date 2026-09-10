@@ -34,6 +34,7 @@ import System.FilePath
 import qualified System.FilePath.Posix as Posix
 import qualified System.FilePath.Windows as Windows
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
+import Text.Pandoc.Shared (makeCanonical)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (URI (..), parseURI, unEscapeString)
@@ -61,16 +62,18 @@ instance Show MediaBag where
 isDataURI :: FilePath -> Bool
 isDataURI = (== "data:") . map toLower . take 5
 
--- | We represent paths with /, in normalized form.  Percent-encoding
--- is not resolved.
+-- | We represent paths with /, in canonical form (redundant @.@ and
+-- @..@ components removed).  Percent-encoding is not resolved.
 canonicalize :: FilePath -> Text
 canonicalize fp
   -- avoid an expensive call to isURI for data URIs:
   | isDataURI fp = fp'
   | isURI fp' = fp'
-  | otherwise = T.replace "\\" "/" . T.pack . normalise $ fp
+  | otherwise = T.pack . makeCanonical . map slashify $ fp
  where
   fp' = T.pack fp
+  slashify '\\' = '/'
+  slashify c    = c
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.

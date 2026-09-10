@@ -26,6 +26,13 @@ tests = [
         Nothing -> assertFailure "item not found in media bag"
         Just item -> assertBool "mediaPath contains a .. component"
           (".." `notElem` splitDirectories (mediaPath item)),
+  testCase "path canonicalization" $ do
+      -- redundant . and .. components are collapsed, so equivalent
+      -- spellings of a path refer to the same item:
+      let bag = insertMedia "img/../sub/./lalune.png" Nothing "contents" mempty
+      (mediaPath <$> lookupMedia "sub/lalune.png" bag) @?= Just "sub/lalune.png"
+      (mediaPath <$> lookupMedia "img/../sub/lalune.png" bag)
+        @?= Just "sub/lalune.png",
   testCase "test fillMediaBag & extractMedia" $
       withTempDirectory "." "extractMediaTest" $ \tmpdir -> do
         -- Use absolute paths so the test does not need to change
