@@ -33,6 +33,16 @@ tests = [
       (mediaPath <$> lookupMedia "sub/lalune.png" bag) @?= Just "sub/lalune.png"
       (mediaPath <$> lookupMedia "img/../sub/lalune.png" bag)
         @?= Just "sub/lalune.png",
+  testCase "no mediaPath collisions between escaped and literal keys" $ do
+      -- "a%20b.png" used to unescape to the same mediaPath as the
+      -- literal "a b.png", so one clobbered the other on extraction:
+      let bag = insertMedia "a%20b.png" Nothing "contents1" $
+                insertMedia "a b.png" Nothing "contents2" mempty
+      case (lookupMedia "a%20b.png" bag, lookupMedia "a b.png" bag) of
+        (Just i1, Just i2) -> assertBool
+          "escaped and literal keys share a mediaPath"
+          (mediaPath i1 /= mediaPath i2)
+        _ -> assertFailure "items not found in media bag",
   testCase "test fillMediaBag & extractMedia" $
       withTempDirectory "." "extractMediaTest" $ \tmpdir -> do
         -- Use absolute paths so the test does not need to change

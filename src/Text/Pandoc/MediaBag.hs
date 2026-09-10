@@ -106,11 +106,15 @@ insertMedia fp mbMime contents (MediaBag mediamap)
   fp'' = unEscapeString $ T.unpack fp'
   uri = parseURI fp
   hashpath = show (hashlazy contents :: Digest SHA1) <> ext
+  -- We only keep the original name if the key contains no
+  -- percent-encoding, i.e., unescaping is the identity; otherwise
+  -- distinct keys (e.g. "a%20b.png" and "a b.png") could unescape
+  -- to the same mediaPath and clobber each other on extraction.
   newpath = if Posix.isRelative fp''
                  && Windows.isRelative fp''
                  && isNothing uri
                  && not containsParentRef
-                 && '%' `notElem` fp''
+                 && not (T.any (== '%') fp')
                then fp''
                else hashpath
   -- Check for a ".." path component (treating both / and \ as
