@@ -6,6 +6,7 @@ import Test.Tasty.HUnit
 -- import Tests.Helpers
 import Text.Pandoc.Class.IO (extractMedia)
 import Text.Pandoc.Class (fillMediaBag, runIOorExplode)
+import Text.Pandoc.MediaBag (insertMedia, lookupMedia, mediaPath)
 import System.IO.Temp (withTempDirectory)
 import System.FilePath
 import Text.Pandoc.Builder as B
@@ -14,6 +15,17 @@ import System.Directory (doesFileExist, makeAbsolute)
 
 tests :: [TestTree]
 tests = [
+  testCase "insertMedia mediaPath sanitization" $ do
+      -- a ".." substring that is not a path component is harmless
+      -- and should not cause the file to be renamed:
+      let bag = insertMedia "foo..bar.png" Nothing "contents" mempty
+      (mediaPath <$> lookupMedia "foo..bar.png" bag) @?= Just "foo..bar.png"
+      -- a ".." path component must not survive into mediaPath:
+      let bag2 = insertMedia "../evil.png" Nothing "contents" mempty
+      case lookupMedia "../evil.png" bag2 of
+        Nothing -> assertFailure "item not found in media bag"
+        Just item -> assertBool "mediaPath contains a .. component"
+          (".." `notElem` splitDirectories (mediaPath item)),
   testCase "test fillMediaBag & extractMedia" $
       withTempDirectory "." "extractMediaTest" $ \tmpdir -> do
         -- Use absolute paths so the test does not need to change

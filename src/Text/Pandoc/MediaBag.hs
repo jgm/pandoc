@@ -38,7 +38,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (URI (..), parseURI, unEscapeString)
 import Text.Pandoc.URI (isURI)
-import Data.List (isInfixOf)
 
 data MediaItem =
   MediaItem
@@ -107,10 +106,16 @@ insertMedia fp mbMime contents (MediaBag mediamap)
   newpath = if Posix.isRelative fp''
                  && Windows.isRelative fp''
                  && isNothing uri
-                 && not (".." `isInfixOf` fp'')
+                 && not containsParentRef
                  && '%' `notElem` fp''
                then fp''
                else hashpath
+  -- Check for a ".." path component (treating both / and \ as
+  -- separators, since the unescaped path may contain backslashes
+  -- from percent-encoding); a mere ".." substring (as in
+  -- "foo..bar.png") is harmless.
+  containsParentRef = ".." `elem`
+    Posix.splitDirectories (map (\c -> if c == '\\' then '/' else c) fp'')
   fallback = case takeExtension fp'' of
                   ".gz" -> getMimeTypeDef $ dropExtension fp''
                   _     -> getMimeTypeDef fp''
