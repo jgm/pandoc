@@ -31,7 +31,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/asciidoc-hs
-  tag: 91df7bea18f85019c2eb264838b95353f06dd447
+  tag: ef8c5a798f1907b9b91d9e8d1d61c3ab31a12875
 
 if arch(wasm32)
   tests: False
