@@ -751,6 +751,7 @@ tableParseCaption = try $ fmap MuseCaption . trimInlinesF . mconcat
 
 inline' :: PandocMonad m => MuseParser m (F Inlines)
 inline' = whitespace
+      <|> str -- tried early: all other alternatives start with non-alphanumerics
       <|> br
       <|> anchor
       <|> footnote
@@ -773,7 +774,6 @@ inline' = whitespace
       <|> codeTag
       <|> mathTag
       <|> inlineLiteralTag
-      <|> str
       <|> asterisks
       <|> symbol
       <?> "inline"
