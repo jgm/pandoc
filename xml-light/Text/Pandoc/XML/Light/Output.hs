@@ -173,13 +173,12 @@ showCDataS cd =
 
 --------------------------------------------------------------------------------
 escCData           :: Text -> Builder
-escCData t
-  | "]]>" `T.isPrefixOf` t =
-     fromText "]]]]><![CDATA[>" <> fromText (T.drop 3 t)
-escCData t
-  = case T.uncons t of
-      Nothing     -> mempty
-      Just (c,t') -> singleton c <> escCData t'
+escCData t =
+  case T.breakOn "]]>" t of
+    (chunk, rest)
+      | T.null rest -> fromText chunk
+      | otherwise   -> fromText chunk <> fromText "]]]]><![CDATA[>" <>
+                       escCData (T.drop 3 rest)
 
 escChar            :: Char -> Builder
 escChar c = case c of
