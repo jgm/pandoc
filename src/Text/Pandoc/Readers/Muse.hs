@@ -723,10 +723,29 @@ tableParseElement = tableParseHeader
 tableParseRow :: PandocMonad m
               => Int -- ^ Number of separator characters
               -> MuseParser m (F [Blocks])
-tableParseRow n = try $ sequence <$> tableCells
+tableParseRow n = try $ do
+  -- A table row must contain a cell separator (whitespace followed by
+  -- pipes), which cannot span lines.  Scanning the raw line for one
+  -- before parsing cells avoids expensive inline parsing (that would
+  -- fail and be discarded) of every line this parser is tried on.
+  lineMayBeRow <- rawLineContainsSeparator
+  guard lineMayBeRow
+  sequence <$> tableCells
   where tableCells = (:) <$> tableCell sep <*> (tableCells <|> fmap pure (tableCell eol))
         tableCell p = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline' p
         sep = try $ many1 spaceChar *> count n (char '|') *> lookAhead (void (many1 spaceChar) <|> void eol)
+        pipes = T.replicate n "|"
+        rawLineContainsSeparator = do
+          Sources inps <- getInput
+          return $ case inps of
+            (_,t):rest ->
+              case T.break (== '\n') t of
+                (this, remainder)
+                  | T.null remainder, not (null rest) ->
+                      True -- line may span input chunks; don't reject
+                  | otherwise -> (" " <> pipes) `T.isInfixOf` this ||
+                                 ("\t" <> pipes) `T.isInfixOf` this
+            [] -> False
 
 -- | Parse a table header row.
 tableParseHeader :: PandocMonad m => MuseParser m (F MuseTableElement)
