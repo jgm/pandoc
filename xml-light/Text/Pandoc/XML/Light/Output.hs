@@ -201,9 +201,12 @@ escChar c = case c of
   -}
 
 escStr             :: Text -> Builder
-escStr cs          = if T.any needsEscape cs
-                        then mconcat (map escChar (T.unpack cs))
-                        else fromText cs
+escStr cs          = case T.break needsEscape cs of
+                       (chunk, rest) ->
+                         case T.uncons rest of
+                           Nothing -> fromText chunk
+                           Just (c, rest') ->
+                             fromText chunk <> escChar c <> escStr rest'
  where
   needsEscape '<' = True
   needsEscape '>' = True
