@@ -36,7 +36,8 @@ import qualified System.FilePath.Windows as Windows
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Network.URI (URI (..), isURI, parseURI, unEscapeString)
+import Network.URI (URI (..), parseURI, unEscapeString)
+import Text.Pandoc.URI (isURI)
 import Data.List (isInfixOf)
 
 data MediaItem =
@@ -66,9 +67,11 @@ isDataURI = (== "data:") . map toLower . take 5
 canonicalize :: FilePath -> Text
 canonicalize fp
   -- avoid an expensive call to isURI for data URIs:
-  | isDataURI fp = T.pack fp
-  | isURI fp = T.pack fp
+  | isDataURI fp = fp'
+  | isURI fp' = fp'
   | otherwise = T.replace "\\" "/" . T.pack . normalise $ fp
+ where
+  fp' = T.pack fp
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.
