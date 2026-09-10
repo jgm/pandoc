@@ -28,6 +28,7 @@ module Text.Pandoc.XML.Light.Output
   , ConfigPP(..)
   ) where
 
+import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -108,9 +109,6 @@ ppcElement c        = TL.toStrict . toLazyText . ppElementS c mempty
 ppcContent         :: ConfigPP -> Content -> Text
 ppcContent c        = TL.toStrict . toLazyText . ppContentS c mempty
 
-ppcCData           :: ConfigPP -> CData -> Text
-ppcCData c         = TL.toStrict . toLazyText . ppCDataS c mempty
-
 type Indent = Builder
 
 -- | Pretty printing content using ShowT
@@ -136,10 +134,13 @@ ppElementS c i e = i <> tagStart (elName e) (elAttribs e) <>
 ppCDataS           :: ConfigPP -> Indent -> CData -> Builder
 ppCDataS c i t     = i <> if cdVerbatim t /= CDataText || not (prettify c)
                              then showCDataS t
-                             else foldr cons mempty (T.unpack (showCData t))
-  where cons         :: Char -> Builder -> Builder
-        cons '\n' ys  = singleton '\n' <> i <> ys
-        cons y ys     = singleton y <> ys
+                             -- add indentation after newlines; escaping
+                             -- neither adds nor removes newlines, so we
+                             -- can split the unescaped text
+                             else mconcat
+                                  (intersperse (singleton '\n' <> i)
+                                    (map escStr
+                                      (T.split (=='\n') (cdData t))))
 
 
 
@@ -154,9 +155,6 @@ showContent         = ppcContent defaultConfigPP
 
 showElement        :: Element -> Text
 showElement         = ppcElement defaultConfigPP
-
-showCData          :: CData -> Text
-showCData           = ppcCData defaultConfigPP
 
 -- Note: crefs should not contain '&', ';', etc.
 showCRefS          :: Text -> Builder
