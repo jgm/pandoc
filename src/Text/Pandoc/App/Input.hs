@@ -16,6 +16,7 @@ module Text.Pandoc.App.Input
 
 import Control.Monad ((>=>), when)
 import Control.Monad.Except (throwError, catchError)
+import Data.Char (toLower)
 import Data.Text (Text)
 import Network.URI (URI (..), parseURI)
 import Text.Pandoc.Transforms (adjustLinksAndIds)
@@ -89,8 +90,9 @@ readSource :: PandocMonad m
 readSource "-" = (,Nothing) <$> readStdinStrict
 readSource src =
   case parseURI src of
-    Just u | uriScheme u `elem` ["http:","https:"] -> openURL (T.pack src)
-           | uriScheme u == "file:" ->
+    Just u | map toLower (uriScheme u) `elem` ["http:","https:"] ->
+               openURL (T.pack src)
+           | map toLower (uriScheme u) == "file:" ->
                (,Nothing) <$>
                  readFileStrict (uriPathToPath $ T.pack $ uriPath u)
     _       -> (,Nothing) <$> readFileStrict src

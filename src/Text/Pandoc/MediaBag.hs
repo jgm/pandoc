@@ -25,6 +25,7 @@ module Text.Pandoc.MediaBag (
                      ) where
 import Crypto.Hash (hashlazy, Digest, SHA1)
 import qualified Data.ByteString.Lazy as BL
+import Data.Char (toLower)
 import Data.Data (Data)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing)
@@ -55,12 +56,16 @@ newtype MediaBag = MediaBag (M.Map Text MediaItem)
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)
 
+-- | Check for the (case-insensitive) @data:@ URI scheme.
+isDataURI :: FilePath -> Bool
+isDataURI = (== "data:") . map toLower . take 5
+
 -- | We represent paths with /, in normalized form.  Percent-encoding
 -- is not resolved.
 canonicalize :: FilePath -> Text
--- avoid an expensive call to isURI for data URIs:
-canonicalize fp@('d':'a':'t':'a':':':_) = T.pack fp
 canonicalize fp
+  -- avoid an expensive call to isURI for data URIs:
+  | isDataURI fp = T.pack fp
   | isURI fp = T.pack fp
   | otherwise = T.replace "\\" "/" . T.pack . normalise $ fp
 
@@ -80,7 +85,7 @@ insertMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap)
- | 'd':'a':'t':'a':':':_ <- fp
+ | isDataURI fp
  , Just mt' <- mbMime
    = MediaBag (M.insert fp'
                MediaItem{ mediaPath = hashpath

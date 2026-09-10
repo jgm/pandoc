@@ -65,7 +65,7 @@ module Text.Pandoc.Class.PandocMonad
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad (when)
-import Data.Char (chr, digitToInt, isHexDigit)
+import Data.Char (chr, digitToInt, isHexDigit, toLower)
 import Data.List (intercalate)
 import Data.Word (Word8)
 import Data.Time (UTCTime)
@@ -386,7 +386,7 @@ downloadOrRead :: PandocMonad m
                => T.Text
                -> m (B.ByteString, Maybe MimeType)
 downloadOrRead s
- | "data:" `T.isPrefixOf` s,
+ | T.toLower (T.take 5 s) == "data:",
    Right (bs, mt) <- A.parseOnly (pBase64DataURI <* A.endOfInput) s
    = pure (bs, Just mt)
  | otherwise = do
@@ -403,9 +403,10 @@ downloadOrRead s
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
        case parseURI (T.unpack s') of  -- requires absolute URI
-            Just URI{ uriScheme = "file:", uriPath = upath}
+            Just URI{ uriScheme = sch, uriPath = upath}
+              | map toLower sch == "file:"
               -> readLocalFile $ uriPathToPath (T.pack upath)
-            Just URI{ uriScheme = "data:", uriPath = upath}
+              | map toLower sch == "data:"
               -> pure $ extractURIData upath
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (T.pack $ show u')

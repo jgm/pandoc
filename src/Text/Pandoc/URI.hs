@@ -126,7 +126,7 @@ pBase64DataURI :: A.Parser (B.ByteString, MimeType)
 pBase64DataURI = base64uri
  where
   base64uri = do
-    A.string "data:"
+    A.asciiCI "data:"  -- the scheme is case-insensitive (RFC 3986)
     mime <- do
       n1 <- restrictedName
       A.char '/'

@@ -27,7 +27,9 @@ tests = [
                   -- absolute path -> extracted with hashed name
                   B.para (B.image (T.pack absLalune) "" mempty) <>
                   B.para (B.image "data:image/png;base64,cHJpbnQgImhlbGxvIgo=;.lua+%2f%2e%2e%2f%2e%2e%2fa%2elua" "" mempty) <>
-                  B.para (B.image "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" "" mempty)
+                  B.para (B.image "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" "" mempty) <>
+                  -- the data: scheme is case-insensitive
+                  B.para (B.image "DATA:image/gif;base64,dXBwZXJjYXNlIGRhdGEgdXJpIHRlc3QK" "" mempty)
         let fooDir = absTmpdir </> "foo"
         runIOorExplode $ do
           fillMediaBag d
@@ -42,6 +44,9 @@ tests = [
           (exists3 && not exists4)
         exists5 <- doesFileExist (fooDir </> "d5fceb6532643d0d84ffe09c40c481ecdf59e15a.gif")
         assertBool "data uri with gif is not properly decoded" exists5
+        exists5a <- doesFileExist
+          (fooDir </> "81c7546d23179ce1b344a763aa9038c3a8ff85d0.gif")
+        assertBool "data uri with uppercase scheme is not extracted" exists5a
         -- double-encoded version:
         let e = B.doc $
                   B.para (B.image "data:image/png;base64,cHJpbnQgInB3bmVkIgo=;.lua+%252f%252e%252e%252f%252e%252e%252fb%252elua" "" mempty)
