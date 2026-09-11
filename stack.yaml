@@ -26,7 +26,7 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
 - git: https://github.com/jgm/asciidoc-hs
-  commit: 53a3e57248e0c2fec0dcc65491846d0fe5111493
+  commit: 8d090846ddb061871e2434f6f55462467cb5a052
 - git: https://github.com/jgm/doclayout
   commit: d98289d576ba621a17e184ca5a1ff9a8d8390542
 - git: https://github.com/jgm/typst-hs
