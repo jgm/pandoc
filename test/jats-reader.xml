@@ -227,7 +227,7 @@
       </abstract>
       <graphic id="graphic003"
       xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
-      xlink:href="Title 3">
+      xlink:title="Title 3">
         <alt-text>Alternative text 1</alt-text>
         <caption><p>Google doodle from 14 March 2003</p></caption>
       </graphic>
@@ -236,7 +236,7 @@
         <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math>
         <graphic id="graphic004"
         xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
-        xlink:href="Title 4">
+        xlink:title="Title 4">
           <alt-text>Alternative text 2</alt-text>
           <caption><p>Google doodle from 14 March 2003</p></caption>
         </graphic>

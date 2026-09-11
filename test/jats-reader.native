@@ -835,7 +835,9 @@ Pandoc
               , Space
               , Str "1"
               ]
-              ( "Title 3" , "" )
+              ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+              , "Title 3"
+              )
           ]
       , Para [ Math DisplayMath "e=mc^2" ]
       ]
