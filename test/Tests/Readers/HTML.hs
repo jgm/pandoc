@@ -145,7 +145,7 @@ tests = [ testGroup "base tag"
             <> "<li id=\"fn1\"><p>Outer</p><ol><li><p>Inner</p></li></ol></li>"
             <> "</ol></section>"
             =?> para ("Text" <> note (para "Outer" <>
-              orderedList [para "Inner"]))
+              Text.Pandoc.Builder.orderedList [para "Inner"]))
           ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
