@@ -5106,6 +5106,13 @@ attribute may be used to pass parameters affecting the float placement:
 
     : The caption of the table. {#ident .float latex-placement="ht"}
 
+To repeat the caption of a `longtable` on each page, add the
+`repeat-caption` class to the table's attributes. Repeated captions are
+not added to the list of tables. This class has no effect on tables with
+the `float` class, since those tables cannot span pages.
+
+    : The caption of the table. {.repeat-caption}
+
 Note that `longtable` does not work with two-column layouts, so if you
 are producing a two-column document using LaTeX, you will need to specify
 the `float` class on every table, or use this small Lua filter
