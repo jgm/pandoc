@@ -420,7 +420,9 @@ parseTypeAttr _   = DefaultStyle
 pOrderedList :: PandocMonad m => TagParser m Blocks
 pOrderedList = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "ol" [])
-  isNoteList <- inFootnotes <$> getState
+  inNotes <- inFootnotes <$> getState
+  inItem <- asks inListItem
+  let isNoteList = inNotes && not inItem
   let attribs = toStringAttr attribs'
   let start = fromMaybe 1 $ lookup "start" attribs >>= safeRead
   let style = fromMaybe DefaultStyle
