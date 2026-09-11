@@ -69,6 +69,7 @@ module Text.Pandoc.Readers
   , readDjot
   , readPod
   , readXML
+  , readMoinMoin
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -103,6 +104,7 @@ import Text.Pandoc.Readers.JATS (readJATS)
 import Text.Pandoc.Readers.Jira (readJira)
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.MediaWiki
+import Text.Pandoc.Readers.MoinMoin
 import Text.Pandoc.Readers.Muse
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.ODT
@@ -186,6 +188,7 @@ readers = [("native"       , TextReader readNative)
           ,("mdoc"         , TextReader readMdoc)
           ,("pod"          , TextReader readPod)
           ,("xml"          , TextReader readXML)
+          ,("moinmoin"     , TextReader readMoinMoin)
           ]
 
 -- | Retrieve reader, extensions based on format spec (format+extensions).
