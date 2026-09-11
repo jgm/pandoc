@@ -112,6 +112,10 @@ tests = [ testGroup "document"
             "docx/char_styles.docx"
             "docx/char_styles.native"
           , testCompare
+            "double strikethrough"
+            "docx/double_strikeout.docx"
+            "docx/double_strikeout.native"
+          , testCompare
             "hyperlinks"
             "docx/links.docx"
             "docx/links.native"

@@ -311,7 +311,9 @@ runStyleToTransform rPr' = do
         | Just True <- isSmallCaps rPr =
             smallcaps . go rPr{isSmallCaps = Nothing}
         | Just True <- isStrike rPr =
-            strikeout . go rPr{isStrike = Nothing}
+            strikeout . go rPr{isStrike = Nothing, isDoubleStrike = Nothing}
+        | Just True <- isDoubleStrike rPr =
+            strikeout . go rPr{isDoubleStrike = Nothing}
         | Just True <- isRTL rPr =
             spanWith ("",[],[("dir","rtl")]) . go rPr{isRTL = Nothing}
         | inBidi, Just False <- isRTL rPr =
