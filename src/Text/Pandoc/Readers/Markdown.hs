@@ -53,7 +53,8 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
 import Text.Pandoc.Readers.HTML.TagCategories (voidTags)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
-import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
+import Text.Pandoc.URI (escapeURI, pBase64DataURI)
+import Network.URI (isURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)
@@ -2058,7 +2059,9 @@ rebasePath pos path = do
       isFragment = T.take 1 path == "#"
       path' = T.unpack path
       isAbsolutePath = Posix.isAbsolute path' || Windows.isAbsolute path'
-   in if T.null path || isFragment || isAbsolutePath || isURI path
+   in if T.null path || isFragment || isAbsolutePath || isURI (T.unpack path)
+         -- note: we use Network.URI.isURI instead of T.P.URI.isURI
+         -- because it doesn't whitelist schemes; see #11858.
          then path
          else
            case takeDirectory fp of
