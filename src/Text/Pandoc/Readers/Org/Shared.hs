@@ -32,7 +32,8 @@ isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProto
                        `elem` imageExtensions
    isKnownProtocolUri = any (\x -> (x <> "://") `T.isPrefixOf` fp) protocols
 
-   imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg", ".webp", ".jxl", ".avif" ]
+   imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg", ".webp", ".jxl", ".avif",
+                       ".pdf" ]
    protocols = [ "file", "http", "https" ]
 
 -- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
