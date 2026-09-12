@@ -732,7 +732,7 @@ parseTable mbident fields = do
   let toCell tableSection tableData contents = do
         case contents of
           [Elt (Identifier "grid.cell") _pos fs] -> do
-            bs <- B.toList <$> (getField "body" fs >>= pWithContents pBlocks)
+            bs <- B.toList . plainify <$> (getField "body" fs >>= pWithContents pBlocks)
             rowspan <- getField "rowspan" fs <|> pure 1
             colspan <- getField "colspan" fs <|> pure 1
             align' <- (toAlign <$> getField "align" fs) <|> pure B.AlignDefault
@@ -752,7 +752,7 @@ parseTable mbident fields = do
             getField "children" fs >>=
               foldM (toCell TFooter) tableData . V.toList
           _ -> do
-            bs <- B.toList <$> pWithContents pBlocks contents
+            bs <- B.toList . plainify <$> pWithContents pBlocks contents
             pure $ addCell tableSection
               (B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs)
               tableData
@@ -771,6 +771,12 @@ parseTable mbident fields = do
       (B.TableHead B.nullAttr headRows)
       [B.TableBody B.nullAttr 0 [] bodyRows]
       (B.TableFoot B.nullAttr footRows)
+
+-- | Convert a singleton Para to Plain, for consistency with other readers.
+plainify :: B.Blocks -> B.Blocks
+plainify blks = case B.toList blks of
+  [Para ils] -> B.fromList [Plain ils]
+  _          -> blks
 
 data TableSection = THeader | TBody | TFooter
   deriving (Show, Ord, Eq)
