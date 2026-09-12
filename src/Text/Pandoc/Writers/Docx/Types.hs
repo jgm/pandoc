@@ -68,7 +68,7 @@ listMarkerToId (NumberMarker sty delim n) = T.pack $
 
 data EnvProps = EnvProps{ styleElement  :: Maybe Element
                         , otherElements :: [Element]
-                        }
+                        } deriving (Show)
 
 instance Semigroup EnvProps where
   EnvProps s es <> EnvProps s' es' = EnvProps (s <|> s') (es ++ es')
