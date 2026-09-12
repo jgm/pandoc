@@ -1047,6 +1047,7 @@ header when requesting a document from a URL:
     CSS or JavaScript in HTML documents.  This option can be used
     repeatedly to include multiple files in the header.  They will be
     included in the order specified.  Implies `--standalone`.
+    See also variable `header-includes`.
 
 `-B` *FILE*, `--include-before-body=`*FILE*|*URL*
 
