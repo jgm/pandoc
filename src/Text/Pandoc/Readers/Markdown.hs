@@ -57,7 +57,6 @@ import Text.Pandoc.URI (escapeURI, pBase64DataURI)
 import Network.URI (isURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
--- import Debug.Trace (traceShowId)
 
 type MarkdownParser m = ParsecT Sources ParserState m
 
@@ -2324,14 +2323,8 @@ normalCite = try $ do
   return citations
 
 suffix :: PandocMonad m => MarkdownParser m (F Inlines)
-suffix = try $ do
-  hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
-  spnl
-  ils <- many (notFollowedBy (oneOf ";]") >> inline)
-  let rest = trimInlinesF (mconcat ils)
-  return $ if hasSpace && not (null ils)
-              then (B.space <>) <$> rest
-              else rest
+suffix = try $
+  mconcat <$> many (notFollowedBy (oneOf ";]") >> inline)
 
 prefix :: PandocMonad m => MarkdownParser m (F Inlines)
 prefix = trimInlinesF . mconcat <$>
@@ -2351,11 +2344,11 @@ citation = try $ do
   suff <- suffix
   noteNum <- stateNoteNumber <$> getState
   return $ do
-    x <- pref
-    y <- suff
+    pref' <- B.toList <$> pref
+    suff' <- B.toList <$> suff
     return Citation{ citationId      = key
-                   , citationPrefix  = B.toList x
-                   , citationSuffix  = B.toList y
+                   , citationPrefix  = pref'
+                   , citationSuffix  = suff'
                    , citationMode    = if suppress_author
                                           then SuppressAuthor
                                           else NormalCitation
