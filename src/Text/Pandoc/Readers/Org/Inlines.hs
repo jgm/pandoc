@@ -409,7 +409,7 @@ footnote = try $ do
 inlineNote :: PandocMonad m => OrgParser m (F Inlines)
 inlineNote = try $ do
   string "[fn:"
-  ref <- manyChar alphaNum
+  ref <- manyChar (alphaNum <|> oneOf "-_")
   char ':'
   note <- fmap B.para . trimInlinesF . mconcat <$> many1Till inline (char ']')
   unless (T.null ref) $

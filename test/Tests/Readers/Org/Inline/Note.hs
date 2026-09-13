@@ -82,6 +82,13 @@ tests =
       , headerWith ("headline", [], []) 2 "Headline"
       ]
 
+  , "Inline note with hyphen and underscore in label" =:
+      "Some text[fn:my_note-1: the note]" =?>
+      para (mconcat
+           [ "Some", space, "text"
+           , note . para $ "the" <> space <> "note"
+           ])
+
   , "Footnote followed by two blank lines" =:
       T.unlines [ "footnote[fn:blanklines]"
                 , ""
