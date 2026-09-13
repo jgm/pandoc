@@ -24,7 +24,7 @@ import Data.Text (Text, unpack)
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: PandocMonad m => OrgParser m ()
-exportSettings = void $ sepBy skipSpaces exportSetting
+exportSettings = void $ sepEndBy exportSetting skipSpaces
 
 -- | Setter function for export settings.
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
