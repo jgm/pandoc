@@ -783,8 +783,10 @@ endOfCell = try $ char '|' <|> lookAhead newline
 
 rowsToTable :: [OrgTableRow]
             -> F OrgTable
-rowsToTable = foldM rowToContent emptyTable
+rowsToTable = fmap unreverseRows . foldM rowToContent emptyTable
  where emptyTable = OrgTable mempty mempty mempty
+       -- Rows are accumulated in reverse order (see 'appendToBody').
+       unreverseRows tbl = tbl{ orgTableRows = reverse (orgTableRows tbl) }
 
 normalizeTable :: OrgTable -> OrgTable
 normalizeTable (OrgTable colProps heads rows) =
@@ -822,10 +824,9 @@ rowToContent tbl row =
    appendToBody :: F [Blocks] -> F OrgTable
    appendToBody frow = do
      newRow <- frow
-     let oldRows = orgTableRows tbl
-     -- NOTE: This is an inefficient O(n) operation.  This should be changed
-     -- if performance ever becomes a problem.
-     return tbl{ orgTableRows = oldRows ++ [newRow] }
+     -- Rows are prepended to avoid quadratic behavior on long tables;
+     -- the final list is reversed in 'rowsToTable'.
+     return tbl{ orgTableRows = newRow : orgTableRows tbl }
 
 
 --
