@@ -107,6 +107,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , getPosition
   ) where
 
+import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.ParserState
 
@@ -232,4 +233,4 @@ orgAnchor = try $ do
 
 recordAnchorId :: Monad m => Text -> OrgParser m ()
 recordAnchorId i = updateState $ \s ->
-  s{ orgStateAnchorIds = i : orgStateAnchorIds s }
+  s{ orgStateAnchorIds = Set.insert i (orgStateAnchorIds s) }

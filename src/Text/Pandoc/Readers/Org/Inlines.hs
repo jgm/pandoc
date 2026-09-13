@@ -36,6 +36,7 @@ import Control.Monad (guard, mplus, mzero, unless, when, void)
 import Control.Monad.Trans (lift)
 import Data.Char (isAlphaNum, isSpace)
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -501,7 +502,7 @@ linkToInlinesF linkStr =
 internalLink :: Text -> Inlines -> F Inlines
 internalLink link title = do
   ids <- asksF orgStateAnchorIds
-  if link `elem` ids
+  if link `Set.member` ids
     then return $ B.link ("#" <> link) "" title
     else let attr' = ("", ["spurious-link"] , [("target", link)])
          in return $ B.spanWith attr' (B.emph title)

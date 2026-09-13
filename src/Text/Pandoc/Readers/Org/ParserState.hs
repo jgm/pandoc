@@ -92,7 +92,7 @@ type TodoSequence = [TodoMarker]
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
-  { orgStateAnchorIds            :: [Text]
+  { orgStateAnchorIds            :: Set.Set Text
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisPreChars     :: [Char] -- ^ Chars allowed to occur before
                                            -- emphasis; spaces and newlines are
@@ -164,7 +164,7 @@ instance Default OrgParserState where
 
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
-  { orgStateAnchorIds = []
+  { orgStateAnchorIds = Set.empty
   , orgStateEmphasisPreChars = "-\t ('\"{\x200B"
   , orgStateEmphasisPostChars  = "-\t\n .,:!?;'\")}[\x200B"
   , orgStateEmphasisCharStack = []
