@@ -731,8 +731,8 @@ read_table         = matchingElement NsTable "table"
 
 -- | A table without a caption.
 table' :: ([[Cell]], [[Cell]]) -> Blocks
-table' (headers, rows) =
-  table emptyCaption (replicate numcols defaults) th [tb] tf
+table' (headers, rows) = compactifyTable $
+    table emptyCaption (replicate numcols defaults) th [tb] tf
   where
     defaults = (AlignDefault, ColWidthDefault)
     numcols = maximum $ map length $ headers ++ rows

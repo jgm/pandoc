@@ -25,7 +25,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared (addPandocAttributes, blocksToInlines, safeRead,
-                           tshow)
+                           tshow, compactifyTable)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified AsciiDoc as A
 import Text.Pandoc.Error
@@ -184,7 +184,8 @@ addBlockTitle tit' bs =
   let tit = B.toList tit'
   in case B.toList bs of
     [B.Table attr _ colspecs thead tbody tfoot] ->
-      B.singleton $ B.Table attr (B.Caption Nothing [B.Plain tit])
+      B.singleton $ compactifyTable
+                  $ B.Table attr (B.Caption Nothing [B.Plain tit])
                      colspecs thead tbody tfoot
     [B.Figure attr _ bs'] ->
       B.singleton $ B.Figure attr (B.Caption Nothing [B.Plain tit]) bs'
@@ -281,7 +282,8 @@ doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
                                    fromIntegral x / fromIntegral totalWidth))
                                (A.colWidth spec))
       let colspecs = map toColSpec specs
-      pure $ B.table (B.Caption Nothing mempty) -- added by addBlockTitle
+      pure $ compactifyTable
+           $ B.table (B.Caption Nothing mempty) -- added by addBlockTitle
                 colspecs thead [tbody] tfoot
     A.BlockImage target mbalt mbw mbh -> do
       img' <- doInline (A.Inline mempty (A.InlineImage target mbalt mbw mbh))

@@ -33,7 +33,7 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL)
+import Text.Pandoc.Shared (compactify, compactifyDL, compactifyTable)
 import Text.Pandoc.URI (escapeURI)
 
 type T2T = ParsecT Sources ParserState (Reader T2TMeta)
@@ -274,7 +274,8 @@ table = try $ do
   let headerPadded = if null tableHeader then mempty else pad size tableHeader
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
-  return $ B.table B.emptyCaption
+  return $ compactifyTable
+         $ B.table B.emptyCaption
                     (zip aligns (replicate ncolumns ColWidthDefault))
                       (TableHead nullAttr $ toHeaderRow headerPadded)
                       [TableBody nullAttr 0 [] $ map toRow rowsPadded]

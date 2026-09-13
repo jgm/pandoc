@@ -1046,22 +1046,15 @@ csvTableDirective top fields rawcsv = do
                  _ -> replicate numOfCols ColWidthDefault
          let toRow = Row nullAttr . map B.simpleCell
              toHeaderRow l = [toRow l | not (null l)]
-         return $ B.table (B.simpleCaption $ B.plain title)
+         return $ compactifyTable
+                $ B.table (B.simpleCaption $ B.plain title)
                           (zip (replicate numOfCols AlignDefault) widths)
                           (TableHead nullAttr $ toHeaderRow headerRow)
                           [TableBody nullAttr 0 [] $ map toRow bodyRows]
                           (TableFoot nullAttr [])
 
-singleParaToPlain :: Blocks -> Blocks
-singleParaToPlain bs =
-  case B.toList bs of
-    [Para ils] -> B.fromList [Plain ils]
-    _          -> bs
-
 parseCell :: PandocMonad m => Text -> RSTParser m Blocks
-parseCell t = singleParaToPlain
-   <$> parseFromString' parseBlocks (trim t <> "\n\n")
-
+parseCell t = parseFromString' parseBlocks (trim t <> "\n\n")
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
@@ -1516,7 +1509,8 @@ gridTable = runIdentity <$>
   gridTableWith (Identity <$> parseBlocks)
 
 table :: PandocMonad m => RSTParser m Blocks
-table = gridTable <|> simpleTable False <|> simpleTable True <?> "table"
+table = compactifyTable <$>
+  (gridTable <|> simpleTable False <|> simpleTable True <?> "table")
 
 --
 -- inline

@@ -39,7 +39,6 @@ import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.General
 import Text.Pandoc.Sources
 import Text.Parsec (Stream (..), ParsecT, optional, sepEndBy1, try)
-
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Text.GridTable as GT
@@ -145,7 +144,7 @@ gridTableWith' normalization blocks = do
                tbl
   let rows = GT.rows blkTbl
   let toPandocCell (GT.Cell c (GT.RowSpan rs) (GT.ColSpan cs)) =
-        fmap (B.cell AlignDefault (B.RowSpan rs) (B.ColSpan cs) . plainify) <$> c
+        fmap (B.cell AlignDefault (B.RowSpan rs) (B.ColSpan cs)) <$> c
   rows' <- mapM (mapM toPandocCell) rows
   columns <- getOption readerColumns
   let colspecs = zipWith (\cs w -> (convAlign $ fst cs, B.ColWidth w))
@@ -186,11 +185,6 @@ removeOneLeadingSpace xs =
    where startsWithSpace t = case T.uncons t of
            Nothing     -> True
            Just (c, _) -> c == ' '
-
-plainify :: B.Blocks -> B.Blocks
-plainify blks = case B.toList blks of
-  [Para x] -> B.fromList [Plain x]
-  _        -> blks
 
 convAlign :: GT.Alignment -> B.Alignment
 convAlign GT.AlignLeft    = B.AlignLeft

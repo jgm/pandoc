@@ -15,7 +15,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Control.Applicative ((<|>), optional, many)
 import Control.Monad (when, void)
-import Text.Pandoc.Shared (safeRead, trim)
+import Text.Pandoc.Shared (safeRead, trim, compactifyTable)
 import Text.Pandoc.Logging (LogMessage(SkippedContent))
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
@@ -190,7 +190,7 @@ parseTableCell block = do
     -- The parsing of empty cells is important in LaTeX, especially when dealing
     -- with multirow/multicolumn. See #6603.
     parseEmptyCell = spaces $> emptyCell
-    parseSimpleCell = simpleCell <$> (plainify . mconcat <$> many block)
+    parseSimpleCell = simpleCell . mconcat <$> many block
 
 
 cellAlignment :: PandocMonad m => LP m Alignment
@@ -205,11 +205,6 @@ cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
         "*" -> AlignDefault
         _   -> AlignDefault
 
-plainify :: Blocks -> Blocks
-plainify bs = case toList bs of
-                [Para ils] -> plain (fromList ils)
-                _          -> bs
-
 multirowCell :: PandocMonad m => LP m Blocks -> LP m Cell
 multirowCell block = controlSeq "multirow" >> do
   -- Full prototype for \multirow macro is:
@@ -221,7 +216,7 @@ multirowCell block = controlSeq "multirow" >> do
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
   _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
-  content <- symbol '{' *> (plainify . mconcat <$> many block) <* symbol '}'
+  content <- symbol '{' *> (mconcat <$> many block) <* symbol '}'
   return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
 
 multicolumnCell :: PandocMonad m => LP m Blocks -> LP m Cell
@@ -230,7 +225,7 @@ multicolumnCell block = controlSeq "multicolumn" >> do
   alignment <- symbol '{' *> cellAlignment <* symbol '}'
 
   let singleCell = do
-        content <- plainify . mconcat <$> many block
+        content <- mconcat <$> many block
         return $ cell alignment (RowSpan 1) (ColSpan span') content
 
   -- Two possible contents: either a \multirow cell, or content.
@@ -357,7 +352,8 @@ simpTable block inline envname hasWidthParameter = try $ do
   let th  = fixTableHead $ TableHead nullAttr header'
   let tbs = [fixTableBody $ TableBody nullAttr 0 [] rows]
   let tf  = TableFoot nullAttr []
-  return $ table emptyCaption (zip aligns widths) th tbs tf
+  return $ compactifyTable
+         $ table emptyCaption (zip aligns widths) th tbs tf
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go

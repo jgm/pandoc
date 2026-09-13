@@ -864,13 +864,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Orange" ] ]
+                  [ Plain [ Str "Orange" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Apple" ] ]
+                  [ Plain [ Str "Apple" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -879,13 +879,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Bread" ] ]
+                  [ Plain [ Str "Bread" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Pie" ] ]
+                  [ Plain [ Str "Pie" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -894,13 +894,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Butter" ] ]
+                  [ Plain [ Str "Butter" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
               ]
           ]
       ]
@@ -922,13 +922,13 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Orange" ] ]
+                 [ Plain [ Str "Orange" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Apple" ] ]
+                 [ Plain [ Str "Apple" ] ]
              ]
          ])
       [ TableBody
@@ -942,13 +942,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Bread" ] ]
+                  [ Plain [ Str "Bread" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Pie" ] ]
+                  [ Plain [ Str "Pie" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -957,13 +957,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Butter" ] ]
+                  [ Plain [ Str "Butter" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
               ]
           ]
       ]
@@ -1043,19 +1043,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Orange" ] ]
+                  [ Plain [ Str "Orange" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Apple" ] ]
+                  [ Plain [ Str "Apple" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "more" ] ]
+                  [ Plain [ Str "more" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -1064,19 +1064,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Bread" ] ]
+                  [ Plain [ Str "Bread" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Pie" ] ]
+                  [ Plain [ Str "Pie" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "more" ] ]
+                  [ Plain [ Str "more" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -1085,19 +1085,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Butter" ] ]
+                  [ Plain [ Str "Butter" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "and" , Space , Str "more" ] ]
+                  [ Plain [ Str "and" , Space , Str "more" ] ]
               ]
           ]
       ]
@@ -1118,19 +1118,19 @@ Pandoc
                  AlignLeft
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Left" ] ]
+                 [ Plain [ Str "Left" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignRight
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Right" ] ]
+                 [ Plain [ Str "Right" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignCenter
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Center" ] ]
+                 [ Plain [ Str "Center" ] ]
              ]
          ])
       [ TableBody
@@ -1144,19 +1144,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "left" ] ]
+                  [ Plain [ Str "left" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "15.00" ] ]
+                  [ Plain [ Str "15.00" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "centered" ] ]
+                  [ Plain [ Str "centered" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -1165,19 +1165,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "more" ] ]
+                  [ Plain [ Str "more" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "2.0" ] ]
+                  [ Plain [ Str "2.0" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "more" ] ]
+                  [ Plain [ Str "more" ] ]
               ]
           ]
       ]
@@ -1236,13 +1236,13 @@ Pandoc
                                  AlignDefault
                                  (RowSpan 1)
                                  (ColSpan 1)
-                                 [ Para [ Str "fruit" ] ]
+                                 [ Plain [ Str "fruit" ] ]
                              , Cell
                                  ( "" , [] , [] )
                                  AlignDefault
                                  (RowSpan 1)
                                  (ColSpan 1)
-                                 [ Para [ Str "topping" ] ]
+                                 [ Plain [ Str "topping" ] ]
                              ]
                          ])
                       [ TableBody
@@ -1256,13 +1256,13 @@ Pandoc
                                   AlignDefault
                                   (RowSpan 1)
                                   (ColSpan 1)
-                                  [ Para [ Str "apple" ] ]
+                                  [ Plain [ Str "apple" ] ]
                               , Cell
                                   ( "" , [] , [] )
                                   AlignDefault
                                   (RowSpan 1)
                                   (ColSpan 1)
-                                  [ Para
+                                  [ Plain
                                       [ Str "ice"
                                       , Space
                                       , Str "cream"
@@ -1308,7 +1308,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Orange" ] ]
+                  [ Plain [ Str "Orange" ] ]
               ]
           ]
       ]
@@ -1337,13 +1337,13 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "fruit" ] ]
+                 [ Plain [ Str "fruit" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "topping" ] ]
+                 [ Plain [ Str "topping" ] ]
              ]
          ])
       [ TableBody
@@ -1357,13 +1357,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "apple" ] ]
+                  [ Plain [ Str "apple" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "ice" , Space , Str "cream" ] ]
               ]
           ]
       ]

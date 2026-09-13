@@ -1458,7 +1458,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
+                  [ Para
                       [ Str "c"
                       , SoftBreak
                       , Str "c"

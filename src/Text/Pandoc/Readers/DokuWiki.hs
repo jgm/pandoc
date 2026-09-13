@@ -28,7 +28,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (trim, stringifyInlines, tshow)
+import Text.Pandoc.Shared (trim, stringifyInlines, tshow, compactifyTable)
 import Data.List (isPrefixOf, isSuffixOf, groupBy)
 import qualified Safe
 
@@ -517,7 +517,8 @@ table = do
   let attrs =  map (\(a, _) -> (a, ColWidthDefault)) firstRow
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
-  pure $ B.table B.emptyCaption
+  pure $ compactifyTable
+       $ B.table B.emptyCaption
                  attrs
                  (TableHead nullAttr $ toHeaderRow (map snd headerRow))
                  [TableBody nullAttr 0 [] $ map (toRow . (map snd)) body]

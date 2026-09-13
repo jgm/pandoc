@@ -38,7 +38,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringifyInlines,
-                           stripTrailingNewlines, trim, tshow)
+                           stripTrailingNewlines, trim, tshow, compactifyTable)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -299,7 +299,8 @@ table = do
                           else ([], hdr:rows')
   let toRow = Row nullAttr
       toHeaderRow l = [toRow l | not (null l)]
-  return $ B.table (B.simpleCaption $ B.plain caption)
+  return $ compactifyTable
+         $ B.table (B.simpleCaption $ B.plain caption)
                    cellspecs
                    (TableHead nullAttr $ toHeaderRow headers)
                    [TableBody nullAttr 0 [] $ map toRow rows]

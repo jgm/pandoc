@@ -13,7 +13,7 @@
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
+               [ Para
                    [ Str "Cell"
                    , Space
                    , Str "with"
@@ -26,7 +26,7 @@
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
+               [ Para
                    [ Str "Cell"
                    , Space
                    , Str "with"

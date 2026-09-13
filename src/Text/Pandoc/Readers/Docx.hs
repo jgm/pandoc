@@ -80,7 +80,6 @@ import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
-import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Citeproc (ItemId(..), Val(TextVal,FancyVal), Reference(..), CitationItem(..))
@@ -605,18 +604,10 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor' blk = return blk
 
--- Rewrite a standalone paragraph block as a plain
-singleParaToPlain :: Blocks -> Blocks
-singleParaToPlain blks
-  | (Para ils :< seeq) <- viewl $ unMany blks
-  , Seq.null seeq =
-      singleton $ Plain ils
-singleParaToPlain blks = blks
-
 cellToCell :: PandocMonad m => RowSpan -> Docx.Cell -> DocxContext m Pandoc.Cell
 cellToCell rowSpan (Docx.Cell align gridSpan _ bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
-  let blks' = singleParaToPlain $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
+  let blks' = fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
   return (cell (convertAlign align)
           rowSpan (ColSpan (fromIntegral gridSpan)) blks')
 
@@ -860,7 +851,8 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
   let attr = case mbsty of
                 Just sty | extStylesEnabled -> ("", [], [("custom-style", sty)])
                 _ -> nullAttr
-  return $ tableWith attr cap'
+  return $ compactifyTable
+         $ tableWith attr cap'
                  (zip alignments widths)
                  (TableHead nullAttr headerCells)
                  [TableBody nullAttr 0 [] bodyCells]

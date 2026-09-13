@@ -1837,7 +1837,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "content"
@@ -1866,7 +1866,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "line"
@@ -1911,7 +1911,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "When"
                       , Space
                       , Str "the"
@@ -1988,7 +1988,7 @@ Pandoc
                   AlignRight
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Strong
                           [ Str "This"
                           , Space
@@ -2021,7 +2021,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "The"
                       , Space
                       , Str "cell"
@@ -2085,7 +2085,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "1,"
@@ -2100,7 +2100,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "2,"
@@ -2123,7 +2123,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2142,7 +2142,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2164,7 +2164,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2183,7 +2183,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2224,7 +2224,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "1,"
@@ -2239,7 +2239,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "2,"
@@ -2262,7 +2262,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2281,7 +2281,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2303,7 +2303,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2322,7 +2322,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2393,7 +2393,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2412,7 +2412,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2434,7 +2434,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2453,7 +2453,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2498,13 +2498,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "A1" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "A1" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "B1" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "B1" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -2513,13 +2513,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "A2" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "A2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "B2" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "B2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -2528,13 +2528,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "A3" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "A3" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Cell" , Space , Str "B3" ] ]
+                  [ Plain [ Str "Cell" , Space , Str "B3" ] ]
               ]
           ]
       ]
@@ -2559,7 +2559,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "1,"
@@ -2574,7 +2574,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "2,"
@@ -2589,7 +2589,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "3,"
@@ -2607,7 +2607,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2626,7 +2626,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2645,7 +2645,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2667,7 +2667,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "1,"
@@ -2682,7 +2682,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "2,"
@@ -2697,7 +2697,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "3,"
@@ -2730,7 +2730,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "1,"
@@ -2745,7 +2745,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "2,"
@@ -2763,7 +2763,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2782,7 +2782,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2804,7 +2804,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2823,7 +2823,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -2849,7 +2849,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "1,"
@@ -2864,7 +2864,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para
+                 [ Plain
                      [ Str "Column"
                      , Space
                      , Str "2,"
@@ -2895,13 +2895,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Column" , Space , Str "Name" ] ]
+                  [ Plain [ Str "Column" , Space , Str "Name" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Column" , Space , Str "Name" ] ]
+                  [ Plain [ Str "Column" , Space , Str "Name" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -2910,7 +2910,7 @@ Pandoc
                   AlignCenter
                   (RowSpan 1)
                   (ColSpan 2)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "cell"
@@ -2958,7 +2958,7 @@ Pandoc
                   AlignCenter
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "content"
@@ -3007,7 +3007,7 @@ Pandoc
                   AlignCenter
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "content"
@@ -3345,13 +3345,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Code ( "" , [] , [] ) "monospace" ] ]
+                  [ Plain [ Code ( "" , [] , [] ) "monospace" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Code ( "" , [] , [] ) "mono" ] ]
+                  [ Plain [ Code ( "" , [] , [] ) "mono" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -3360,13 +3360,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "default" ] ]
+                  [ Plain [ Str "default" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Code ( "" , [] , [] ) "mono" ] ]
+                  [ Plain [ Code ( "" , [] , [] ) "mono" ] ]
               ]
           ]
       ]
@@ -3697,7 +3697,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "1,"
@@ -3712,7 +3712,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "2,"
@@ -3727,7 +3727,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Column"
                       , Space
                       , Str "3,"
@@ -3745,7 +3745,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 2)
                   (ColSpan 2)
-                  [ Para
+                  [ Plain
                       [ Str "This"
                       , Space
                       , Str "cell"
@@ -3768,7 +3768,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -3790,7 +3790,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -3812,7 +3812,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 3)
-                  [ Para
+                  [ Plain
                       [ Str "Cell"
                       , Space
                       , Str "in"
@@ -3850,19 +3850,19 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Artist" ] ]
+                 [ Plain [ Str "Artist" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Track" ] ]
+                 [ Plain [ Str "Track" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Para [ Str "Genre" ] ]
+                 [ Plain [ Str "Genre" ] ]
              ]
          ])
       [ TableBody
@@ -3876,19 +3876,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Baauer" ] ]
+                  [ Plain [ Str "Baauer" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Harlem" , Space , Str "Shake" ] ]
+                  [ Plain [ Str "Harlem" , Space , Str "Shake" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Hip" , Space , Str "Hop" ] ]
+                  [ Plain [ Str "Hip" , Space , Str "Hop" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -3897,19 +3897,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "The" , Space , Str "Lumineers" ] ]
+                  [ Plain [ Str "The" , Space , Str "Lumineers" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Ho" , Space , Str "Hey" ] ]
+                  [ Plain [ Str "Ho" , Space , Str "Hey" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Folk" , Space , Str "Rock" ] ]
+                  [ Plain [ Str "Folk" , Space , Str "Rock" ] ]
               ]
           ]
       ]
@@ -3934,19 +3934,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Artist" ] ]
+                  [ Plain [ Str "Artist" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Track" ] ]
+                  [ Plain [ Str "Track" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Genre" ] ]
+                  [ Plain [ Str "Genre" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -3955,19 +3955,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Baauer" ] ]
+                  [ Plain [ Str "Baauer" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Harlem" , Space , Str "Shake" ] ]
+                  [ Plain [ Str "Harlem" , Space , Str "Shake" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Hip" , Space , Str "Hop" ] ]
+                  [ Plain [ Str "Hip" , Space , Str "Hop" ] ]
               ]
           ]
       ]
@@ -3995,19 +3995,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "a" ] ]
+                  [ Plain [ Str "a" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "b" ] ]
+                  [ Plain [ Str "b" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "c" ] ]
+                  [ Plain [ Str "c" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -4016,19 +4016,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "d" ] ]
+                  [ Plain [ Str "d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "e" ] ]
+                  [ Plain [ Str "e" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "f" ] ]
+                  [ Plain [ Str "f" ] ]
               ]
           ]
       ]
@@ -4053,19 +4053,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Artist" ] ]
+                  [ Plain [ Str "Artist" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Track" ] ]
+                  [ Plain [ Str "Track" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Genre" ] ]
+                  [ Plain [ Str "Genre" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -4074,19 +4074,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Robyn" ] ]
+                  [ Plain [ Str "Robyn" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Indestructible" ] ]
+                  [ Plain [ Str "Indestructible" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "Dance" ] ]
+                  [ Plain [ Str "Dance" ] ]
               ]
           ]
       ]

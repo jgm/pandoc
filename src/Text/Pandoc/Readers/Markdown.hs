@@ -1534,7 +1534,7 @@ table = try $ do
   return $ do
     caption' <- caption
     (TableComponents _attr _capt colspecs th tb tf) <- tableComponents
-    return $ B.tableWith attr
+    return $ compactifyTable $ B.tableWith attr
                 (B.simpleCaption $ B.plain caption') colspecs th tb tf
 
 --

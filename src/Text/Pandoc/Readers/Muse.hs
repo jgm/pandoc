@@ -36,7 +36,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (trimr, tshow)
+import Text.Pandoc.Shared (trimr, tshow, compactifyTable)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: (PandocMonad m, ToSources a)
@@ -645,6 +645,7 @@ data MuseTableElement = MuseHeaderRow [Blocks]
 
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
+  compactifyTable $
   B.table (B.simpleCaption $ B.plain caption)
           attrs
           (TableHead nullAttr $ toHeaderRow headRow)

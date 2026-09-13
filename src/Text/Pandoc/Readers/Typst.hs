@@ -1,6 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
@@ -30,7 +31,7 @@ import Text.Pandoc.Definition
 import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Translations (Term(References), translateTerm)
-import Text.Pandoc.Shared (tshow, blocksToInlines)
+import Text.Pandoc.Shared (tshow, blocksToInlines, compactifyTable)
 import Text.Pandoc.Parsing (registerHeader, reportLogMessages)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
@@ -763,14 +764,13 @@ parseTable mbident fields = do
   let headRows = getRows THeader tableData
   let bodyRows = getRows TBody tableData
   let footRows = getRows TFooter tableData
-  pure $
-    B.tableWith
-      (fromMaybe "" mbident, [], [])
-      (B.Caption mempty mempty)
-      colspecs
-      (B.TableHead B.nullAttr headRows)
-      [B.TableBody B.nullAttr 0 [] bodyRows]
-      (B.TableFoot B.nullAttr footRows)
+  pure $ compactifyTable $ B.tableWith
+        (fromMaybe "" mbident, [], [])
+        (B.Caption mempty mempty)
+        colspecs
+        (B.TableHead B.nullAttr headRows)
+        [B.TableBody B.nullAttr 0 [] bodyRows]
+        (B.TableFoot B.nullAttr footRows)
 
 data TableSection = THeader | TBody | TFooter
   deriving (Show, Ord, Eq)

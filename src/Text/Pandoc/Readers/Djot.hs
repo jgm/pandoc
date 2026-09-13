@@ -25,7 +25,7 @@ import Text.Pandoc.Sources
 import Text.Parsec.Pos (newPos)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (addPandocAttributes, tshow)
+import Text.Pandoc.Shared (addPandocAttributes, tshow, compactifyTable)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Djot (ParseOptions(..), SourcePosOption(..), parseDoc, Pos(..))
 import qualified Djot.AST as D
@@ -151,7 +151,8 @@ convertBlock (D.Node pos attr bl) =  addAttrToBlock pos attr <$>
               mapM toRow hs <*> mapM toRow rs
       tbodies <- mapM toTableBody bodies
       let tfoot = TableFoot mempty []
-      pure $ singleton $ Table mempty capt colspecs thead tbodies tfoot
+      pure $ singleton $ compactifyTable
+           $ Table mempty capt colspecs thead tbodies tfoot
     D.RawBlock (D.Format fmt) bs -> pure $
       rawBlock (UTF8.toText fmt) (UTF8.toText bs)
 

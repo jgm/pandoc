@@ -28,7 +28,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.Shared (tshow, compactifyTable)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
@@ -217,7 +217,8 @@ table = try $ do
   return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) thead
   where
     buildTable caption rows (aligns, heads)
-                    = B.table (B.simpleCaption $ B.plain caption)
+                    = compactifyTable $ B.table
+                              (B.simpleCaption $ B.plain caption)
                               aligns
                               (TableHead nullAttr $ toHeaderRow heads)
                               [TableBody nullAttr 0 [] $ map toRow rows]

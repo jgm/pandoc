@@ -56,7 +56,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim, tshow)
+import Text.Pandoc.Shared (trim, tshow, compactifyTable)
 import Text.Read (readMaybe)
 
 -- | Parse a Textile text and return a Pandoc document.
@@ -452,7 +452,8 @@ table = try $ do
                 transpose $ map (map (snd . fst)) (headers:rows)
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
-  return $ B.table (B.simpleCaption $ B.plain caption)
+  return $ compactifyTable
+    $ B.table (B.simpleCaption $ B.plain caption)
     (zip aligns (replicate nbOfCols ColWidthDefault))
     (TableHead nullAttr $ toHeaderRow $ map snd headers)
     [TableBody nullAttr 0 [] $ map (toRow . map snd) rows]

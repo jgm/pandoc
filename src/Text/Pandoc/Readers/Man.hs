@@ -33,7 +33,7 @@ import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
 import qualified Data.Set as Set
-import Text.Pandoc.Shared (extractSpaces)
+import Text.Pandoc.Shared (extractSpaces, compactifyTable)
 
 data ManState = ManState { readerOptions   :: ReaderOptions
                          , manLogMessages  :: []LogMessage
@@ -129,7 +129,8 @@ parseTable = do
       let widths = if isPlainTable
                       then repeat ColWidthDefault
                       else repeat $ ColWidth (1.0 / fromIntegral (length alignments))
-      return $ B.table B.emptyCaption (zip alignments widths)
+      return $ compactifyTable
+             $ B.table B.emptyCaption (zip alignments widths)
                   (TableHead nullAttr $ toHeaderRow headerRow)
                   [TableBody nullAttr 0 [] $ map toRow bodyRows]
                   (TableFoot nullAttr [])) <|> fallback pos
