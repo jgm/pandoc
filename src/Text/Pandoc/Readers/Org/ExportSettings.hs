@@ -32,7 +32,7 @@ type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 -- | Read and process a single org-mode export option.
 exportSetting :: PandocMonad m => OrgParser m ()
 exportSetting = choice
-  [ booleanSetting "^" (\val es -> es { exportSubSuperscripts = val })
+  [ subSupSetting "^" (\val es -> es { exportSubSuperscripts = val })
   , booleanSetting "'" (\val es -> es { exportSmartQuotes = val })
   , booleanSetting "*" (\val es -> es { exportEmphasizedText = val })
   , booleanSetting "-" (\val es -> es { exportSpecialStrings = val })
@@ -142,6 +142,22 @@ complementableListSetting = genericExportSetting $ choice
    elispText = try $
      char '"'
        *> manyTillChar alphaNum (char '"')
+
+-- | Parses either @t@, @{}@, or @nil@ into a 'SubSupOption' value.
+subSupSetting :: Monad m
+              => Text
+              -> ExportSettingSetter SubSupOption
+              -> OrgParser m ()
+subSupSetting = genericExportSetting $ subSupBraced <|> subSupBoolean
+ where
+   subSupBraced = SubSupBraced <$ optionString "{}"
+
+   subSupBoolean = try $ do
+     exportBool <- elispBoolean
+     return $
+       if exportBool
+       then SubSupAll
+       else SubSupNone
 
 -- | Parses either @t@, @nil@, or @verbatim@ into a 'TeXExport' value.
 texSetting :: Monad m

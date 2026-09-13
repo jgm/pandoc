@@ -801,17 +801,22 @@ notAfterForbiddenBorderChar = do
 
 -- | Read a sub- or superscript expression
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
-subOrSuperExpr = try $
-  simpleSubOrSuperText <|>
-  (choice [ charsInBalanced '{' '}' (T.singleton <$> noneOf "\n\r")
-          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (T.singleton <$> noneOf "\n\r")
-          ] >>= parseFromString (mconcat <$> many inline))
- where enclosing (left, right) s = T.cons left $ T.snoc s right
+subOrSuperExpr = try $ do
+  subSupOption <- getExportSetting exportSubSuperscripts
+  case subSupOption of
+    SubSupNone   -> mzero
+    SubSupBraced -> bracedText
+    SubSupAll    -> simpleSubOrSuperText <|> bracedText <|> parenText
+ where
+   bracedText = charsInBalanced '{' '}' (T.singleton <$> noneOf "\n\r")
+                >>= parseFromString (mconcat <$> many inline)
+   parenText = (enclosing ('(', ')') <$>
+                charsInBalanced '(' ')' (T.singleton <$> noneOf "\n\r"))
+               >>= parseFromString (mconcat <$> many inline)
+   enclosing (left, right) s = T.cons left $ T.snoc s right
 
 simpleSubOrSuperText :: PandocMonad m => OrgParser m (F Inlines)
-simpleSubOrSuperText = try $ do
-  state <- getState
-  guard . exportSubSuperscripts . orgStateExportSettings $ state
+simpleSubOrSuperText = try $
   return . B.str <$>
     choice [ textStr "*"
            , mappend <$> option "" (T.singleton <$> oneOf "+-")

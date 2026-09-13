@@ -52,6 +52,18 @@ tests =
                   ] =?>
         para "a^b"
 
+    , "disable braced sub/superscript syntax" =:
+        T.unlines [ "#+OPTIONS: ^:nil"
+                  , "a^{b} c_{d}"
+                  ] =?>
+        para "a^{b} c_{d}"
+
+    , "interpret only braced sub/superscripts" =:
+        T.unlines [ "#+OPTIONS: ^:{}"
+                  , "a^b a^{b} a^(b)"
+                  ] =?>
+        para ("a^b a" <> superscript "b" <> " a^(b)")
+
     , "directly select drawers to be exported" =:
         T.unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
                   , ":IMPORTANT:"

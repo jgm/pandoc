@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , returnF
   , ExportSettings (..)
   , ArchivedTreesOption (..)
+  , SubSupOption (..)
   , TeXExport (..)
   , optionsToParserState
   ) where
@@ -240,6 +241,14 @@ data ArchivedTreesOption =
   | ArchivedTreesNoExport     -- ^ Exclude archived trees from exporting
   | ArchivedTreesHeadlineOnly -- ^ Export only the headline, discard the contents
 
+-- | Options for the handling of TeX-like sub- and superscript syntax.
+-- Represents allowed values of Emacs variable
+-- @org-export-with-sub-superscripts@.
+data SubSupOption
+  = SubSupAll                 -- ^ Interpret all sub- and superscripts (@t@)
+  | SubSupBraced              -- ^ Interpret only expressions in braces (@{}@)
+  | SubSupNone                -- ^ Never interpret sub-/superscripts (@nil@)
+
 -- | Options for the handling of LaTeX environments and fragments.
 -- Represents allowed values of Emacs variable @org-export-with-latex@.
 data TeXExport
@@ -261,7 +270,8 @@ data ExportSettings = ExportSettings
   , exportPreserveBreaks   :: Bool -- ^ Whether to preserve linebreaks
   , exportSmartQuotes      :: Bool -- ^ Parse quotes smartly
   , exportSpecialStrings   :: Bool -- ^ Parse ellipses and dashes smartly
-  , exportSubSuperscripts  :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  , exportSubSuperscripts  :: SubSupOption
+  -- ^ TeX-like syntax for sub- and superscripts
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
@@ -286,7 +296,7 @@ defaultExportSettings = ExportSettings
   , exportPreserveBreaks = False
   , exportSmartQuotes = False
   , exportSpecialStrings = True
-  , exportSubSuperscripts = True
+  , exportSubSuperscripts = SubSupAll
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
