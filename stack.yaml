@@ -23,7 +23,9 @@ extra-deps:
 - commonmark-pandoc-0.3
 - commonmark-extensions-0.2.7.1
 - citeproc-0.13.0.1
-- skylighting-format-blaze-html-0.1.2.1
+- skylighting-format-blaze-html-0.1.2.2
+- skylighting-0.15
+- skylighting-core-0.15
 - typst-symbols-0.3
 - git: https://github.com/jgm/asciidoc-hs
   commit: 8d090846ddb061871e2434f6f55462467cb5a052
