@@ -49,6 +49,7 @@ module Text.Pandoc.Shared (
                      capitalize,
                      compactify,
                      compactifyDL,
+                     compactifyTable,
                      linesToPara,
                      figureDiv,
                      makeSections,
@@ -97,7 +98,7 @@ import Data.List (find, groupBy, intercalate, intersperse, union)
 import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
-import Data.Monoid (Any (..) )
+import Data.Monoid (Any (..), All (..) )
 import Data.Semigroup (Min (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
@@ -474,6 +475,26 @@ compactifyDL items =
              _     -> items
         _          -> items
 
+-- | If every cell of the table is either empty or consists of a
+-- single Para or Plain element, convert all Para to Plain for a compact
+-- table.
+compactifyTable ::
+  (Walkable Block a, Walkable [Block] a, Walkable Inline a) => a -> a
+compactifyTable x = if isSimpleTable x
+                       then walk fixNotes $ walk paraToPlain x
+                       else x
+ where
+  isSimpleCell :: [Block] -> All
+  isSimpleCell [] = All True
+  isSimpleCell [Para _] = All True
+  isSimpleCell [Plain _] = All True
+  isSimpleCell _ = All False
+  isSimpleTable = getAll . query isSimpleCell
+  paraToPlain (Para ils) = Plain ils
+  paraToPlain b = b
+  -- walk descends into the notes, so we need to fix them back up:
+  fixNotes (Note [Plain ils]) = Note [Para ils]
+  fixNotes i = i
 
 -- | Combine a list of lines by adding hard linebreaks.
 combineLines :: [[Inline]] -> [Inline]
