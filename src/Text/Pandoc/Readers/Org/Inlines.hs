@@ -922,7 +922,7 @@ specialStrings = do
   guard =<< getExportSetting exportSpecialStrings
   choice [orgDash, orgEllipses, shyHyphen]
   where
-    shyHyphen   = pure <$> (B.str "\173" <$ string "\\-") <* updatePositions '-'
+    shyHyphen   = pure <$> (B.str "\173" <$ try (string "\\-")) <* updatePositions '-'
     orgDash     = pure <$> dash <* updatePositions '-'
     orgEllipses = pure <$> ellipses <* updatePositions '.'
 

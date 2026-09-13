@@ -112,6 +112,14 @@ tests =
       "line \\\\ \nbreak" =?>
       para ("line" <> linebreak <> "break")
 
+  , "Bare backslash" =:
+      "a \\ b" =?>
+      para ("a" <> space <> "\\" <> space <> "b")
+
+  , "Unclosed LaTeX environment" =:
+      "\\begin{align} more text" =?>
+      para ("\\begin{align}" <> space <> "more" <> space <> "text")
+
   , "Inline note" =:
       "[fn::Schreib mir eine E-Mail]" =?>
       para (note $ para "Schreib mir eine E-Mail")
