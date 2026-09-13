@@ -61,7 +61,7 @@ metaLine = try $ mempty <$ metaLineStart <* keywordLine
 
 keywordLine :: PandocMonad m => OrgParser m ()
 keywordLine = try $ do
-  key   <- T.toLower <$> metaKey
+  key   <- metaKey
   case Map.lookup key keywordHandlers of
     Nothing -> fail $ "Unknown keyword: " ++ T.unpack key
     Just hd -> hd
