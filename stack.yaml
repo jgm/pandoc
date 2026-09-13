@@ -29,6 +29,8 @@ extra-deps:
   commit: 8d090846ddb061871e2434f6f55462467cb5a052
 - git: https://github.com/jgm/doclayout
   commit: d98289d576ba621a17e184ca5a1ff9a8d8390542
+- git: https://github.com/jgm/doctemplates
+  commit: 3c3a61267b709de279074e54ecf391f0f631bb2f
 - git: https://github.com/jgm/typst-hs
   commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
 - git: https://github.com/jgm/djoths
