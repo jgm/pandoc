@@ -25,10 +25,6 @@ extra-deps:
 - citeproc-0.13.0.1
 - skylighting-format-blaze-html-0.1.2.1
 - typst-symbols-0.3
-source-repository-package
-- git: https://github.com/jgm/skylighting
-  commit: 504467d7a0989d3e0a8ece883d75a7a6a86a0d84
-  subdirs: [skylighting-core, skylighting]
 - git: https://github.com/jgm/asciidoc-hs
   commit: 8d090846ddb061871e2434f6f55462467cb5a052
 - git: https://github.com/jgm/doclayout
