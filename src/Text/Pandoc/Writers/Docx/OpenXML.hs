@@ -110,18 +110,60 @@ rPrTagOrder =
     , "oMath"
     ] [0..])
 
-sortSquashed :: [Element] -> [Element]
-sortSquashed l =
+-- from wml.xsd EG_PPrBase
+pPrTagOrder :: M.Map Text Int
+pPrTagOrder =
+  M.fromList
+  (zip [ "pStyle"
+    , "keepNext"
+    , "keepLines"
+    , "pageBreakBefore"
+    , "framePr"
+    , "widowControl"
+    , "numPr"
+    , "suppressLineNumbers"
+    , "pBdr"
+    , "shd"
+    , "tabs"
+    , "suppressAutoHyphens"
+    , "kinsoku"
+    , "wordWrap"
+    , "overflowPunct"
+    , "topLinePunct"
+    , "autoSpaceDE"
+    , "autoSpaceDN"
+    , "bidi"
+    , "adjustRightInd"
+    , "snapToGrid"
+    , "spacing"
+    , "ind"
+    , "contextualSpacing"
+    , "mirrorIndents"
+    , "suppressOverlap"
+    , "jc"
+    , "textDirection"
+    , "textAlignment"
+    , "textboxTightWrap"
+    , "outlineLvl"
+    , "divId"
+    , "cnfStyle"
+    , "rPr"
+    , "sectPr"
+    , "pPrChange"
+    ] [0..])
+
+sortSquashed :: M.Map Text Int -> [Element] -> [Element]
+sortSquashed tagOrder l =
   sortBy (comparing tagIndex) l
   where
     tagIndex :: Element -> Int
     tagIndex el =
-      fromMaybe 0 (M.lookup tag rPrTagOrder)
+      fromMaybe 0 (M.lookup tag tagOrder)
       where tag = (qName . elName) el
 
-squashProps :: EnvProps -> [Element]
-squashProps (EnvProps Nothing es) = sortSquashed es
-squashProps (EnvProps (Just e) es) = sortSquashed (e : es)
+squashProps :: M.Map Text Int -> EnvProps -> [Element]
+squashProps tagOrder (EnvProps Nothing es) = sortSquashed tagOrder es
+squashProps tagOrder (EnvProps (Just e) es) = sortSquashed tagOrder (e : es)
 
 -- | Certain characters are invalid in XML even if escaped.
 -- See #1992
@@ -362,12 +404,33 @@ getUniqueId = do
 dynamicStyleKey :: Text
 dynamicStyleKey = "custom-style"
 
+-- | Paragraph properties for a CSL-generated bibliography, derived from
+-- the hints @Text.Pandoc.Citeproc@ puts on the bibliography's Div:
+-- a @hanging-indent@ class and @line-spacing@/@entry-spacing@ attributes.
+cslBibParaProps :: [Text] -> [(Text, Text)] -> [Element]
+cslBibParaProps classes kvs =
+  [ mknode "w:ind" [("w:left", "720"), ("w:hanging", "720")] ()
+  | "hanging-indent" `elem` classes ] ++
+  [ mknode "w:spacing" spacingAttrs () | not (null spacingAttrs) ]
+  where
+    spacingAttrs = lineAttr ++ entryAttr
+    lineAttr = case lookup "line-spacing" kvs >>= safeRead of
+                 Just ls | ls > (1 :: Double) ->
+                   [ ("w:line", tshow (round (ls * 240) :: Int))
+                   , ("w:lineRule", "auto") ]
+                 _ -> []
+    entryAttr = case lookup "entry-spacing" kvs >>= safeRead of
+                  Just es | es > (0 :: Double) ->
+                    -- entry-spacing is given in em; 1 em ~ 240 twips
+                    [ ("w:after", tshow (round (es * 240) :: Int)) ]
+                  _ -> []
+
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
-blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
+blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just (fromString . T.unpack -> sty) -> do
                       modify $ \s ->
@@ -388,9 +451,18 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   let langmod = case lookup "lang" kvs of
                   Nothing -> id
                   Just lang -> local (\env -> env{envLang = Just lang})
+  -- citeproc adds formatting hints for bibliographies generated
+  -- from a CSL style; see Text.Pandoc.Citeproc (#11871).
+  let isCslBib = ident == "refs" || "csl-bib-body" `elem` classes
+  let cslmod = if not isCslBib
+                  then id
+                  else case cslBibParaProps classes kvs of
+                         []    -> id
+                         props -> foldr (.) id (map withParaProp props)
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
-  contents <- dirmod $ bibmod $ stylemod $ langmod $ blocksToOpenXML opts bs'
+  contents <- dirmod $ bibmod $ cslmod $ stylemod $ langmod $ blocksToOpenXML opts bs'
   wrapBookmark ident $ header <> contents
+
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
   let isSection = case writerTopLevelDivision opts of
@@ -682,7 +754,7 @@ getTextProps = do
                    Nothing -> mempty
                    Just l  -> EnvProps Nothing
                                [mknode "w:lang" [("w:val", l)] ()]
-  let squashed = squashProps (props <> langnode)
+  let squashed = squashProps rPrTagOrder (props <> langnode)
   return [mknode "w:rPr" [] squashed | (not . null) squashed]
 
 withTextProp :: PandocMonad m => Element -> WS m a -> WS m a
@@ -708,7 +780,7 @@ getParaProps displayMathPara = do
   let listPr = [mknode "w:numPr" []
                 [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
                 , mknode "w:numId" [("w:val",tshow numid')] () ] | listLevel >= 0 && not displayMathPara]
-  return $ case squashProps (EnvProps Nothing listPr <> props) of
+  return $ case squashProps pPrTagOrder (EnvProps Nothing listPr <> props) of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 

@@ -1,0 +1,50 @@
+[ Header 1 ( "refs-title" , [] , [] ) [ Str "References" ]
+, Div
+    ( "refs"
+    , [ "references" , "csl-bib-body" , "hanging-indent" ]
+    , [ ( "entry-spacing" , "1.0" ) , ( "line-spacing" , "2.0" ) ]
+    )
+    [ Div
+        ( "ref-doe2020" , [ "csl-entry" ] , [] )
+        [ Para
+            [ Str "Doe,"
+            , Space
+            , Str "J.,"
+            , Space
+            , Str "&"
+            , Space
+            , Str "Smith,"
+            , Space
+            , Str "J."
+            , Space
+            , Str "(2020)."
+            , Space
+            , Str "A"
+            , Space
+            , Str "very"
+            , Space
+            , Str "long"
+            , Space
+            , Str "title"
+            , Space
+            , Str "that"
+            , Space
+            , Str "wraps"
+            , Space
+            , Str "onto"
+            , Space
+            , Str "multiple"
+            , Space
+            , Str "lines."
+            , Space
+            , Emph [ Str "Journal" , Space , Str "of" , Space , Str "Testing" ]
+            , Str ","
+            , Space
+            , Emph [ Str "12" ]
+            , Str ","
+            , Space
+            , Str "1\8211\&25."
+            ]
+        ]
+    ]
+]

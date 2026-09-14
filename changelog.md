@@ -61,6 +61,11 @@
 
   * Docx writer:
 
+    + Honor CSL bibliography formatting hints emitted by citeproc (#11871).
+      Bibliographies from styles with `hanging-indent="true"` (e.g. APA)
+      now get a hanging indent, and CSL `line-spacing`/`entry-spacing`
+      are mapped to paragraph spacing properties.
+
     + Initialize envLang from `lang` metadata (#11301).
       This ensures that setting `lang` will affect the whole document.
       Previously, setting `lang` to `he` was not sufficient to make

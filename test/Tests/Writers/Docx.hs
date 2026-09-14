@@ -108,6 +108,11 @@ tests = [ testGroup "inlines"
             "docx/lists.native"
             "docx/golden/lists.docx"
           , docxTest
+            "CSL bibliography (hanging indent and spacing)"
+            def
+            "docx/csl_bibliography.native"
+            "docx/golden/csl_bibliography.docx"
+          , docxTest
             "lists continuing after interruption"
             def
             "docx/lists_continuing.native"
