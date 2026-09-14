@@ -179,7 +179,7 @@ blockToTEI _ b@(RawBlock f str)
 blockToTEI _ HorizontalRule = return $
   selfClosingTag "milestone" [("unit","undefined")
                              ,("type","separator")
-                             ,("rendition","line")]
+                             ,("rend","line")]
 blockToTEI opts (Figure attr capt bs) =
   blockToTEI opts (figureDiv attr capt bs)
 
