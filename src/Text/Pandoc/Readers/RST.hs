@@ -75,8 +75,35 @@ underlineChars :: [Char]
 underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 -- treat these as potentially non-text when parsing inline:
-specialChars :: [Char]
-specialChars = "\\`|*_<>$:/[]{}()-.\"'\8216\8217\8220\8221"
+-- (equivalent to the character class "\\`|*_<>$:/[]{}()-.\"'\8216\8217\8220\8221")
+isSpecialChar :: Char -> Bool
+isSpecialChar c =
+  case c of
+    '\\' -> True
+    '`'  -> True
+    '|'  -> True
+    '*'  -> True
+    '_'  -> True
+    '<'  -> True
+    '>'  -> True
+    '$'  -> True
+    ':'  -> True
+    '/'  -> True
+    '['  -> True
+    ']'  -> True
+    '{'  -> True
+    '}'  -> True
+    '('  -> True
+    ')'  -> True
+    '-'  -> True
+    '.'  -> True
+    '"'  -> True
+    '\'' -> True
+    '\8216' -> True
+    '\8217' -> True
+    '\8220' -> True
+    '\8221' -> True
+    _    -> False
 
 --
 -- parsing documents
@@ -1555,7 +1582,7 @@ canPrecedeOpener c =
 
 symbol :: Monad m => RSTParser m Inlines
 symbol = do
-  c <- oneOf specialChars
+  c <- satisfy isSpecialChar
   unless (canPrecedeOpener c) updateLastStrPos
   return $ B.str $ T.singleton c
 
@@ -1716,10 +1743,11 @@ whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
 
 str :: Monad m => RSTParser m Inlines
 str = do
-  let strChar = noneOf ("\t\n " ++ specialChars)
-  result <- many1Char strChar
+  result <- many1Char (satisfy isStrChar)
   updateLastStrPos
   return $ B.str result
+ where
+  isStrChar c = c /= '\t' && c /= '\n' && c /= ' ' && not (isSpecialChar c)
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: Monad m => RSTParser m Inlines
