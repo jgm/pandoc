@@ -1772,7 +1772,28 @@ endline = try $ do
 --
 
 link :: PandocMonad m => RSTParser m Inlines
-link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
+link = do
+  linkPossible
+  choice [explicitLink, referenceLink, autoLink]  <?> "link"
+
+-- Fail fast if no link parser can succeed here: each of them
+-- requires one of the characters @`[_:\@@ before the next
+-- whitespace ('`' for explicit links and quoted reference names,
+-- '[' for citation names, '_' for reference links, ':' after the
+-- scheme of a URI, '@' in an email address).  Checking this on the
+-- raw input is much cheaper than running each link parser over the
+-- next word only to have it fail.
+linkPossible :: Monad m => RSTParser m ()
+linkPossible = do
+  Sources inps <- getInput
+  case inps of
+    [] -> mzero
+    (_, t) : rest -> do
+      let (w, t') = T.break (\c -> c == ' ' || c == '\t' || c == '\n') t
+      guard $ (T.null t' && not (null rest))
+                -- word may continue in next chunk: inconclusive
+            || T.any (\c -> c == '`' || c == '[' || c == '_' ||
+                            c == ':' || c == '@') w
 
 explicitLink :: PandocMonad m => RSTParser m Inlines
 explicitLink = try $ do
