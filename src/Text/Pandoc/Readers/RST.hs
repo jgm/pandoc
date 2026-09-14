@@ -502,7 +502,14 @@ singleHeader = do
 singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
 singleHeader' = try $ do
   notFollowedBy' whitespace
-  lookAhead $ anyLine >> oneOf underlineChars
+  -- check that the next line is a full underline before committing
+  -- to parsing the header text (otherwise we'd parse the first line
+  -- of many paragraphs twice):
+  lookAhead $ do
+    anyLine
+    c <- oneOf underlineChars
+    skipMany (char c)
+    blankline
   txt <- trimInlines . mconcat <$> many1 (notFollowedBy blankline >> inline)
   pos <- getPosition
   let len = sourceColumn pos - 1
