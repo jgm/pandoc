@@ -21,7 +21,7 @@ import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
                   GeneralCategory(OpenPunctuation, InitialQuote, FinalQuote,
                                   DashPunctuation, OtherSymbol))
-import Data.List (deleteFirstsBy, elemIndex, partition, sort, transpose)
+import Data.List (elemIndex, partition, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
@@ -192,9 +192,15 @@ parseRST = do
   let (blocks', meta') = if standalone
                             then titleTransform (blocks, meta)
                             else (blocks, meta)
-  let reversedNotes = stateNotes state
-  updateState $ \s -> s { stateNotes = reverse reversedNotes }
-  doc <- walkM resolveReferences =<<
+  let notes = reverse $ stateNotes state
+  -- Named notes are never removed, so we can look them up in a Map;
+  -- auto-numbered notes are consumed in order of occurrence, so we
+  -- keep them in a list (in stateNotes):
+  let isAutoNote (r, _) = r == "*" || r == "#"
+  let namedNotes = M.fromList $ reverse $ filter (not . isAutoNote) notes
+        -- reverse, so that the first occurrence of a label wins
+  updateState $ \s -> s { stateNotes = filter isAutoNote notes }
+  doc <- walkM (resolveReferences namedNotes) =<<
          walkM resolveBlockSubstitutions
          (Pandoc meta' (blocks' ++ refBlock))
   reportLogMessages
@@ -216,11 +222,15 @@ resolveBlockSubstitutions (Para [Link _attr ils (s,_)])
                    bls -> return $ Div nullAttr bls
 resolveBlockSubstitutions x = return x
 
-resolveReferences :: PandocMonad m => Inline -> RSTParser m Inline
-resolveReferences = resolveReferences' Set.empty
+resolveReferences :: PandocMonad m
+                  => M.Map Text Text  -- ^ named notes
+                  -> Inline -> RSTParser m Inline
+resolveReferences namedNotes = resolveReferences' namedNotes Set.empty
 
-resolveReferences' :: PandocMonad m => Set.Set Key -> Inline -> RSTParser m Inline
-resolveReferences' seen x@(Link _ ils (s,_))
+resolveReferences' :: PandocMonad m
+                   => M.Map Text Text -> Set.Set Key -> Inline
+                   -> RSTParser m Inline
+resolveReferences' namedNotes seen x@(Link _ ils (s,_))
   | Just ref <- T.stripPrefix "##REF##" s = do
       let isAnonKey (Key (T.uncons -> Just ('_',_))) = True
           isAnonKey _                                = False
@@ -244,27 +254,31 @@ resolveReferences' seen x@(Link _ ils (s,_))
            ((src,tit), attr) <- lookupKey [] key
            when (isAnonKey key) $ updateState $ \st ->
                                    st{ stateKeys = M.delete key keyTable }
-           resolveReferences' (Set.insert key seen) (Link attr ils (src, tit))
+           resolveReferences' namedNotes (Set.insert key seen)
+             (Link attr ils (src, tit))
   | Just ref <- T.stripPrefix "##NOTE##" s = do
       state <- getState
-      let notes = stateNotes state
-      case lookup ref notes of
+      let autoNotes = stateNotes state
+      let mbnote = if ref == "*" || ref == "#" -- auto-numbered
+                      -- consume the note, so the next auto-numbered
+                      -- note doesn't get the same contents:
+                      then case break ((== ref) . fst) autoNotes of
+                             (xs, (_, raw) : ys) -> Just (raw, xs ++ ys)
+                             _                   -> Nothing
+                      else (\raw -> (raw, autoNotes)) <$>
+                             M.lookup ref namedNotes
+      case mbnote of
         Nothing   -> do
           pos <- getPosition
           logMessage $ ReferenceNotFound ref pos
           return x
-        Just raw  -> do
+        Just (raw, newnotes) -> do
           -- We temporarily empty the note list while parsing the note,
           -- so that we don't get infinite loops with notes inside notes...
           -- Note references inside other notes are allowed in reST, but
           -- not yet in this implementation.
           updateState $ \st -> st{ stateNotes = [] }
           contents <- parseFromString' parseBlocks raw
-          let newnotes = if ref == "*" || ref == "#" -- auto-numbered
-                            -- delete the note so the next auto-numbered note
-                            -- doesn't get the same contents:
-                            then deleteFirstsBy (==) notes [(ref,raw)]
-                            else notes
           updateState $ \st -> st{ stateNotes = newnotes }
           return $ Note (B.toList contents)
   | Just ref <- T.stripPrefix "##SUBST##" s = do
@@ -285,9 +299,9 @@ resolveReferences' seen x@(Link _ ils (s,_))
                    [Para [t]] -> return t
                    [Para xs] -> return $ Span nullAttr xs
                    bls -> return $ Span nullAttr $ blocksToInlines bls
-                 resolveReferences' (Set.insert key seen) resolved
+                 resolveReferences' namedNotes (Set.insert key seen) resolved
   | otherwise = return x
-resolveReferences' _ x = return x
+resolveReferences' _ _ x = return x
 
 parseCitation :: PandocMonad m
               => (Text, Text) -> RSTParser m (Inlines, [Blocks])
