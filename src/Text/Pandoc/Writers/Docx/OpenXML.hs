@@ -404,7 +404,6 @@ getUniqueId = do
 dynamicStyleKey :: Text
 dynamicStyleKey = "custom-style"
 
--- | Convert a Pandoc block element to OpenXML.
 -- | Paragraph properties for a CSL-generated bibliography, derived from
 -- the hints @Text.Pandoc.Citeproc@ puts on the bibliography's Div:
 -- a @hanging-indent@ class and @line-spacing@/@entry-spacing@ attributes.
@@ -426,6 +425,7 @@ cslBibParaProps classes kvs =
                     [ ("w:after", tshow (round (es * 240) :: Int)) ]
                   _ -> []
 
+-- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
@@ -453,9 +453,12 @@ blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
                   Just lang -> local (\env -> env{envLang = Just lang})
   -- citeproc adds formatting hints for bibliographies generated
   -- from a CSL style; see Text.Pandoc.Citeproc (#11871).
-  let cslmod = case cslBibParaProps classes kvs of
-                 []    -> id
-                 props -> foldr (.) id (map withParaProp props)
+  let isCslBib = ident == "refs" || "csl-bib-body" `elem` classes
+  let cslmod = if not isCslBib
+                  then id
+                  else case cslBibParaProps classes kvs of
+                         []    -> id
+                         props -> foldr (.) id (map withParaProp props)
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
   contents <- dirmod $ bibmod $ cslmod $ stylemod $ langmod $ blocksToOpenXML opts bs'
   wrapBookmark ident $ header <> contents

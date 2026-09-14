@@ -2,7 +2,7 @@
 , Div
     ( "refs"
     , [ "references" , "csl-bib-body" , "hanging-indent" ]
-    , [ ( "entry-spacing" , "1" ) , ( "line-spacing" , "2" ) ]
+    , [ ( "entry-spacing" , "1.0" ) , ( "line-spacing" , "2.0" ) ]
     )
     [ Div
         ( "ref-doe2020" , [ "csl-entry" ] , [] )
