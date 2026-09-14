@@ -226,12 +226,13 @@ resolveReferences' seen x@(Link _ ils (s,_))
           isAnonKey _                                = False
       state <- getState
       let keyTable = stateKeys state
-      let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
       key <-  if ref == "_" -- anonymous key
                 then
-                  case anonKeys of
-                    []    -> mzero -- TODO log?
-                    (k:_) -> return k
+                  -- anonymous keys are named _0000, _0001, ... so the
+                  -- next one to use is the smallest key >= "_":
+                  case M.lookupGE (Key "_") keyTable of
+                    Just (k, _) | isAnonKey k -> return k
+                    _                         -> mzero -- TODO log?
                 else return $ toKey ref
       if key `Set.member` seen
          then do
