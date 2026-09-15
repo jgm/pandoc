@@ -36,7 +36,7 @@ import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Definition
 
 data PState = PState
-        { sLabels :: [Text]
+        { sLabels :: Set Text
         , sMeta :: Meta
         , sOptions :: ReaderOptions
         , sIdentifiers :: Set Text
@@ -57,7 +57,7 @@ instance HasLogMessages PState where
 defaultPState :: PState
 defaultPState =
   PState
-  { sLabels = []
+  { sLabels = Set.empty
   , sMeta = mempty
   , sOptions = def
   , sIdentifiers = Set.empty
