@@ -551,8 +551,6 @@ library
                  network-uri           >= 2.6      && < 2.8,
                  pandoc-types          >= 1.23.1.2 && < 1.24,
                  parsec                >= 3.1      && < 3.2,
-                 pretty                >= 1.1      && < 1.2,
-                 pretty-show           >= 1.10     && < 1.11,
                  process               >= 1.2.3    && < 1.7,
                  random                >= 1.2      && < 1.4,
                  safe                  >= 0.3.18   && < 0.4,
