@@ -116,7 +116,11 @@ refsToRST refs =
 -- | Return RST representation of a reference key.
 keyToRST :: PandocMonad m => ([Inline], (Text, Text)) -> RST m (Doc Text)
 keyToRST (label, (src, _)) = do
-  label' <- inlineListToRST label
+  -- The stored label has already been normalized by the walk in
+  -- inlineListToRST.  Use writeInlines to avoid re-applying the
+  -- (non-idempotent) transformations: the definition must render
+  -- exactly like the inline reference, which uses writeInlines.
+  label' <- writeInlines label
   let label'' = if (==':') `T.any` (render Nothing label' :: Text)
                    then char '`' <> label' <> char '`'
                    else label'
@@ -146,7 +150,8 @@ pictToRST :: PandocMonad m
           => ([Inline], (Attr, Text, Text, Maybe Text))
           -> RST m (Doc Text)
 pictToRST (label, (attr, src, _, mbtarget)) = do
-  label' <- inlineListToRST label
+  -- the stored label was already normalized; see keyToRST
+  label' <- writeInlines label
   dims   <- imageDimsToRST attr
   let (_, cls, _) = attr
       classes = case cls of
@@ -900,7 +905,9 @@ registerImage attr alt (src,tit) mbtarget = do
                  modify $ \st -> st { stImages =
                         (alt', (attr,src,tit, mbtarget)):stImages st }
                  return alt'
-  inlineListToRST txt
+  -- the alt text has already been normalized by the walk in
+  -- inlineListToRST, so don't apply the transformations again
+  writeInlines txt
 
 imageDimsToRST :: PandocMonad m => Attr -> RST m (Doc Text)
 imageDimsToRST attr = do
