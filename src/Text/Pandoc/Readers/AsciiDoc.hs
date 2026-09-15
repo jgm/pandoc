@@ -53,9 +53,6 @@ readAsciiDoc _opts inp = do
    (\(sourcepos, t) ->
      A.parseDocument getIncludeFile raiseError (sourceName sourcepos) t)
     sources)
-   >>= resolveFootnotes
-   >>= resolveStem
-   >>= resolveIcons
    >>= toPandoc
  where
   getIncludeFile fp = UTF8.toText <$> readFileStrict fp
@@ -63,64 +60,56 @@ readAsciiDoc _opts inp = do
                             $ msg <> " at " <> show fp <>
                               " char " <> show pos
 
+-- Context used when converting the AsciiDoc AST: resolved footnote
+-- contents, plus document attributes governing stem (math) and icon
+-- interpretation.  These are used to resolve footnote references,
+-- math types, and icons during conversion; doing this in the course
+-- of the conversion is much cheaper than making separate passes over
+-- the AST with mapInlines/mapBlocks.
+data ADContext = ADContext
+  { adFootnotes :: M.Map T.Text B.Inlines
+  , adMathType  :: A.MathType
+  , adIconFont  :: Bool
+  , adIconsDir  :: T.Text
+  , adIconType  :: T.Text
+  }
+
 toPandoc :: PandocMonad m => A.Document -> m Pandoc
-toPandoc doc =
-  Pandoc <$> doMeta (A.docMeta doc)
-         <*> (B.toList <$> doBlocks (A.docBlocks doc))
-
-resolveFootnotes :: Monad m => A.Document -> m A.Document
-resolveFootnotes doc = do
-  evalStateT (A.mapInlines go doc) (mempty :: M.Map T.Text [A.Inline])
+toPandoc doc = evalStateT
+  (Pandoc <$> doMeta (A.docMeta doc)
+          <*> (B.toList <$> doBlocks (A.docBlocks doc)))
+  ADContext
+    { adFootnotes = mempty
+    , adMathType = case M.lookup "stem" docattrs of
+                     Just "asciimath" -> A.AsciiMath
+                     _ -> A.LaTeXMath
+    , adIconFont = case M.lookup "icons" docattrs of
+                     Just "font" -> True
+                     _ -> False
+    , adIconsDir = fromMaybe "./images/icons" $ M.lookup "iconsdir" docattrs
+    , adIconType = fromMaybe "png" $ M.lookup "icontype" docattrs
+    }
  where
-   go (A.Inline attr (A.Footnote (Just (A.FootnoteId fnid)) ils)) = do
-     fnmap <- get
-     case M.lookup fnid fnmap of
-       Just ils' ->
-         pure $ A.Inline attr (A.Footnote (Just (A.FootnoteId fnid)) ils')
-       Nothing -> do
-         put $ M.insert fnid ils fnmap
-         pure $ A.Inline attr (A.Footnote (Just (A.FootnoteId fnid)) ils)
-   go x = pure x
-
-resolveStem :: Monad m => A.Document -> m A.Document
-resolveStem doc = do
-  let defaultType = case M.lookup "stem" (A.docAttributes (A.docMeta doc)) of
-                      Just "asciimath" -> A.AsciiMath
-                      _ -> A.LaTeXMath
-  let doInlineStem (A.Inline attr (A.Math Nothing t)) =
-        pure $ A.Inline attr (A.Math (Just defaultType) t)
-      doInlineStem x = pure x
-  let doBlockStem (A.Block attr mbtit (A.MathBlock Nothing t)) =
-        pure $ A.Block attr mbtit (A.MathBlock (Just defaultType) t)
-      doBlockStem x = A.mapInlines doInlineStem x
-  A.mapBlocks doBlockStem doc
+  docattrs = A.docAttributes (A.docMeta doc)
 
 -- resolve icons as either characters in an icon font or images
-resolveIcons :: Monad m => A.Document -> m A.Document
-resolveIcons doc = A.mapInlines fromIcon doc
+resolveIcon :: ADContext -> A.Inline -> A.Inline
+resolveIcon ctx (A.Inline attr (A.Icon name)) =
+  if adIconFont ctx
+     then A.Inline (addClasses ["fa", "fa-" <> name] attr) (A.Span [])
+     else -- default is to use an image
+          A.Inline (addClasses ["icon"] attr)
+             (A.InlineImage
+               (A.Target
+                  (adIconsDir ctx <> "/" <> name <> "." <> adIconType ctx))
+                  Nothing Nothing Nothing)
  where
-   docattrs = A.docAttributes (A.docMeta doc)
-   iconFont = case M.lookup "icons" docattrs of
-                Just "font" -> True
-                _ -> False
-   iconsdir = fromMaybe "./images/icons" $ M.lookup "iconsdir" docattrs
-   icontype = fromMaybe "png" $ M.lookup "icontype" docattrs
    addClasses cls (A.Attr ps kvs) =
      A.Attr ps $
       case M.lookup "role" kvs of
        Just r -> M.insert "role" (T.unwords (r : cls)) kvs
        Nothing -> M.insert "role" (T.unwords cls) kvs
-   fromIcon (A.Inline attr (A.Icon name)) =
-     if iconFont
-        then pure $
-              A.Inline (addClasses ["fa", "fa-" <> name] attr) (A.Span [])
-        else pure $ -- default is to use an image
-              A.Inline (addClasses ["icon"] attr)
-                 (A.InlineImage
-                   (A.Target
-                      (iconsdir <> "/" <> name <> "." <> icontype))
-                      Nothing Nothing Nothing)
-   fromIcon x = pure x
+resolveIcon _ x = x
 
 addAttribution :: Maybe A.Attribution -> B.Blocks -> B.Blocks
 addAttribution Nothing bs = bs
@@ -132,7 +121,7 @@ addAttribution (Just (A.Attribution t)) bs = B.fromList $
  where
    attrBlock = Para (B.toList $ B.text $ "\x2014 " <> t)
 
-doMeta :: PandocMonad m => A.Meta -> m B.Meta
+doMeta :: (PandocMonad m, MonadState ADContext m) => A.Meta -> m B.Meta
 doMeta meta = do
   tit' <- doInlines (A.docTitle meta)
   pure $
@@ -164,7 +153,7 @@ fromAuthor au = B.text (A.authorName au) <>
     " (" <> B.link ("mailto:" <> email) "" (B.str email) <> ")")
     (A.authorEmail au)
 
-doBlocks :: PandocMonad m => [A.Block] -> m B.Blocks
+doBlocks :: (PandocMonad m, MonadState ADContext m) => [A.Block] -> m B.Blocks
 doBlocks = fmap mconcat . mapM doBlock
 
 addBlockAttr :: A.Attr -> B.Blocks -> B.Blocks
@@ -196,7 +185,7 @@ addBlockTitle tit' bs =
       B.singleton $ B.Div attr (B.Div ("",["title"],[]) [B.Para tit] : bs')
     _ -> B.divWith B.nullAttr (B.divWith ("",["title"],[]) (B.para tit') <> bs)
 
-doBlock :: PandocMonad m => A.Block -> m B.Blocks
+doBlock :: (PandocMonad m, MonadState ADContext m) => A.Block -> m B.Blocks
 doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
   mbtitle' <- case mbtitle of
                 Nothing -> pure Nothing
@@ -232,11 +221,12 @@ doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
       addAttribution mbattrib . B.blockQuote <$> doBlocks bs
     A.Verse mbattrib bs ->
       addAttribution mbattrib . B.blockQuote <$> doBlocks bs
-    -- TODO when texmath's asciimath parser works, convert:
-    A.MathBlock (Just A.AsciiMath) t -> pure $ B.para $ B.displayMath t
-    A.MathBlock (Just A.LaTeXMath) t -> pure $ B.para $ B.displayMath t
-    A.MathBlock Nothing _ ->
-      throwError $ PandocParseError "Encountered math type Nothing"
+    A.MathBlock mbMathType t -> do
+      mathType <- maybe (gets adMathType) pure mbMathType
+      case mathType of
+        -- TODO when texmath's asciimath parser works, convert:
+        A.AsciiMath -> pure $ B.para $ B.displayMath t
+        A.LaTeXMath -> pure $ B.para $ B.displayMath t
     A.List (A.BulletList _) items ->
       B.bulletList <$> mapM doItem items
     A.List A.CheckList items ->
@@ -272,8 +262,10 @@ doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
                         (B.RowSpan rowspan) (B.ColSpan colspan) . B.toList
                    <$> doBlocks bs
       let fromRow (A.TableRow cs) = B.Row B.nullAttr <$> mapM fromCell cs
-      tbody <- B.TableBody B.nullAttr (B.RowHeadColumns 0) [] <$> mapM fromRow rows
+      -- note: conversion is stateful (footnotes), so we convert in
+      -- document order: header, body, footer
       thead <- B.TableHead B.nullAttr <$> maybe (pure []) (mapM fromRow) mbHeader
+      tbody <- B.TableBody B.nullAttr (B.RowHeadColumns 0) [] <$> mapM fromRow rows
       tfoot <- B.TableFoot B.nullAttr <$> maybe (pure []) (mapM fromRow) mbFooter
       let totalWidth = sum $ map (fromMaybe 1 . A.colWidth) specs
       let toColSpec spec = (maybe B.AlignDefault toAlign (A.colHorizAlign spec),
@@ -317,7 +309,7 @@ doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
         Left _ -> pure $ B.rawBlock "html" t
         Right (Pandoc _ bs) -> pure $ B.fromList bs
 
-doItem :: PandocMonad m => A.ListItem -> m B.Blocks
+doItem :: (PandocMonad m, MonadState ADContext m) => A.ListItem -> m B.Blocks
 doItem (A.ListItem Nothing bs) = doBlocks bs
 doItem (A.ListItem (Just checkstate) bs) = do
   bs' <- doBlocks bs
@@ -330,18 +322,24 @@ doItem (A.ListItem (Just checkstate) bs) = do
            (B.Plain ils : rest) -> B.Plain (check : B.Space : ils) : rest
            rest -> B.Para [check] : rest
 
-doDefListItem :: PandocMonad m
+doDefListItem :: (PandocMonad m, MonadState ADContext m)
               => ([A.Inline], [A.Block]) -> m (B.Inlines , [B.Blocks])
 doDefListItem (lab, bs) = do
   lab' <- doInlines lab
   bs' <- doBlocks bs
   pure (lab', [bs'])
 
-doInlines :: PandocMonad m => [A.Inline] -> m B.Inlines
+doInlines :: (PandocMonad m, MonadState ADContext m) => [A.Inline] -> m B.Inlines
 doInlines = fmap mconcat . mapM doInline
 
-doInline :: PandocMonad m => A.Inline -> m B.Inlines
-doInline (A.Inline (A.Attr _ps kvs') it) = do
+doInline :: (PandocMonad m, MonadState ADContext m) => A.Inline -> m B.Inlines
+doInline il@(A.Inline _ A.Icon{}) = do
+  ctx <- get
+  doInline' (resolveIcon ctx il)
+doInline il = doInline' il
+
+doInline' :: (PandocMonad m, MonadState ADContext m) => A.Inline -> m B.Inlines
+doInline' (A.Inline (A.Attr _ps kvs') it) = do
   let kvs = M.mapKeys (\k -> if k == "role" then "class" else k) kvs'
   addPandocAttributes (M.toList kvs) <$>
    case it of
@@ -356,12 +354,14 @@ doInline (A.Inline (A.Attr _ps kvs') it) = do
     A.Strikethrough ils -> B.strikeout <$> doInlines ils
     A.DoubleQuoted ils -> B.doubleQuoted <$> doInlines ils
     A.SingleQuoted ils -> B.singleQuoted <$> doInlines ils
-    -- TODO when texmath's asciimath parser works, convert:
-    A.Math (Just A.AsciiMath) t -> pure $ B.math t
-    A.Math (Just A.LaTeXMath) t -> pure $ B.math t
-    A.Math Nothing _ ->
-      throwError $ PandocParseError "Encountered math type Nothing"
-    A.Icon t -> pure $ B.spanWith ("",["icon"],[("name",t)])
+    A.Math mbMathType t -> do
+      mathType <- maybe (gets adMathType) pure mbMathType
+      case mathType of
+        -- TODO when texmath's asciimath parser works, convert:
+        A.AsciiMath -> pure $ B.math t
+        A.LaTeXMath -> pure $ B.math t
+    A.Icon t -> -- can't happen (rewritten by resolveIcon in doInline)
+      pure $ B.spanWith ("",["icon"],[("name",t)])
                          (B.str ("[" <> t <> "]"))
     A.Button t -> pure $ B.spanWith ("",["button"],[])
                          (B.strong $ B.str ("[" <> t <> "]"))
@@ -382,7 +382,19 @@ doInline (A.Inline (A.Attr _ps kvs') it) = do
                   Just (A.Height n) -> [("height", T.pack $ show n <> "px")]
                   Nothing -> []
       pure $ B.imageWith ("",[], width ++ height) url "" alt
-    A.Footnote _ ils -> B.note . B.para <$> doInlines ils
+    A.Footnote (Just (A.FootnoteId fnid)) ils -> do
+      -- repeated references to the same id get the contents of the
+      -- first footnote with that id
+      contents <- doInlines ils
+      fnmap <- gets adFootnotes
+      contents' <- case M.lookup fnid fnmap of
+                     Just stored -> pure stored
+                     Nothing -> do
+                       modify $ \ctx ->
+                         ctx{ adFootnotes = M.insert fnid contents fnmap }
+                       pure contents
+      pure $ B.note $ B.para contents'
+    A.Footnote Nothing ils -> B.note . B.para <$> doInlines ils
     A.InlineAnchor t _ -> pure $ B.spanWith (t, [], []) mempty
     A.BibliographyAnchor t _ -> pure $ B.spanWith (t, [], []) mempty
     A.CrossReference t Nothing ->
