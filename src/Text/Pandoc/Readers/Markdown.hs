@@ -2030,6 +2030,20 @@ bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
 bareURL = do
   guardEnabled Ext_autolink_bare_uris
   getState >>= guard . stateAllowLinks
+  -- Fast rejection: a bare URI must contain ':' (after the scheme) and
+  -- an email address '@', in both cases before any whitespace, since
+  -- neither can contain whitespace.  So if the whitespace-delimited
+  -- token ahead contains neither ':' nor '@', both parsers must fail.
+  -- (If the token extends beyond the current input chunk, we skip the
+  -- check and just try the parsers.)
+  inp <- getInput
+  case unSources inp of
+    (_,t):_ ->
+      case T.find (\c -> isSpace c || c == ':' || c == '@') t of
+        Just ':' -> return ()
+        Just '@' -> return ()
+        _ -> mzero
+    [] -> return ()
   try $ do
     (cls, (orig, src)) <- (("uri",) <$> uri) <|> (("email",) <$> emailAddress)
     notFollowedBy $ try $ spaces >> htmlTag (~== TagClose ("a" :: Text))
