@@ -27,6 +27,8 @@ module Text.Pandoc.Sources
   , ensureFinalNewlines
   , addToInput
   , satisfy
+  , takeWhileP
+  , takeWhile1P
   , oneOf
   , noneOf
   , anyChar
@@ -43,6 +45,8 @@ module Text.Pandoc.Sources
 where
 import qualified Text.Parsec as P
 import Text.Parsec (Stream(..), ParsecT)
+import Text.Parsec.Prim (mkPT, Consumed(..), Reply(..), State(..))
+import Text.Parsec.Error (ParseError, newErrorMessage, Message(SysUnExpect))
 import Text.Parsec.Pos as P
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -157,6 +161,80 @@ satisfy :: (Monad m, Stream s m Char, UpdateSourcePos s Char)
 satisfy f = P.tokenPrim show updateSourcePos matcher
  where
   matcher !c = if f c then Just c else Nothing
+
+-- | Consume characters while the predicate holds, returning them as
+-- a 'Text'.  Always succeeds (returning an empty 'Text' if no
+-- characters match).  Equivalent to @'Data.Text.pack' \<$> 'P.many'
+-- ('satisfy' f)@ (including source position and error behavior), but
+-- faster, because it processes whole chunks of text at a time.
+takeWhileP :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
+takeWhileP f = mkPT $ \st ->
+  case spanSources f st of
+    (t, st', err)
+      | T.null t  -> return (Empty (return (Ok t st' err)))
+      | otherwise -> return (Consumed (return (Ok t st' err)))
+
+-- | Like 'takeWhileP', but requires at least one matching character.
+-- Equivalent to @'Data.Text.pack' \<$> 'P.many1' ('satisfy' f)@.
+takeWhile1P :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
+takeWhile1P f = mkPT $ \st ->
+  case spanSources f st of
+    (t, st', err)
+      | T.null t  -> return (Empty (return (Error err)))
+      | otherwise -> return (Consumed (return (Ok t st' err)))
+
+-- Consume characters matching the predicate from the beginning of
+-- the input, returning the consumed text, the updated parser state,
+-- and the error that a corresponding sequence of 'satisfy' parsers
+-- would have recorded at the position where it stopped.
+spanSources :: (Char -> Bool)
+            -> State Sources u
+            -> (Text, State Sources u, ParseError)
+spanSources f (State (Sources input0) pos0 usr) = go pos0 input0 []
+ where
+  -- pos and committed are the position and input after the last
+  -- consumed character (uncons drops leading empty chunks only when a
+  -- character is actually consumed, so they must be retained if we
+  -- stop at a chunk boundary).
+  go !pos committed acc =
+    case dropWhile (T.null . snd) committed of
+      [] -> stop pos committed acc ""
+      (p, t) : rest ->
+        case T.span f t of
+          (pre, post)
+            | T.null pre -> stop pos committed acc (show (T.head t))
+            | T.null post ->
+                -- consumed the whole chunk: as with 'satisfy', the
+                -- position jumps to the stored position of the next
+                -- chunk, if any.
+                let pos' = case rest of
+                             (pnext, _) : _ -> pnext
+                             []             -> advancePos pos pre
+                in go pos' ((p, post) : rest) (pre : acc)
+            | otherwise ->
+                let pos' = advancePos pos pre
+                in stop pos' ((p, post) : rest) (pre : acc)
+                        (show (T.head post))
+  stop pos committed acc msg =
+    ( case acc of
+        []  -> mempty
+        [t] -> t
+        _   -> T.concat (reverse acc)
+    , State (Sources committed) pos usr
+    , newErrorMessage (SysUnExpect msg) pos )
+
+-- Advance a source position over a stretch of text, using the same
+-- position updates as the 'UpdateSourcePos' instance for 'Sources'.
+advancePos :: SourcePos -> Text -> SourcePos
+advancePos pos t
+  | T.any (\c -> c == '\n' || c == '\t') t = T.foldl' advanceChar pos t
+  | otherwise = incSourceColumn pos (T.length t)
+ where
+  advanceChar p c =
+    case c of
+      '\n' -> incSourceLine (setSourceColumn p 1) 1
+      '\t' -> incSourceColumn p (4 - ((sourceColumn p - 1) `mod` 4))
+      _    -> incSourceColumn p 1
 
 oneOf :: (Monad m, Stream s m Char, UpdateSourcePos s Char)
       => [Char] -> ParsecT s u m Char

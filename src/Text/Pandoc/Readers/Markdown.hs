@@ -1648,8 +1648,8 @@ code = try $ do
   skipSpaces
   result <- trim . T.concat
         <$> manyTill
-              (   many1Char (noneOf "`\n")
-              <|> many1Char (char '`')
+              (   takeWhile1P (\c -> c /= '`' && c /= '\n')
+              <|> takeWhile1P (== '`')
               <|> (char '\n'
                     >> notFollowedBy (inList >> listStart)
                     >> notFollowedBy' blankline
@@ -1684,7 +1684,7 @@ enclosure c = do
   guardDisabled Ext_intraword_underscores
     <|> guard (c == '*')
     <|> (guard =<< notAfterString)
-  cs <- many1Char (char c)
+  cs <- takeWhile1P (== c)
   (return (B.str cs) <>) <$> whitespace
     <|>
         case T.length cs of
@@ -1784,7 +1784,7 @@ subscript = do
         mmdShortSubscript = try $ do
           guardEnabled Ext_short_subsuperscripts
           char '~'
-          result <- T.pack <$> many1 alphaNum
+          result <- takeWhile1P isAlphaNum
           return $ return $ B.str result
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1799,7 +1799,7 @@ nonEndline = satisfy (/='\n')
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
   !result <- mconcat <$> many1
-             ( T.pack <$> (many1 alphaNum)
+             ( takeWhile1P isAlphaNum
               <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
   (do guardEnabled Ext_smart
