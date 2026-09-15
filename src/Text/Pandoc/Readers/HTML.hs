@@ -58,7 +58,9 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
     Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
-               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex),
+               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex,
+               Ext_smart, Ext_tex_math_dollars,
+               Ext_tex_math_single_backslash, Ext_tex_math_double_backslash),
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
@@ -998,23 +1000,43 @@ pTagText = try $ do
   pos <- getPosition
   (TagText str) <- pSatisfy isTagText
   st <- getState
-  qu <- ask
-  parsed <- lift $ lift $
-            flip runReaderT qu $ runParserT (many pTagContents) st "text"
-               (Sources [(pos, str)])
-  case parsed of
-       Left _        -> throwError $ PandocParseError $
-                        "Could not parse `" <> str <> "'"
-       Right result  -> return $ mconcat result
+  exts <- getOption readerExtensions
+  let smart = extensionEnabled Ext_smart exts
+  let mathDollars = extensionEnabled Ext_tex_math_dollars exts
+  let backslashSpecial = extensionEnabled Ext_raw_tex exts ||
+                         extensionEnabled Ext_tex_math_single_backslash exts ||
+                         extensionEnabled Ext_tex_math_double_backslash exts
+  -- Chars that could make pTagContents yield something different from
+  -- a plain B.text decomposition into Str, Space, and SoftBreak:
+  let needsParsing c =
+        isBad c ||                    -- gets remapped (see pBad)
+        (c == '$' && mathDollars) ||  -- may start tex math
+        (c == '\\' && backslashSpecial) ||  -- raw tex or tex math
+        (smart && (c == '\'' || c == '"' || c == '.' || c == '-'))
+  if not (inPre st) && not (T.any needsParsing str)
+     -- fast path: the result is a plain decomposition of the text into
+     -- Str, Space, and SoftBreak, which is exactly what B.text gives us
+     -- (adjacent Strs produced by pTagContents are merged by the
+     -- Inlines Semigroup instance, so the results coincide):
+     then return $ B.text str
+     else do
+       qu <- ask
+       parsed <- lift $ lift $
+                 flip runReaderT qu $ runParserT (many pTagContents) st "text"
+                    (Sources [(pos, str)])
+       case parsed of
+            Left _        -> throwError $ PandocParseError $
+                             "Could not parse `" <> str <> "'"
+            Right result  -> return $ mconcat result
 
 type InlinesParser m = HTMLParser m Sources
 
 pTagContents :: PandocMonad m => InlinesParser m Inlines
 pTagContents =
-      B.displayMath <$> mathDisplay
+      pStr    -- can't consume the special chars that start the other
+  <|> pSpace  -- parsers, so it is safe to try these two first
+  <|> B.displayMath <$> mathDisplay
   <|> B.math        <$> mathInline
-  <|> pStr
-  <|> pSpace
   <|> smartPunctuation pTagContents
   <|> pRawTeX
   <|> pSymbol
