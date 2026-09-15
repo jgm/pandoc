@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {- |
@@ -34,12 +35,15 @@ import Control.Monad (void, mzero, mplus)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
-  ( Attribute, Tag (..), isTagPosition, isTagOpen, isTagClose, (~==) )
+  ( Attribute, Tag (..), isTagOpen, isTagClose, (~==) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr)
 import Text.Pandoc.Parsing
-  ( (<|>), eof, getPosition, lookAhead, manyTill, newPos, option, optional
-  , skipMany, setPosition, token, try)
+  ( (<|>), eof, lookAhead, manyTill, newPos, option, optional
+  , skipMany, try)
+import Text.Parsec.Prim (mkPT, Consumed (..), Reply (..), State (..))
+import Text.Parsec.Error (Message (SysUnExpect), newErrorMessage,
+                          newErrorUnknown)
 import Text.Pandoc.Readers.HTML.TagCategories
 import Text.Pandoc.Readers.HTML.Types
 import Text.Pandoc.Shared (tshow)
@@ -126,18 +130,24 @@ pBlank = void $ pSatisfy isBlank
   isBlank (TagComment _) = True
   isBlank _ = False
 
-pLocation :: PandocMonad m => TagParser m ()
-pLocation = do
-  (TagPosition r c) <- pSat isTagPosition
-  setPosition $ newPos "input" r c
-
-pSat :: PandocMonad m => (Tag Text -> Bool) -> TagParser m (Tag Text)
-pSat f = do
-  pos <- getPosition
-  token tshow (const pos) (\x -> if f x then Just x else Nothing)
-
+-- | Skip any 'TagPosition' tokens (using them to update the source
+-- position), then consume the next tag if it satisfies the predicate.
+-- Fails without consuming input otherwise.  Implemented as a single
+-- parsec primitive, since this is the hottest spot of the HTML reader.
 pSatisfy :: PandocMonad m => (Tag Text -> Bool) -> TagParser m (Tag Text)
-pSatisfy f = try $ optional pLocation >> pSat f
+pSatisfy f = mkPT $ \(State inp pos u) ->
+  let go !pos' toks =
+        case toks of
+          TagPosition r c : rest -> go (newPos "input" r c) rest
+          t : rest
+            | f t -> Consumed (return
+                       (Ok t (State rest pos' u) (newErrorUnknown pos')))
+          _ -> Empty (return (Error
+                 (newErrorMessage (SysUnExpect (descr toks)) pos')))
+  in return (go pos inp)
+ where
+  descr []    = ""
+  descr (t:_) = T.unpack (tshow t)
 
 matchTagClose :: Text -> (Tag Text -> Bool)
 matchTagClose t = (~== TagClose t)
