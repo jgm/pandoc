@@ -63,6 +63,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, isNothing)
+import Data.Monoid (Any(..))
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
@@ -845,11 +846,14 @@ handleAndFilterSpeakerNotes' blks = do
   return $ filter (not . isNotesDiv) blks
 
 handleAndFilterSpeakerNotes :: [Block] -> Pres ([Block], SpeakerNotes)
-handleAndFilterSpeakerNotes blks = do
-  modify $ \st -> st{stSpeakerNotes = mempty}
-  blks' <- walkM handleAndFilterSpeakerNotes' blks
-  spkNotes <- gets stSpeakerNotes
-  return (blks', spkNotes)
+handleAndFilterSpeakerNotes blks
+  -- avoid an expensive walk in the common case of no notes divs:
+  | not (getAny (query (Any . isNotesDiv) blks)) = return (blks, mempty)
+  | otherwise = do
+      modify $ \st -> st{stSpeakerNotes = mempty}
+      blks' <- walkM handleAndFilterSpeakerNotes' blks
+      spkNotes <- gets stSpeakerNotes
+      return (blks', spkNotes)
 
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
