@@ -22,10 +22,11 @@ import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
                                    gets, lift, modify)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit)
-import Data.List (isInfixOf, isPrefixOf)
+import Data.List (isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust, catMaybes)
 import qualified Data.Set as Set
@@ -588,14 +589,11 @@ pandocToEPUB version opts doc = do
                                     [("page-progression-direction", "rtl")]
                                   _  -> []
 
-  -- incredibly inefficient (TODO):
-  let containsMathML ent = epub3 &&
-                           "<math" `isInfixOf`
-        B8.unpack (fromEntry ent)
-  let containsSVG ent    = epub3 &&
-                           "<svg" `isInfixOf`
-        B8.unpack (fromEntry ent)
-  let props ent = ["mathml" | containsMathML ent] ++ ["svg" | containsSVG ent]
+  let props ent
+        | epub3 = let contents = B.toStrict (fromEntry ent)
+                  in  ["mathml" | "<math" `BS.isInfixOf` contents] ++
+                      ["svg" | "<svg" `BS.isInfixOf` contents]
+        | otherwise = []
 
   let chapterNode ent = unode "item" !
                            ([("id", toId $ makeRelative epubSubdir
