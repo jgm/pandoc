@@ -46,7 +46,12 @@ readTranslations s =
 -- used.
 setTranslations :: PandocMonad m => Lang -> m ()
 setTranslations lang =
-  modifyCommonState $ \st -> st{ stTranslations = Just (lang, Nothing) }
+  modifyCommonState $ \st ->
+    case stTranslations st of
+      -- if a translation table is already loaded for this language,
+      -- keep it, so we don't have to parse the translation file again:
+      Just (l, Just _) | l == lang -> st
+      _ -> st{ stTranslations = Just (lang, Nothing) }
 
 -- | Load term map.
 getTranslations :: PandocMonad m => m Translations

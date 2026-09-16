@@ -33,7 +33,6 @@ import qualified Data.Aeson.Types as Aeson
 import qualified Data.Map as M
 import qualified Data.Text as T
 import GHC.Generics (Generic)
-import Text.Pandoc.Shared (safeRead)
 
 data Term =
     Abstract
@@ -58,13 +57,21 @@ data Term =
   | SeeAlso
   | Table
   | To
-  deriving (Show, Eq, Ord, Generic, Enum, Read)
+  deriving (Show, Eq, Ord, Generic, Enum, Bounded, Read)
 
 newtype Translations = Translations (M.Map Term T.Text)
         deriving (Show, Generic, Semigroup, Monoid)
 
+-- | Map from term names to terms.  This is much faster than
+-- using the derived 'Read' instance to parse term names.
+termNameMap :: M.Map T.Text Term
+termNameMap = M.fromList [(T.pack (show t), t) | t <- [minBound..maxBound]]
+
+readTerm :: T.Text -> Maybe Term
+readTerm t = M.lookup t termNameMap
+
 instance FromJSON Term where
-  parseJSON (String t) = case safeRead t of
+  parseJSON (String t) = case readTerm t of
                                Just t' -> pure t'
                                Nothing -> Prelude.fail $ "Invalid Term name " ++
                                                  show t
@@ -75,7 +82,7 @@ instance FromJSON Translations where
     xs <- parseJSON o >>= mapM addItem . M.toList
     return $ Translations (M.fromList xs)
     where addItem (k,v) =
-            case safeRead k of
+            case readTerm k of
                  Nothing -> Prelude.fail $ "Invalid Term name " ++ show k
                  Just t  ->
                    case v of
