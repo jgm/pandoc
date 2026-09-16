@@ -38,7 +38,6 @@ import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers)
 import Data.Tree (Tree(..))
 import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class.PandocPure as P
 import Text.Pandoc.Data (readDataFile)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
@@ -913,8 +912,7 @@ createNavEntry  :: PandocMonad m
                 -> StateT EPUBState m Entry
 createNavEntry opts meta metadata
                vars cssvars writeHtml tocTitle version (Node _ secs) = do
-  let mkItem :: Tree SecInfo -> State Int (Maybe Element)
-      mkItem (Node secinfo subsecs)
+  let mkItem (Node secinfo subsecs)
         | secLevel secinfo > writerTOCDepth opts = return Nothing
         | otherwise = do
           n <- get
@@ -929,13 +927,14 @@ createNavEntry opts meta metadata
           let clean (Link _ ils _) = Span ("", [], []) ils
               clean (Note _)       = Str ""
               clean x              = x
-          let titRendered = case P.runPure
-                                  (writeHtmlStringForEPUB version
-                                    opts{ writerTemplate = Nothing }
-                                    (Pandoc nullMeta
-                                      [Plain $ walk clean title'])) of
-                                  Left _  -> stringifyInlines title'
-                                  Right x -> x
+          -- render in the host monad, so that a translation table
+          -- loaded for one title is reused for the others:
+          titRendered <- lift $ catchError
+                           (writeHtmlStringForEPUB version
+                              opts{ writerTemplate = Nothing }
+                              (Pandoc nullMeta
+                                [Plain $ walk clean title']))
+                           (\_ -> return $ stringifyInlines title')
           let titElements = either (const []) id $
                                   parseXMLContents (TL.fromStrict titRendered)
 
@@ -949,7 +948,7 @@ createNavEntry opts meta metadata
                            (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
   let navtag = if version == EPUB3 then "nav" else "div"
-  let tocBlocks = evalState (catMaybes <$> mapM mkItem secs) 1
+  tocBlocks <- lift $ evalStateT (catMaybes <$> mapM mkItem secs) (1 :: Int)
   let navBlocks = [RawBlock (Format "html")
                   $ showElement $ -- prettyprinting introduces bad spaces
                    unode navtag ! ([("epub:type","toc") | version == EPUB3] ++
