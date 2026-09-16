@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.Pod (readPod) where
 
 import Control.Monad (void)
 import Control.Monad.Except (throwError)
-import Data.Char (isAsciiUpper, digitToInt)
+import Data.Char (isAlphaNum, isAsciiUpper, isDigit, isLetter, digitToInt)
 import Data.Default (Default)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -312,7 +312,7 @@ link = do
     -- manual page reference, so what we are doing here is roughly equivalent
     -- even though it is nonsense
     url ex = do
-      scheme <- many1Char (letter <|> digit <|> char '_')
+      scheme <- takeWhile1P (\c -> isLetter c || isDigit c || c == '_')
       colon <- T.singleton <$> char ':' <* notFollowedBy (char ':')
       rst <- many (format <|> B.str <$> many1Char (podCharLess ex))
       return $ LinkUrl
@@ -353,7 +353,7 @@ str = B.str <$> many1Char podChar
 
 nonEmptyLine :: PandocMonad m => PodParser m T.Text
 nonEmptyLine = try $ do
-  pre <- manyChar spaceChar
+  pre <- takeWhileP (\c -> c == ' ' || c == '\t')
   something <- T.singleton <$> nonspaceChar
   post <- anyLineNewline
   return $ pre <> something <> post
@@ -368,7 +368,7 @@ verbatim = do
   optional blanklines
   return $ B.codeBlock $ mconcat $ start:lns
   where
-    startVerbatimLine = many1Char spaceChar <> nonEmptyLine
+    startVerbatimLine = takeWhile1P (\c -> c == ' ' || c == '\t') <> nonEmptyLine
 
 -- =begin/=end/=for and data paragraphs
 -- The =begin/=end (and single-paragraph =for variant) markers in Pod are
@@ -390,7 +390,7 @@ verbatim = do
 -- structure. It seems unlikely this would be encountered in the wild.
 
 regionIdentifier :: PandocMonad m => PodParser m T.Text
-regionIdentifier = many1Char (alphaNum <|> oneOf "-_")
+regionIdentifier = takeWhile1P (\c -> isAlphaNum c || c == '-' || c == '_')
 
 for :: PandocMonad m => PodParser m Blocks
 for = do

@@ -419,7 +419,8 @@ nestedString :: (Show a, PandocMonad m)
              => TWParser m a -> TWParser m Text
 nestedString end = innerSpace <|> countChar 1 nonspaceChar
   where
-    innerSpace = try $ many1Char spaceChar <* notFollowedBy end
+    innerSpace = try $ takeWhile1P (\c -> c == ' ' || c == '\t')
+                        <* notFollowedBy end
 
 boldCode :: PandocMonad m => TWParser m B.Inlines
 boldCode = try $ B.strong . B.code . fromEntities <$> enclosed (string "==") nestedString
@@ -450,14 +451,15 @@ autoLink = try $ do
       | otherwise = isAlphaNum c
 
 str :: PandocMonad m => TWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> characterReference)
+str = B.str <$> (takeWhile1P isAlphaNum <|> characterReference)
 
 nop :: PandocMonad m => TWParser m B.Inlines
 nop = try $ (void exclamation <|> void nopTag) >> followContent
   where
     exclamation   = char '!'
     nopTag        = stringAnyCase "<nop>"
-    followContent = B.str . fromEntities <$> many1Char nonspaceChar
+    followContent = B.str . fromEntities <$>
+      takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
 
 symbol :: PandocMonad m => TWParser m B.Inlines
 symbol = B.str <$> countChar 1 nonspaceChar

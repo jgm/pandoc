@@ -174,7 +174,8 @@ nestedText :: (Show a, PandocMonad m)
              => DWParser m a -> DWParser m Text
 nestedText end = innerSpace <|> countChar 1 nonspaceChar
   where
-    innerSpace = try $ many1Char spaceChar <* notFollowedBy end
+    innerSpace = try $ takeWhile1P (\c -> c == ' ' || c == '\t')
+                        <* notFollowedBy end
 
 monospaced :: PandocMonad m => DWParser m B.Inlines
 monospaced = try $ B.code . stringifyInlines <$> enclosed (string "''") nestedInlines
@@ -238,7 +239,7 @@ nocache :: PandocMonad m => DWParser m B.Inlines
 nocache = try $ mempty <$ string "~~NOCACHE~~"
 
 str :: PandocMonad m => DWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> characterReference)
+str = B.str <$> (takeWhile1P isAlphaNum <|> characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
 symbol = B.str <$> (notFollowedBy' blockCode *> countChar 1 nonspaceChar)

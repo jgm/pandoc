@@ -35,7 +35,7 @@ import Text.Pandoc.Shared (compactify, compactifyDL, safeRead, compactifyTable)
 
 import Control.Monad (foldM, guard, mzero, void)
 import Data.Bifunctor (bimap)
-import Data.Char (isSpace)
+import Data.Char (isAlphaNum, isDigit, isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
 import qualified Data.List as L
@@ -162,7 +162,8 @@ keyValues = try $
   manyTill ((,) <$> key <*> value) newline
  where
    key :: Monad m => OrgParser m Text
-   key = try $ skipSpaces *> char ':' *> many1Char nonspaceChar
+   key = try $ skipSpaces *> char ':' *>
+           takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
 
    value :: Monad m => OrgParser m Text
    value = skipSpaces *> manyTillChar anyChar endOfValue
@@ -212,7 +213,7 @@ orgBlock = try $ do
      skipSpaces
      metaLineStart
      stringAnyCase "begin_"
-     many1Char (satisfy (not . isSpace))
+     takeWhile1P (not . isSpace)
 
 admonitionBlock :: PandocMonad m
                 => Text -> BlockAttributes -> Text -> OrgParser m (F Blocks)
@@ -425,7 +426,7 @@ genericSwitch c p = try $ do
 -- | Reads a line number switch option. The line number switch can be used with
 -- example and source blocks.
 lineNumberSwitch :: Monad m => OrgParser m (Char, Maybe Text, SwitchPolarity)
-lineNumberSwitch = genericSwitch 'n' (manyChar digit)
+lineNumberSwitch = genericSwitch 'n' (takeWhileP isDigit)
 
 blockOption :: Monad m => OrgParser m (Text, Text)
 blockOption = try $ do
@@ -437,7 +438,7 @@ orgParamValue :: Monad m => OrgParser m Text
 orgParamValue = try $
   skipSpaces
     *> notFollowedBy orgArgKey
-    *> ((char '"' *> manyChar (noneOf "\n\r\"") <* char '"') <|>
+    *> ((char '"' *> takeWhileP (`notElem` ("\n\r\"" :: [Char])) <* char '"') <|>
         noneOf "\n\r" `many1TillChar` endOfValue)
     <* skipSpaces
  where
@@ -579,7 +580,7 @@ include :: PandocMonad m => OrgParser m (F Blocks)
 include = try $ do
   metaLineStart <* stringAnyCase "include:" <* skipSpaces
   filename <- includeTarget
-  includeArgs <- many (try $ skipSpaces *> many1Char alphaNum)
+  includeArgs <- many (try $ skipSpaces *> takeWhile1P isAlphaNum)
   params <- keyValues
   blocksParser <- case includeArgs of
       ("example" : _) -> return $ pure . B.codeBlock <$> parseRaw
@@ -608,7 +609,7 @@ include = try $ do
     manyTill (noneOf "\n\r\t") (char '"')
 
   parseRaw :: PandocMonad m => OrgParser m Text
-  parseRaw = manyChar anyChar
+  parseRaw = takeWhileP (const True)
 
   blockFilter :: [(Text, Text)] -> [Block] -> [Block]
   blockFilter params blks =
@@ -763,7 +764,7 @@ columnPropertyCell = emptyOrgCell <|> propCell <?> "alignment info"
                  <$> (skipSpaces
                       *> char '<'
                       *> optionMaybe tableAlignFromChar)
-                 <*> (optionMaybe (many1Char digit >>= safeRead)
+                 <*> (optionMaybe (takeWhile1P isDigit >>= safeRead)
                       <* char '>'
                       <* emptyOrgCell)
 

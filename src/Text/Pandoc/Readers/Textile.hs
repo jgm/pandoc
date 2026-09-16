@@ -680,7 +680,7 @@ image = try $ do
   let attr = case lookup "style" kvs of
                Just stls -> (ident, cls, pickStylesToKVs ["width", "height"] stls)
                Nothing   -> (ident, cls, kvs)
-  src <- T.pack <$> many1 (noneOf " \t\n\r!(")
+  src <- takeWhile1P (`notElem` (" \t\n\r!(" :: [Char]))
   alt <- fmap T.pack $ option "" $ try $ char '(' *> manyTill anyChar (char ')')
   char '!'
   let img = B.imageWith attr src alt (B.str alt)

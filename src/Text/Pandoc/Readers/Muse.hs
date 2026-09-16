@@ -22,6 +22,7 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
+import Data.Char (isAlphaNum, isDigit, isLetter)
 import Data.Default
 import Data.List (transpose)
 import qualified Data.Map as M
@@ -170,7 +171,7 @@ openTag tag = try $
   where
     attr = try $ (,)
       <$  many1 spaceChar
-      <*> many1Char (noneOf "=\n")
+      <*> takeWhile1P (\c -> c /= '=' && c /= '\n')
       <*  string "=\""
       <*> manyTillChar (noneOf "\"") (char '"')
 
@@ -198,7 +199,7 @@ parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
 
 -- While not documented, Emacs Muse allows "-" in directive name
 parseDirectiveKey :: PandocMonad m => MuseParser m Text
-parseDirectiveKey = char '#' *> manyChar (letter <|> char '-')
+parseDirectiveKey = char '#' *> takeWhileP (\c -> isLetter c || c == '-')
 
 parseEmacsDirective :: PandocMonad m => MuseParser m (Text, F Inlines)
 parseEmacsDirective = (,)
@@ -810,7 +811,7 @@ parseAnchor = try $ T.cons
   <$  firstColumn
   <*  char '#'
   <*> letter
-  <*> manyChar (letter <|> digit <|> char '-')
+  <*> takeWhileP (\c -> isLetter c || isDigit c || c == '-')
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
@@ -951,13 +952,13 @@ inlineLiteralTag = try $ fmap pure $ B.rawInline
   <*> manyTillChar anyChar (closeTag "literal")
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = return . B.str <$> many1Char alphaNum <* updateLastStrPos
+str = return . B.str <$> takeWhile1P isAlphaNum <* updateLastStrPos
 
 -- | Consume asterisks that were not used as emphasis opening.
 -- This prevents series of asterisks from being split into
 -- literal asterisk and emphasis opening.
 asterisks :: PandocMonad m => MuseParser m (F Inlines)
-asterisks = pure . B.str <$> many1Char (char '*')
+asterisks = pure . B.str <$> takeWhile1P (== '*')
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
 symbol = pure . B.str . T.singleton <$> nonspaceChar
@@ -1006,6 +1007,6 @@ image = try $ do
           return (ext, width, align)
         imageAttrs = (,)
           <$  many1 spaceChar
-          <*> optionMaybe (many1Char digit)
+          <*> optionMaybe (takeWhile1P isDigit)
           <*  many spaceChar
           <*> optionMaybe (oneOf "rlf")

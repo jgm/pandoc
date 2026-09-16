@@ -182,7 +182,7 @@ ignoredSetting s = try (() <$ textStr s <* char ':' <* many1 nonspaceChar)
 -- | Read any setting string, but ignore it and emit a warning.
 ignoreAndWarn :: PandocMonad m => OrgParser m ()
 ignoreAndWarn = try $ do
-  opt <- many1Char nonspaceChar
+  opt <- takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
   report (UnknownOrgExportOption opt)
   return ()
 

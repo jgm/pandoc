@@ -13,7 +13,7 @@ import Text.Pandoc.Class.PandocMonad
     ( PandocMonad(..), report, PandocMonad(..), report )
 import Control.Monad
     ( mzero, mplus, mzero, mplus )
-import Data.Char (chr, isAscii, isAlphaNum)
+import Data.Char (chr, isAscii, isAlphaNum, isDigit)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Text.Pandoc.Logging (LogMessage(..))
@@ -205,7 +205,7 @@ escUnknown s = do
 signedNumber :: (PandocMonad m, RoffLikeLexer x) => Lexer m x T.Text
 signedNumber = try $ do
   sign <- option "" ("-" <$ char '-' <|> "" <$ char '+')
-  ds <- many1Char digit
+  ds <- takeWhile1P isDigit
   return (sign <> ds)
 
 -- Parses: [..] or (..

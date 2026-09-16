@@ -23,7 +23,7 @@ module Text.Pandoc.Readers.Markdown (
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Bifunctor as Bifunctor
-import Data.Char (isAlphaNum, isPunctuation, isSpace)
+import Data.Char (isAlphaNum, isDigit, isLetter, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.List as L
 import qualified Data.Map as M
@@ -413,7 +413,7 @@ quotedTitle c = try $ do
   char c
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
-  let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> litChar
+  let regChunk = takeWhile1P (`notElem` ['\\','\n','&',c]) <|> litChar
   let nestedChunk = (\x -> (c `T.cons` x) `T.snoc` c) <$> quotedTitle c
   T.unwords . T.words . T.concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
@@ -661,7 +661,7 @@ identifier = do
 identifierAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 identifierAttr = try $ do
   char '#'
-  result <- T.pack <$> many1 (alphaNum <|> oneOf "-_:.") -- see #7920
+  result <- takeWhile1P (\x -> isAlphaNum x || x `elem` ("-_:." :: [Char])) -- see #7920
   return $ \(_,cs,kvs) -> (result,cs,kvs)
 
 classAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
@@ -860,7 +860,7 @@ orderedListStart mbstydelim = try $ do
   skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
   (do guardDisabled Ext_fancy_lists
-      start <- many1Char digit >>= safeRead
+      start <- takeWhile1P isDigit >>= safeRead
       char '.'
       gobbleSpaces 1 <|> () <$ lookAhead newline
       optional $ try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar)
@@ -1863,7 +1863,8 @@ source = do
         try parenthesizedChars
           <|> (notFollowedBy (oneOf "\n\r )") >> litChar)
           <|> (lookAhead (oneOf "\n\r") >> notFollowedBy linkTitle' >> litChar)
-          <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
+          <|> try (takeWhile1P (\x -> x == ' ' || x == '\t')
+                    <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   src <- try (litBetween '<' '>') <|> try base64DataURI <|> sourceURL
   tit <- option "" linkTitle'
@@ -2146,7 +2147,7 @@ rawConTeXtEnvironment :: PandocMonad m => ParsecT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
-               <|> many1Char letter
+               <|> takeWhile1P isLetter
   !contents <- manyTill (rawConTeXtEnvironment <|> countChar 1 anyChar)
                        (try $ string "\\stop" >> textStr completion)
   return $! "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
@@ -2199,7 +2200,9 @@ divFenced = do
     string ":::"
     skipMany (char ':')
     skipMany spaceChar
-    attribs <- attributes <|> ((\x -> ("",[x],[])) <$> many1Char nonspaceChar)
+    attribs <- attributes <|> ((\x -> ("",[x],[])) <$>
+                  takeWhile1P (\x -> x /= ' ' && x /= '\t' &&
+                                     x /= '\n' && x /= '\r'))
     skipMany spaceChar
     skipMany (char ':')
     blankline
@@ -2244,7 +2247,7 @@ emoji = do
   guardEnabled Ext_emoji
   try $ do
     char ':'
-    emojikey <- many1Char (alphaNum <|> oneOf "_+-")
+    emojikey <- takeWhile1P (\x -> isAlphaNum x || x `elem` ("_+-" :: [Char]))
     char ':'
     case emojiToInline emojikey of
       Just i -> return (return $ B.singleton i)

@@ -24,6 +24,7 @@ module Text.Pandoc.Readers.Org.BlockStarts
   ) where
 
 import Control.Monad (void, guard)
+import Data.Char (isAlphaNum, isDigit)
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Definition as Pandoc
@@ -65,7 +66,7 @@ latexEnvStart = try $ do
   pure name
  where
    latexEnvName :: Monad m => OrgParser m Text
-   latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")
+   latexEnvName = try $ mappend <$> takeWhile1P isAlphaNum <*> option "" (textStr "*")
 
 listCounterCookie :: Monad m => OrgParser m Int
 listCounterCookie = try $
@@ -73,7 +74,7 @@ listCounterCookie = try $
   *> parseNum
   <* char ']'
   <* (skipSpaces <|> lookAhead eol)
-  where parseNum = (safeRead =<< many1Char digit)
+  where parseNum = (safeRead =<< takeWhile1P isDigit)
                    <|> snd <$> (lowerAlpha <|> upperAlpha)
 
 bulletListStart :: Monad m => OrgParser m Int
@@ -93,7 +94,7 @@ orderedListStart = try $ do
   ind <- length <$> many spaceChar
   fancy <- option False $ True <$ guardEnabled Ext_fancy_lists
   -- Ordered list markers allowed in org-mode
-  let styles = (many1Char digit $> (if fancy
+  let styles = (takeWhile1P isDigit $> (if fancy
                                        then Decimal
                                        else DefaultStyle))
                : if fancy

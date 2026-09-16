@@ -66,8 +66,9 @@ import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (ParserState, ParsecT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,
-                            stateOptions, uri, manyTillChar, manyChar, textStr,
-                            many1Char, countChar, many1TillChar,
+                            stateOptions, uri, manyTillChar, textStr,
+                            countChar, many1TillChar,
+                            takeWhileP, takeWhile1P,
                             alphaNum, anyChar, char, newline, noneOf, oneOf,
                             space, spaces, string, choice, eof, lookAhead,
                             many1, many, manyTill, notFollowedBy,
@@ -224,7 +225,7 @@ hasDefMarkerM = manyTillChar (noneOf "\n") (try defMarkerM)
 preformatted :: PandocMonad m => VwParser m Blocks
 preformatted = try $ do
   many spaceChar >> string "{{{"
-  attrText <- manyChar (noneOf "\n")
+  attrText <- takeWhileP (/= '\n')
   lookAhead newline
   contents <- manyTillChar anyChar (try (char '\n' >> many spaceChar >> string "}}}"
     >> many spaceChar >> newline))
@@ -480,7 +481,7 @@ inlineML :: PandocMonad m => VwParser m Inlines
 inlineML = choice $ whitespace endlineML:inlineList
 
 str :: PandocMonad m => VwParser m Inlines
-str = B.str <$> many1Char (noneOf $ spaceChars ++ specialChars)
+str = B.str <$> takeWhile1P (`notElem` (spaceChars ++ specialChars))
 
 whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
 whitespace endline = B.space <$ (skipMany1 spaceChar <|>

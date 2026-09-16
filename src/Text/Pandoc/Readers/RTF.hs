@@ -286,11 +286,11 @@ tok = do
     x <- hexDigit
     y <- hexDigit
     return $ hexToWord (T.pack [x,y])
-  letterSequence = T.pack <$> many1 (satisfy (\c -> isAscii c && isLetter c))
+  letterSequence = takeWhile1P (\c -> isAscii c && isLetter c)
   unformattedText = do
-    ts <-  filter (\c -> c /= '\r' && c /= '\n') <$>
-           ( many1 (satisfy (\c -> not (isSpecial c) || c == '\r' || c == '\n')))
-    return $! UnformattedText $! T.pack ts
+    ts <-  T.filter (\c -> c /= '\r' && c /= '\n') <$>
+           takeWhile1P (\c -> not (isSpecial c) || c == '\r' || c == '\n')
+    return $! UnformattedText ts
   grouped = do
     char '{'
     skipMany nl

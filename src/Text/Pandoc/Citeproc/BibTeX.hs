@@ -842,14 +842,11 @@ bibString = do
   updateState (\(l,m) -> (l, Map.insert k v m))
   return ()
 
-take1WhileP :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
-take1WhileP f = T.pack <$> many1 (satisfy f)
-
 inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
-         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
+         (  takeWhile1P (\c -> c /= '{' && c /= '}' && c /= '\\')
         <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
         <|> (braced <$> inBraces)
          ) (char '}')
@@ -862,14 +859,14 @@ inQuotes :: BibParser Text
 inQuotes = do
   char '"'
   T.concat <$> manyTill
-             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\')
+             ( takeWhile1P (\c -> c /= '{' && c /= '"' && c /= '\\')
                <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
                <|> braced <$> inBraces
             ) (char '"')
 
 fieldName :: BibParser Text
 fieldName = resolveAlias . T.toLower
-  <$> take1WhileP (\c ->
+  <$> takeWhile1P (\c ->
          isAlphaNum c || c == '-' || c == '_' || c == ':' || c == '+')
 
 isBibtexKeyChar :: Char -> Bool
@@ -883,11 +880,11 @@ bibItem :: BibParser Item
 bibItem = do
   char '@'
   pos <- getPosition
-  enttype <- T.toLower <$> take1WhileP isLetter
+  enttype <- T.toLower <$> takeWhile1P isLetter
   spaces'
   char '{'
   spaces'
-  entid <- take1WhileP isBibtexKeyChar
+  entid <- takeWhile1P isBibtexKeyChar
   spaces'
   char ','
   spaces'
@@ -913,7 +910,7 @@ resolveAlias "primaryclass" = "eprintclass"
 resolveAlias s = s
 
 rawWord :: BibParser Text
-rawWord = take1WhileP isAlphaNum
+rawWord = takeWhile1P isAlphaNum
 
 expandString :: BibParser Text
 expandString = do

@@ -37,6 +37,8 @@ module Text.Pandoc.Readers.Org.Parsing
   , manyChar
   , many1Char
   , manyTillChar
+  , takeWhileP
+  , takeWhile1P
   , many1Till
   , many1TillChar
   , notFollowedBy'
@@ -225,7 +227,7 @@ orgTagWordChar = alphaNum <|> oneOf "@%#_"
 orgAnchor :: Monad m => OrgParser m Text
 orgAnchor = try $ do
   string "<<"
-  anchorId <- many1Char (noneOf "\t\n\r<>\"' ")
+  anchorId <- takeWhile1P (`notElem` ("\t\n\r<>\"' " :: [Char]))
   string ">>"
   skipSpaces
   recordAnchorId anchorId

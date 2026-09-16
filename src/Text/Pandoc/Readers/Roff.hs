@@ -34,7 +34,7 @@ import Control.Monad (void, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class.PandocMonad
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, isAlphaNum)
+import Data.Char (isLetter, isLower, toLower, toUpper, isAlphaNum)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate)
@@ -202,7 +202,7 @@ lexMacro = do
   guard $ sourceColumn pos == 1 || afterConditional st
   char '.' <|> char '\''
   skipMany spacetab
-  macroName <- manyChar (satisfy isAlphaNum)
+  macroName <- takeWhileP isAlphaNum
   case macroName of
     "nop" -> return mempty
     "ie"  -> lexConditional "ie"
@@ -286,7 +286,7 @@ tableOptions = many1 tableOption <* spaces <* char ';'
 
 tableOption :: PandocMonad m => RoffLexer m TableOption
 tableOption = do
-  k <- many1Char letter
+  k <- takeWhile1P isLetter
   v <- option "" $ try $ do
          skipMany spacetab
          char '('
@@ -366,7 +366,7 @@ lexConditional mname = do
 expression :: PandocMonad m => RoffLexer m (Maybe Bool)
 expression = do
   raw <- charsInBalanced '(' ')' (T.singleton <$> (satisfy (/= '\n')))
-      <|> many1Char nonspaceChar
+      <|> takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
   returnValue $
     case raw of
       "1"  -> Just True

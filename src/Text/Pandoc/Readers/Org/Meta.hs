@@ -30,6 +30,7 @@ import Text.Pandoc.Shared (blocksToInlines, safeRead)
 import Text.Pandoc.URI (urlEncode)
 
 import Control.Monad (mzero, void)
+import Data.Char (isAlphaNum, isDigit)
 import Data.List (intercalate, intersperse)
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
@@ -67,7 +68,7 @@ keywordLine = try $ do
     Just hd -> hd
 
 metaKey :: Monad m => OrgParser m Text
-metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
+metaKey = T.toLower <$> takeWhile1P (`notElem` (": \n\r" :: [Char]))
                     <*  char ':'
                     <*  skipSpaces
 
@@ -175,7 +176,9 @@ metaExportSnippet format = pure . B.rawInline format <$> anyLine
 -- | Parse a link type definition (like @wp https://en.wikipedia.org/wiki/@).
 addLinkFormatter :: Monad m => OrgParser m ()
 addLinkFormatter = try $ do
-  linkType <- T.cons <$> letter <*> manyChar (alphaNum <|> oneOf "-_") <* skipSpaces
+  linkType <- T.cons <$> letter
+              <*> takeWhileP (\c -> isAlphaNum c || c == '-' || c == '_')
+              <* skipSpaces
   formatter <- parseFormat
   updateState $ \s ->
     let fs = orgStateLinkFormatters s
@@ -253,7 +256,7 @@ todoSequence = try $ do
  where
    todoKeyword :: Monad m => OrgParser m Text
    todoKeyword = do
-     keyword <- many1Char nonspaceChar
+     keyword <- takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
      let cleanKeyword = T.takeWhile (/= '(') keyword
      skipSpaces
      return cleanKeyword
@@ -278,14 +281,15 @@ todoSequence = try $ do
 
 macroDefinition :: Monad m => OrgParser m (Text, [Text] -> Text)
 macroDefinition = try $ do
-  macroName <- many1Char nonspaceChar <* skipSpaces
+  macroName <- takeWhile1P (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= '\r')
+                <* skipSpaces
   firstPart <- expansionPart
   (elemOrder, parts) <- unzip <$> many ((,) <$> placeholder <*> expansionPart)
   let expander = mconcat . alternate (firstPart:parts) . reorder elemOrder
   return (macroName, expander)
  where
   placeholder :: Monad m => OrgParser m Int
-  placeholder = try . fmap (fromMaybe 1 . safeRead) $ char '$' *> many1Char digit
+  placeholder = try . fmap (fromMaybe 1 . safeRead) $ char '$' *> takeWhile1P isDigit
 
   expansionPart :: Monad m => OrgParser m Text
   expansionPart = try $ manyChar (notFollowedBy placeholder *> noneOf "\n\r")

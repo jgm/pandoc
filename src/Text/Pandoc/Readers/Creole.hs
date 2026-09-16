@@ -91,7 +91,7 @@ nowiki = try $ fmap (B.codeBlock . mconcat) (nowikiStart
   where
     content = brackets <|> line
     brackets = try $ option "" (T.singleton <$> newline)
-               <+> (char ' ' >> (manyChar (char ' ') <+> textStr "}}}") <* eol)
+               <+> (char ' ' >> (takeWhileP (== ' ') <+> textStr "}}}") <* eol)
     line = option "" (T.singleton <$> newline) <+> manyTillChar anyChar eol
     eol = lookAhead $ try $ nowikiEnd <|> newline
     nowikiStart = optional newline >> string "{{{" >> skipMany spaceChar >> newline
@@ -215,8 +215,8 @@ image = try $ do
   (orig, src) <- wikiImg
   return $ B.image src "" (B.str orig)
   where
-    linkSrc = manyChar $ noneOf "|}\n\r\t"
-    linkDsc = char '|' >> manyChar (noneOf "}\n\r\t")
+    linkSrc = takeWhileP (`notElem` ("|}\n\r\t" :: [Char]))
+    linkDsc = char '|' >> takeWhileP (`notElem` ("}\n\r\t" :: [Char]))
     wikiImg = try $ do
       string "{{"
       src <- linkSrc
@@ -229,11 +229,11 @@ link = try $ do
   (orig, src) <- uriLink <|> wikiLink
   return $ B.link src "" orig
   where
-    linkSrc = manyChar $ noneOf "|]\n\r\t"
+    linkSrc = takeWhileP (`notElem` ("|]\n\r\t" :: [Char]))
     linkDsc :: PandocMonad m => Text -> CRLParser m B.Inlines
     linkDsc otxt = B.str
                    <$> try (option otxt
-                         (char '|' >> manyChar (noneOf "]\n\r\t")))
+                         (char '|' >> takeWhileP (`notElem` ("]\n\r\t" :: [Char]))))
     linkImg = try $ char '|' >> image
     wikiLink = try $ do
       string "[["

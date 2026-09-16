@@ -18,7 +18,8 @@ import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
-import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
+import Data.Char (isDigit, isHexDigit, isSpace, toUpper, isAlphaNum,
+                  generalCategory,
                   GeneralCategory(OpenPunctuation, InitialQuote, FinalQuote,
                                   DashPunctuation, OtherSymbol))
 import Data.List (elemIndex, partition, sort, transpose)
@@ -1279,7 +1280,7 @@ citationMarker = do
 noteMarker :: Monad m => RSTParser m Text
 noteMarker = do
   char '['
-  res <- many1Char digit
+  res <- takeWhile1P isDigit
       <|>
                   try (char '#' >> liftM ("#" <>) simpleReferenceName)
       <|> countChar 1 (oneOf "#*")
@@ -1319,9 +1320,9 @@ targetURI :: Monad m => ParsecT Sources st m Text
 targetURI = do
   skipSpaces
   optional $ try $ newline >> notFollowedBy blankline
-  contents <- trim <$>
-     many1Char (satisfy (/='\n')
-     <|> try (newline >> many1 spaceChar >> noneOf " \t\n"))
+  contents <- trim . mconcat <$>
+     many1 (takeWhile1P (/='\n')
+     <|> T.singleton <$> try (newline >> many1 spaceChar >> noneOf " \t\n"))
   blanklines
   return $ stripBackticks contents
   where
@@ -1765,7 +1766,7 @@ whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
 
 str :: Monad m => RSTParser m Inlines
 str = do
-  result <- many1Char (satisfy isStrChar)
+  result <- takeWhile1P isStrChar
   updateLastStrPos
   return $ B.str result
  where

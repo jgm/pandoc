@@ -18,6 +18,7 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
 import Control.Monad (guard, void, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)
+import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (intercalate, transpose)
 import Data.List.NonEmpty (nonEmpty)
@@ -132,7 +133,7 @@ type Value = Text
 setting :: T2T (Keyword, Value)
 setting = do
   string "%!"
-  keyword <- ignoreSpacesCap (many1Char alphaNum)
+  keyword <- ignoreSpacesCap (takeWhile1P isAlphaNum)
   char ':'
   value <- ignoreSpacesCap (manyTillChar anyChar newline)
   return (keyword, value)
@@ -416,7 +417,7 @@ inlineMarkup :: Monoid a
              -> (Text -> a) -- Special Case to handle ******
              -> T2T Inlines
 inlineMarkup p f c special = try $ do
-  start <- many1Char (char c)
+  start <- takeWhile1P (== c)
   let l = T.length start
   guard (l >= 2)
   when (l == 2) (void $ notFollowedBy space)
@@ -427,7 +428,7 @@ inlineMarkup p f c special = try $ do
   case body of
     Just middle -> do
       lastChar <- anyChar
-      end <- many1Char (char c)
+      end <- takeWhile1P (== c)
       let parser inp = parseFromString' (mconcat <$> many p) inp
       let start' = case T.drop 2 start of
                           "" -> mempty
@@ -519,7 +520,7 @@ t2tURI :: T2T Text
 t2tURI = do
   start <- try ((<>) <$> proto <*> urlLogin) <|> guess
   domain <- many1Char chars
-  sep <- manyChar (char '/')
+  sep <- takeWhileP (== '/')
   form' <- option mempty (T.cons <$> char '?' <*> many1Char form)
   anchor' <- option mempty (T.cons <$> char '#' <*> manyChar anchor)
   return (start <> domain <> sep <> form' <> anchor')
@@ -529,7 +530,7 @@ t2tURI = do
     guess = (<>) <$> (((<>) <$> stringAnyCase "www" <*> option mempty (T.singleton <$> oneOf "23"))
               <|> stringAnyCase "ftp") <*> (T.singleton <$> char '.')
     login = alphaNum <|> oneOf "_.-"
-    pass = manyChar (noneOf " @")
+    pass = takeWhileP (\x -> x /= ' ' && x /= '@')
     chars = alphaNum <|> oneOf "%._/~:,=$@&+-"
     anchor = alphaNum <|> oneOf "%._0"
     form = chars <|> oneOf ";*"
@@ -573,7 +574,7 @@ endline = try $ do
   return B.softbreak
 
 str :: T2T Inlines
-str = try $ B.str <$> many1Char (noneOf $ specialChars ++ "\n\r ")
+str = try $ B.str <$> takeWhile1P (`notElem` (specialChars ++ "\n\r "))
 
 whitespace :: T2T Inlines
 whitespace = try $ B.space <$ spaceChar

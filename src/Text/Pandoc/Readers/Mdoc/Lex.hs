@@ -142,7 +142,7 @@ mdocToken :: PandocMonad m => Lexer m MdocTokens
 mdocToken = lexComment <|> lexControlLine <|> lexTextLine
 
 lexMacroName :: PandocMonad m => Lexer m T.Text
-lexMacroName = many1Char (satisfy isMacroChar)
+lexMacroName = takeWhile1P isMacroChar
   where
     isMacroChar '%' = True
     isMacroChar x = isAlphaNum x

@@ -614,7 +614,7 @@ makeLink start middle end = try $ do
 wikiLinkText :: PandocMonad m => Text -> Text -> Text -> TikiWikiParser m (Text, Text, Text)
 wikiLinkText start middle end = do
   string (T.unpack start)
-  url <- T.pack <$> many1 (noneOf $ T.unpack middle ++ "\n")
+  url <- takeWhile1P (`notElem` (T.unpack middle ++ "\n"))
   seg1 <- option url linkContent
   seg2 <- option "" linkContent
   string (T.unpack end)
@@ -626,7 +626,7 @@ wikiLinkText start middle end = do
   where
     linkContent      = do
       char '|'
-      T.pack <$> many (noneOf $ T.unpack middle)
+      takeWhileP (`notElem` T.unpack middle)
 
 externalLink :: PandocMonad m => TikiWikiParser m B.Inlines
 externalLink = makeLink "[" "]|" "]"

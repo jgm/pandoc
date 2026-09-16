@@ -125,7 +125,7 @@ linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: PandocMonad m => OrgParser m (F Inlines)
 str = return . B.str <$>
-      ( many1Char (noneOf $ specialChars ++ "\n\r ") >>= updatePositions' )
+      ( takeWhile1P (`notElem` (specialChars ++ "\n\r ")) >>= updatePositions' )
       <* updateLastStrPos
   where
     updatePositions' str' = str' <$
@@ -223,7 +223,7 @@ citeItem = try $ do
 orgCiteKey :: PandocMonad m => OrgParser m Text
 orgCiteKey = do
   char '@'
-  T.pack <$> many1 (satisfy orgCiteKeyChar)
+  takeWhile1P orgCiteKeyChar
 
 orgCiteKeyChar :: Char -> Bool
 orgCiteKeyChar c =
@@ -410,7 +410,7 @@ footnote = try $ do
 inlineNote :: PandocMonad m => OrgParser m (F Inlines)
 inlineNote = try $ do
   string "[fn:"
-  ref <- manyChar (alphaNum <|> oneOf "-_")
+  ref <- takeWhileP (\c -> isAlphaNum c || c == '-' || c == '_')
   char ':'
   note <- fmap B.para . trimInlinesF . mconcat <$> many1Till inline (char ']')
   unless (T.null ref) $
@@ -548,7 +548,7 @@ inlineCodeBlock = try $ do
    orgInlineParamValue = try $
      skipSpaces
        *> notFollowedBy (char ':')
-       *> many1Char (noneOf "\t\n\r ]")
+       *> takeWhile1P (`notElem` ("\t\n\r ]" :: [Char]))
        <* skipSpaces
 
 
@@ -821,7 +821,7 @@ simpleSubOrSuperText = try $
   return . B.str <$>
     choice [ textStr "*"
            , mappend <$> option "" (T.singleton <$> oneOf "+-")
-                     <*> many1Char alphaNum
+                     <*> takeWhile1P isAlphaNum
            ]
 
 inlineLaTeX :: PandocMonad m => OrgParser m (F Inlines)
@@ -897,7 +897,7 @@ macro = try $ do
   recursionDepth <- orgStateMacroDepth <$> getState
   guard $ recursionDepth < 15
   string "{{{"
-  name <- manyChar alphaNum
+  name <- takeWhileP isAlphaNum
   args <- ([] <$ string "}}}")
           <|> char '(' *> argument `sepBy` char ',' <* eoa
   expander <- lookupMacro name <$> getState
