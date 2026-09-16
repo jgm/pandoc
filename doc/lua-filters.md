@@ -1528,7 +1528,7 @@ Result:
 Usage:
 
     -- returns `pandoc.Blocks{pandoc.Para('Salve!')}`
-    return pandoc.Blocks{pandoc.Plain('Salve!)}:walk {
+    return pandoc.Blocks{pandoc.Plain('Salve!')}:walk {
       Plain = function (p) return pandoc.Para(p.content) end,
     }
 
