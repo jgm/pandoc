@@ -28,6 +28,7 @@ import Control.Monad.Reader
 import Control.Monad.State
     ( StateT, gets, modify, evalStateT )
 import Codec.Archive.Zip
+import Data.Containers.ListUtils (nubOrdOn)
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Bifunctor (bimap)
 import Data.CaseInsensitive (CI)
@@ -57,6 +58,7 @@ import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.Shared (metaToContext)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isJust)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
@@ -391,15 +393,27 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   mediaEntries <- makeMediaEntries
   contentTypesEntry <- presentationToContentTypes p >>= contentTypesToEntry
   -- fold everything into our inherited archive and return it.
-  return $ foldr addEntryToArchive newArch' $
-    slideEntries <>
-    slideRelEntries <>
-    spkNotesEntries <>
-    spkNotesRelEntries <>
-    mediaEntries <>
-    [updatedMasterEntry, updatedMasterRelEntry]  <>
-    [contentTypesEntry, docPropsEntry, docCustomPropsEntry, relsEntry,
-     presEntry, presRelsEntry, viewPropsEntry]
+  return $ addEntriesToArchive
+    (slideEntries <>
+     slideRelEntries <>
+     spkNotesEntries <>
+     spkNotesRelEntries <>
+     mediaEntries <>
+     [updatedMasterEntry, updatedMasterRelEntry]  <>
+     [contentTypesEntry, docPropsEntry, docCustomPropsEntry, relsEntry,
+      presEntry, presRelsEntry, viewPropsEntry])
+    newArch'
+
+-- | Add entries to an archive in a single pass.  Equivalent to (but
+-- faster than) folding 'addEntryToArchive' over the list: for
+-- duplicate paths the first entry in the list wins, and the new
+-- entries precede (and replace) existing entries with the same paths.
+addEntriesToArchive :: [Entry] -> Archive -> Archive
+addEntriesToArchive entries archive =
+  archive{ zEntries = nubOrdOn eRelativePath entries <>
+                      filter (\e -> eRelativePath e `Set.notMember` newPaths)
+                             (zEntries archive) }
+  where newPaths = Set.fromList $ map eRelativePath entries
 
 updateMasterElems :: SlideLayouts -> Element -> Element -> (Element, Element)
 updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
