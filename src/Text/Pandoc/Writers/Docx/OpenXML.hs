@@ -830,8 +830,8 @@ inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML' _ (Str str) =
   map Elem <$> formattedString str
-inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
-inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' opts Space = inlineToOpenXML' opts (Str " ")
+inlineToOpenXML' opts SoftBreak = inlineToOpenXML' opts (Str " ")
 inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
   withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
     inlinesToOpenXML opts ils
