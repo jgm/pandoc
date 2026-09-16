@@ -1189,11 +1189,17 @@ withDirection x = do
   -- We want to clean all bidirection (bidi) and right-to-left (rtl)
   -- properties from the props first. This is because we don't want
   -- them to stack up.
-  let paraProps' = filter (\e -> (qName . elName) e /= "bidi") (otherElements paraProps)
+  let hasBidi = any (\e -> (qName . elName) e == "bidi") (otherElements paraProps)
+      hasRtl = any (\e -> (qName . elName) e == "rtl") (otherElements textProps)
+      paraProps' = filter (\e -> (qName . elName) e /= "bidi") (otherElements paraProps)
       textProps' = filter (\e -> (qName . elName) e /= "rtl") (otherElements textProps)
       paraStyle = styleElement paraProps
       textStyle = styleElement textProps
-  if isRTL
+  if not isRTL && not hasBidi && not hasRtl
+    -- fast path: LTR with no bidi/rtl props to remove, so the
+    -- environment is unchanged; skip the 'local' rebuild.
+    then x
+    else if isRTL
     -- if we are going right-to-left, we (re?)add the properties.
     then flip local x $
          \env -> env { envParaProperties = EnvProps paraStyle $ mknode "w:bidi" [] () : paraProps'
