@@ -133,6 +133,9 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            , envInSpeakerNotes :: Bool
                            , envSlideLayouts :: Maybe SlideLayouts
                            , envOtherStyleIndents :: Maybe Indents
+                           -- The parsed slide master, cached to avoid
+                           -- re-parsing it for every slide.
+                           , envMaster :: Maybe Element
                            }
                  deriving (Show)
 
@@ -153,6 +156,7 @@ instance Default WriterEnv where
                   , envInSpeakerNotes = False
                   , envSlideLayouts = Nothing
                   , envOtherStyleIndents = Nothing
+                  , envMaster = Nothing
                   }
 
 type SlideLayouts = SlideLayoutsOf SlideLayout
@@ -687,6 +691,7 @@ presentationToArchive opts meta pres = do
                 , envSpeakerNotesIdMap = makeSpeakerNotesMap pres
                 , envSlideLayouts = Just layouts
                 , envOtherStyleIndents = otherStyleIndents
+                , envMaster = Just master
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -997,9 +1002,13 @@ makeMediaEntries = do
 
 getMaster :: PandocMonad m => P m Element
 getMaster = do
-  refArchive <- asks envRefArchive
-  distArchive <- asks envDistArchive
-  getMaster' refArchive distArchive
+  mbMaster <- asks envMaster
+  case mbMaster of
+    Just master -> pure master
+    Nothing -> do
+      refArchive <- asks envRefArchive
+      distArchive <- asks envDistArchive
+      getMaster' refArchive distArchive
 
 getMaster' :: PandocMonad m => Archive -> Archive -> m Element
 getMaster' refArchive distArchive =
