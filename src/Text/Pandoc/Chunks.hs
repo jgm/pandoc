@@ -57,8 +57,7 @@ splitIntoChunks :: PathTemplate -- ^ Template for filepath
 splitIntoChunks pathTemplate numberSections mbBaseLevel
                 chunklev (Pandoc meta blocks) =
    addNav .
-   fixInternalReferences .
-   walk rmNavAttrs $
+   fixInternalReferences $
    ChunkedDoc{ chunkedMeta = meta
              , chunkedChunks = chunks
              , chunkedTOC = tocTree }
@@ -214,10 +213,9 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
       , chunkPrev = Nothing
       , chunkUnlisted = "unlisted" `elem` classes
       , chunkContents =
-         [Div (divid,"section":classes,kvs') (h : bs)]
+         [Div (divid,"section":classes,kvs) (h : bs)]
       }
-     where kvs' = kvs ++ [("nav-path", T.pack chunkpath)]
-           secnum = lookup "number" kvs
+     where secnum = lookup "number" kvs
            chunkpath = resolvePathTemplate pathTemplate chunknum
                         (stringifyInlines ils)
                         divid
@@ -246,14 +244,6 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
   toChunk _ b = error $ "toChunk called on inappropriate block " <> show b
   -- should not happen
 
-
--- Remove some attributes we added just to construct chunkNext etc.
-rmNavAttrs :: Block -> Block
-rmNavAttrs (Div (ident,classes,kvs) bs) =
-  Div (ident,classes,filter (not . isNavAttr) kvs) bs
- where
-  isNavAttr (k,_) = "nav-" `T.isPrefixOf` k
-rmNavAttrs b = b
 
 resolvePathTemplate :: PathTemplate
                     -> Int -- ^ Chunk number
