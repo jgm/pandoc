@@ -11,7 +11,7 @@
    Portability : portable
 
    This code is based on code from xml-light, released under the BSD3 license.
-   We use a text Builder instead of ShowS.
+   We use a TextBuilder (from the text-builder package) instead of ShowS.
 -}
 module Text.Pandoc.XML.Light.Output
   ( -- * Replacement for xml-light's Text.XML.Output
@@ -31,8 +31,7 @@ module Text.Pandoc.XML.Light.Output
 import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import Data.Text.Lazy.Builder (Builder, singleton, fromText, toLazyText)
+import TextBuilder (TextBuilder, char, text, toText)
 import Text.Pandoc.XML.Light.Types
 
 --
@@ -103,42 +102,44 @@ ppcTopElement c e   = T.unlines [xmlHeader,ppcElement c e]
 
 -- | Pretty printing elements
 ppcElement         :: ConfigPP -> Element -> Text
-ppcElement c        = TL.toStrict . toLazyText . ppElementS c mempty
+ppcElement c        = toText . ppElementS c mempty
 
 -- | Pretty printing content
 ppcContent         :: ConfigPP -> Content -> Text
-ppcContent c        = TL.toStrict . toLazyText . ppContentS c mempty
+ppcContent c        = toText . ppContentS c mempty
 
-type Indent = Builder
+type Indent = TextBuilder
 
 -- | Pretty printing content using ShowT
-ppContentS         :: ConfigPP -> Indent -> Content -> Builder
+ppContentS         :: ConfigPP -> Indent -> Content -> TextBuilder
 ppContentS c i x = case x of
                      Elem e -> ppElementS c i e
                      Text t -> ppCDataS c i t
                      CRef r -> showCRefS r
 
-ppElementS         :: ConfigPP -> Indent -> Element -> Builder
+ppElementS         :: ConfigPP -> Indent -> Element -> TextBuilder
 ppElementS c i e = i <> tagStart (elName e) (elAttribs e) <>
   (case elContent e of
-    [] | "?" `T.isPrefixOf` qName name -> fromText " ?>"
-       | shortEmptyTag c name  -> fromText " />"
-    [Text t] -> singleton '>' <> ppCDataS c mempty t <> tagEnd name
-    cs -> singleton '>' <> nl <>
+    [] | "?" `T.isPrefixOf` qName name -> text " ?>"
+       | shortEmptyTag c name  -> text " />"
+    [Text t] -> char '>' <> ppCDataS c mempty t <> tagEnd name
+    cs -> char '>' <> nl <>
           mconcat (map ((<> nl) . ppContentS c (sp <> i)) cs) <>
           i <> tagEnd name
-      where (nl,sp)  = if prettify c then ("\n","  ") else ("","")
+      where (nl,sp)  = if prettify c
+                          then (text "\n", text "  ")
+                          else (mempty, mempty)
   )
   where name = elName e
 
-ppCDataS           :: ConfigPP -> Indent -> CData -> Builder
+ppCDataS           :: ConfigPP -> Indent -> CData -> TextBuilder
 ppCDataS c i t     = i <> if cdVerbatim t /= CDataText || not (prettify c)
                              then showCDataS t
                              -- add indentation after newlines; escaping
                              -- neither adds nor removes newlines, so we
                              -- can split the unescaped text
                              else mconcat
-                                  (intersperse (singleton '\n' <> i)
+                                  (intersperse (char '\n' <> i)
                                     (map escStr
                                       (T.split (=='\n') (cdData t))))
 
@@ -157,38 +158,38 @@ showElement        :: Element -> Text
 showElement         = ppcElement defaultConfigPP
 
 -- Note: crefs should not contain '&', ';', etc.
-showCRefS          :: Text -> Builder
-showCRefS r         = singleton '&' <> fromText r <> singleton ';'
+showCRefS          :: Text -> TextBuilder
+showCRefS r         = char '&' <> text r <> char ';'
 
 -- | Convert a text element to characters.
-showCDataS         :: CData -> Builder
+showCDataS         :: CData -> TextBuilder
 showCDataS cd =
  case cdVerbatim cd of
    CDataText     -> escStr (cdData cd)
-   CDataVerbatim -> fromText "<![CDATA[" <> escCData (cdData cd) <>
-                    fromText "]]>"
-   CDataRaw      -> fromText (cdData cd)
+   CDataVerbatim -> text "<![CDATA[" <> escCData (cdData cd) <>
+                    text "]]>"
+   CDataRaw      -> text (cdData cd)
 
 --------------------------------------------------------------------------------
-escCData           :: Text -> Builder
+escCData           :: Text -> TextBuilder
 escCData t =
   case T.breakOn "]]>" t of
     (chunk, rest)
-      | T.null rest -> fromText chunk
-      | otherwise   -> fromText chunk <> fromText "]]]]><![CDATA[>" <>
+      | T.null rest -> text chunk
+      | otherwise   -> text chunk <> text "]]]]><![CDATA[>" <>
                        escCData (T.drop 3 rest)
 
-escChar            :: Char -> Builder
+escChar            :: Char -> TextBuilder
 escChar c = case c of
-  '<'   -> fromText "&lt;"
-  '>'   -> fromText "&gt;"
-  '&'   -> fromText "&amp;"
-  '"'   -> fromText "&quot;"
+  '<'   -> text "&lt;"
+  '>'   -> text "&gt;"
+  '&'   -> text "&amp;"
+  '"'   -> text "&quot;"
   -- we use &#39 instead of &apos; because IE apparently has difficulties
   -- rendering &apos; in xhtml.
   -- Reported by Rohan Drape <rohan.drape@gmail.com>.
-  '\''  -> fromText "&#39;"
-  _     -> singleton c
+  '\''  -> text "&#39;"
+  _     -> char c
 
   {- original xml-light version:
   -- NOTE: We escape '\r' explicitly because otherwise they get lost
@@ -198,13 +199,13 @@ escChar c = case c of
       where oc = ord c
   -}
 
-escStr             :: Text -> Builder
+escStr             :: Text -> TextBuilder
 escStr cs          = case T.break needsEscape cs of
                        (chunk, rest) ->
                          case T.uncons rest of
-                           Nothing -> fromText chunk
+                           Nothing -> text chunk
                            Just (c, rest') ->
-                             fromText chunk <> escChar c <> escStr rest'
+                             text chunk <> escChar c <> escStr rest'
  where
   needsEscape '<' = True
   needsEscape '>' = True
@@ -213,22 +214,22 @@ escStr cs          = case T.break needsEscape cs of
   needsEscape '\'' = True
   needsEscape _ = False
 
-tagEnd             :: QName -> Builder
-tagEnd qn           = fromText "</" <> showQName qn <> singleton '>'
+tagEnd             :: QName -> TextBuilder
+tagEnd qn           = text "</" <> showQName qn <> char '>'
 
-tagStart           :: QName -> [Attr] -> Builder
-tagStart qn as      = singleton '<' <> showQName qn <> as_str
+tagStart           :: QName -> [Attr] -> TextBuilder
+tagStart qn as      = char '<' <> showQName qn <> as_str
  where as_str       = if null as
                          then mempty
                          else mconcat (map showAttr as)
 
-showAttr           :: Attr -> Builder
-showAttr (Attr qn v) = singleton ' ' <> showQName qn <>
-                       singleton '=' <>
-                       singleton '"' <> escStr v <> singleton '"'
+showAttr           :: Attr -> TextBuilder
+showAttr (Attr qn v) = char ' ' <> showQName qn <>
+                       char '=' <>
+                       char '"' <> escStr v <> char '"'
 
-showQName          :: QName -> Builder
+showQName          :: QName -> TextBuilder
 showQName q         =
   case qPrefix q of
-    Nothing -> fromText (qName q)
-    Just p  -> fromText p <> singleton ':' <> fromText (qName q)
+    Nothing -> text (qName q)
+    Just p  -> text p <> char ':' <> text (qName q)

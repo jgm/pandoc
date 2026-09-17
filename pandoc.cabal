@@ -503,7 +503,8 @@ library xml-light
                  xml-conduit           >= 1.9.1.1  && < 1.11,
                  xml-types             >= 0.3      && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
-                 text                  >= 2.0      && < 2.2
+                 text                  >= 2.0      && < 2.2,
+                 text-builder          >= 1.0      && < 1.1
 
   hs-source-dirs:  xml-light
   exposed-modules: Text.Pandoc.XML.Light,
