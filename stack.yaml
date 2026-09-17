@@ -27,6 +27,8 @@ extra-deps:
 - skylighting-0.15
 - skylighting-core-0.15
 - typst-symbols-0.3
+- git: https://github.com/jgm/zip-archive
+  commit: 37d12aad8ebdcb2aefd14af6b992faddcf9e307a
 - git: https://github.com/jgm/asciidoc-hs
   commit: 8d090846ddb061871e2434f6f55462467cb5a052
 - git: https://github.com/jgm/doclayout
