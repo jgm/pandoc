@@ -34,6 +34,13 @@ Text
 │
 │ │ Nested block quote
 
+Numbered list item beginning with a block quote (regression test for
+issue #11804, where the leading bar was dropped on the block quote’s
+first line because it shared a line with the list marker):
+
+1. 
+   │ List item block quote
+
 Multiline table with caption:
 
 Centered    Left       Right        Default aligned

@@ -190,7 +190,12 @@ blockToANSI opts (CodeBlock attr str) = do
 
 blockToANSI opts (BlockQuote blocks) = do
   contents <- withFewerColumns 2 $ blockListToANSI opts blocks
-  return ( D.prefixed "│ " contents $$ D.blankline)
+  -- D.cr ensures we start the blockquote on its own line: without it,
+  -- a blockquote that begins mid-line (e.g. as the first block of a
+  -- list item, sharing a line with the item's marker) would have its
+  -- prefix omitted on the first line, since D.prefixed only prefixes
+  -- lines that begin at column 0.
+  return ( D.cr <> D.prefixed "│ " contents $$ D.blankline)
 
 blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody (TableFoot _ tfoot)) = do
   let captionInlines = blocksToInlines caption
