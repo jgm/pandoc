@@ -19,9 +19,6 @@ extra-deps:
 - hslua-objectorientation-2.5.0
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
-- commonmark-0.3
-- commonmark-pandoc-0.3
-- commonmark-extensions-0.2.7.1
 - citeproc-0.13.0.1
 - skylighting-format-blaze-html-0.1.2.2
 - skylighting-0.15
