@@ -27,6 +27,9 @@ extra-deps:
 - skylighting-0.15
 - skylighting-core-0.15
 - typst-symbols-0.3
+- git: https://github.com/jgm/commonmark-hs
+  commit: c8482bb339350d7817b865baa925f607c2f9d349
+  subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
 - git: https://github.com/jgm/zip-archive
   commit: 37d12aad8ebdcb2aefd14af6b992faddcf9e307a
 - git: https://github.com/jgm/asciidoc-hs
