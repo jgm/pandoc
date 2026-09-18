@@ -515,6 +515,9 @@ inlineHandlers = M.fromList
   ,("underline", InlineHandler $ \_ _ fields -> do
       body <- getField "body" fields
       B.underline <$> pWithContents pInlines body)
+  ,("highlight", InlineHandler $ \_ _ fields -> do
+      body <- getField "body" fields
+      B.spanWith ("", ["mark"], []) <$> pWithContents pInlines body)
   ,("quote", InlineHandler $ \_ _ fields -> do
       (getField "block" fields <|> pure False) >>= guard . not
       body <- getInlineBody fields >>= pWithContents pInlines
