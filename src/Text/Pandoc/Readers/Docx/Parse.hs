@@ -382,6 +382,7 @@ leftBiasedMergeRunStyle a b = RunStyle
     , isItalicCTL = isItalicCTL a <|> isItalicCTL b
     , isSmallCaps = isSmallCaps a <|> isSmallCaps b
     , isStrike = isStrike a <|> isStrike b
+    , isDoubleStrike = isDoubleStrike a <|> isDoubleStrike b
     , isRTL = isRTL a <|> isRTL b
     , isForceCTL = isForceCTL a <|> isForceCTL b
     , rHighlight = rHighlight a <|> rHighlight b
