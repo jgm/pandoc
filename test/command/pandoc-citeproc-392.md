@@ -19,11 +19,11 @@ references:
 
 ::::: {#refs .references .csl-bib-body}
 ::: {#ref-james .csl-entry}
-[1. ]{.csl-left-margin}[James MRCEL. ]{.csl-right-inline}
+[1. ]{.csl-left-margin}[James MRCEL.]{.csl-right-inline}
 :::
 
 ::: {#ref-macfarlane .csl-entry}
-[2. ]{.csl-left-margin}[MacFarlane JG. ]{.csl-right-inline}
+[2. ]{.csl-left-margin}[MacFarlane JG.]{.csl-right-inline}
 :::
 :::::
 ```

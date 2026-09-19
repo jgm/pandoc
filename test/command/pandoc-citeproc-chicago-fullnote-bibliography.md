@@ -127,8 +127,9 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 
 [^12]: [Doe, *First Book*](#ref-item1) and nowhere else.
 
-[^13]: Like a citation without author: (), and again (), and now Doe
-    with a locator (["Article," 44](#ref-item2)).
+[^13]: Like a citation without author: ([](#ref-item1)), and again
+    ([](#ref-item1)), and now Doe with a locator (["Article,"
+    44](#ref-item2)).
 
 [^14]: *See* [Doe, *First Book*, 32](#ref-item1).
 ```

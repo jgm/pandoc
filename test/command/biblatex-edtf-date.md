@@ -35,6 +35,7 @@ references:
   issued: 2004-04-05
   type: article-journal
 - id: item5-1
+  issued: "-001"
   type: article-journal
 - id: item5-2
   issued: "-0876"

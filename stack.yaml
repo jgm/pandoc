@@ -19,11 +19,12 @@ extra-deps:
 - hslua-objectorientation-2.5.0
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
-- citeproc-0.13.0.1
 - skylighting-format-blaze-html-0.1.2.2
 - skylighting-0.15
 - skylighting-core-0.15
 - typst-symbols-0.3
+- git: https://github.com/jgm/citeproc
+  commit: 1a84e2911ad8224bd598c30b4b306e480fc265e4
 - git: https://github.com/jgm/commonmark-hs
   commit: c8482bb339350d7817b865baa925f607c2f9d349
   subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
