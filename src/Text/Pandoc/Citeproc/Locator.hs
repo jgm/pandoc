@@ -19,7 +19,6 @@ import Control.Monad (mzero)
 import qualified Data.Map as M
 import Data.Char (isSpace, isPunctuation, isDigit)
 
-
 data LocatorInfo =
   LocatorInfo{ locatorRaw :: Text
              , locatorLabel :: Text
@@ -57,9 +56,11 @@ pLocatorWords locMap = do
 maybeAddComma :: [Inline] -> [Inline]
 maybeAddComma [] = []
 maybeAddComma ils@(Space : _) = ils
+maybeAddComma ils@(SoftBreak : _) = ils
+maybeAddComma ils@(LineBreak : _) = ils
 maybeAddComma ils@(Str t : _)
   | Just (c, _) <- T.uncons t
-  , isPunctuation c = ils
+  , isPunctuation c || c == '|' = ils
 maybeAddComma ils = Str "," : Space : ils
 
 pLocatorDelimited :: LocatorMap -> LocatorParser LocatorInfo

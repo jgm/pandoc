@@ -34,7 +34,9 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..), LocatorInfo(..))
+import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..),
+                                     LocatorInfo(..))
+import Text.Pandoc.Citeproc (extractCiteAffixes)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
 
@@ -537,8 +539,11 @@ inlineToOrg (Cite cs lst) = do
                            , ("@" <> literal (citationId c))
                            , locator
                            , citeSuff ]
-       citeItems <- mconcat . intersperse "; " <$> mapM renderCiteItem cs
-       let sty = case cs of
+       let (mbPref, mbSuff, cs') = extractCiteAffixes cs
+       pref <- maybe (pure "") inlineListToOrg mbPref
+       suff <- maybe (pure "") inlineListToOrg mbSuff
+       citeItems <- mconcat . intersperse "; " <$> mapM renderCiteItem cs'
+       let sty = case cs' of
                    (d:_)
                      | citationMode d == AuthorInText
                      -> literal "/t"
@@ -546,7 +551,15 @@ inlineToOrg (Cite cs lst) = do
                      | citationMode d == SuppressAuthor
                      -> literal "/na"
                    _ -> mempty
-       return $ "[cite" <> sty <> ":" <> citeItems <> "]"
+       return $ "[cite" <> sty <> ":" <>
+                     (case mbPref of
+                         Nothing -> ""
+                         Just _ -> pref <> ";") <>
+                     citeItems <>
+                     (case mbSuff of
+                         Nothing -> ""
+                         Just _ -> ":" <> suff) <>
+                     "]"
      else inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
 inlineToOrg (Str str) = do
