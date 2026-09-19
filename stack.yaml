@@ -24,7 +24,7 @@ extra-deps:
 - skylighting-core-0.15
 - typst-symbols-0.3
 - git: https://github.com/jgm/citeproc
-  commit: 1a84e2911ad8224bd598c30b4b306e480fc265e4
+  commit: a62b54417f558cb0886f428343eb0e08ffba2ecb
 - git: https://github.com/jgm/commonmark-hs
   commit: c8482bb339350d7817b865baa925f607c2f9d349
   subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
