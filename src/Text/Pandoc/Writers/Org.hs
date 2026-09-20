@@ -213,13 +213,18 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
   let (beg, end) = case lang of
         Nothing -> ("#+begin_example" <> numberlines, "#+end_example")
         Just x  -> ("#+begin_src " <> x <> numberlines <> args, "#+end_src")
-  -- escape special lines
+  -- Escape special lines by prepending a comma. Like Emacs'
+  -- org-escape-code-in-region, escape all lines consisting of
+  -- indentation, then any number of commas, then "*" or "#+"; this
+  -- keeps lines that already start with commas intact when the block
+  -- is unescaped again.
+  let needsEscape t = let t' = T.dropWhile (== ',') t
+                      in T.isPrefixOf "#+" t' || T.isPrefixOf "*" t'
   let escape_line line =
         let (spaces, code) = T.span (\c -> c == ' ' || c == '\t') line
-        in spaces <>
-           (if T.isPrefixOf "#+" code || T.isPrefixOf "*" code
-            then T.cons ',' code
-            else code)
+        in if needsEscape code
+           then spaces <> T.cons ',' code
+           else line
   let escaped = T.unlines . map escape_line . T.lines $ str
   return $ name $$ literal beg $$ literal escaped $$ literal end $$ blankline
 blockToOrg (BlockQuote blocks) = do

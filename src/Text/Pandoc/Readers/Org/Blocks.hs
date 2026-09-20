@@ -274,11 +274,15 @@ rawBlockContent' blockEnder = try $ do
    rawLine :: Monad m => OrgParser m Text
    rawLine = try $ ("" <$ blankline) <|> anyLine
 
+   -- Remove one comma from lines consisting of any number of commas
+   -- followed by "*" or "#+", like Emacs' org-unescape-code-in-region.
    commaEscaped suff = case T.uncons suff of
      Just (',', cs)
-       | "*"  <- T.take 1 cs -> cs
-       | "#+" <- T.take 2 cs -> cs
-     _                       -> suff
+       | isEscaped cs -> cs
+     _                -> suff
+    where
+     isEscaped cs = let cs' = T.dropWhile (== ',') cs
+                    in "*" `T.isPrefixOf` cs' || "#+" `T.isPrefixOf` cs'
 
 -- | Read but ignore all remaining block headers.
 ignHeaders :: Monad m => OrgParser m ()
