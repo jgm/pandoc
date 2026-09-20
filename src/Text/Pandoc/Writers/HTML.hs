@@ -48,7 +48,7 @@ import Network.URI (URI (..), parseURIReference, escapeURIString)
 import Text.Pandoc.URI (urlEncode)
 import Numeric (showHex)
 import Text.DocLayout (render, literal, Doc)
-import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
+import Text.Blaze.Internal (MarkupM (Append, Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..), Val(..))
 import qualified Text.DocTemplates.Internal as DT
 import Text.Blaze.Html hiding (contents)
@@ -149,6 +149,14 @@ needsVariationSelector _   = False
 -- | Hard linebreak.
 nl :: Html
 nl = preEscapedString "\n"
+
+-- | True if the markup contains no content at all.  'mconcat' and
+-- '<>' on 'MarkupM' build 'Append' nodes without collapsing empty
+-- markup, so simply matching on 'Empty' is not enough.
+isEmptyMarkup :: MarkupM a -> Bool
+isEmptyMarkup (Empty _)    = True
+isEmptyMarkup (Append x y) = isEmptyMarkup x && isEmptyMarkup y
+isEmptyMarkup _            = False
 
 -- | Convert Pandoc document to Html 5 string.
 writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -764,9 +772,9 @@ blockToHtmlInner opts (Para lst) = do
           inlineToHtml opts (Image attr txt (src, tit))
     _ -> do
       contents <- inlineListToHtml opts lst
-      case contents of
-        Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
-        _ -> return $ H.p contents
+      if isEmptyMarkup contents && not (isEnabled Ext_empty_paragraphs opts)
+         then return mempty
+         else return $ H.p contents
 blockToHtmlInner opts (LineBlock lns) = do
   htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
   return $ H.div ! A.class_ "line-block" $ htmlLines
@@ -1378,10 +1386,8 @@ toListItem item = nl *> H.li item
 blockListToHtml :: PandocMonad m
                 => WriterOptions -> [Block] -> StateT WriterState m Html
 blockListToHtml opts lst =
-  mconcat . intersperse (nl) . filter nonempty
+  mconcat . intersperse (nl) . filter (not . isEmptyMarkup)
     <$> mapM (blockToHtml opts) lst
-  where nonempty (Empty _) = False
-        nonempty _         = True
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Html
