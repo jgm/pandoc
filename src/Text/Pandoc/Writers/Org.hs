@@ -114,14 +114,19 @@ replaceSpecialStrings =
 
 -- | Escape special characters for Org.
 escapeString :: Text -> Doc Text
-escapeString t
-  | T.all isAlphaNum t = literal t
-  | otherwise = mconcat $ map escChar (T.unpack t)
+escapeString t =
+  case T.break isSpecial t of
+    (_, "") -> literal t
+    (pre, post) ->
+      case T.uncons post of
+        -- escape special chars with ZERO WIDTH SPACE as org manual
+        -- suggests
+        Just (c, rest) -> (if T.null pre then mempty else literal pre)
+                          <> afterBreak "\x200B" <> char c
+                          <> escapeString rest
+        Nothing -> literal pre  -- not reachable
   where
-    -- escape special chars with ZERO WIDTH SPACE as org manual suggests
-   escChar c = if c == '*' || c == '#' || c == '|'
-     then afterBreak "\x200B" <> char c
-     else char c
+    isSpecial c = c == '*' || c == '#' || c == '|'
 
 isRawFormat :: Format -> Bool
 isRawFormat f =
