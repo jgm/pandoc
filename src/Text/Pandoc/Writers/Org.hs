@@ -475,7 +475,8 @@ inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
         shouldFix Note{} = True    -- Prevent footnotes
         shouldFix (Str "-") = True -- Prevent bullet list items
         shouldFix (Str x)          -- Prevent ordered list items
-          | Just (cs, c) <- T.unsnoc x = T.all isDigit cs &&
+          | Just (cs, c) <- T.unsnoc x = not (T.null cs) &&
+                                         T.all isDigit cs &&
                                          (c == '.' || c == ')')
         shouldFix _ = False
 
