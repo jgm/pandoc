@@ -548,7 +548,13 @@ inlineToOrg (Cite cs lst) = do
                    _ -> mempty
        return $ "[cite" <> sty <> ":" <> citeItems <> "]"
      else inlineListToOrg lst
-inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
+inlineToOrg (Code _ str) = return $
+  -- Org offers no escape mechanism inside verbatim text; if the
+  -- content contains the delimiter, fall back to the other verbatim
+  -- delimiter.
+  if "=" `T.isInfixOf` str && not ("~" `T.isInfixOf` str)
+     then "~" <> literal str <> "~"
+     else "=" <> literal str <> "="
 inlineToOrg (Str str) = do
   opts <- gets stOptions
   let str' = if isEnabled Ext_smart opts || isEnabled Ext_special_strings opts
