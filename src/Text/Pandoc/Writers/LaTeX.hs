@@ -812,15 +812,13 @@ sectionHeader classes ident level lst = do
       removeInvalidInline Image{}            = []
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
-  txtNoNotes <- inlineListToLaTeX lstNoNotes
-  txtNoLinksNoNotes <- inlineListToLaTeX (removeLinks lstNoNotes)
   -- footnotes in sections don't work (except for starred variants)
   -- unless you specify an optional argument:
   -- \section[mysec]{mysec\footnote{blah}}
   optional <- if unnumbered || lstNoNotes == lst || null lstNoNotes
                  then return empty
                  else
-                   return $ brackets txtNoNotes
+                   brackets <$> inlineListToLaTeX lstNoNotes
   let contents = if render Nothing txt == plain
                     then braces txt
                     else braces (text "\\texorpdfstring"
@@ -859,15 +857,19 @@ sectionHeader classes ident level lst = do
   lab <- labelFor ident
   let star = if unnumbered then text "*" else empty
   let title = star <> optional <> contents
+  tocEntry <- if unnumbered && not unlisted
+                 then do
+                   txtNoLinksNoNotes <- inlineListToLaTeX
+                                          (removeLinks lstNoNotes)
+                   pure $ "\\addcontentsline{toc}" <>
+                            braces (text sectionType) <>
+                            braces txtNoLinksNoNotes
+                 else pure empty
   return $ if level' > 5
               then txt
               else prefix
                    $$ text ('\\':sectionType) <> title <> lab
-                   $$ if unnumbered && not unlisted
-                         then "\\addcontentsline{toc}" <>
-                                braces (text sectionType) <>
-                                braces txtNoLinksNoNotes
-                         else empty
+                   $$ tocEntry
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: PandocMonad m
