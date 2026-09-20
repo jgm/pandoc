@@ -33,7 +33,7 @@ import Control.Monad
 import Crypto.Hash (hashWith, MD5(MD5))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit, isAscii, isLetter)
-import Data.List (intersperse, partition, (\\))
+import Data.List (find, intersperse, partition)
 import qualified Data.Set as Set
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
@@ -990,9 +990,9 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
                                    listingsopts) <> "]"
         inNote <- gets stInNote
         when inNote $ modify $ \s -> s{ stVerbInNote = True }
-        let chr = case "!\"'()*,-./:;?@" \\ T.unpack str of
-                       (c:_) -> c
-                       []    -> '!'
+        let chr = fromMaybe '!' $
+                    find (\c -> not (T.any (== c) str))
+                      ("!\"'()*,-./:;?@" :: String)
         let isEscapable '\\' = True
             isEscapable '{'  = True
             isEscapable '}'  = True
