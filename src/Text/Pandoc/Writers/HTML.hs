@@ -641,16 +641,24 @@ obfuscateLink opts attr (TL.toStrict . renderHtml -> txt) s = do
               (linkText, altText) =
                  if txt == T.drop 7 s' -- autolink
                     then ("e", name' <> " at " <> domain')
-                    else ("'" <> obfuscateString txt <> "'",
+                    else ("'" <>
+                          T.replace "</" "<\\/" (obfuscateMarkup txt) <> "'",
                           txt <> " (" <> name' <> " at " <> domain' <> ")")
-              (_, classNames, _) = attr
+              (ident, classNames, kvs) = attr
               classNamesStr = T.concat $ map (" "<>) classNames
+              otherAttrsStr = T.concat $
+                [ " id=\"" <>
+                  escapeJSAttrVal (writerIdentifierPrefix opts <> ident) <>
+                  "\"" | not (T.null ident) ] ++
+                [ " " <> k <> "=\"" <> escapeJSAttrVal v <> "\""
+                | (k, v) <- kvs ]
           in  case meth of
                 ReferenceObfuscation ->
-                     -- need to use preEscapedString or &'s are escaped to &amp; in URL
-                     return $
-                     preEscapedText $ "<a href=\"" <> obfuscateString s'
-                     <> "\" class=\"email\">" <> obfuscateString txt <> "</a>"
+                     -- preEscaped is needed or the &'s in the
+                     -- entity-obfuscated text are escaped to &amp;
+                     addAttrs opts (ident, "email":classNames, kvs) $
+                       H.a ! A.href (preEscapedToValue $ obfuscateString s')
+                           $ preEscapedText $ obfuscateMarkup txt
                 JavascriptObfuscation ->
                      return $
                      (H.script ! A.type_ "text/javascript" $
@@ -658,12 +666,12 @@ obfuscateLink opts attr (TL.toStrict . renderHtml -> txt) s = do
                      obfuscateString domain <> "';a='" <> at' <> "';n='" <>
                      obfuscateString name' <> "';e=n+a+h;\n" <>
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail" <>
-                     classNamesStr <> "\">'+" <>
+                     classNamesStr <> "\"" <> otherAttrsStr <> ">'+" <>
                      linkText  <> "+'<\\/'+'a'+'>');\n// -->\n")) >>
-                     H.noscript (preEscapedText $ obfuscateString altText)
+                     H.noscript (preEscapedText $ obfuscateMarkup altText)
                 _ -> throwError $ PandocSomeError $ "Unknown obfuscation method: " <> tshow meth
         _ -> addAttrs opts attr $ H.a ! A.href (toValue $ toURI html5 s)
-                                      $ toHtml txt  -- malformed email
+                                      $ preEscapedText txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> Text
@@ -675,6 +683,37 @@ obfuscateChar char =
 -- | Obfuscate string using entities.
 obfuscateString :: Text -> Text
 obfuscateString = T.concatMap obfuscateChar . fromEntities
+
+-- | Obfuscate the character data in a rendered HTML fragment,
+-- leaving the tags themselves intact.
+obfuscateMarkup :: Text -> Text
+obfuscateMarkup t
+  | T.null t = ""
+  | otherwise =
+      let (chars, rest)  = T.break (== '<') t
+          (tag, rest') = T.break (== '>') rest
+      in  obfuscateString chars <>
+          case T.uncons rest' of
+            Just ('>', rest'') -> tag <> ">" <> obfuscateMarkup rest''
+            _ -> tag  -- unterminated tag; emit as is
+
+-- | Escape text for an HTML attribute value that is embedded in a
+-- single-quoted JavaScript string literal (as used in
+-- 'JavascriptObfuscation').  Everything problematic is replaced
+-- with an entity, which the HTML parser decodes when the string is
+-- written to the document.
+escapeJSAttrVal :: Text -> Text
+escapeJSAttrVal = T.concatMap $ \c ->
+  case c of
+    '&'  -> "&amp;"
+    '<'  -> "&lt;"
+    '>'  -> "&gt;"
+    '"'  -> "&quot;"
+    '\'' -> "&#39;"
+    '\\' -> "&#92;"
+    '\n' -> "&#10;"
+    '\r' -> "&#13;"
+    _    -> T.singleton c
 
 -- | Create HTML tag with attributes.
 tagWithAttributes :: WriterOptions
