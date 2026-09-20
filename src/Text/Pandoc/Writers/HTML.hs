@@ -125,20 +125,24 @@ defaultWriterState = WriterState {stNotes= [],
 
 strToHtml :: Text -> Html
 strToHtml t
-    | T.any isSpecial t =
-       let !x = L.foldl' go mempty $ T.groupBy samegroup t
-        in x
+    | T.any isSpecial t = go t
     | otherwise = toHtml t
   where
-    samegroup c d = d == '\xFE0E' || not (isSpecial c || isSpecial d)
     isSpecial '\'' = True
     isSpecial '"' = True
     isSpecial c = needsVariationSelector c
-    go h "\'" = h <> preEscapedString "\'"
-    go h "\"" = h <> preEscapedString "\""
-    go h txt | T.length txt == 1 && T.all needsVariationSelector txt
-           = h <> preEscapedString (T.unpack txt <> "\xFE0E")
-    go h txt = h <> toHtml txt
+    go s =
+      let (plain, rest) = T.break isSpecial s
+          html = if T.null plain then mempty else toHtml plain
+      in  case T.uncons rest of
+            Nothing -> html
+            Just ('\'', rest') -> html <> preEscapedText "'" <> go rest'
+            Just ('"', rest')  -> html <> preEscapedText "\"" <> go rest'
+            Just (c, rest')
+              -- don't add a variation selector if one is already there:
+              | T.take 1 rest' == "\xFE0E" -> html <> toHtml c <> go rest'
+              | otherwise -> html <> preEscapedText (T.pack [c, '\xFE0E'])
+                                  <> go rest'
 
 -- See #5469: this prevents iOS from substituting emojis.
 needsVariationSelector :: Char -> Bool
