@@ -1848,7 +1848,7 @@ Pandoc
                           [ Plain
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\widetilde{a}"
+                                  [ Math InlineMath "\\tilde{a}"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "tilde(a)"
                                   ]
