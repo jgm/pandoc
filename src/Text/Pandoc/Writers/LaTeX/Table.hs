@@ -53,7 +53,6 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
                            $ lookup "latex-placement" kvs
   -- if the float class is included in table attributes, we generate a floating
   -- table environment; otherwise we use longtable
-  beamer <- gets stBeamer
   let float = "float" `elem` classes
   let renderTable = do
        let unnumbered = "unnumbered" `elem` classes
@@ -83,11 +82,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
           then makeUnnumbered
           else id) <$>
           makeTable colDesc mkHead mkRow capt thead tbodies tfoot
-  -- See #5367 -- footnotehyper/footnote don't work in beamer,
-  -- so we need to produce the notes outside the table...
-  if float || beamer
-     then ($$) <$> withExternalNotes renderTable <*> getAccumulatedNotes
-     else renderTable
+  ($$) <$> withExternalNotes renderTable <*> getAccumulatedNotes
 
 tableToLaTeXTable :: PandocMonad m
                   => Doc Text

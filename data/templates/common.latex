@@ -88,9 +88,6 @@ $else$
 \makeatletter
 \patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
 \makeatother
-% Allow footnotes in longtable head/foot
-\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
-\makesavenoteenv{longtable}
 $endif$
 $endif$
 $--
