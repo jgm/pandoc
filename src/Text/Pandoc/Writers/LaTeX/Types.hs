@@ -47,7 +47,6 @@ data WriterState =
   , stHighlighting  :: Bool          -- ^ true if document has highlighted code
   , stIncremental   :: Bool          -- ^ true if beamer lists should be
   , stZwnj          :: Bool          -- ^ true if document has a ZWNJ character
-  , stInternalLinks :: [Text]        -- ^ list of internal link targets
   , stBeamer        :: Bool          -- ^ produce beamer
   , stEmptyLine     :: Bool          -- ^ true if no content on line
   , stHasCslRefs    :: Bool          -- ^ has a Div with class refs
@@ -96,7 +95,6 @@ startingState options =
   , stHighlighting = False
   , stIncremental = writerIncremental options
   , stZwnj = False
-  , stInternalLinks = []
   , stBeamer = False
   , stEmptyLine = True
   , stHasCslRefs = False

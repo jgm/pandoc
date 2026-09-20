@@ -128,11 +128,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let blocks' = if method == Biblatex || method == Natbib
                    then filter (not . isRefsDiv) blocks
                    else blocks
-  -- see if there are internal links
-  let isInternalLink (Link _ _ (s,_))
-        | Just ('#', xs) <- T.uncons s = [xs]
-      isInternalLink _                 = []
-  modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
