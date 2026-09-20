@@ -66,7 +66,7 @@ pandocToOrg (Pandoc meta blocks) = do
                (fmap chomp . inlineListToOrg)
                meta
   body <- blockListToOrg blocks
-  notes <- gets (reverse . stNotes) >>= notesToOrg
+  notes <- notesToOrg
   hasMath <- gets stHasMath
   let main = body $+$ notes
   let context = defField "body" main
@@ -88,10 +88,19 @@ pandocToOrg (Pandoc meta blocks) = do
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
--- | Return Org representation of notes.
-notesToOrg :: PandocMonad m => [[Block]] -> Org m (Doc Text)
-notesToOrg notes =
-  vsep <$> zipWithM noteToOrg [1..] notes
+-- | Return Org representation of the collected notes. Rendering a
+-- note may add further notes to the state (notes nested inside
+-- notes); keep going until all of them have been rendered.
+notesToOrg :: PandocMonad m => Org m (Doc Text)
+notesToOrg = vsep <$> go 0
+  where
+    go done = do
+      notes <- gets (drop done . reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          docs <- zipWithM noteToOrg [done + 1 ..] notes
+          (docs ++) <$> go (done + length notes)
 
 -- | Return Org representation of a note.
 noteToOrg :: PandocMonad m => Int -> [Block] -> Org m (Doc Text)
