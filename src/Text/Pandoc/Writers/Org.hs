@@ -246,8 +246,7 @@ blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
               middle = hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
-  rows' <- mapM (\row -> do cols <- mapM blockListToOrg row
-                            return $ makeRow cols) rows
+  let rows' = map makeRow rawRows
   let border ch = char '|' <> char ch <>
                   (hcat . intersperse (char ch <> char '+' <> char ch) $
                           map (\l -> text $ replicate l ch) widthsInChars) <>
