@@ -750,7 +750,7 @@ toAttrs kvs = do
   addAttr html5 mbEpubVersion x y
     | T.null x = id  -- see #7546
     | html5
-      = if (x `Set.member` (html5Attributes <> rdfaAttributes)
+      = if (x `Set.member` html5AttrsPlusRdfa
             && x /= "label") -- #10048
              || T.any (== ':') x -- e.g. epub: namespace
              || "data-" `T.isPrefixOf` x
@@ -758,11 +758,18 @@ toAttrs kvs = do
            then (customAttribute (textTag x) (toValue y) :)
            else (customAttribute (textTag ("data-" <> x)) (toValue y) :)
     | mbEpubVersion == Just EPUB2
-    , not (x `Set.member` (html4Attributes <> rdfaAttributes) ||
+    , not (x `Set.member` html4AttrsPlusRdfa ||
       "xml:" `T.isPrefixOf` x)
       = id
     | otherwise
       = (customAttribute (textTag x) (toValue y) :)
+
+-- Top-level constants, so that the set unions are computed only once.
+html5AttrsPlusRdfa :: Set.Set Text
+html5AttrsPlusRdfa = html5Attributes <> rdfaAttributes
+
+html4AttrsPlusRdfa :: Set.Set Text
+html4AttrsPlusRdfa = html4Attributes <> rdfaAttributes
 
 attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
