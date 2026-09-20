@@ -161,8 +161,8 @@ blockToOrg (LineBlock lns) = do
   return $ blankline $$ "#+begin_verse" $$
            nest 2 contents $$ "#+end_verse" <> blankline
 blockToOrg (RawBlock "html" str) =
-  return $ blankline $$ "#+begin_html" $$
-           nest 2 (literal str) $$ "#+end_html" $$ blankline
+  return $ blankline $$ "#+begin_export html" $$
+           nest 2 (literal str) $$ "#+end_export" $$ blankline
 blockToOrg b@(RawBlock f str)
   | isRawFormat f = return $ literal str
   | otherwise     = do

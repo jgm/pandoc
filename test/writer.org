@@ -387,45 +387,45 @@ bar
 
 Interpreted markdown in a table:
 
-#+begin_html
+#+begin_export html
   <table>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <tr>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <td>
-#+end_html
+#+end_export
 
 This is /emphasized/
 
-#+begin_html
+#+begin_export html
   </td>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <td>
-#+end_html
+#+end_export
 
 And this is *strong*
 
-#+begin_html
+#+begin_export html
   </td>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   </tr>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   </table>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-#+end_html
+#+end_export
 
 Here's a simple block:
 
@@ -451,24 +451,24 @@ foo
 
 This should just be an HTML comment:
 
-#+begin_html
+#+begin_export html
   <!-- Comment -->
-#+end_html
+#+end_export
 
 Multiline:
 
-#+begin_html
+#+begin_export html
   <!--
   Blah
   Blah
   -->
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <!--
       This is another comment.
   -->
-#+end_html
+#+end_export
 
 Code block:
 
@@ -478,9 +478,9 @@ Code block:
 
 Just plain comment, with trailing spaces on the line:
 
-#+begin_html
+#+begin_export html
   <!-- foo -->
-#+end_html
+#+end_export
 
 Code:
 
@@ -490,41 +490,41 @@ Code:
 
 Hr's:
 
-#+begin_html
+#+begin_export html
   <hr>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr>
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr class="foo" id="bar" />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr class="foo" id="bar" />
-#+end_html
+#+end_export
 
-#+begin_html
+#+begin_export html
   <hr class="foo" id="bar">
-#+end_html
+#+end_export
 
 --------------
 
