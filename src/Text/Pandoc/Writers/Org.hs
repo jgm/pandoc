@@ -482,7 +482,7 @@ inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: PandocMonad m => Inline -> Org m (Doc Text)
-inlineToOrg (Span (uid, [], []) []) =
+inlineToOrg (Span (uid, [], []) []) | not (T.null uid) =
   return $ "<<" <> literal uid <> ">>"
 inlineToOrg (Span _ lst) =
   inlineListToOrg lst
