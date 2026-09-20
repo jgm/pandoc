@@ -1788,7 +1788,7 @@ allowsRef _           = False
 intrinsicEventsHTML4 :: [Text]
 intrinsicEventsHTML4 =
   [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
-  , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
+  , "onmousemove", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
 
 -- | Check to see if Format is valid HTML
