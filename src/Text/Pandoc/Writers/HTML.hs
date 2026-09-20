@@ -580,7 +580,7 @@ footnoteSection opts refLocation startCounter notes = do
   let container x
         | html5
         , epubVersion == Just EPUB3
-                = H5.section ! A.id (fromString idName)
+                = H5.section ! prefixedId opts (fromString idName)
                              ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
         | html5
