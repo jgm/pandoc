@@ -1023,7 +1023,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
                  unless (T.null msg) $ report $ CouldNotHighlight msg
                  rawCode
                Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                          return (text (T.unpack h))
+                          return (literal h)
   -- for soul commands we need to protect VERB in an mbox or we get an error
   -- (see #1294). with regular texttt we don't get an error, but we get
   -- incorrect results if there is a space (see #5529).
