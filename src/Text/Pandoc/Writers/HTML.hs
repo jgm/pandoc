@@ -957,7 +957,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                  then -- we don't use blockListToHtml because it inserts
                       -- a newline between the column divs, which throws
                       -- off widths! see #4028
-                      mconcat <$> mapM (blockToHtml opts) bs'
+                      mconcat <$> mapM (blockToHtml opts') bs'
                  else blockListToHtml opts' bs'
   let contents' = nl >> contents >> nl
   let (divtag, classes'') = if html5 && "section" `elem` classes'
