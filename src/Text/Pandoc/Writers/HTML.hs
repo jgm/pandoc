@@ -360,7 +360,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
             ]
           nl
           H.link ! A.rel "stylesheet" !
-            A.href (toValue $ toURI html5 url <> "katex.min.css")
+            A.href (toValue $ toURI html5 $ url <> "katex.min.css")
 
         _ -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
