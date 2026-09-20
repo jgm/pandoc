@@ -1216,7 +1216,7 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
   let attr' = case lookup "style" kvs of
                 Nothing | totalWidth < 1 && totalWidth > 0
                   -> (ident,classes, ("style","width:" <>
-                         T.pack (show (round (totalWidth * 100) :: Int))
+                         T.pack (show (truncate (totalWidth * 100) :: Int))
                          <> "%;"):kvs)
                 _ -> attr
   addAttrs opts attr' $ H.table $ do

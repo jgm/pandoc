@@ -32,7 +32,7 @@ role="doc-footnote">
 role="doc-backlink">↩︎</a></p></li>
 </ol>
 </aside>
-<table style="width:17%;">
+<table style="width:16%;">
 <caption>Sample table.<a href="#fn2" class="footnote-ref" id="fnref2"
 role="doc-noteref"><sup>2</sup></a></caption>
 <colgroup>

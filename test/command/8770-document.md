@@ -25,7 +25,7 @@ dolly[^5]
 <h1 id="section-1">Section 1</h1>
 <p>hello<a href="#fn1" class="footnote-ref" id="fnref1"
 role="doc-noteref"><sup>1</sup></a></p>
-<table style="width:17%;">
+<table style="width:16%;">
 <caption>Sample table.<a href="#fn2" class="footnote-ref" id="fnref2"
 role="doc-noteref"><sup>2</sup></a></caption>
 <colgroup>
