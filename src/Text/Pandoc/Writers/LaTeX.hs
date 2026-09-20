@@ -876,30 +876,27 @@ inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m (Doc Text)
 inlineListToLaTeX lst = hcat <$>
-  mapM inlineToLaTeX
-    (addKerns . fixLineInitialSpaces . fixInitialLineBreaks $ lst)
-    -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
-    -- so we insert a strut: this is mostly used in verse.
- where fixLineInitialSpaces [] = []
-       fixLineInitialSpaces (LineBreak : Str s : xs)
-         | Just ('\160', _) <- T.uncons s
-         = LineBreak : RawInline "latex" "\\strut " : Str s
-            : fixLineInitialSpaces xs
-       fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
-       -- We need \hfill\break for a line break at the start
+  mapM inlineToLaTeX (fixInlines . fixInitialLineBreaks $ lst)
+ where -- We need \hfill\break for a line break at the start
        -- of a paragraph. See #5591.
        fixInitialLineBreaks (LineBreak:xs) =
          RawInline (Format "latex") "\\hfill\\break\n" :
            fixInitialLineBreaks xs
        fixInitialLineBreaks xs = xs
-       addKerns [] = []
-       addKerns (Str s : q@Quoted{} : rest)
+       fixInlines [] = []
+       -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
+       -- so we insert a strut: this is mostly used in verse.
+       fixInlines (LineBreak : Str s : xs)
+         | Just ('\160', _) <- T.uncons s
+         = LineBreak : RawInline "latex" "\\strut " : fixInlines (Str s : xs)
+       -- insert a thin space (kern) between adjacent quote characters:
+       fixInlines (Str s : q@Quoted{} : rest)
          | isQuote (T.takeEnd 1 s) =
-           Str s : RawInline (Format "latex") "\\," : addKerns (q:rest)
-       addKerns (q@Quoted{} : Str s : rest)
+           Str s : RawInline (Format "latex") "\\," : fixInlines (q:rest)
+       fixInlines (q@Quoted{} : Str s : rest)
          | isQuote (T.take 1 s) =
-           q : RawInline (Format "latex") "\\," : addKerns (Str s : rest)
-       addKerns (x:xs) = x : addKerns xs
+           q : RawInline (Format "latex") "\\," : fixInlines (Str s : rest)
+       fixInlines (x:xs) = x : fixInlines xs
        isQuote "\"" = True
        isQuote "'" = True
        isQuote "\x2018" = True
