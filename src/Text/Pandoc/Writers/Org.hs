@@ -40,6 +40,7 @@ import Text.Pandoc.Writers.Shared
 
 data WriterState =
   WriterState { stNotes   :: [[Block]]
+              , stNoteNum :: Int
               , stHasMath :: Bool
               , stOptions :: WriterOptions
               }
@@ -50,6 +51,7 @@ type Org = StateT WriterState
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOrg opts document = do
   let st = WriterState { stNotes = [],
+                         stNoteNum = 0,
                          stHasMath = False,
                          stOptions = opts }
   evalStateT (pandocToOrg document) st
@@ -611,9 +613,9 @@ inlineToOrg (Image _ _ (source, _)) =
   return $ "[[" <> literal (escapeLinkTarget (orgPath source)) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
-  notes <- gets stNotes
-  modify $ \st -> st { stNotes = contents:notes }
-  let ref = tshow $ length notes + 1
+  modify $ \st -> st { stNotes = contents : stNotes st
+                     , stNoteNum = stNoteNum st + 1 }
+  ref <- gets (tshow . stNoteNum)
   return $ "[fn:" <> literal ref <> "]"
 
 -- | Escape a link target like Emacs' @org-link-escape@:
