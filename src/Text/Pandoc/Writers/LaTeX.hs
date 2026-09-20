@@ -192,13 +192,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- reproducible builds. There are no cryptographic requirements for the ID,
   -- so the 128bits (16 bytes) of MD5 are appropriate.
   reproduciblePDF <- isJust <$> lookupEnv "SOURCE_DATE_EPOCH"
-  trailerID <- do
-    time <- getPOSIXTime
-    let hash = T.pack . show . hashWith MD5 $ mconcat
-               [ UTF8.fromString $ show time
-               , UTF8.fromText $ render Nothing main
-               ]
-    pure $ mconcat [ "<", hash, "> <", hash, ">" ]
+  trailerID <- if reproduciblePDF
+    then do
+      time <- getPOSIXTime
+      let hash = T.pack . show . hashWith MD5 $ mconcat
+                 [ UTF8.fromString $ show time
+                 , UTF8.fromText $ render Nothing main
+                 ]
+      pure $ Just $ mconcat [ "<", hash, "> <", hash, ">" ]
+    else pure Nothing
   -- we need a default here since lang is used in template conditionals
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
@@ -294,9 +296,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                         | not (T.null ds) && T.all isDigit ds
                           -> resetField "papersize" ("a" <> ds)
                       _   -> id) .
-                  (if reproduciblePDF
-                    then defField "pdf-trailer-id" trailerID
-                    else id) $
+                  maybe id (defField "pdf-trailer-id") trailerID $
                   (if not (null (pdfStandards pdfStd)) || isJust (pdfVersion pdfStd)
                     then resetField "pdfstandard" $ MapVal $ Context $ M.fromList
                            [ ("standards", ListVal $ map (SimpleVal . literal) (pdfStandards pdfStd))
