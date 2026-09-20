@@ -589,17 +589,49 @@ inlineToOrg SoftBreak = do
 inlineToOrg (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
-             return $ "[[" <> literal (orgPath x) <> "]]"
-        _ -> do contents <- nowrap <$> inlineListToOrg txt
-                return $ "[[" <> literal (orgPath src) <> "][" <> contents <> "]]"
+             return $ "[[" <> literal (escapeLinkTarget (orgPath x)) <> "]]"
+        _ -> do descr <- render Nothing . nowrap <$> inlineListToOrg txt
+                return $ "[[" <> literal (escapeLinkTarget (orgPath src)) <>
+                         "][" <> literal (escapeLinkDescription descr) <> "]]"
 inlineToOrg (Image _ _ (source, _)) =
-  return $ "[[" <> literal (orgPath source) <> "]]"
+  return $ "[[" <> literal (escapeLinkTarget (orgPath source)) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
   let ref = tshow $ length notes + 1
   return $ "[fn:" <> literal ref <> "]"
+
+-- | Escape a link target like Emacs' @org-link-escape@:
+-- backslash-escape square brackets, and double any run of backslashes
+-- occurring directly before a bracket or at the end of the target.
+escapeLinkTarget :: Text -> Text
+escapeLinkTarget t =
+  let (pre, rest) = T.break (\c -> c == '\\' || c == '[' || c == ']') t
+  in pre <> case T.uncons rest of
+       Nothing -> ""
+       Just ('\\', _) ->
+         let (bs, rest') = T.span (== '\\') rest
+         in case T.uncons rest' of
+              Nothing -> bs <> bs
+              Just (c, rest'')
+                | c == '[' || c == ']'
+                  -> bs <> bs <> "\\" <> T.cons c (escapeLinkTarget rest'')
+                | otherwise -> bs <> T.cons c (escapeLinkTarget rest'')
+       Just (c, rest') -> "\\" <> T.cons c (escapeLinkTarget rest')
+
+-- | Make a link description safe: it must not contain @]]@ or end
+-- with @]@. Like Emacs' @org-link-make-string@, insert a zero-width
+-- space to break up the offending brackets.
+escapeLinkDescription :: Text -> Text
+escapeLinkDescription = fixEnd . fixDouble
+  where
+    fixDouble t | "]]" `T.isInfixOf` t
+                            = fixDouble $ T.replace "]]" "]\x200B]" t
+                | otherwise = t
+    fixEnd t = case T.unsnoc t of
+                 Just (t', ']') -> t' <> "\x200B]"
+                 _              -> t
 
 orgPath :: Text -> Text
 orgPath src = case T.uncons src of

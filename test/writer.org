@@ -702,7 +702,7 @@ Just a [[/url/][URL]].
 :END:
 Foo [[/url/][bar]].
 
-With [[/url/][embedded [brackets]]].
+With [[/url/][embedded [brackets​]]].
 
 [[/url/][b]] by itself should be a link.
 
