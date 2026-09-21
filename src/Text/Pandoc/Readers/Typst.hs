@@ -275,8 +275,10 @@ colorToHex color = case color of
                           ((1 - y) * (1 - k)) 1
   Luma g          -> hex g g g 1
  where
+  hex :: Rational -> Rational -> Rational -> Rational -> Text
   hex r g b a =
-    let byte x = max 0 (min 255 (round (255 * x) :: Integer))
+    let byte :: Rational -> Integer
+        byte x = max 0 (min 255 (round (255 * x)))
         hex2 n = T.pack (printf "%02x" (fromIntegral n :: Int))
     in "#" <> hex2 (byte r) <> hex2 (byte g) <> hex2 (byte b)
        <> (if a < 1 then hex2 (byte a) else "")
