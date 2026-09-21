@@ -3,6 +3,9 @@ flags:
     embed_data_files: true
   QuickCheck:
     old-random: false
+allow-newer: true
+allow-newer-deps:
+  - zip-archive
 packages:
 - '.'
 - 'pandoc-cli'
