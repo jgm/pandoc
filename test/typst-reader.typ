@@ -36,3 +36,28 @@ Prose: #cite(<brown01>, form: "prose")
 Year: #cite(<brown01>, form: "year")
 
 Author: #cite(<brown01>, form: "author")
+
+= Blocks
+
+#block[An unfilled block stays transparent.]
+
+#block(fill: none)[An explicit none fill stays transparent.]
+
+#block(fill: yellow)[
+  A filled block keeps its boundary, with the fill recorded as a
+  background-color attribute.
+]
+
+#block(fill: rgb("#ffdddd"), radius: 3pt)[
+  The color is preserved; other parameters are dropped.
+]
+
+= Boxes
+
+An #box[unfilled box] keeps its boundary with no attribute.
+
+An #box(fill: yellow)[filled box] records the fill as a background-color
+attribute.
+
+An #box(fill: rgb("#ffdddd"), radius: 2pt)[colored box] preserves the
+color; other parameters are dropped.

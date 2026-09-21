@@ -258,6 +258,14 @@ newtype InlineHandler = InlineHandler
     => Maybe SourcePos -> Maybe Text -> M.Map Identifier Val
     -> P m B.Inlines)
 
+-- Attribute capturing the fill of a block or box, following the LaTeX
+-- reader's \colorbox convention.
+fillAttr :: M.Map Identifier Val -> [(Text, Text)]
+fillAttr fields = case M.lookup "fill" fields of
+  Just v | let s = repr v, s /= "none", s /= "auto" ->
+    [("background-color", s)]
+  _ -> []
+
 blockHandlers :: M.Map Identifier BlockHandler
 blockHandlers = M.fromList
   [("text", BlockHandler $ \_ _ fields -> do
@@ -275,7 +283,7 @@ blockHandlers = M.fromList
         _ -> pure mempty)
   ,("box", BlockHandler $ \_ _ fields -> do
       body <- getField "body" fields
-      B.divWith ("", ["box"], []) <$> pWithContents pBlocks body)
+      B.divWith ("", ["box"], fillAttr fields) <$> pWithContents pBlocks body)
   ,("heading", BlockHandler $ \_ mbident fields -> do
       body <- getField "body" fields
       lev <- getField "level" fields <|> pure 1
@@ -344,9 +352,13 @@ blockHandlers = M.fromList
       let attr = (fromMaybe "" mbident, maybe [] (\l -> [l]) mblang, [])
       pure $ B.codeBlockWith attr txt)
   ,("parbreak", BlockHandler $ \_ _ _ -> pure mempty)
-  ,("block", BlockHandler $ \_ mbident fields ->
-      maybe id (\ident -> B.divWith (ident, [], [])) mbident
-        <$> (getField "body" fields >>= pWithContents pBlocks))
+  ,("block", BlockHandler $ \_ mbident fields -> do
+      let fillattr = fillAttr fields
+          ident = fromMaybe "" mbident
+      if T.null ident && null fillattr
+        then getField "body" fields >>= pWithContents pBlocks
+        else B.divWith (ident, [], fillattr) <$>
+               (getField "body" fields >>= pWithContents pBlocks))
   ,("place", BlockHandler $ \_ _ fields -> do
       ignored "parameters of place"
       getField "body" fields >>= pWithContents pBlocks)
@@ -569,7 +581,7 @@ inlineHandlers = M.fromList
       pure $ B.imageWith attr path' "" alt)
   ,("box", InlineHandler $ \_ _ fields -> do
       body <- getField "body" fields
-      B.spanWith ("", ["box"], []) <$> pWithContents pInlines body)
+      B.spanWith ("", ["box"], fillAttr fields) <$> pWithContents pInlines body)
   ,("h", InlineHandler $ \_ _ fields -> do
       amount <- getField "amount" fields `mplus` pure (LExact 1 LEm)
       let em = case amount of

@@ -5422,4 +5422,155 @@ Pandoc
           ]
           [ Str "[brown01]" ]
       ]
+  , Header 1 ( "" , [] , [] ) [ Str "Blocks" ]
+  , Para
+      [ Str "An"
+      , Space
+      , Str "unfilled"
+      , Space
+      , Str "block"
+      , Space
+      , Str "stays"
+      , Space
+      , Str "transparent."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Str "explicit"
+      , Space
+      , Str "none"
+      , Space
+      , Str "fill"
+      , Space
+      , Str "stays"
+      , Space
+      , Str "transparent."
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "background-color" , "rgb(100%,86%,0%,100%)" ) ]
+      )
+      [ Para
+          [ Str "A"
+          , Space
+          , Str "filled"
+          , Space
+          , Str "block"
+          , Space
+          , Str "keeps"
+          , Space
+          , Str "its"
+          , Space
+          , Str "boundary,"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Str "fill"
+          , Space
+          , Str "recorded"
+          , Space
+          , Str "as"
+          , Space
+          , Str "a"
+          , SoftBreak
+          , Str "background-color"
+          , Space
+          , Str "attribute."
+          ]
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "background-color" , "rgb(100%,86%,86%,100%)" ) ]
+      )
+      [ Para
+          [ Str "The"
+          , Space
+          , Str "color"
+          , Space
+          , Str "is"
+          , Space
+          , Str "preserved;"
+          , Space
+          , Str "other"
+          , Space
+          , Str "parameters"
+          , Space
+          , Str "are"
+          , Space
+          , Str "dropped."
+          ]
+      ]
+  , Header 1 ( "" , [] , [] ) [ Str "Boxes" ]
+  , Para
+      [ Str "An"
+      , Space
+      , Span
+          ( "" , [ "box" ] , [] )
+          [ Str "unfilled" , Space , Str "box" ]
+      , Space
+      , Str "keeps"
+      , Space
+      , Str "its"
+      , Space
+      , Str "boundary"
+      , Space
+      , Str "with"
+      , Space
+      , Str "no"
+      , Space
+      , Str "attribute."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Span
+          ( ""
+          , [ "box" ]
+          , [ ( "background-color" , "rgb(100%,86%,0%,100%)" ) ]
+          )
+          [ Str "filled" , Space , Str "box" ]
+      , Space
+      , Str "records"
+      , Space
+      , Str "the"
+      , Space
+      , Str "fill"
+      , Space
+      , Str "as"
+      , Space
+      , Str "a"
+      , Space
+      , Str "background-color"
+      , SoftBreak
+      , Str "attribute."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Span
+          ( ""
+          , [ "box" ]
+          , [ ( "background-color" , "rgb(100%,86%,86%,100%)" ) ]
+          )
+          [ Str "colored" , Space , Str "box" ]
+      , Space
+      , Str "preserves"
+      , Space
+      , Str "the"
+      , SoftBreak
+      , Str "color;"
+      , Space
+      , Str "other"
+      , Space
+      , Str "parameters"
+      , Space
+      , Str "are"
+      , Space
+      , Str "dropped."
+      ]
   ]
