@@ -1236,8 +1236,15 @@ toBookmarkName s
 maxListLevel :: Int
 maxListLevel = 8
 
+-- Merge adjacent Strs, and any Space between two Strs, into a single
+-- Str.  Chunks are accumulated and concatenated all at once, to avoid
+-- quadratic copying when a long Str/Space sequence (e.g. an entire
+-- paragraph) collapses into one Str.
 convertSpace :: [Inline] -> [Inline]
-convertSpace (Str x : Space : Str y : xs) = convertSpace (Str (x <> " " <> y) : xs)
-convertSpace (Str x : Str y : xs)         = convertSpace (Str (x <> y) : xs)
-convertSpace (x:xs)                       = x : convertSpace xs
-convertSpace []                           = []
+convertSpace (Str x : xs) = go [x] xs
+  where
+    go acc (Str y : ys)         = go (y : acc) ys
+    go acc (Space : Str y : ys) = go (y : " " : acc) ys
+    go acc ys = Str (T.concat (reverse acc)) : convertSpace ys
+convertSpace (x:xs) = x : convertSpace xs
+convertSpace [] = []
