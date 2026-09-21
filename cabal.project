@@ -11,11 +11,6 @@ allow-newer: hslua-module-zip:zip-archive
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/citeproc
-  tag: a62b54417f558cb0886f428343eb0e08ffba2ecb
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/commonmark-hs
   tag: c8482bb339350d7817b865baa925f607c2f9d349
   subdir: commonmark
