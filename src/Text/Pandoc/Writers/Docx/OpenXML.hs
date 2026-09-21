@@ -30,7 +30,7 @@ import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust, listToMaybe)
 import Control.Monad.State ( gets, modify, MonadTrans(lift) )
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
@@ -824,6 +824,24 @@ formattedRun els = do
   return $ mknode "w:r" [] $ props ++ els
 
 -- | Convert an inline element to OpenXML.
+-- | Inject a highlight into every run of a converted math element;
+-- OMML runs take Word run properties in a @w:rPr@ child after @m:rPr@.
+highlightMathRuns :: XML.Element -> XML.Element -> XML.Element
+highlightMathRuns hl = go
+ where
+  wrPr = XML.Elem (mknode "w:rPr" [] hl)
+  is n e = XML.qName (XML.elName e) == n
+  go e
+    | is "r" e, Just "m" <- XML.qPrefix (XML.elName e) =
+        e{ XML.elContent = insertWrPr (map walkContent (XML.elContent e)) }
+    | otherwise = e{ XML.elContent = map walkContent (XML.elContent e) }
+  walkContent (XML.Elem e) = XML.Elem (go e)
+  walkContent c            = c
+  insertWrPr cs = case cs of
+    (XML.Elem e : rest) | is "rPr" e, Just "m" <- XML.qPrefix (XML.elName e)
+      -> XML.Elem e : wrPr : rest
+    _ -> wrPr : cs
+
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
@@ -959,7 +977,13 @@ inlineToOpenXML' opts (Math mathType str) = do
   when (mathType == DisplayMath) setFirstPara
   res <- (lift . lift) (convertMath writeOMML mathType str)
   case res of
-       Right r -> return [Elem $ fromXLElement r]
+       Right r -> do
+         tprops <- asks envTextProperties
+         let r' = fromXLElement r
+             mbhl = listToMaybe
+               [ e | e <- otherElements tprops
+                    , XML.qName (XML.elName e) == "highlight" ]
+         return [Elem (maybe r' (`highlightMathRuns` r') mbhl)]
        Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
