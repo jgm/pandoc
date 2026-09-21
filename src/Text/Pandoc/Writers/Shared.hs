@@ -196,24 +196,24 @@ getLang opts meta =
                _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: HasChars a => a -> Attr -> Doc a
+tagWithAttrs :: (HasChars a, FromText a) => a -> Attr -> Doc a
 tagWithAttrs tag attr = "<" <> literal tag <> (htmlAttrs attr) <> ">"
 
 -- | Produce HTML for the given pandoc attributes, to be used in HTML tags
-htmlAttrs :: HasChars a => Attr -> Doc a
+htmlAttrs :: (HasChars a, FromText a) => Attr -> Doc a
 htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
   if T.null ident
       then empty
-      else "id=" <> doubleQuotes (text $ T.unpack (escapeStringForXML ident))
+      else "id=" <> doubleQuotes (literal $ fromText (escapeStringForXML ident))
   ,if null classes
       then empty
       else "class=" <> doubleQuotes
-             (text $ T.unpack . escapeStringForXML $ T.unwords classes)
+             (literal $ fromText . escapeStringForXML $ T.unwords classes)
   ,hsep (map (\(k,v) -> formatKey k <> "=" <>
-                doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
+                doubleQuotes (literal $ fromText (escapeStringForXML v))) kvs)
   ])
  where
-   formatKey x = text . T.unpack $
+   formatKey x = literal . fromText $
         if ((x `Set.member` html5Attributes || x `Set.member` rdfaAttributes)
             && x /= "label") -- #10048
              || T.any (== ':') x -- e.g. epub: namespace
