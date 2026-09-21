@@ -5,7 +5,7 @@ flags:
     old-random: false
 allow-newer: true
 allow-newer-deps:
-  - zip-archive
+  - hslua-module-zip
 packages:
 - '.'
 - 'pandoc-cli'
