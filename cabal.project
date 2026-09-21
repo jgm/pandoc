@@ -30,11 +30,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/zip-archive
-  tag: 37d12aad8ebdcb2aefd14af6b992faddcf9e307a
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/djoths
   tag: 20549c6b7466cfbf8c3645ddfac68e223ca113f3
 

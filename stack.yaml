@@ -23,13 +23,12 @@ extra-deps:
 - skylighting-0.15
 - skylighting-core-0.15
 - typst-symbols-0.3
+- zip-archive-0.5
 - git: https://github.com/jgm/citeproc
   commit: a62b54417f558cb0886f428343eb0e08ffba2ecb
 - git: https://github.com/jgm/commonmark-hs
   commit: c8482bb339350d7817b865baa925f607c2f9d349
   subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
-- git: https://github.com/jgm/zip-archive
-  commit: 37d12aad8ebdcb2aefd14af6b992faddcf9e307a
 - git: https://github.com/jgm/asciidoc-hs
   commit: 8d090846ddb061871e2434f6f55462467cb5a052
 - git: https://github.com/jgm/doclayout
