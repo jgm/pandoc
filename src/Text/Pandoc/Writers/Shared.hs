@@ -822,53 +822,45 @@ splitSentences = go . toList
 -- and modify internal links accordingly. (Yes, XML allows an
 -- underscore, but HTML 4 doesn't, so we are more conservative.)
 ensureValidXmlIdentifiers :: Pandoc -> Pandoc
-ensureValidXmlIdentifiers = walk fixLinks . walkAttr fixIdentifiers
+ensureValidXmlIdentifiers = walk goInline . walk goBlock
  where
-  fixIdentifiers (ident, classes, kvs) =
+  fixAttr (ident, classes, kvs) =
     (case T.uncons ident of
       Nothing -> ident
       Just (c, _) | isLetter c -> ident
       _ -> "id_" <> ident,
      classes, kvs)
-  needsFixing src =
+  fixSrc src =
     case T.uncons src of
       Just ('#',t) ->
         case T.uncons t of
-          Just (c,_) | not (isLetter c) -> Just ("#id_" <> t)
-          _ -> Nothing
-      _ -> Nothing
-  fixLinks (Link attr ils (src, tit))
-    | Just src' <- needsFixing src = Link attr ils (src', tit)
-  fixLinks (Image attr ils (src, tit))
-    | Just src' <- needsFixing src = Image attr ils (src', tit)
-  fixLinks x = x
+          Just (c,_) | not (isLetter c) -> "#id_" <> t
+          _ -> src
+      _ -> src
 
--- | Walk Pandoc document, modifying attributes.
-walkAttr :: (Attr -> Attr) -> Pandoc -> Pandoc
-walkAttr f = walk goInline . walk goBlock
- where
-  goInline (Span attr ils) = Span (f attr) ils
-  goInline (Link attr ils target) = Link (f attr) ils target
-  goInline (Image attr ils target) = Image (f attr) ils target
-  goInline (Code attr txt) = Code (f attr) txt
+  goInline (Span attr ils) = Span (fixAttr attr) ils
+  goInline (Link attr ils (src, tit)) = Link (fixAttr attr) ils (fixSrc src, tit)
+  goInline (Image attr ils (src, tit)) =
+    Image (fixAttr attr) ils (fixSrc src, tit)
+  goInline (Code attr txt) = Code (fixAttr attr) txt
   goInline x = x
 
-  goBlock (Header lev attr ils) = Header lev (f attr) ils
-  goBlock (CodeBlock attr txt) = CodeBlock (f attr) txt
+  goBlock (Header lev attr ils) = Header lev (fixAttr attr) ils
+  goBlock (CodeBlock attr txt) = CodeBlock (fixAttr attr) txt
   goBlock (Table attr cap colspecs thead tbodies tfoot) =
-    Table (f attr) cap colspecs
+    Table (fixAttr attr) cap colspecs
       (goTableHead thead) (map goTableBody tbodies) (goTableFoot tfoot)
-  goBlock (Div attr bs) = Div (f attr) bs
-  goBlock (Figure attr cap bs) = Figure (f attr) cap bs
+  goBlock (Div attr bs) = Div (fixAttr attr) bs
+  goBlock (Figure attr cap bs) = Figure (fixAttr attr) cap bs
   goBlock x = x
 
-  goTableHead (TableHead attr rows) = TableHead (f attr) (map goRow rows)
+  goTableHead (TableHead attr rows) = TableHead (fixAttr attr) (map goRow rows)
   goTableBody (TableBody attr rhc hd bd) =
-    TableBody (f attr) rhc (map goRow hd) (map goRow bd)
-  goTableFoot (TableFoot attr rows) = TableFoot (f attr) (map goRow rows)
-  goRow (Row attr cells) = Row (f attr) (map goCell cells)
+    TableBody (fixAttr attr) rhc (map goRow hd) (map goRow bd)
+  goTableFoot (TableFoot attr rows) = TableFoot (fixAttr attr) (map goRow rows)
+  goRow (Row attr cells) = Row (fixAttr attr) (map goCell cells)
   goCell (Cell attr align rowspan colspan bs) =
-    Cell (f attr) align rowspan colspan bs
+    Cell (fixAttr attr) align rowspan colspan bs
 
 -- | Convert links to spans; most useful when writing elements that must not
 -- contain links, e.g. to avoid nested links.
