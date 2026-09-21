@@ -892,8 +892,12 @@ isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
 toTaskListItem :: MonadPlus m => [Block] -> m (Bool, [Block])
 toTaskListItem (Plain (Str "☐":Space:ils):xs) = pure (False, Plain ils:xs)
 toTaskListItem (Plain (Str "☒":Space:ils):xs) = pure (True, Plain ils:xs)
+toTaskListItem (Plain [Str "☐"]:xs)           = pure (False, Plain []:xs)
+toTaskListItem (Plain [Str "☒"]:xs)           = pure (True, Plain []:xs)
 toTaskListItem (Para  (Str "☐":Space:ils):xs) = pure (False, Para ils:xs)
 toTaskListItem (Para  (Str "☒":Space:ils):xs) = pure (True, Para ils:xs)
+toTaskListItem (Para  [Str "☐"]:xs)           = pure (False, Para []:xs)
+toTaskListItem (Para  [Str "☒"]:xs)           = pure (True, Para []:xs)
 toTaskListItem _                              = mzero
 
 -- | Add an opener and closer to a Doc. If the Doc begins or ends
