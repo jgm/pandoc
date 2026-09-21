@@ -974,9 +974,11 @@ takePreviousSpansAtColumn columnPosition previousSpans
 -- For handling previous row spans that are next to the end of a row's cells
 -- that were previously added with 'insertCurrentSpansAtColumn'.
 decrementTrailingRowSpans :: Int -> M.Map Int (RowSpan, ColSpan) -> M.Map Int (RowSpan, ColSpan)
-decrementTrailingRowSpans columnPosition = M.mapWithKey decrementTrailing
+decrementTrailingRowSpans columnPosition = M.mapMaybeWithKey decrementTrailing
   where
-    decrementTrailing previousColumnPosition previousSpan@(RowSpan rowSpan, colSpan) =
-      if previousColumnPosition >= columnPosition && rowSpan >= 1
-        then (RowSpan rowSpan - 1, colSpan)
-        else previousSpan
+    decrementTrailing previousColumnPosition previousSpan@(RowSpan rowSpan, colSpan)
+      | previousColumnPosition >= columnPosition && rowSpan >= 1 =
+          if rowSpan > 1
+            then Just (RowSpan rowSpan - 1, colSpan)
+            else Nothing  -- span is used up; drop it instead of keeping a 0 entry
+      | otherwise = Just previousSpan
