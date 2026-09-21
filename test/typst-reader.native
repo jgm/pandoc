@@ -5448,10 +5448,7 @@ Pandoc
       , Str "transparent."
       ]
   , Div
-      ( ""
-      , []
-      , [ ( "background-color" , "rgb(100%,86%,0%,100%)" ) ]
-      )
+      ( "" , [] , [ ( "background-color" , "#ffdc00" ) ] )
       [ Para
           [ Str "A"
           , Space
@@ -5483,10 +5480,7 @@ Pandoc
           ]
       ]
   , Div
-      ( ""
-      , []
-      , [ ( "background-color" , "rgb(100%,86%,86%,100%)" ) ]
-      )
+      ( "" , [] , [ ( "background-color" , "#ffdddd" ) ] )
       [ Para
           [ Str "The"
           , Space
@@ -5503,6 +5497,24 @@ Pandoc
           , Str "are"
           , Space
           , Str "dropped."
+          ]
+      ]
+  , Div
+      ( "" , [] , [ ( "background-color" , "#4f4f4f" ) ] )
+      [ Para
+          [ Str "A"
+          , Space
+          , Str "grayscale"
+          , Space
+          , Str "fill"
+          , Space
+          , Str "converts"
+          , Space
+          , Str "to"
+          , Space
+          , Str "sRGB"
+          , Space
+          , Str "hex."
           ]
       ]
   , Header 1 ( "" , [] , [] ) [ Str "Boxes" ]
@@ -5529,10 +5541,7 @@ Pandoc
       [ Str "An"
       , Space
       , Span
-          ( ""
-          , [ "box" ]
-          , [ ( "background-color" , "rgb(100%,86%,0%,100%)" ) ]
-          )
+          ( "" , [ "box" ] , [ ( "background-color" , "#ffdc00" ) ] )
           [ Str "filled" , Space , Str "box" ]
       , Space
       , Str "records"
@@ -5553,10 +5562,7 @@ Pandoc
       [ Str "An"
       , Space
       , Span
-          ( ""
-          , [ "box" ]
-          , [ ( "background-color" , "rgb(100%,86%,86%,100%)" ) ]
-          )
+          ( "" , [ "box" ] , [ ( "background-color" , "#ffdddd" ) ] )
           [ Str "colored" , Space , Str "box" ]
       , Space
       , Str "preserves"
@@ -5572,5 +5578,23 @@ Pandoc
       , Str "are"
       , Space
       , Str "dropped."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Span
+          ( ""
+          , [ "box" ]
+          , [ ( "background-color" , "#ffc86480" ) ]
+          )
+          [ Str "translucent" , Space , Str "box" ]
+      , Space
+      , Str "appends"
+      , SoftBreak
+      , Str "an"
+      , Space
+      , Str "alpha"
+      , Space
+      , Str "byte."
       ]
   ]

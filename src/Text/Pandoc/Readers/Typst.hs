@@ -33,6 +33,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Translations (Term(References), translateTerm)
 import Text.Pandoc.Shared (tshow, blocksToInlines, compactifyTable)
 import Text.Pandoc.Parsing (registerHeader, reportLogMessages)
+import Text.Printf (printf)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import Control.Monad.Trans (lift)
@@ -258,13 +259,27 @@ newtype InlineHandler = InlineHandler
     => Maybe SourcePos -> Maybe Text -> M.Map Identifier Val
     -> P m B.Inlines)
 
--- Attribute capturing the fill of a block or box, following the LaTeX
--- reader's \colorbox convention.
+-- | Attribute capturing the fill of a block or box. Only solid colors
+-- are captured, normalized to CSS hex so that no typst-specific
+-- notation leaks into the attribute; an alpha below one appends a
+-- fourth byte, and CMYK and Luma convert to sRGB first.
 fillAttr :: M.Map Identifier Val -> [(Text, Text)]
 fillAttr fields = case M.lookup "fill" fields of
-  Just v | let s = repr v, s /= "none", s /= "auto" ->
-    [("background-color", s)]
-  _ -> []
+  Just (VColor c) -> [("background-color", colorToHex c)]
+  _               -> []
+
+colorToHex :: Color -> Text
+colorToHex color = case color of
+  RGB r g b a     -> hex r g b a
+  CMYK c m y k    -> hex ((1 - c) * (1 - k)) ((1 - m) * (1 - k))
+                          ((1 - y) * (1 - k)) 1
+  Luma g          -> hex g g g 1
+ where
+  hex r g b a =
+    let byte x = max 0 (min 255 (round (255 * x) :: Integer))
+        hex2 n = T.pack (printf "%02x" (fromIntegral n :: Int))
+    in "#" <> hex2 (byte r) <> hex2 (byte g) <> hex2 (byte b)
+       <> (if a < 1 then hex2 (byte a) else "")
 
 blockHandlers :: M.Map Identifier BlockHandler
 blockHandlers = M.fromList

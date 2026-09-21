@@ -52,6 +52,10 @@ Author: #cite(<brown01>, form: "author")
   The color is preserved; other parameters are dropped.
 ]
 
+#block(fill: luma(31%))[
+  A grayscale fill converts to sRGB hex.
+]
+
 = Boxes
 
 An #box[unfilled box] keeps its boundary with no attribute.
@@ -61,3 +65,6 @@ attribute.
 
 An #box(fill: rgb("#ffdddd"), radius: 2pt)[colored box] preserves the
 color; other parameters are dropped.
+
+An #box(fill: rgb(255, 200, 100, 50%))[translucent box] appends
+an alpha byte.
