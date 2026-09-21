@@ -278,6 +278,12 @@ writeOpenXML :: PandocMonad m
              -> WS m (Text, [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
+  -- Cache the rStyle element for each highlighting token type, so that
+  -- it need not be recomputed for every Code inline.  It depends only
+  -- on the style maps, which don't change during writing.
+  tokTypesMap <- M.fromList <$>
+    mapM (\tt -> (tt,) <$> rStyleM (fromString $ show tt)) [KeywordTok ..]
+  modify $ \st -> st{ stTokTypesMap = tokTypesMap }
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
   let includeLOF = writerListOfFigures opts || lookupMetaBool "lof" meta
   let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
@@ -963,15 +969,14 @@ inlineToOpenXML' opts (Math mathType str) = do
        Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
-  let alltoktypes = [KeywordTok ..]
-  tokTypesMap <- mapM (\tt -> (,) tt <$> rStyleM (fromString $ show tt)) alltoktypes
+  tokTypesMap <- gets stTokTypesMap
   let unhighlighted = (map Elem . intercalate [br]) `fmap`
                        mapM formattedString (T.lines str)
       formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
       toHlTok (toktype,tok) =
         mknode "w:r" []
           [ mknode "w:rPr" [] $
-            maybeToList (lookup toktype tokTypesMap)
+            maybeToList (M.lookup toktype tokTypesMap)
             , mknode "w:t" [("xml:space","preserve")] tok ]
   let highlighted =
         case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
