@@ -852,9 +852,19 @@ walkAttr f = walk goInline . walk goBlock
   goBlock (Header lev attr ils) = Header lev (f attr) ils
   goBlock (CodeBlock attr txt) = CodeBlock (f attr) txt
   goBlock (Table attr cap colspecs thead tbodies tfoot) =
-    Table (f attr) cap colspecs thead tbodies tfoot
+    Table (f attr) cap colspecs
+      (goTableHead thead) (map goTableBody tbodies) (goTableFoot tfoot)
   goBlock (Div attr bs) = Div (f attr) bs
+  goBlock (Figure attr cap bs) = Figure (f attr) cap bs
   goBlock x = x
+
+  goTableHead (TableHead attr rows) = TableHead (f attr) (map goRow rows)
+  goTableBody (TableBody attr rhc hd bd) =
+    TableBody (f attr) rhc (map goRow hd) (map goRow bd)
+  goTableFoot (TableFoot attr rows) = TableFoot (f attr) (map goRow rows)
+  goRow (Row attr cells) = Row (f attr) (map goCell cells)
+  goCell (Cell attr align rowspan colspan bs) =
+    Cell (f attr) align rowspan colspan bs
 
 -- | Convert links to spans; most useful when writing elements that must not
 -- contain links, e.g. to avoid nested links.
