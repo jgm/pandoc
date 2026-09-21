@@ -719,6 +719,10 @@ endsWithPlain xs =
     Just Plain{} -> True
     Just (BulletList is) -> maybe False endsWithPlain (lastMay is)
     Just (OrderedList _ is) -> maybe False endsWithPlain (lastMay is)
+    Just (DefinitionList defs) ->
+      case lastMay defs of
+        Just (_, ds) -> maybe False endsWithPlain (lastMay ds)
+        Nothing      -> False
     _ -> False
 
 -- | Convert the relevant components of a new-style table (with block
