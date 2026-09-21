@@ -41,12 +41,6 @@
 
   * Typst reader:
 
-    + Capture a `block`'s or `box`'s `fill` as a `background-color`
-      attribute on the resulting `div` or `span`, mirroring the LaTeX
-      reader's `\colorbox` handling. Unfilled blocks and boxes and
-      explicit `fill: none`/`auto` stay transparent. Writers ignore the
-      attribute; it keeps the region's boundary and color available to
-      filters.
     + Remove handling of 'block' as an inline-level element (#11814).
 
   * HTML reader:
