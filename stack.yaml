@@ -10,7 +10,6 @@ allow-newer-deps:
   # These need to allow doclayout 0.6
   - gridtables
   - djot
-  - doctemplates
   - hslua-module-doclayout
 packages:
 - '.'
@@ -35,12 +34,11 @@ extra-deps:
 - zip-archive-0.5
 - citeproc-0.14
 - doclayout-0.6
+- doctemplates-0.11.1
 - asciidoc-0.1.1
 - git: https://github.com/jgm/commonmark-hs
   commit: c8482bb339350d7817b865baa925f607c2f9d349
   subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
-- git: https://github.com/jgm/doctemplates
-  commit: 3c3a61267b709de279074e54ecf391f0f631bb2f
 - git: https://github.com/jgm/typst-hs
   commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
 - git: https://github.com/jgm/djoths
