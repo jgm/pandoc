@@ -823,25 +823,66 @@ formattedRun els = do
   props <- getTextProps
   return $ mknode "w:r" [] $ props ++ els
 
--- | Convert an inline element to OpenXML.
 -- | Inject a highlight into every run of a converted math element;
 -- OMML runs take Word run properties in a @w:rPr@ child after @m:rPr@.
+-- Math structures (@m:sSup@, @m:f@, @m:nary@, and the like) keep the
+-- formatting of their non-glyph parts (bars, operator spacing, group
+-- extents) in a control run, @m:ctrlPr@ inside the structure's
+-- property element, so the highlight goes there too: penning only the
+-- glyph runs leaves the structural spacing bare, which renders as a
+-- segmented band. Word pens the control run of every structure when
+-- an equation is highlighted by hand; the converters omit empty
+-- property elements, so missing ones are synthesized.
 highlightMathRuns :: XML.Element -> XML.Element -> XML.Element
 highlightMathRuns hl = go
  where
-  wrPr = XML.Elem (mknode "w:rPr" [] hl)
-  is n e = XML.qName (XML.elName e) == n
+  is pre n e = XML.qName (XML.elName e) == n
+             && XML.qPrefix (XML.elName e) == Just pre
   go e
-    | is "r" e, Just "m" <- XML.qPrefix (XML.elName e) =
-        e{ XML.elContent = insertWrPr (map walkContent (XML.elContent e)) }
+    | is "m" "r" e || is "m" "ctrlPr" e =
+        e{ XML.elContent = insertHl (map walkContent (XML.elContent e)) }
+    | Just prName <- lookup (XML.qName (XML.elName e)) structures
+    , Just "m" <- XML.qPrefix (XML.elName e) =
+        e{ XML.elContent = ensureCtrlPr prName (map walkContent (XML.elContent e)) }
     | otherwise = e{ XML.elContent = map walkContent (XML.elContent e) }
   walkContent (XML.Elem e) = XML.Elem (go e)
   walkContent c            = c
-  insertWrPr cs = case cs of
-    (XML.Elem e : rest) | is "rPr" e, Just "m" <- XML.qPrefix (XML.elName e)
-      -> XML.Elem e : wrPr : rest
-    _ -> wrPr : cs
+  -- OMML structure elements and their property elements (ECMA-376
+  -- 22.1.2); the property element is the structure's first child and
+  -- carries the m:ctrlPr control run
+  structures =
+    [ ("sSup", "sSupPr"), ("sSub", "sSubPr"), ("sSubSup", "sSubSupPr")
+    , ("f", "fPr"), ("nary", "naryPr"), ("d", "dPr"), ("rad", "radPr")
+    , ("func", "funcPr"), ("groupChr", "groupChrPr")
+    , ("limLow", "limLowPr"), ("limUpp", "limUppPr")
+    , ("m", "mPr"), ("eqArr", "eqArrPr"), ("bar", "barPr")
+    , ("phant", "phantPr"), ("box", "boxPr"), ("borderBox", "borderBoxPr")
+    , ("pre", "prePr") ]
+  pennedCtrlPr = XML.Elem (mknode "m:ctrlPr" [] (mknode "w:rPr" [] hl))
+  ensureCtrlPr prName cs = case cs of
+    (XML.Elem e : rest) | is "m" prName e ->
+      if any isCtrlPr (XML.elContent e)
+        then cs
+        else XML.Elem e{ XML.elContent = XML.elContent e ++ [pennedCtrlPr] } : rest
+    _ -> XML.Elem (mknode (T.pack "m:" <> prName) [] pennedCtrlPr) : cs
+  isCtrlPr (XML.Elem e) = is "m" "ctrlPr" e
+  isCtrlPr _            = False
+  -- merge into an existing w:rPr child if there is one, else insert a
+  -- fresh w:rPr after an optional m:rPr
+  insertHl cs =
+    case break isWrPr cs of
+      (before, XML.Elem e : rest) ->
+        before ++ XML.Elem e{ XML.elContent = XML.elContent e ++ [XML.Elem hl] } : rest
+      (_, []) ->
+        case cs of
+          (XML.Elem e : rest) | is "m" "rPr" e ->
+            XML.Elem e : wrPr : rest
+          _ -> wrPr : cs
+  isWrPr (XML.Elem e) = is "w" "rPr" e
+  isWrPr _            = False
+  wrPr = XML.Elem (mknode "w:rPr" [] hl)
 
+-- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
