@@ -5,7 +5,13 @@ flags:
     old-random: false
 allow-newer: true
 allow-newer-deps:
+  # This needs zip-archive 0.5
   - hslua-module-zip
+  # These need to allow doclayout 0.6
+  - gridtables
+  - djot
+  - doctemplates
+  - hslua-module-doclayout
 packages:
 - '.'
 - 'pandoc-cli'
