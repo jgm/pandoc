@@ -42,11 +42,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/doclayout
-  tag: d98289d576ba621a17e184ca5a1ff9a8d8390542
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/doctemplates
   tag: 3c3a61267b709de279074e54ecf391f0f631bb2f
 
