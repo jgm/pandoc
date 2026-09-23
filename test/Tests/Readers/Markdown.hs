@@ -162,7 +162,91 @@ p_markdown_round_trip b = matches d' d''
 -}
 
 tests :: [TestTree]
-tests = [ testGroup "inline code"
+tests = [ testGroup "math groups"
+          [ testGroup name
+            [ test reader "nested math in text" $
+                wrap "\\text{hi $x$ bye}" =?>
+                  para (makeMath "\\text{hi $x$ bye}")
+            , test reader "nested math in a color box" $
+                wrap "\\colorbox{aqua}{$F=ma$}" =?>
+                  para (makeMath "\\colorbox{aqua}{$F=ma$}")
+            , test reader "nested groups" $
+                wrap "\\fcolorbox{red}{aqua}{\\text{hi $x$ bye}}" =?>
+                  para (makeMath
+                    "\\fcolorbox{red}{aqua}{\\text{hi $x$ bye}}")
+            , test reader "matching delimiters inside a group" $
+                wrap grouped =?> para (makeMath grouped)
+            , test reader "unpaired escaped opening brace inside a group" $
+                wrap "{\\{x}" =?> para (makeMath "{\\{x}")
+            , test reader "unpaired escaped closing brace inside a group" $
+                wrap escapedClosing =?> para (makeMath escapedClosing)
+            , test reader "unpaired escaped opening brace outside a group" $
+                wrap "\\{x" =?> para (makeMath "\\{x")
+            , test reader "unpaired escaped closing brace outside a group" $
+                wrap "x\\}" =?> para (makeMath "x\\}")
+            , test reader "escaped backslash before closing brace" $
+                wrap "{x\\\\}" =?> para (makeMath "{x\\\\}")
+            , test reader "multiline group" $
+                wrap "{a\nb}" =?> para (makeMath "{a\nb}")
+            , test reader "commented delimiters and braces" $
+                wrap commented =?> para (makeMath commented)
+            , test reader "commented closing brace inside a group" $
+                wrap ("{x% } " <> close <> "\ny}") =?>
+                  para (makeMath $ "{x% } " <> close <> "\ny}")
+            , test reader "commented opening brace inside a group" $
+                wrap "{x% {\ny}" =?> para (makeMath "{x% {\ny}")
+            , test reader "escaped percent is literal" $
+                wrap "x\\%" =?> para (makeMath "x\\%")
+            , test reader "escaped percent does not hide a closing brace" $
+                wrap "{x\\%}" =?> para (makeMath "{x\\%}")
+            , test reader "escaped percent does not hide an opening brace" $
+                wrap ("x\\%" <> grouped) =?>
+                  para (makeMath $ "x\\%" <> grouped)
+            , test reader "percent after an escaped backslash starts a comment" $
+                wrap ("x\\\\% " <> close <> "\ny") =?>
+                  para (makeMath $ "x\\\\% " <> close <> "\ny")
+            , test reader "escaped backslash before a comment inside a group" $
+                wrap "{x\\\\% }\ny}" =?>
+                  para (makeMath "{x\\\\% }\ny}")
+            , test reader "comment cannot supply the closing delimiter" $
+                wrap "x%" =?>
+                  para (text $ literalOpen <> "x%" <> literalClose)
+            , test reader "consecutive comments" $
+                wrap ("x%\n% } $ \\" <> "\ny") =?>
+                  para (makeMath $ "x%\n% } $ \\" <> "\ny")
+            , test reader "following math remains separate" $
+                (wrap grouped <> " and " <> wrap "y") =?>
+                  para (makeMath grouped <> " and " <> makeMath "y")
+            , test reader "unclosed group falls back to text" $
+                wrap "{x" =?> para (text $ literalOpen <> "{x" <>
+                                          literalClose)
+            , test reader "unclosed group does not hide later math" $
+                (wrap "{x" <> "\n\n" <> wrap "y") =?>
+                  (para (text $ literalOpen <> "{x" <> literalClose) <>
+                   para (makeMath "y"))
+            ]
+          | (name, ext, open, close, literalOpen, literalClose, makeMath) <-
+              [ ("dollars", Ext_tex_math_dollars,
+                 "$", "$", "$", "$", math)
+              , ("double dollars", Ext_tex_math_dollars,
+                 "$$", "$$", "$$", "$$", displayMath)
+              , ("parentheses", Ext_tex_math_single_backslash,
+                 "\\(", "\\)", "(", ")", math)
+              , ("brackets", Ext_tex_math_single_backslash,
+                 "\\[", "\\]", "[", "]", displayMath)
+              , ("double-backslash parentheses", Ext_tex_math_double_backslash,
+                 "\\\\(", "\\\\)", "\\(", "\\)", math)
+              , ("double-backslash brackets", Ext_tex_math_double_backslash,
+                 "\\\\[", "\\\\]", "\\[", "\\]", displayMath)
+              ]
+          , let reader = purely $ readMarkdown def
+                  { readerExtensions = extensionsFromList [ext] }
+                wrap s = open <> s <> close
+                grouped = "\\text{hi " <> open <> "x" <> close <> " bye}"
+                escapedClosing = "{\\} hi " <> open <> "x" <> close <> " bye}"
+                commented = "x% " <> close <> " { } \\%\ny"
+          ]
+        , testGroup "inline code"
           [ "with attribute" =:
             "`document.write(\"Hello\");`{.javascript}"
             =?> para
