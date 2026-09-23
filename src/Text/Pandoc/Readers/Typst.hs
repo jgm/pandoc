@@ -38,7 +38,7 @@ import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import Control.Monad.Trans (lift)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -141,28 +141,99 @@ pInline = try $ do
                   Just (InlineHandler handler) ->
                     handler pos Nothing (M.mapKeys targetToKey fields)
 
--- Pull block elements out of inline elements, e.g.
--- Elt "smallcaps" [ Elt "heading" [..] ] ->
--- Elt "heading" [ Elt "smallcaps" [..]]. See #11017.
+-- Ensure that inline elements contain only inline content: split
+-- them at paragraph breaks, and pull block children out, applying the
+-- element to a child's own contents (#11017, #11881).  A pandoc inline
+-- cannot span paragraphs, so this is the closest structural rendering;
+-- e.g. Elt "emph" [Txt "hi", parbreak, Txt "there"] becomes
+-- Elt "emph" [Txt "hi"], parbreak, Elt "emph" [Txt "there"].
 fixNesting :: Content -> Content
-fixNesting el@(Elt name pos fields)
-  | Just (VContent elts) <- M.lookup "body" fields
-  = let elts' = fmap fixNesting elts
-        fields' = M.insert "body" (VContent elts') fields
-        in if isBlock el
-              then Elt name pos fields'
-              else case getField "body" fields' of
-                        Just ([el'@(Elt name' pos' fields'')] :: Seq Content)
-                          | isBlock el'
-                          , not (isInline el')
-                          , "body" `M.member` fields''
-                          -> Elt name' pos' $
-                               M.insert "body" (VContent
-                                                (Seq.singleton
-                                                  (Elt name pos fields'')))
-                                        fields'
-                        _ -> Elt name pos fields'
+fixNesting el@(Elt name _ _)
+  | Identifier tname <- name
+  , "math." `T.isPrefixOf` tname = el   -- math has its own grammar
+fixNesting (Elt name pos fields) = Elt name pos (M.map fixVal fields)
 fixNesting x = x
+
+fixVal :: Val -> Val
+fixVal (VContent cs) = VContent (fixSeq cs)
+fixVal (VArray vs) = VArray (fmap fixVal vs)
+fixVal (VTermItem t d) = VTermItem (fixSeq t) (fixSeq d)
+fixVal v = v
+
+fixSeq :: Seq Content -> Seq Content
+fixSeq = foldMap expand . fmap fixNesting
+
+-- Split an inline element whose body contains block content.
+expand :: Content -> Seq Content
+expand el@(Elt name pos fields)
+  | isSplittable name
+  , Just (field, VContent body) <- contentField fields
+  , F.any isStrictlyBlock body
+  = splitInlineBody name pos fields field body
+  | otherwise = Seq.singleton el
+expand x = Seq.singleton x
+
+-- Whether the element's body is parsed with pInlines, and thus cannot
+-- contain block content: anything without a block handler, except
+-- footnote (body parsed as blocks), the block-body table elements, and
+-- math elements.
+isSplittable :: Identifier -> Bool
+isSplittable name@(Identifier tname) =
+  name `Set.notMember` blockKeys
+    && name `Set.notMember` blockBodyElements
+    && not ("math." `T.isPrefixOf` tname)
+
+-- Elements without block handlers whose content is nonetheless parsed
+-- as block content.
+blockBodyElements :: Set.Set Identifier
+blockBodyElements = Set.fromList
+  [ "footnote", "grid.cell", "table.cell", "grid.header"
+  , "table.header", "grid.footer", "table.footer" ]
+
+-- Strictly block content, not consumable by 'pInline'.
+isStrictlyBlock :: Content -> Bool
+isStrictlyBlock c = isBlock c && not (isInline c)
+
+-- The element's content field.  Only body and text: other content
+-- fields, such as ref's supplement, are parameters rather than bodies.
+contentField :: M.Map Identifier Val -> Maybe (Identifier, Val)
+contentField fields =
+  listToMaybe
+    [ kv | kv@(k, VContent _) <- M.toAscList fields
+         , k == Identifier "body" || k == Identifier "text" ]
+
+-- Split the element's body at block content: inline runs are wrapped
+-- back in the element, a parbreak separates paragraphs, and a block
+-- child gets the element applied to its own body, if it has one.
+splitInlineBody
+  :: Identifier -> Maybe SourcePos -> M.Map Identifier Val
+  -> Identifier -> Seq Content -> Seq Content
+splitInlineBody name pos fields field =
+  Seq.fromList . go [] . F.toList
+ where
+  wrap cs = Elt name pos (M.insert field (VContent (Seq.fromList cs)) fields)
+
+  go run [] = flush run
+  go run (c : cs)
+    | isStrictlyBlock c = flush run ++ splitOff c ++ go [] cs
+    | otherwise = go (c : run) cs
+
+  flush run = [ wrap (reverse run) | not (null run) ]
+
+  splitOff c
+    | isParbreak c = [Elt "parbreak" pos mempty]
+    | otherwise = case c of
+        Elt bname bpos bfields
+          | Just (VContent inner) <- M.lookup (Identifier "body") bfields ->
+              [ Elt bname bpos
+                  ( M.insert (Identifier "body")
+                      (VContent (expand (wrap (F.toList inner))))
+                      bfields ) ]
+        _ -> [c]
+
+isParbreak :: Content -> Bool
+isParbreak (Elt "parbreak" _ _) = True
+isParbreak _ = False
 
 pPandoc :: PandocMonad m => P m B.Pandoc
 pPandoc = do
@@ -610,8 +681,6 @@ parbreaksToLinebreaks =
  where
    go (Elt "parbreak" pos _) = Elt "linebreak" pos mempty
    go x = x
-   isParbreak (Elt "parbreak" _ _) = True
-   isParbreak _ = False
 
 pPara :: PandocMonad m => P m B.Blocks
 pPara = do

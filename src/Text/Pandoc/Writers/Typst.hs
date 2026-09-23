@@ -394,6 +394,9 @@ blockToTypst block =
                                      ("caption: [" $$ nest 2 caption $$ "]")
                                     )
                           $$ ")" $$ lab $$ blankline
+    Div (_, classes, _) blocks | "mark" `elem` classes -> do
+      contents <- blocksToTypst blocks
+      return $ "#highlight[" $$ nest 2 (chomp contents) $$ "]" $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
     Div (ident,_,kvs) blocks -> do
