@@ -2406,6 +2406,10 @@ Fields:
 `user_data_dir`
 :   Directory to search for data files (string or nil)
 
+`data_dirs`
+:   Additional directories to search for data files, after
+    `user_data_dir` (list of strings)
+
 `trace`
 :   Whether tracing messages are issued (boolean)
 
