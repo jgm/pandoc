@@ -64,6 +64,22 @@ tests = [ testGroup "inlines"
             def
             "docx/links.native"
             "docx/golden/links.docx"
+          , testCase "link titles become ScreenTips (#11869)" $ do
+              doc <- documentXml def $ Pandoc mempty
+                [ Para [ Link ("", [], []) [Str "external"]
+                           ("https://example.org/r.pdf", "Annual report")
+                       , Space
+                       , Link ("", [], []) [Str "internal"]
+                           ("#methods", "Jump to Methods")
+                       , Space
+                       , Link ("", [], []) [Str "untitled"]
+                           ("https://example.org", "")
+                       ]
+                , Header 1 ("methods", [], []) [Str "Methods"]
+                ]
+              map (findAttr (wmlName "tooltip"))
+                  (findElements (wmlName "hyperlink") doc)
+                @?= [Just "Annual report", Just "Jump to Methods", Nothing]
           , docxTest
             "inline image"
             def{ writerExtensions =
