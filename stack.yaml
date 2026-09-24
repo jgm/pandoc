@@ -9,7 +9,6 @@ allow-newer-deps:
   - hslua-module-zip
   # These need to allow doclayout 0.6
   - gridtables
-  - djot
   - hslua-module-doclayout
 packages:
 - '.'
@@ -41,8 +40,7 @@ extra-deps:
 - commonmark-pandoc-0.3.0.1
 - commonmark-extensions-0.2.7.2
 - djot-0.1.4.3
-- git: https://github.com/jgm/typst-hs
-  commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
+- typst-0.12
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
