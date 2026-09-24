@@ -24,6 +24,11 @@ The first #count numbers of the sequence are:
   ..nums.map(n => str(fib(n))),
 ))
 
+#table(
+  columns: (auto, 1fr, auto, 1fr),
+  [1], [A longer descriptive label that wraps], [2], [Another longer label],
+)
+
 #include "undergradmath.typ"
 
 
