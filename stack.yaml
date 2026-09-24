@@ -40,10 +40,9 @@ extra-deps:
 - commonmark-0.3.0.1
 - commonmark-pandoc-0.3.0.1
 - commonmark-extensions-0.2.7.2
+- djot-0.1.4.3
 - git: https://github.com/jgm/typst-hs
   commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
-- git: https://github.com/jgm/djoths
-  commit: 20549c6b7466cfbf8c3645ddfac68e223ca113f3
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
