@@ -1013,12 +1013,13 @@ inlineToOpenXML' opts (Note bs) = do
            [ mknode "w:rPr" [] footnoteStyle
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
-inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),_)) = do
+inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),title)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   return
-    [ Elem $ mknode "w:hyperlink" [("w:anchor", toBookmarkName xs)] contents ]
+    [ Elem $ mknode "w:hyperlink"
+        (("w:anchor", toBookmarkName xs) : tooltipAttr title) contents ]
 -- external link:
-inlineToOpenXML' opts (Link _ txt (src,_)) = do
+inlineToOpenXML' opts (Link _ txt (src,title)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
@@ -1028,7 +1029,8 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
               modify $ \st -> st{ stExternalLinks =
                         M.insert src i extlinks }
               return i
-  return [ Elem $ mknode "w:hyperlink" [("r:id",id')] contents ]
+  return [ Elem $ mknode "w:hyperlink" (("r:id",id') : tooltipAttr title)
+             contents ]
 inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
@@ -1237,6 +1239,10 @@ toBookmarkName s
     = "_" <> s
   | otherwise = "_" <> T.pack (drop 1 (show (hashWith SHA1 (fromText s))))
   -- we drop 1 because a SHA1 is 40 characters and we need room for the `_`
+
+-- A link's title is written as its ScreenTip (@w:tooltip@).
+tooltipAttr :: Text -> [(Text, Text)]
+tooltipAttr title = [("w:tooltip", title) | not (T.null title)]
 
 maxListLevel :: Int
 maxListLevel = 8
