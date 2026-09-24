@@ -416,6 +416,30 @@ header when requesting a document from a URL:
     is not created by pandoc, so you will need to create it yourself
     if you want to make use of it.)
 
+`--data-dirs=`*DIRECTORIES*
+
+:   Specify additional directories to search for pandoc data files,
+    separated by `:` (`;` on Windows), as in `PATH`.  This option may
+    be repeated.  Data files are searched for first in the user data
+    directory (see `--data-dir`), then in the directories given with
+    this option, then in the directories listed in the
+    `PANDOC_DATA_DIRS` environment variable, and finally in pandoc's
+    built-in data files.  Empty entries are ignored.
+
+    `PANDOC_DATA_DIRS` is intended for environment managers (conda,
+    pixi, nix shells, HPC modules, containers): an environment can
+    install filters, templates, and other data files into
+    `$PREFIX/share/pandoc` and prepend that directory to
+    `PANDOC_DATA_DIRS` on activation, just as it prepends
+    `$PREFIX/bin` to `PATH`.  Unlike `--data-dir` or setting
+    `XDG_DATA_HOME`, this does not replace the user data directory,
+    and it also applies when pandoc is invoked by other programs.
+    The additional directories are applied to all lookups in the
+    user data directory, including filters, templates, defaults
+    files, custom readers and writers, metadata files, CSL styles,
+    translations, and reference documents.  They are shown in the
+    output of `pandoc --version`.
+
 `-d` *FILE*, `--defaults=`*FILE*
 
 :   Specify a set of default option settings.  *FILE* is a YAML or JSON
@@ -424,7 +448,8 @@ header when requesting a document from a URL:
     and output files, can be set using a defaults file.  The file will
     be searched for first in the working directory, and then in
     the `defaults` subdirectory of the user data directory
-    (see `--data-dir`). If *FILE* lacks an extension, pandoc will
+    (see `--data-dir`) and of the additional data directories
+    (see `--data-dirs`). If *FILE* lacks an extension, pandoc will
     also try adding the `.yaml` extension if *FILE* is not found.
     See the section [Defaults files] for more information on the
     file format. Settings from the defaults file may be
@@ -686,7 +711,8 @@ header when requesting a document from a URL:
 
      2. `$DATADIR/filters` (executable or non-executable)
      where `$DATADIR` is the user data directory (see
-     `--data-dir`, above),
+     `--data-dir`, above) or one of the additional data
+     directories (see `--data-dirs`, above),
 
      3. `$PATH` (executable only).
 
@@ -712,7 +738,8 @@ header when requesting a document from a URL:
      1. a specified full or relative path,
 
      2. `$DATADIR/filters` where `$DATADIR` is the user data
-     directory (see `--data-dir`, above).
+     directory (see `--data-dir`, above) or one of the additional
+     data directories (see `--data-dirs`, above).
 
     Filters, Lua filters, and citeproc processing are applied in
     the order specified on the command line.
@@ -1928,6 +1955,12 @@ stdin, and it can be an empty sequence `[]` for no input.
 | ```                              | ``` yaml                          |
 | --data-dir dir                   | data-dir: dir                     |
 | ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --data-dirs dir1:dir2            | data-dirs:                        |
+| ```                              | - dir1                            |
+|                                  | - dir2                            |
+|                                  | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --defaults file                  | defaults:                         |
