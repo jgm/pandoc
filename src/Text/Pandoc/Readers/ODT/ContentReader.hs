@@ -153,9 +153,6 @@ getStyleByName :: StyleName -> ODTReader Style
 getStyleByName name = getStyles >>= fromMaybeF . lookupStyle name
 
 --
-findStyleFamily :: Style -> ODTReader StyleFamily
-findStyleFamily style = getStyles >>= fromMaybeF . getStyleFamily style
-
 --
 lookupListStyle :: StyleName -> ODTReader ListStyle
 lookupListStyle name = getStyles >>= fromMaybeF . lookupListStyleByName name
@@ -250,10 +247,6 @@ readStyleByName = do
   return (name, style)
 
 --
-isStyleToTrace :: Style -> ODTReader Bool
-isStyleToTrace style = (== FaText) <$> findStyleFamily style
-
---
 withNewStyle :: ODTReader Inlines -> ODTReader Inlines
 withNewStyle reader = do
   fStyle <- tryC readStyleByName
@@ -265,15 +258,10 @@ withNewStyle reader = do
           state <- getExtraState
           let mFamily  = styleFamily style
               modifier = modifierFromStyleDiff (state, textProps, mFamily)
-          fShouldTrace <- tryC (isStyleToTrace style)
-          case fShouldTrace of
-            Right True -> do
-              pushStyle style
-              inlines <- reader
-              popStyle
-              return $ modifier inlines
-            -- In case anything goes wrong
-            _ -> reader
+          pushStyle style
+          inlines <- reader
+          popStyle
+          return $ modifier inlines
     _ -> reader
   where
     isCodeStyle :: StyleName -> Bool
