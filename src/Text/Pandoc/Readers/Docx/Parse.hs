@@ -398,8 +398,8 @@ data ParPart = PlainRun Run
              | CommentStart CommentId Author (Maybe CommentDate) [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
-             | InternalHyperLink Anchor [ParPart]
-             | ExternalHyperLink URL [ParPart]
+             | InternalHyperLink Anchor T.Text [ParPart]          -- tooltip
+             | ExternalHyperLink URL T.Text [ParPart]             -- tooltip
              | Drawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
              | Diagram                                            -- placeholder for now
@@ -1217,18 +1217,20 @@ elemToParPart' ns element
     location <- asks envLocation
     children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     rels <- asks envRelationships
+    let tooltip = fromMaybe "" $ findAttrByName ns "w" "tooltip" element
     case lookupRelationship location relId rels of
       Just target ->
          case findAttrByName ns "w" "anchor" element of
              Just anchor -> return
-               [ExternalHyperLink (target <> "#" <> anchor) children]
-             Nothing -> return [ExternalHyperLink target children]
-      Nothing     -> return [ExternalHyperLink "" children]
+               [ExternalHyperLink (target <> "#" <> anchor) tooltip children]
+             Nothing -> return [ExternalHyperLink target tooltip children]
+      Nothing     -> return [ExternalHyperLink "" tooltip children]
 elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just anchor <- findAttrByName ns "w" "anchor" element = do
     children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
-    return [InternalHyperLink anchor children]
+    let tooltip = fromMaybe "" $ findAttrByName ns "w" "tooltip" element
+    return [InternalHyperLink anchor tooltip children]
 elemToParPart' ns element
   | isElem ns "w" "commentRangeStart" element
   , Just cmtId <- findAttrByName ns "w" "id" element = do
