@@ -37,6 +37,10 @@ data CommonState = CommonState
     -- ^ A list of log messages in reverse order
   , stUserDataDir  :: Maybe FilePath
     -- ^ Directory to search for data files
+  , stDataDirs     :: Maybe [FilePath]
+    -- ^ Additional directories to search for data files,
+    -- after the user data directory. If 'Nothing', the
+    -- directories listed in @PANDOC_DATA_DIRS@ are used.
   , stSourceURL    :: Maybe Text
     -- ^ Absolute URL + dir of 1st source file
   , stRequestHeaders :: [(Text, Text)]
@@ -76,6 +80,7 @@ defaultCommonState :: CommonState
 defaultCommonState = CommonState
   { stLog = []
   , stUserDataDir = Nothing
+  , stDataDirs = Nothing
   , stSourceURL = Nothing
   , stRequestHeaders = []
   , stNoCheckCertificate = False

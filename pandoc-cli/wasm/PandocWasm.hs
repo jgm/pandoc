@@ -20,7 +20,7 @@ import Data.List (sort)
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.App ( convertWithOpts, Opt(..), defaultOpts )
 import Text.Pandoc (Verbosity(ERROR), pandocVersion, Reader, Writer, PandocIO,
-                    readers, writers, runIO, setUserDataDir)
+                    readers, writers, runIO, setUserDataDir, setDataDirs)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Templates (getDefaultTemplate)
 import Skylighting (defaultSyntaxMap, Syntax(..))
@@ -116,6 +116,7 @@ query ptr len =
                         (_, "") -> do
                           -- built-in format
                           setUserDataDir Nothing
+                          setDataDirs (Just [])
                           getDefaultTemplate format
                         _ -> do
                           -- format looks like a filepath => custom writer
