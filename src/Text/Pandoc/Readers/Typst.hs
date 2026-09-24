@@ -737,22 +737,17 @@ parseTable mbident fields = do
   let toWidth (VFraction f) = Just (floor $ 1000 * f)
       toWidth _ = Nothing
   let normalizeWidths xs =
+        -- writers take only all-default or all-specified widths: a
+        -- column the source leaves to the layout engine makes the
+        -- whole table content-sized
         let givenwidths = catMaybes xs
-            (totgivenwidth :: Int) = sum givenwidths
-            avgwidth = totgivenwidth `div` length givenwidths
-            totwidth = avgwidth * length xs
-         in if null givenwidths
-              then replicate (length xs) B.ColWidthDefault
-              else
-                map
-                  ( \case
-                      Just x ->
-                        B.ColWidth (fromIntegral x / fromIntegral totwidth)
-                      Nothing ->
-                        B.ColWidth
-                        (fromIntegral avgwidth / fromIntegral totwidth)
-                  )
-                  xs
+         in if length givenwidths == length xs
+              then
+                let totwidth = sum givenwidths :: Int
+                 in map
+                      (\x -> B.ColWidth (fromIntegral x / fromIntegral totwidth))
+                      givenwidths
+              else replicate (length xs) B.ColWidthDefault
   widths <- case columns of
     VInteger x -> pure $ replicate (fromIntegral x) B.ColWidthDefault
     VArray x -> pure $ normalizeWidths $ map toWidth (V.toList x)

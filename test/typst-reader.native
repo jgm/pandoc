@@ -187,6 +187,69 @@ Pandoc
           ]
           (TableFoot ( "" , [] , [] ) [])
       ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "A"
+                      , Space
+                      , Str "longer"
+                      , Space
+                      , Str "descriptive"
+                      , Space
+                      , Str "label"
+                      , Space
+                      , Str "that"
+                      , Space
+                      , Str "wraps"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Another"
+                      , Space
+                      , Str "longer"
+                      , Space
+                      , Str "label"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
   , Div
       ( "" , [ "columns-flow" ] , [ ( "count" , "2" ) ] )
       [ Para
