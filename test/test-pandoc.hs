@@ -57,6 +57,7 @@ import qualified Tests.Writers.BBCode
 import qualified Tests.Writers.Txt2Tags
 import qualified Tests.XML
 import qualified Tests.MediaBag
+import qualified Tests.DataDirs
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: FilePath -> TestTree
@@ -65,6 +66,7 @@ tests pandocPath = testGroup "pandoc tests"
         , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "MediaBag" Tests.MediaBag.tests
+        , testGroup "DataDirs" Tests.DataDirs.tests
         , testGroup "XML" Tests.XML.tests
         , testGroup "ImageSize" Tests.ImageSize.tests
         , testGroup "Writers"
