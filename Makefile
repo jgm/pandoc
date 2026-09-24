@@ -76,6 +76,10 @@ uncommitted_changes:
 authors:  ## prints unique authors since last released version
 	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
+LOG.md:
+	git log $$(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'  * %s%n    %aN%n%w(78,4,4)%b' | sed -e '/^ *John MacFarlane$$/d' | sed -e 's/  *$$//' > $@
+.PHONY: LOG.md
+
 check-stack:
 	$$HOME/.local/bin/stack-lint-extra-deps --no-exit # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
