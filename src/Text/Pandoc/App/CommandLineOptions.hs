@@ -158,6 +158,7 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
                     (_, "") -> do
                       -- built-in format
                       setUserDataDir Nothing
+                      setDataDirs (Just [])
                       getDefaultTemplate fmt
                     _ -> do
                       -- format looks like a filepath => custom writer

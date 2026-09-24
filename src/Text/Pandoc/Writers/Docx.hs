@@ -502,9 +502,12 @@ loadArchives opts = do
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getTimestamp
   oldUserDataDir <- P.getUserDataDir
+  oldDataDirs <- P.getDataDirs
   P.setUserDataDir Nothing
+  P.setDataDirs (Just [])
   res <- readDefaultDataFile "reference.docx"
   P.setUserDataDir oldUserDataDir
+  P.setDataDirs (Just oldDataDirs)
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
                    Just f  -> do
