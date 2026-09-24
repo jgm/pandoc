@@ -299,6 +299,15 @@ options =
                 Files
                 (T.pack "Directory for data files")
 
+    , option "" ["data-dirs"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDataDirs =
+                                  optDataDirs opt ++
+                                  map normalizePath (splitDataDirs arg) })
+                 "DIRECTORIES")
+                Files
+                (T.pack "Additional directories for data files")
+
     , option "M" ["metadata"]
                  (ReqArg
                   (\arg opt -> do
@@ -324,6 +333,7 @@ options =
                        let defsState =
                              DefaultsState { curDefaults = Nothing,
                                              inheritanceGraph = [] }
+                       addDataDirs (optDataDirs opt)
                        fp <- fullDefaultsPath (optDataDir opt) arg
                        evalStateT (applyDefaults opt fp) defsState
                      case res of

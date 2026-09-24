@@ -53,7 +53,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             CiteMethod (Citeproc),
                             pattern DefaultHighlightingString)
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
-                          PandocMonad(lookupEnv), getUserDataDir)
+                          PandocMonad(lookupEnv), getUserDataDir,
+                          getDataDirs)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
 import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Data (defaultUserDataDir)
@@ -213,6 +214,7 @@ data Opt = Opt
     , optIdentifierPrefix      :: Text
     , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
+    , optDataDirs              :: [FilePath] -- ^ Additional data directories
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
     , optPdfEngine             :: Maybe String -- ^ Program to use for latex/html -> pdf
     , optPdfEngineOpts         :: [String]   -- ^ Flags to pass to the engine
@@ -302,6 +304,7 @@ instance FromJSON Opt where
        <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
        <*> o .:? "data-dir"
+       <*> o .:? "data-dirs" .!= optDataDirs defaultOpts
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
        <*> o .:? "pdf-engine"
        <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
@@ -386,6 +389,7 @@ resolveVarsInOpt
     , optLogFile               = oLogFile
     , optFilters               = oFilters
     , optDataDir               = oDataDir
+    , optDataDirs              = oDataDirs
     , optExtractMedia          = oExtractMedia
     , optCss                   = oCss
     , optIncludeBeforeBody     = oIncludeBeforeBody
@@ -413,6 +417,7 @@ resolveVarsInOpt
       oLogFile' <- mapM resolveVars oLogFile
       oFilters' <- mapM resolveVarsInFilter oFilters
       oDataDir' <- mapM resolveVars oDataDir
+      oDataDirs' <- mapM resolveVars oDataDirs
       oExtractMedia' <- mapM resolveVars oExtractMedia
       oCss' <- mapM resolveVars oCss
       oIncludeBeforeBody' <- mapM resolveVars oIncludeBeforeBody
@@ -440,6 +445,7 @@ resolveVarsInOpt
                 , optLogFile               = oLogFile'
                 , optFilters               = oFilters'
                 , optDataDir               = oDataDir'
+                , optDataDirs              = oDataDirs'
                 , optExtractMedia          = oExtractMedia'
                 , optCss                   = oCss'
                 , optIncludeBeforeBody     = oIncludeBeforeBody'
@@ -718,6 +724,9 @@ doOpt (k,v) = do
              return (\o -> o{ optIndentedCodeClasses = x })
     "data-dir" ->
       parseJSON v >>= \x -> return (\o -> o{ optDataDir = unpack <$> x })
+    "data-dirs" ->
+      parseJSON v >>= \x ->
+        return (\o -> o{ optDataDirs = optDataDirs o <> map unpack x })
     "cite-method" ->
       parseJSON v >>= \x -> return (\o -> o{ optCiteMethod = x })
     "listings" ->
@@ -882,6 +891,7 @@ defaultOpts = Opt
     , optIdentifierPrefix      = ""
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
+    , optDataDirs              = []
     , optCiteMethod            = Citeproc
     , optPdfEngine             = Nothing
     , optPdfEngineOpts         = []
@@ -950,17 +960,16 @@ fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  -> m FilePath
 fullDefaultsPath dataDir file = do
   defaultDataDir <- liftIO defaultUserDataDir
-  let ddir = fromMaybe defaultDataDir dataDir </> "defaults"
+  dataDirs <- getDataDirs
+  let ddirs = map (</> "defaults") (fromMaybe defaultDataDir dataDir : dataDirs)
   let findFile [] = return file
       findFile (fp:fps) = do
         fpExists <- fileExists fp
         if fpExists
            then return fp
            else findFile fps
-  findFile [file,
-            file <.> "yaml",
-            ddir </> file,
-            ddir </> file <.> "yaml"]
+  findFile $ [file, file <.> "yaml"] ++
+             concatMap (\ddir -> [ddir </> file, ddir </> file <.> "yaml"]) ddirs
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.
