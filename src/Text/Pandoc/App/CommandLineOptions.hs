@@ -1462,6 +1462,7 @@ normalizePath = id
 versionInfo :: [String] -> Maybe String -> String -> IO ()
 versionInfo features mbScriptingEngineName suffix = do
   defaultDatadir <- defaultUserDataDir
+  dataDirs <- either (const []) id <$> runIO getDataDirs
   let featuresLine = if null features
                        then []
                        else ["Features: " ++ unwords features]
@@ -1472,6 +1473,8 @@ versionInfo features mbScriptingEngineName suffix = do
     ["pandoc " ++ showVersion pandocVersion ++ suffix] ++
     featuresLine ++
     scriptingLine ++
-    ["User data directory: " ++ defaultDatadir,
-     copyrightMessage]
+    ["User data directory: " ++ defaultDatadir] ++
+    ["Additional data directories: " ++
+       intercalate [searchPathSeparator] dataDirs | not (null dataDirs)] ++
+    [copyrightMessage]
   exitSuccess
