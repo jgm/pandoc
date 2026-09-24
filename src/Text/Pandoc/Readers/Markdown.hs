@@ -815,6 +815,7 @@ emailBlockQuote = try $ do
 
 blockQuote :: PandocMonad m => MarkdownParser m (F Blocks)
 blockQuote = do
+  pos <- getPosition
   raw <- emailBlockQuote
   (mbAlert, raw') <-
     (do guardEnabled Ext_alerts
@@ -830,7 +831,8 @@ blockQuote = do
           _ -> pure (Nothing, raw))
       <|> pure (Nothing, raw)
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString' parseBlocks $ T.intercalate "\n" raw' <> "\n\n"
+  contents <- parseFromString' (setPosition pos >> parseBlocks)
+               $ T.intercalate "\n" raw' <> "\n\n"
   return $
     case mbAlert of
       Nothing -> B.blockQuote <$> contents
@@ -972,11 +974,12 @@ listItem fourSpaceRule start = try $ do
   state <- getState
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
+  pos <- getPosition
   (first, continuationIndent) <- rawListItem fourSpaceRule start
   continuations <- many (listContinuation continuationIndent)
   -- parse the extracted block, which may contain various block elements:
   let raw = T.concat (first:continuations)
-  contents <- parseFromString' parseBlocks raw
+  contents <- parseFromString' (setPosition pos >> parseBlocks) raw
   updateState (\st -> st {stateParserContext = oldContext})
   exts <- getOption readerExtensions
   return $ B.fromList . taskListItemFromAscii exts . B.toList <$> contents
@@ -1017,8 +1020,9 @@ defListStart = do
 
 definitionListItem :: PandocMonad m => MarkdownParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
+  pos <- getPosition
   rawLine' <- anyLine
-  term <- parseFromString' (trimInlinesF <$> inlines) rawLine'
+  term <- parseFromString' (setPosition pos >> (trimInlinesF <$> inlines)) rawLine'
   isTight <- (False <$ blanklines) <|> pure True
   fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule) <|> pure False
   contents <- many1 $ listItem fourSpaceRule defListStart
@@ -1224,8 +1228,9 @@ lineBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lineBlock = do
   guardEnabled Ext_line_blocks
   try $ do
+    pos <- getPosition
     lines' <- lineBlockLines >>=
-              mapM (parseFromString' (trimInlinesF <$> inlines))
+              mapM (parseFromString' (setPosition pos >> (trimInlinesF <$> inlines)))
     return $ B.lineBlock <$> sequence lines'
 
 --
@@ -1312,8 +1317,9 @@ rawTableLine indices = do
 tableLine :: PandocMonad m
           => [Int]
           -> MarkdownParser m (F [Blocks])
-tableLine indices = rawTableLine indices >>=
-  fmap sequence . mapM (parseFromString' (mconcat <$> many plain))
+tableLine indices = do
+  raw <- rawTableLine indices
+  sequence <$> mapM (parseFromString' (mconcat <$> many plain)) raw
 
 -- Parse a multiline table row and return a list of blocks (columns).
 multilineRow :: PandocMonad m
@@ -1398,7 +1404,7 @@ multilineTableHeader headless = try $ do
                     then []
                     else map (T.unlines . map trim) rawHeadsList
   heads <- fmap sequence $
-            mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads
+            mapM (parseFromString' (mconcat <$> many plain) . trim) rawHeads
   return (fmap (:[]) heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
