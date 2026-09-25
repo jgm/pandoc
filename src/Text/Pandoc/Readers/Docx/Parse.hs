@@ -1212,6 +1212,12 @@ elemToParPart' ns element
       runs <- mconcat <$> mapD (elemToParPart' ns) (elChildren element)
       return [ChangedRuns change runs]
 elemToParPart' ns element
+  | isElem ns "w" "fldSimple" element
+  , Just instr <- findAttrByName ns "w" "instr" element = do
+    info <- eitherToD $ parseFieldInfo instr
+    children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
+    return [Field info children]
+elemToParPart' ns element
   | isElem ns "w" "bookmarkStart" element
   , Just bmId <- findAttrByName ns "w" "id" element
   , Just bmName <- findAttrByName ns "w" "name" element =
@@ -1513,11 +1519,14 @@ stripCaptionLabel :: [Element] -> [Element]
 stripCaptionLabel els =
     if null afters
        then els
-       else filter isBookmark befores <> afters
+       else filter isBookmark befores <> dropNumber afters
   where
     (befores, afters) = break isNumberElt els
     isBookmark (Element name _ _ _) =
       qName name == "bookmarkStart" || qName name == "bookmarkEnd"
+    -- A w:fldSimple carries the number as its result: drop it with the label.
+    dropNumber (el:rest) | qName (elName el) == "fldSimple" = rest
+    dropNumber rest = rest
     isNumberElt el@(Element name attribs _ _) =
        (qName name == "fldSimple" &&
              case lookupAttrBy ((== "instr") . qName) attribs of
