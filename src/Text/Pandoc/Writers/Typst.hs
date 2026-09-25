@@ -394,18 +394,26 @@ blockToTypst block =
                                      ("caption: [" $$ nest 2 caption $$ "]")
                                     )
                           $$ ")" $$ lab $$ blankline
-    Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
-      blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
     Div (ident,_,kvs) blocks -> do
-      let lab = case lookup "typst-label" kvs of
-                  Just l -> toLabel FreestandingLabel l
-                  Nothing -> toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
-      contents <- blocksToTypst blocks
-      return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText typstTextAttrs
-        $$ chomp contents
-        $$ ("]" <+> lab)
+      -- Keep section labels on headings even when the Div needs a scope.
+      let (blocks', lab, unwrap) =
+            case (lookup "typst-label" kvs, blocks) of
+              (Nothing, Header lev ("",cls,hkvs) ils:rest) ->
+                ( Header lev (ident,cls,hkvs) ils:rest
+                , mempty
+                , null typstAttrs && null typstTextAttrs )
+              (l,_) ->
+                ( blocks
+                , toLabel FreestandingLabel (fromMaybe ident l)
+                , False )
+      contents <- blocksToTypst blocks'
+      return $ if unwrap
+                  then contents
+                  else "#block" <> toTypstPropsListParens typstAttrs <> "["
+                    $$ toTypstPoundSetText typstTextAttrs
+                    $$ chomp contents
+                    $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
