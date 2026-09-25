@@ -30,7 +30,7 @@ $else$
   <link rel="stylesheet" href="$revealjs-url$/dist/theme/black.css" id="theme">
 $endif$
 $if(highlight-js)$
-  <link rel="stylesheet" href="$revealjs-url$/plugin/highlight/$highlightjs-theme$.css">
+  <link rel="stylesheet" href="$revealjs-url$/dist/plugin/highlight/$highlightjs-theme$.css">
 $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
@@ -84,14 +84,14 @@ $body$
   <script src="$revealjs-url$/dist/reveal.js"></script>
 
   <!-- reveal.js plugins -->
-  <script src="$revealjs-url$/plugin/notes/notes.js"></script>
-  <script src="$revealjs-url$/plugin/search/search.js"></script>
-  <script src="$revealjs-url$/plugin/zoom/zoom.js"></script>
+  <script src="$revealjs-url$/dist/plugin/notes/notes.js"></script>
+  <script src="$revealjs-url$/dist/plugin/search/search.js"></script>
+  <script src="$revealjs-url$/dist/plugin/zoom/zoom.js"></script>
 $if(mathjax)$
-  <script src="$revealjs-url$/plugin/math/math.js"></script>
+  <script src="$revealjs-url$/dist/plugin/math/math.js"></script>
 $endif$
 $if(highlight-js)$
-  <script src="$revealjs-url$/plugin/highlight/highlight.js"></script>
+  <script src="$revealjs-url$/dist/plugin/highlight/highlight.js"></script>
 $endif$
 
   <script>
