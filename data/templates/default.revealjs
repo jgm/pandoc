@@ -84,14 +84,14 @@ $body$
   <script src="$revealjs-url$/dist/reveal.js"></script>
 
   <!-- reveal.js plugins -->
-  <script src="$revealjs-url$/dist/plugin/notes/notes.js"></script>
-  <script src="$revealjs-url$/dist/plugin/search/search.js"></script>
-  <script src="$revealjs-url$/dist/plugin/zoom/zoom.js"></script>
+  <script src="$revealjs-url$/dist/plugin/notes.js"></script>
+  <script src="$revealjs-url$/dist/plugin/search.js"></script>
+  <script src="$revealjs-url$/dist/plugin/zoom.js"></script>
 $if(mathjax)$
-  <script src="$revealjs-url$/dist/plugin/math/math.js"></script>
+  <script src="$revealjs-url$/dist/plugin/math.js"></script>
 $endif$
 $if(highlight-js)$
-  <script src="$revealjs-url$/dist/plugin/highlight/highlight.js"></script>
+  <script src="$revealjs-url$/dist/plugin/highlight.js"></script>
 $endif$
 
   <script>
