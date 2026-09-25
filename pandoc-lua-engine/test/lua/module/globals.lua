@@ -122,6 +122,9 @@ return {
     test('has property "log"', function ()
       assert.are_equal(type(PANDOC_STATE.log), 'table')
     end),
+    test('has property "data_dirs"', function ()
+      assert.are_equal(type(PANDOC_STATE.data_dirs), 'table')
+    end),
     test('has property "request_headers"', function ()
       assert.are_equal(type(PANDOC_STATE.request_headers), 'table')
     end),

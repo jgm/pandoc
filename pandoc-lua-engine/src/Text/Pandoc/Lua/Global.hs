@@ -19,7 +19,7 @@ import HsLua as Lua
 import HsLua.Module.Version (pushVersion)
 import Text.Pandoc.Class ( getInputFiles, getOutputFile, getLog
                          , getRequestHeaders, getResourcePath, getSourceURL
-                         , getUserDataDir, getTrace, getVerbosity
+                         , getUserDataDir, getDataDirs, getTrace, getVerbosity
                          )
 import Text.Pandoc.Definition (Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
@@ -98,6 +98,9 @@ setGlobal global = case global of
           return 1
         "source_url" -> do
           maybe pushnil pushText =<< unPandocLua getSourceURL
+          return 1
+        "data_dirs" -> do
+          pushPandocList pushString =<< unPandocLua getDataDirs
           return 1
         "user_data_dir" -> do
           maybe pushnil pushString =<< unPandocLua getUserDataDir

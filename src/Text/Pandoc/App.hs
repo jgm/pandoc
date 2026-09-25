@@ -357,6 +357,7 @@ data PandocOutput =
 configureCommonState :: PandocMonad m => Maybe FilePath -> Opt -> m ()
 configureCommonState datadir opts = do
   setUserDataDir datadir
+  addDataDirs (optDataDirs opts)
   setTrace (optTrace opts)
   setVerbosity (optVerbosity opts)
   setResourcePath (optResourcePath opts)

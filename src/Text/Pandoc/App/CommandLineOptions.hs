@@ -158,6 +158,7 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
                     (_, "") -> do
                       -- built-in format
                       setUserDataDir Nothing
+                      setDataDirs (Just [])
                       getDefaultTemplate fmt
                     _ -> do
                       -- format looks like a filepath => custom writer
@@ -298,6 +299,15 @@ options =
                 Files
                 (T.pack "Directory for data files")
 
+    , option "" ["data-dirs"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDataDirs =
+                                  optDataDirs opt ++
+                                  map normalizePath (splitDataDirs arg) })
+                 "DIRECTORIES")
+                Files
+                (T.pack "Additional directories for data files")
+
     , option "M" ["metadata"]
                  (ReqArg
                   (\arg opt -> do
@@ -323,6 +333,7 @@ options =
                        let defsState =
                              DefaultsState { curDefaults = Nothing,
                                              inheritanceGraph = [] }
+                       addDataDirs (optDataDirs opt)
                        fp <- fullDefaultsPath (optDataDir opt) arg
                        evalStateT (applyDefaults opt fp) defsState
                      case res of
@@ -1451,6 +1462,7 @@ normalizePath = id
 versionInfo :: [String] -> Maybe String -> String -> IO ()
 versionInfo features mbScriptingEngineName suffix = do
   defaultDatadir <- defaultUserDataDir
+  dataDirs <- either (const []) id <$> runIO getDataDirs
   let featuresLine = if null features
                        then []
                        else ["Features: " ++ unwords features]
@@ -1461,6 +1473,8 @@ versionInfo features mbScriptingEngineName suffix = do
     ["pandoc " ++ showVersion pandocVersion ++ suffix] ++
     featuresLine ++
     scriptingLine ++
-    ["User data directory: " ++ defaultDatadir,
-     copyrightMessage]
+    ["User data directory: " ++ defaultDatadir] ++
+    ["Additional data directories: " ++
+       intercalate [searchPathSeparator] dataDirs | not (null dataDirs)] ++
+    [copyrightMessage]
   exitSuccess
