@@ -439,6 +439,18 @@ tests = [ testGroup "document"
             "move text (all)"
             "docx/track_changes_move.docx"
             "docx/track_changes_move_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "spaces at the edges of changes stay in the span (all)"
+            "docx/track_changes_edge_spaces.docx"
+            "docx/track_changes_edge_spaces_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "spaces at the edges of changes (accept)"
+            "docx/track_changes_edge_spaces.docx"
+            "docx/track_changes_edge_spaces_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "spaces at the edges of changes (reject)"
+            "docx/track_changes_edge_spaces.docx"
+            "docx/track_changes_edge_spaces_reject.native"
           , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
             "comments (accept -- no comments)"
             "docx/comments.docx"
