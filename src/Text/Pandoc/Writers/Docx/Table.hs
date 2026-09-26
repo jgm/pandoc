@@ -178,7 +178,9 @@ tableLayout specs =
     rowwidth  = round (fullrow * sum widths) :: Int
     widthToTwips w = floor (textwidth * w)   :: Int
     mkGridCol w = mknode "w:gridCol" [("w:w", tshow (widthToTwips w))] ()
-  in if all (== 0) widths
+    -- A "mixed" table with both default and given widths is treated as
+    -- a table with all default widths.
+  in if any (== 0) widths
      then ( replicate ncols $ mkGridCol (1.0 / fromIntegral ncols)
           , [ ("w:type", "auto"), ("w:w", "0")])
      else ( map mkGridCol widths
