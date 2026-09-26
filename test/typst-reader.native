@@ -204,11 +204,11 @@ Pandoc
                       , Space
                       , Str "Undergrads"
                       ]
-                  , SoftBreak
                   ]
                   ( "https://github.com/johanvx/typst-undergradmath"
                   , ""
                   )
+              , SoftBreak
               ]
           ]
       , Para
@@ -5421,5 +5421,140 @@ Pandoc
               }
           ]
           [ Str "[brown01]" ]
+      ]
+  , Header
+      1
+      ( "" , [] , [] )
+      [ Str "Inline"
+      , Space
+      , Str "elements"
+      , Space
+      , Str "across"
+      , Space
+      , Str "paragraphs"
+      ]
+  , Para [ Emph [ Str "hi" ] ]
+  , Para [ Emph [ Str "there" ] ]
+  , Para [ Str "Hello" , Space , Strong [ Str "again" ] ]
+  , Para
+      [ Strong [ Str "and" , Space , Str "again" ]
+      , Space
+      , Str "world."
+      ]
+  , Para [ Underline [ Str "Para" , Space , Str "one." ] ]
+  , Para [ Underline [ Str "Para" , Space , Str "two." ] ]
+  , Header
+      2
+      ( "" , [] , [] )
+      [ SmallCaps [ Str "smallcaps" , Space , Str "heading" ] ]
+  , Header
+      1
+      ( "" , [] , [] )
+      [ Str "More"
+      , Space
+      , Str "inline"
+      , Space
+      , Str "elements"
+      , Space
+      , Str "across"
+      , Space
+      , Str "paragraphs"
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "link" , Space , Str "one" ]
+          ( "https://example.com/typst" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "link" , Space , Str "two" ]
+          ( "https://example.com/typst" , "" )
+      ]
+  , Para [ Emph [ Str "hi" , Space ] ]
+  , Para [ Emph [ Str "struck" , Space , Str "middle" ] ]
+  , Para [ Emph [ Space , Str "there" ] ]
+  , Para [ Str "mixed" , Space , Str "case" ]
+  , Para [ Str "also" , Space , Str "here" ]
+  , DefinitionList
+      [ ( [ Str "term" ]
+        , [ [ Para [ Emph [ Str "term" , Space , Str "one" ] ]
+            , Para [ Emph [ Str "term" , Space , Str "two" ] ]
+            ]
+          ]
+        )
+      ]
+  , Para [ Str "Edge" , Space , Str "case" ]
+  , Para
+      [ Emph [ Str "split" , Space , Str "here" ]
+      , Space
+      , Str "continues."
+      ]
+  , Header
+      1
+      ( "" , [] , [] )
+      [ Str "Splitting"
+      , Space
+      , Str "edge"
+      , Space
+      , Str "cases"
+      ]
+  , Para [ Span ( "edge-label" , [] , [] ) [] ]
+  , Para
+      [ Str "Trailing"
+      , Space
+      , Str "edge"
+      , Space
+      , Emph [ Str "splits" ]
+      ]
+  , Para [ Emph [ Str "here" ] , Space , Str "continues." ]
+  , Para
+      [ Str "Consecutive"
+      , Space
+      , Str "breaks"
+      , Space
+      , Emph [ Str "a" ]
+      ]
+  , Para [ Emph [ Str "b" ] , Space , Str "end." ]
+  , Para [ Str "Vanishing" ]
+  , Para [ Str "body." ]
+  , Para
+      [ Emph [ Underline [ Str "nested" , Space , Str "one" ] ] ]
+  , Para
+      [ Emph [ Underline [ Str "nested" , Space , Str "two" ] ] ]
+  , Para [ Emph [ Str "a" , Space ] ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "cell" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Emph [ Space , Str "c" ] ]
+  , Para
+      [ Str "Ref"
+      , Space
+      , Str "supplement:"
+      , Space
+      , Link
+          ( "" , [ "ref" ] , [] )
+          [ Str "see" , Space , Str "this" , Space , Str "section" ]
+          ( "#edge-label" , "" )
+      , Str "."
       ]
   ]
