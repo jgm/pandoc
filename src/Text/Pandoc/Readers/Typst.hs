@@ -591,7 +591,7 @@ inlineHandlers = M.fromList
       B.spanWith ("", ["mark"], []) <$> pWithContents pInlines body)
   ,("quote", InlineHandler $ \_ _ fields -> do
       (getField "block" fields <|> pure False) >>= guard . not
-      body <- getInlineBody fields >>= pWithContents pInlines
+      body <- getField "body" fields >>= pWithContents pInlines
       pure $ B.doubleQuoted $ B.trimInlines body)
   ,("link", InlineHandler $ \_ _ fields -> do
       dest <- getField "dest" fields
@@ -670,17 +670,6 @@ inlineHandlers = M.fromList
                     _ -> []
       pure $ B.spanWith ("", ["rotate"], kvs) body)
   ]
-
-getInlineBody :: PandocMonad m => M.Map Identifier Val -> P m (Seq Content)
-getInlineBody fields =
-  parbreaksToLinebreaks <$> getField "body" fields
-
-parbreaksToLinebreaks :: Seq Content -> Seq Content
-parbreaksToLinebreaks =
-  fmap go . Seq.dropWhileL isParbreak . Seq.dropWhileR isParbreak
- where
-   go (Elt "parbreak" pos _) = Elt "linebreak" pos mempty
-   go x = x
 
 pPara :: PandocMonad m => P m B.Blocks
 pPara = do
