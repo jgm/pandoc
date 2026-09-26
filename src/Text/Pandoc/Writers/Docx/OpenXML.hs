@@ -377,18 +377,10 @@ blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]
 blocksToOpenXML opts bs = do
   oldFirstPara <- gets stFirstPara
   modify $ \st -> st{ stFirstPara = True }
-  result <- blocksToOpenXMLKeepingFirstPara opts bs
+  result <- concat <$> mapM (blockToOpenXML opts)
+            (separateTables (filter (not . isForeignRawBlock) bs))
   modify $ \st -> st{ stFirstPara = oldFirstPara }
   pure result
-
--- | Convert a list of Pandoc blocks to OpenXML without touching the
--- first-paragraph state; for containers that are transparent to the
--- document's structure, like mark divs.
-blocksToOpenXMLKeepingFirstPara :: (PandocMonad m)
-                                => WriterOptions -> [Block] -> WS m [Content]
-blocksToOpenXMLKeepingFirstPara opts bs =
-  concat <$> mapM (blockToOpenXML opts)
-           (separateTables (filter (not . isForeignRawBlock) bs))
 
 isForeignRawBlock :: Block -> Bool
 isForeignRawBlock (RawBlock format _) = format /= "openxml"
@@ -444,12 +436,6 @@ blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
--- Match on class membership, not exact attributes: makeSections
--- merges the classes of header-leading divs (e.g. ["section","mark"]).
--- Other div attributes are not combined with the highlight.
-blockToOpenXML' opts (Div (_,classes,_) bs) | "mark" `elem` classes =
-  withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
-    blocksToOpenXMLKeepingFirstPara opts bs
 blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just (fromString . T.unpack -> sty) -> do

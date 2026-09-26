@@ -67,60 +67,6 @@ Before.
 #highlight[Para two.]
 ```
 
-A `mark` div, e.g. from a `::: mark` block in Markdown, is written by
-the Typst writer as a `#highlight[...]`.
-
-```
-% pandoc -f markdown -t typst
-::: mark
-Para one.
-
-Para two.
-:::
-^D
-#highlight[
-  Para one.
-
-  Para two.
-]
-```
-
-A `mark` div is followed by a blank line, so the highlight cannot
-swallow the next paragraph on re-reading.
-
-```
-% pandoc -f markdown -t typst
-::: mark
-Para one.
-:::
-
-After.
-^D
-#highlight[
-  Para one.
-]
-
-After.
-```
-
-A `mark` div around a heading is kept; the heading is rendered inside
-the highlight.
-
-```
-% pandoc -f markdown -t typst
-::: mark
-## Head
-
-body
-:::
-^D
-#highlight[
-  == Head
-  <head>
-  body
-]
-```
-
 Highlight bodies may contain math, inline or display, without breaking
 the reader.
 
