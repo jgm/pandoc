@@ -377,10 +377,18 @@ blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]
 blocksToOpenXML opts bs = do
   oldFirstPara <- gets stFirstPara
   modify $ \st -> st{ stFirstPara = True }
-  result <- concat <$> mapM (blockToOpenXML opts)
-            (separateTables (filter (not . isForeignRawBlock) bs))
+  result <- blocksToOpenXMLKeepingFirstPara opts bs
   modify $ \st -> st{ stFirstPara = oldFirstPara }
   pure result
+
+-- | Convert a list of Pandoc blocks to OpenXML without touching the
+-- first-paragraph state; for containers that are transparent to the
+-- document's structure, like mark divs.
+blocksToOpenXMLKeepingFirstPara :: (PandocMonad m)
+                                => WriterOptions -> [Block] -> WS m [Content]
+blocksToOpenXMLKeepingFirstPara opts bs =
+  concat <$> mapM (blockToOpenXML opts)
+           (separateTables (filter (not . isForeignRawBlock) bs))
 
 isForeignRawBlock :: Block -> Bool
 isForeignRawBlock (RawBlock format _) = format /= "openxml"
@@ -436,6 +444,9 @@ blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
+blockToOpenXML' opts (Div (_,classes,_) bs) | "mark" `elem` classes =
+  withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
+    blocksToOpenXMLKeepingFirstPara opts bs
 blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
   when ("math" `elem` classes) $ setFirstPara
   stylemod <- case lookup dynamicStyleKey kvs of
@@ -625,7 +636,9 @@ blockToOpenXML' opts (Figure (ident, _, _) (Caption _ longcapt) body) = do
     [Plain [img@Image {}]] -> simpleImage img
     [Para  [img@Image {}]] -> simpleImage img
     _                      -> toFigureTable opts body
-  -- Caption
+  -- Caption: APA shape, as for tables (see Table.addLabel): the
+  -- supplement ("Figure 3") is its own bold paragraph, and the caption
+  -- body's first paragraph (the title) is italicized.
   let imageCaption = withParaPropM (pStyleM "Image Caption")
                    . blocksToOpenXML opts
   let fstCaptionPara inlns = Para $
