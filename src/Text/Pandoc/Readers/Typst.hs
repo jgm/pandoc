@@ -344,6 +344,9 @@ blockHandlers = M.fromList
       let attr = (fromMaybe "" mbident, maybe [] (\l -> [l]) mblang, [])
       pure $ B.codeBlockWith attr txt)
   ,("parbreak", BlockHandler $ \_ _ _ -> pure mempty)
+  ,("par", BlockHandler $ \_ mbident fields -> do
+      maybe B.para (\ident -> B.divWith (ident, [], []) . B.para) mbident
+        <$> (getField "body" fields >>= pWithContents pInlines))
   ,("block", BlockHandler $ \_ mbident fields ->
       maybe id (\ident -> B.divWith (ident, [], [])) mbident
         <$> (getField "body" fields >>= pWithContents pBlocks))
