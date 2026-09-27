@@ -7,7 +7,7 @@ constraints: skylighting-format-blaze-html >= 0.1.2.2,
              auto-update >= 0.2.6,
              crypton >= 2.0.1
 
-allow-newer: hslua-module-zip:zip-archive,gridtables:doclayout,djot:doclayout,hslua-module-doclayout:doclayout
+allow-newer: hslua-module-zip:zip-archive,gridtables:doclayout,djot:doclayout,hslua-module-doclayout:doclayout,serialise:base
 
 if arch(wasm32)
   tests: False

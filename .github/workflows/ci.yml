@@ -64,6 +64,9 @@ jobs:
           - ghc: '9.12'
             cabal: 'latest'
             cabalopts: '--ghc-option=-Werror -f-embed_data_files'
+          - ghc: '9.14'
+            cabal: 'latest'
+            cabalopts: '--ghc-option=-Werror'
 
     steps:
     - uses: actions/checkout@v7
