@@ -24,7 +24,9 @@ module Text.Pandoc.XML.Light.Output
   , showElement
   , showContent
   , useShortEmptyTags
+  , useInlineTags
   , defaultConfigPP
+  , prettyConfigPP
   , ConfigPP(..)
   ) where
 
@@ -46,6 +48,7 @@ xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 --------------------------------------------------------------------------------
 data ConfigPP = ConfigPP
   { shortEmptyTag :: QName -> Bool
+  , inlineTag     :: QName -> Bool
   , prettify      :: Bool
   }
 
@@ -53,6 +56,7 @@ data ConfigPP = ConfigPP
 --  * Always use abbreviate empty tags.
 defaultConfigPP :: ConfigPP
 defaultConfigPP = ConfigPP { shortEmptyTag = const True
+                           , inlineTag     = const False
                            , prettify      = False
                            }
 
@@ -62,6 +66,12 @@ defaultConfigPP = ConfigPP { shortEmptyTag = const True
 -- empty tags should always be displayed in the <TAG></TAG> form.
 useShortEmptyTags :: (QName -> Bool) -> ConfigPP -> ConfigPP
 useShortEmptyTags p c = c { shortEmptyTag = p }
+
+-- | The predicate specifies which tags should be treated as inline:
+-- when pretty-printing, the whole content of an inline element is
+-- kept on a single line, so that no whitespace is added inside it.
+useInlineTags :: (QName -> Bool) -> ConfigPP -> ConfigPP
+useInlineTags p c = c { inlineTag = p }
 
 
 -- | Specify if we should use extra white-space to make document more readable.
@@ -118,30 +128,51 @@ ppContentS c i x = case x of
                      CRef r -> showCRefS r
 
 ppElementS         :: ConfigPP -> Indent -> Element -> TextBuilder
-ppElementS c i e = i <> tagStart (elName e) (elAttribs e) <>
+ppElementS c i e = i <> ppElementS' c i e
+
+-- | Like ppElementS, but without indentation before the element
+-- itself.  The indentation is still passed down, so that block-level
+-- elements nested inside an inline element are indented properly.
+ppElementS'        :: ConfigPP -> Indent -> Element -> TextBuilder
+ppElementS' c i e = tagStart (elName e) (elAttribs e) <>
   (case elContent e of
     [] | "?" `T.isPrefixOf` qName name -> text " ?>"
        | shortEmptyTag c name  -> text " />"
-    [Text t] -> char '>' <> ppCDataS c mempty t <> tagEnd name
-    cs -> char '>' <> nl <>
+    [Text t] -> char '>' <>
+                ppCDataS' c (if inlineTag c name then i else mempty) t <>
+                tagEnd name
+    cs | inlineTag c name ->
+          char '>' <> mconcat (map inlineContent cs) <> tagEnd name
+       | otherwise ->
+          char '>' <> nl <>
           mconcat (map ((<> nl) . ppContentS c (sp <> i)) cs) <>
           i <> tagEnd name
       where (nl,sp)  = if prettify c
                           then (text "\n", text "  ")
                           else (mempty, mempty)
+            -- content of an inline element: no indentation is
+            -- emitted, so that no whitespace is added to the content
+            inlineContent (Elem el) = ppElementS' c i el
+            inlineContent (Text t)  = ppCDataS' c i t
+            inlineContent (CRef r)  = showCRefS r
   )
   where name = elName e
 
 ppCDataS           :: ConfigPP -> Indent -> CData -> TextBuilder
-ppCDataS c i t     = i <> if cdVerbatim t /= CDataText || not (prettify c)
-                             then showCDataS t
-                             -- add indentation after newlines; escaping
-                             -- neither adds nor removes newlines, so we
-                             -- can split the unescaped text
-                             else mconcat
-                                  (intersperse (char '\n' <> i)
-                                    (map escStr
-                                      (T.split (=='\n') (cdData t))))
+ppCDataS c i t     = i <> ppCDataS' c i t
+
+-- | Like ppCDataS, but without indentation before the text itself.
+-- The indentation is still used after newlines in the text.
+ppCDataS'          :: ConfigPP -> Indent -> CData -> TextBuilder
+ppCDataS' c i t    = if cdVerbatim t /= CDataText || not (prettify c)
+                        then showCDataS t
+                        -- add indentation after newlines; escaping
+                        -- neither adds nor removes newlines, so we
+                        -- can split the unescaped text
+                        else mconcat
+                             (intersperse (char '\n' <> i)
+                               (map escStr
+                                 (T.split (=='\n') (cdData t))))
 
 
 
