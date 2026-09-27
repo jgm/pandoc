@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 --   Module      : Text.Pandoc.Writers.XML
@@ -18,6 +20,7 @@ import Data.Map (Map, toList)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Version (versionBranch)
+import GHC.Generics
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (..))
@@ -65,13 +68,27 @@ elementWithAttributes tag attributes =
 elementWithAttrAndContents :: T.Text -> PandocAttr -> [Content] -> Element
 elementWithAttrAndContents tag attr contents = addAttrAttributes attr $ elementWithContents tag contents
 
-itemName :: (Show a) => a -> T.Text
-itemName a = T.pack $ takeWhile (/= ' ') (show a)
+-- | Extract the name of a value's constructor via GHC.Generics.
+class GConName f where
+  gConName :: f p -> String
+
+instance (GConName f) => GConName (M1 D d f) where
+  gConName (M1 x) = gConName x
+
+instance (GConName f, GConName g) => GConName (f :+: g) where
+  gConName (L1 x) = gConName x
+  gConName (R1 x) = gConName x
+
+instance (Constructor c) => GConName (M1 C c f) where
+  gConName = conName
+
+itemName :: (Generic a, GConName (Rep a)) => a -> T.Text
+itemName = T.pack . gConName . from
 
 intAsText :: Int -> T.Text
 intAsText i = T.pack $ show i
 
-itemAsEmptyElement :: (Show a) => a -> Element
+itemAsEmptyElement :: (Generic a, GConName (Rep a)) => a -> Element
 itemAsEmptyElement item = emptyElement $ itemName item
 
 pandocToXmlText :: Pandoc -> T.Text
@@ -89,31 +106,33 @@ pandocToXmlText (Pandoc (Meta meta) blocks) = with_header . with_blocks . with_m
 -- significant whitespace is added inside them.
 configPP :: ConfigPP
 configPP = useInlineTags (isInlineTag . qName) prettyConfigPP
-  where
-    isInlineTag t =
-      t
-        `elem` [ "Para",
-                 "Plain",
-                 "Header",
-                 "MetaInlines",
-                 "Emph",
-                 "Strong",
-                 "Strikeout",
-                 "Superscript",
-                 "Subscript",
-                 "SmallCaps",
-                 "Underline",
-                 "Quoted",
-                 "Cite",
-                 "Link",
-                 "Image",
-                 "Span",
-                 tgNameLineItem,
-                 tgNameDefListTerm,
-                 tgNameCitationPrefix,
-                 tgNameCitationSuffix,
-                 tgNameShortCaption
-               ]
+
+-- | Check whether a tag is for an element with inline content.
+isInlineTag :: T.Text -> Bool
+isInlineTag t =
+  case t of
+    "Para" -> True
+    "Plain" -> True
+    "Header" -> True
+    "MetaInlines" -> True
+    "Emph" -> True
+    "Strong" -> True
+    "Strikeout" -> True
+    "Superscript" -> True
+    "Subscript" -> True
+    "SmallCaps" -> True
+    "Underline" -> True
+    "Quoted" -> True
+    "Cite" -> True
+    "Link" -> True
+    "Image" -> True
+    "Span" -> True
+    _ ->
+      t == tgNameLineItem
+        || t == tgNameDefListTerm
+        || t == tgNameCitationPrefix
+        || t == tgNameCitationSuffix
+        || t == tgNameShortCaption
 
 metaMapToXML :: Map T.Text MetaValue -> T.Text -> [Content]
 metaMapToXML mmap tag = asContents $ elementWithContents tag entries
@@ -163,10 +182,16 @@ mergeTextNodes [] = []
 -- newline), so runs like " \n" or "\n\n" would not roundtrip: encode
 -- them as sequences of Space and SoftBreak elements instead.
 wsRunsAsElements :: Content -> [Content]
-wsRunsAsElements (Text (CData CDataText t _)) =
-  go [] (T.groupBy (\a b -> isWs a == isWs b) t)
+wsRunsAsElements (Text (CData CDataText t _))
+  | hasLongWsRun = go [] (T.groupBy (\a b -> isWs a == isWs b) t)
   where
-    isWs c = c == ' ' || c == '\n'
+    isWs ch = ch == ' ' || ch == '\n'
+    -- a whitespace run needs encoding only if it is longer than one
+    -- character (single-character runs are " " or "\n", which are
+    -- kept); the common case of no such run avoids the work below
+    hasLongWsRun = fst $ T.foldl' adjacent (False, False) t
+    adjacent (found, prevWs) ch =
+      let ws = isWs ch in (found || (prevWs && ws), ws)
     keep r = r == " " || r == "\n" || not (T.any isWs r)
     go acc (r : rs)
       | keep r = go (r : acc) rs
@@ -364,7 +389,7 @@ addCitations citations el = appendContents [Elem $ elementWithContents tgNameCit
           map
             (\(n, v) -> XML.Attr (unqual n) v)
             [ ("id", citationId citation),
-              (atNameCitationMode, T.pack $ show $ citationMode citation),
+              (atNameCitationMode, itemName $ citationMode citation),
               (atNameCitationNoteNum, intAsText $ citationNoteNum citation),
               (atNameCitationHash, intAsText $ citationHash citation)
             ]
