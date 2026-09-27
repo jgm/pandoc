@@ -7,8 +7,6 @@ constraints: skylighting-format-blaze-html >= 0.1.2.2,
              auto-update >= 0.2.6,
              crypton >= 2.0.1
 
-allow-newer: hslua-module-zip:zip-archive,gridtables:doclayout,djot:doclayout,hslua-module-doclayout:doclayout
-
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
 if impl(ghc >= 9.14)
