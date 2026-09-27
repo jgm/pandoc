@@ -34,9 +34,6 @@
     <w:basedOn w:val="BodyText" />
     <w:next w:val="BodyText" />
     <w:qFormat />
-    <w:pPr>
-      <w:ind w:firstLine="0"/>
-    </w:pPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Compact">
     <w:name w:val="Compact" />
