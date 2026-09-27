@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc UNRELEASED (DATE)
+## pandoc 3.12 (2026-09-27)
 
   * Markdown reader:
 
