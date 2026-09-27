@@ -712,6 +712,8 @@ collapseAdjacentCites = B.fromList . foldr go [] . B.toList
      Cite (cs1 ++ cs2) (ils1 <> ils2) : xs
    go (Cite cs1 ils1) (Space : Cite cs2 ils2 : xs) =
      Cite (cs1 ++ cs2) (ils1 <> ils2) : xs
+   go (Cite cs1 ils1) (SoftBreak : Cite cs2 ils2 : xs) =
+     Cite (cs1 ++ cs2) (ils1 <> ils2) : xs
    go x xs = x:xs
 
 modString :: (Text -> Text) -> B.Inline -> B.Inline
