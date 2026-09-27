@@ -32,6 +32,10 @@
     + In `pInline`, only perform the label-target check for
       `ref` elements, not for every inline element.
     + Handle `highlight` as a mark span (#11879, Samuel Huang).
+    + Collapse citations around soft break (#11897).
+    + Handle block content in inline element bodies (#11881,
+      Samuel Huang).
+    + Handle `#par` (explicit paragraph element).
 
   * LaTeX reader:
 
@@ -210,6 +214,13 @@
     + Cache token-type styles instead of rebuilding per Code.
       On an ad hoc benchmark with 100K inline code spans,
       conversion time drops from 2.4s to 1.5s.
+    + Add FirstParagraph class after display math (#11900).
+      This way the continuation text can be styled flush-left
+      in a style where normal paragraphs are indented.
+    + Treat a "mixed" widths table as all-default (#11899). Previously if
+      some columns were ColWidthDefault and others ColWidth 0.x,
+      we would get columns with a specified width of 0 for the default
+      ones. Instead, treat all columns as default in this case.
 
   * TEI writer:
 
@@ -615,6 +626,11 @@
 
     + Fix plugin paths (#11907).
 
+  * reference.docx: set FirstParagraph style to have first-line
+    indent of 0. That doesn't make a difference with the default
+    settings for BodyText (no indent), but it saves a step for
+    people who want to modify BodyText to indent.
+
   * flake.nix: parse allow-newer and allow-newer-deps in
     stack.yaml.
 
@@ -664,6 +680,8 @@
 
   * `typst-properties.md`: fix fill syntax in Typst property
     examples (#11855, zenor0).
+
+  * Remove tested-with from cabal file. We tend not to keep it up to date.
 
   * Fix typo in Lua filter example (#11875, Andonome).
 
