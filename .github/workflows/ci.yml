@@ -64,6 +64,11 @@ jobs:
           - ghc: '9.12'
             cabal: 'latest'
             cabalopts: '--ghc-option=-Werror -f-embed_data_files'
+          - ghc: '9.14'
+            cabal: 'latest'
+            # -fhttp: on base 4.22 the solver otherwise prefers
+            # disabling the http flag to using allow-newer
+            cabalopts: '--ghc-option=-Werror -fhttp'
 
     steps:
     - uses: actions/checkout@v7
