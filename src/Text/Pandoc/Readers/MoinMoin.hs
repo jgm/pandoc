@@ -1,0 +1,443 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts           #-}
+-- ^^ needed temp for enclosed'
+{- |
+   Module      : Text.Pandoc.Readers.MoinMoin
+   Copyright   : Copyright © 2026 Jonathan Dowland, © 2009-2011 Simon Michael, © 22006-2024 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Jonathan Dowland <jmtd@debian.org>
+   Stability   : alpha
+   Portability : portable
+
+Conversion of MoinMoin text to 'Pandoc' document.
+-}
+
+module Text.Pandoc.Readers.MoinMoin( readMoinMoin ) where
+
+import Control.Monad (guard)
+import Control.Monad.Except (throwError)
+import Data.Char -- isUpper, isAlphaNum
+import Data.Maybe (fromMaybe)
+import Text.Pandoc.Definition
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class (runPure, PandocPure (..)) -- debug
+import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Parsing
+import Text.Pandoc.Readers.MoinMoin.Highlight
+import qualified Text.Pandoc.Builder as B
+import qualified Data.Text as T
+import Data.Either (fromRight)
+
+-- | Read MoinMoin from an input string and return a Pandoc document.
+readMoinMoin :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
+readMoinMoin opts s = do
+  let sources = toSources s
+  parsed <- readWithM parseMoinMoin defaultMoinState sources
+  case parsed of
+    Left  err -> throwError err
+    Right res -> return res
+
+data MoinState = MoinState { mmMeta :: Meta } deriving Show
+defaultMoinState = MoinState nullMeta
+
+type MoinParser m = ParsecT Sources MoinState m
+
+parseMoinMoin :: PandocMonad m => MoinParser m Pandoc
+parseMoinMoin = do
+  many processingInstruction
+  blocks <- mconcat <$> many block
+  spaces
+  eof
+
+  st <- getState
+  let meta = mmMeta st
+
+  -- reportLogMessages -- could not deduce 'HasLogMessages MoinState'
+  return $ Pandoc meta (B.toList blocks)
+
+{-
+ - we may wish to handle:
+ -  #format creole|plain|python|rst|<any installed parser name>
+ -  #REDIRECT | #refresh Xs <target>
+ -  #pragma
+ -    section-numbers (headings)
+ -    keywords => meta keywords
+ -    description => meta description
+ -  #DEPRECATED
+ -  #language (iso-639-1 code)
+ -
+ - -}
+processingInstruction :: PandocMonad m => MoinParser m ()
+processingInstruction = do
+  char '#'
+  manyUntil anyChar newline
+  return ()
+
+-- technically a processing instruction but can occur anywhere
+-- in a page
+comment :: PandocMonad m => MoinParser m B.Blocks
+comment = try $ do
+  string "##"
+  manyUntil anyChar newline
+  return mempty
+
+block :: PandocMonad m => MoinParser m B.Blocks
+block = do
+  res <- mempty <$ skipMany1 blankline
+     <|> header
+     <|> comment
+     <|> bulletList
+     <|> parser
+     <|> para
+  return res
+
+-- from Readers.Mediawiki
+header :: PandocMonad m => MoinParser m B.Blocks
+header = try $ do
+  guardColumnOne
+  lev <- length <$> many1 (char '=')
+  contents <- B.trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
+  return $ B.header (min 5 lev) contents
+
+-- from Readers.Mediawiki
+guardColumnOne :: PandocMonad m => MoinParser m ()
+guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
+
+-- from Readers.Mediawiki
+para :: PandocMonad m => MoinParser m B.Blocks
+para = do
+  contents <- B.trimInlines . mconcat <$> many1 inline
+  return $ B.para contents
+
+bulletList :: PandocMonad m => MoinParser m B.Blocks
+bulletList = many1 bulletListItem >>= return . B.bulletList
+
+bulletListItem :: PandocMonad m => MoinParser m B.Blocks
+bulletListItem = try $ do
+  lev <- length <$> many1 space
+  char '*'
+  spaces
+  B.plain . B.trimInlines . mconcat <$> manyTill inline newline
+
+-- could use Text.Pandoc.Parsing.spaceChar??
+spaceNotNL :: PandocMonad m => MoinParser m Char
+spaceNotNL = satisfy (\c -> isSpace c && not (c == '\n'))
+
+-- block-level MoinMoin 'Parser'.
+-- Not to be confused with 'code' (inline)
+parser :: PandocMonad m => MoinParser m B.Blocks
+parser = try $ do
+  open  <- many (char '{')
+  open2 <- many (satisfy isWordChar)
+  let len = length open
+  guard (len >= 3)
+
+  pspec <- optionMaybe (try parserHashBang)
+  many spaceNotNL
+  char '\n'
+
+  let delim = open2 ++ (take len (repeat '}'))
+
+  case pspec of
+    Just (ParserWiki args) -> do
+      inner <- manyTill block (closer delim)
+      let attr = ("", args, [])
+      (return . B.divWith attr . mconcat) inner
+
+    Just (ParserHighlight lang) -> do
+      let attr = ("", [lang], [])
+      manyTillChar anyChar (closer delim) >>= return . B.codeBlockWith attr
+
+    _ -> manyTillChar anyChar (closer delim) >>= return . B.codeBlock
+
+  where
+    closer delim = try $ do
+      char '\n'
+      many spaceNotNL
+      string delim
+
+-- intended to be equivalent to Python2 re '\w' with re.UNICODE set
+isWordChar :: Char -> Bool
+isWordChar c = isAlphaNum c || c  == '_'
+
+-- Moin supports (at least) creole, csv (table builder), docbook, highlight, html,
+-- wiki, rst, text (plain: <pre>) and xslt. The following names are deprecated
+-- shorthand for highlight (the name is converted to the argument to highlight):
+-- C++, diff, IRC(irssi), java, pascal, python:
+--
+-- for now we only support wiki (moin native format) and plain text.
+data ParserSpec = ParserWiki [T.Text]
+                | ParserText
+                | ParserHighlight T.Text
+                | ParserUnsupported
+                deriving (Show, Eq)
+
+parserHashBang :: PandocMonad m => MoinParser m ParserSpec
+parserHashBang = do
+  string "#!"
+  parserName <- many (satisfy isWordChar)
+  parserArgs <- optionMaybe $ try $ do
+    many1 spaceNotNL
+    many1 (satisfy (/='\n'))
+
+  let tParserName = T.pack parserName
+
+  return $ case parserName of
+      "wiki"      -> ParserWiki (unmangleWikiArgs parserArgs)
+
+      "highlight" -> ParserHighlight (highlightArgs parserArgs)
+      -- these are pre Moin-1.9 shortcuts to highlight
+      "diff"      -> ParserHighlight "diff"
+      "cplusplus" -> ParserHighlight "cpp"
+      "python"    -> ParserHighlight "python"
+      "java"      -> ParserHighlight "java"
+      -- no sensible Pandoc highlighter to map these to
+      "pascal"    -> ParserHighlight "default"
+      "irc"       -> ParserHighlight "default"
+
+      "text"      -> ParserText
+      ""          -> ParserText
+      _           -> ParserUnsupported
+
+test_parserHashBang_noNL_in_args1 = p1 parserHashBang "#!wiki\nremaining" == Right (ParserWiki [])
+
+test_parserHashBang_noNL_in_args2 = p1 (parserHashBang >> many anyChar) "#!wiki\nremaining"
+  == Right "\nremaining"
+
+unmangleWikiArgs :: Maybe String -> [T.Text]
+unmangleWikiArgs Nothing = []
+unmangleWikiArgs (Just x) = (T.splitOn "/" . T.strip . T.pack) x
+
+highlightArgs :: Maybe String -> T.Text
+highlightArgs Nothing  = "default"
+highlightArgs (Just a) = (fromMaybe "default" . mmLangTopdLang . T.pack) a
+
+test_unmangleWikiArgs_simple     =  unmangleWikiArgs (Just "foo/bar") == ["foo","bar"]
+test_unmangleWikiArgs_prespace   =  unmangleWikiArgs (Just "       foo/bar") == ["foo","bar"]
+test_unmangleWikiArgs_postspace  =  unmangleWikiArgs (Just "foo/bar   ") == ["foo","bar"]
+test_unmangleWikiArgs_nowt       =  unmangleWikiArgs Nothing == []
+
+tests = and
+ [ test_unmangleWikiArgs_simple
+ , test_unmangleWikiArgs_prespace
+ , test_unmangleWikiArgs_postspace
+ , test_unmangleWikiArgs_nowt
+ , test_parserHashBang_noNL_in_args1
+ , test_parserHashBang_noNL_in_args2
+ ]
+
+inline :: PandocMonad m => MoinParser m B.Inlines
+inline =  whitespace
+      <|> camelCaseLink
+      <|> emailAddressLink
+      <|> uriLink
+      <|> str
+      <|> bold
+      <|> monospace
+      <|> italic
+      <|> underline
+      <|> superscript
+      <|> subscript
+      <|> smaller
+      <|> larger
+      <|> stroke
+      <|> externalLink
+      <|> inlineComment
+      <|> endline
+      <|> tableOfContents
+      <|> lineBreak
+      <|> anchor
+      <|> code
+      <|> include
+      <|> special
+
+-- from Readers.Mediawiki
+whitespace :: PandocMonad m => MoinParser m B.Inlines
+whitespace = B.space <$ skipMany1 spaceChar
+
+many2 :: PandocMonad m => MoinParser m a -> MoinParser m [a]
+many2 p = do
+  first <- p
+  rest  <- many1 p
+  return (first:rest)
+
+camelWord :: PandocMonad m => MoinParser m String
+camelWord = do
+  slash <- optionMaybe (char '/')
+  f     <- satisfy isUpper
+  rest  <- many1 (satisfy (\c -> isAlphaNum c && not (isUpper c)))
+  return $ case slash of
+    Nothing -> f:rest
+    Just s  -> s:f:rest
+
+camelCaseLink :: PandocMonad m => MoinParser m B.Inlines
+camelCaseLink = try $ do
+  src <- mconcat <$> many2 camelWord
+  let tsrc  = T.pack src
+  let title = ""
+  let label = B.str tsrc
+  return $ B.link tsrc title label
+
+emailAddressLink :: PandocMonad m => MoinParser m B.Inlines
+emailAddressLink = try $ do
+  (e, escaped_mailto_uri) <- emailAddress
+  return $ B.link escaped_mailto_uri "" $ B.str e
+
+uriLink :: PandocMonad m => MoinParser m B.Inlines
+uriLink = try $ do
+  (u, uri_escaped) <- uri
+  return $ B.link u "" $ B.str uri_escaped
+
+-- from Readers.Mediawiki
+str :: PandocMonad m => MoinParser m B.Inlines
+str = B.str <$> many1Char (noneOf $ specialChars ++ spaceChars)
+
+-- utility fn for most of the inline text formatters
+formatter :: PandocMonad m
+          => String
+          -> (B.Inlines -> B.Inlines)
+          -> MoinParser m B.Inlines
+formatter delim inliner =
+  enclosed delim' delim' inline >>= return . inliner . mconcat
+  where delim' = string delim
+
+italic      :: PandocMonad m => MoinParser m B.Inlines
+italic      = formatter ("''") B.emph
+
+-- this has broken "''''' hello world'''''"
+bold        :: PandocMonad m => MoinParser m B.Inlines
+bold        = try $ do
+  inner <- enclosed' delim delim inline
+  if null inner
+    then return (B.fromList [])
+    else (return . B.strong . mconcat) inner
+  where delim = string ("'''")
+        enclosed' start end parser = try $
+          start >> manyTill parser end
+
+monospace :: PandocMonad m => MoinParser m B.Inlines
+monospace = try $ do
+  char '`'
+  inner <- manyTill (noneOf "`\n") (char '`')
+  if null inner
+    then return (B.fromList [])
+    else (return . B.code . T.pack) inner
+
+underline   :: PandocMonad m => MoinParser m B.Inlines
+underline   = formatter ("__") B.underline
+superscript :: PandocMonad m => MoinParser m B.Inlines
+superscript = formatter "^" B.superscript
+subscript   :: PandocMonad m => MoinParser m B.Inlines
+subscript   = formatter ",," B.subscript
+-- smaller/larger: possibly mark the inlines with an attribute
+smaller :: PandocMonad m => MoinParser m B.Inlines
+smaller = enclosed (string "~-") (string "-~") inline >>=
+    return . mconcat
+
+larger :: PandocMonad m => MoinParser m B.Inlines
+larger = enclosed (string "~+") (string "+~") inline >>=
+    return . mconcat
+
+stroke :: PandocMonad m => MoinParser m B.Inlines
+stroke = enclosed (string "--(") (string ")--") inline >>=
+    return . B.strikeout . mconcat
+
+inlineComment :: PandocMonad m => MoinParser m B.Inlines
+inlineComment = do
+  string "/*"
+  manyTill anyChar (string "*/")
+  return mempty
+
+-- a newline that does not break a Para (etc)
+endline :: PandocMonad m => MoinParser m B.Inlines
+endline = try $ do
+  newline
+  notFollowedBy blankline
+  notFollowedBy (string "##")
+  notFollowedBy (string "}}}") -- to avoid breaking Parser
+  (eof >> return mempty)
+    <|> (skipMany spaceChar >> return B.softbreak)
+
+-- MoinMoin behaviour: insert the TOC at the point of the token.
+-- What we're doing here is not (yet) that.
+tableOfContents :: PandocMonad m => MoinParser m B.Inlines
+tableOfContents = try $ do
+  string "<<TableOfContents("
+  -- XXX: MoinMoin accepts and ignores levels >5
+  lvl <- optionMaybe (oneOf "12345")
+  case lvl of
+    Nothing -> return ()
+    Just l  -> updateState $ \st -> st
+      { mmMeta = B.setMeta "toclevel" [l] (mmMeta st) }
+  string ")>>"
+  updateState $ \st -> st { mmMeta = B.setMeta "toc" True (mmMeta st) }
+  return mempty
+
+lineBreak :: PandocMonad m => MoinParser m B.Inlines
+lineBreak = try $ string "<<BR>>" >> return B.linebreak
+
+anchor :: PandocMonad m => MoinParser m B.Inlines
+anchor = try $ do
+  string "<<Anchor("
+  name <- manyTill anyChar (try $ string ")>>")
+  return $ B.spanWith (T.pack name,[],[]) (B.fromList [])
+
+-- NOTE: not to be confused with 'parser' (block)
+code :: PandocMonad m => MoinParser m B.Inlines
+code = try $ do
+  string "{{{"
+  pre <- manyTillChar (noneOf "\n") (try $ string "}}}")
+  return $ B.code pre
+
+special :: PandocMonad m => MoinParser m B.Inlines
+special = B.str . T.singleton <$> oneOf specialChars
+
+-- MoinMoin < 1.6.0 (~2007-12) supported a single-bracket
+-- external link syntax. We don't attempt to support that.
+externalLink :: PandocMonad m => MoinParser m B.Inlines
+externalLink = do
+  string "[["
+  (src,label) <-  try labelledLink <|> unlabelledLink
+  --string "]]"
+  return $ B.link src "" $ B.str label
+  where
+    labelledLink = do
+      src <- manyTillChar (noneOf "|") (try (char '|'))
+      lbl <- manyTillChar (noneOf "]") (string "]]")
+      return (src,lbl)
+
+    unlabelledLink = do
+      src <- manyTillChar (noneOf "|") (string "]]")
+      return (src,src)
+
+-- the full syntax of this macro has comma-separated options, a modifier to switch
+-- from page names to regexps, etc., but we're not using any of that so we take a
+-- shortcut. Full details:
+-- <https://moinmo.in/HelpOnMacros/Include>
+include :: PandocMonad m => MoinParser m B.Inlines
+include = try $ do
+  string "<<Include("
+  manyTillChar (noneOf "\n") (try $ string ")>>") >>=
+    return . B.rawInline "moinmoin"
+
+-- from Readers.Mediawiki
+specialChars :: [Char]
+specialChars = "'[]<=&*{}|\":\\_^,~-+()/`#"
+
+-- from Readers.Mediawiki
+spaceChars :: [Char]
+spaceChars = " \n\t"
+
+------------------------------------------------------------------------------
+-- debug functions for use in GHCi
+
+p1 :: MoinParser PandocPure a -> T.Text -> Either ParseError a
+p1 p' = fromRight (error "unhandled PandocError")
+      . runPure
+      . runParserT p' defaultMoinState "?"
+      . toSources
+
+pp :: Monoid a
+   => MoinParser PandocPure a -> T.Text -> Either ParseError a
+pp = p1 . fmap mconcat . many
