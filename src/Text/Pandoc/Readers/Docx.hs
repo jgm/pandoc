@@ -412,14 +412,15 @@ parPartToInlines' (CommentStart cmtId author date bodyParts) = do
     AllChanges -> do
       blks <- smushBlocks <$> mapM bodyPartToBlocks bodyParts
       ils <- blocksToInlinesWarn cmtId blks
-      let attr = ("", ["comment-start"], ("id", cmtId) : addAuthorAndDate author date)
+      let attr = ("", ["comment-start"], ("comment-id", cmtId) :
+                    addAuthorAndDate author date)
       return $ spanWith attr ils
     _ -> return mempty
 parPartToInlines' (CommentEnd cmtId) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
-      let attr = ("", ["comment-end"], [("id", cmtId)])
+      let attr = ("", ["comment-end"], [("comment-id", cmtId)])
       return $ spanWith attr mempty
     _ -> return mempty
 parPartToInlines' (BookMark _ anchor) | anchor `elem` dummyAnchors =
