@@ -322,10 +322,10 @@ inlineToXML inline =
             with_attr = addAttrAttributes attr el
         Link (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttrAttributes (idn, cls, attrs ++ [(atNameLinkUrl, url), (atNameTitle, title)]) el
+            with_attr = addAttrAttributes (idn, cls, attrs ++ optionalAttribute atNameLinkUrl url ++ optionalAttribute atNameTitle title) el
         Image (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttrAttributes (idn, cls, attrs ++ [(atNameImageUrl, url), (atNameTitle, title)]) el
+            with_attr = addAttrAttributes (idn, cls, attrs ++ optionalAttribute atNameImageUrl url ++ optionalAttribute atNameTitle title) el
         RawInline (Format format) text -> asContents $ appendContents [text_node text] raw
           where
             raw = addAttribute atNameFormat format el
@@ -342,9 +342,14 @@ inlineToXML inline =
 
 -- TODO: don't let an attribute overwrite id or class
 maybeAttribute :: (T.Text, T.Text) -> Maybe XML.Attr
-maybeAttribute (_, "") = Nothing
 maybeAttribute ("", _) = Nothing
 maybeAttribute (name, value) = Just $ XML.Attr (unqual $ encodeAttrName name) value
+
+-- | An optional attribute, omitted when its value is empty (the
+-- reader treats a missing attribute as an empty value).
+optionalAttribute :: T.Text -> T.Text -> [(T.Text, T.Text)]
+optionalAttribute _ "" = []
+optionalAttribute name value = [(name, value)]
 
 validAttributes :: [(T.Text, T.Text)] -> [XML.Attr]
 validAttributes pairs = mapMaybe maybeAttribute pairs
@@ -366,7 +371,11 @@ addAttribute attr_name attr_value el = el {elAttribs = new_attr : elAttribs el}
 addAttrAttributes :: PandocAttr -> Element -> Element
 addAttrAttributes (identifier, classes, attributes) el = addAttributes attrs' el
   where
-    attrs' = mapMaybe maybeAttribute (("id", identifier) : ("class", T.intercalate " " classes) : attributes)
+    attrs' =
+      mapMaybe maybeAttribute $
+        optionalAttribute "id" identifier
+          ++ optionalAttribute "class" (T.intercalate " " classes)
+          ++ attributes
 
 addCitations :: [Citation] -> Element -> Element
 addCitations citations el = appendContents [Elem $ elementWithContents tgNameCitations $ concatMap citation_to_elem citations] el
