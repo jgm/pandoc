@@ -626,11 +626,6 @@
 
     + Fix plugin paths (#11907).
 
-  * reference.docx: set FirstParagraph style to have first-line
-    indent of 0. That doesn't make a difference with the default
-    settings for BodyText (no indent), but it saves a step for
-    people who want to modify BodyText to indent.
-
   * flake.nix: parse allow-newer and allow-newer-deps in
     stack.yaml.
 
