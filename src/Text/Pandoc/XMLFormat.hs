@@ -2,7 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Text.Pandoc.XMLFormat
-  ( atNameAlignment,
+  ( decodeAttrName,
+    encodeAttrName,
+    atNameAlignment,
     atNameApiVersion,
     atNameCitationHash,
     atNameCitationMode,
@@ -41,7 +43,93 @@ module Text.Pandoc.XMLFormat
   )
 where
 
+import Data.Char (chr, digitToInt, isAsciiLower, isAsciiUpper, isDigit, isHexDigit, ord, toUpper)
 import Data.Text (Text)
+import qualified Data.Text as T
+import Numeric (showHex)
+
+-- | Encode an attribute name so that it is a valid XML name.
+-- Characters that are not allowed in XML names -- and colons, which
+-- XML parsers treat as namespace separators -- are encoded as
+-- _xHHHH_, where HHHH is the hexadecimal code of the character
+-- (uppercase, at least four digits).  An underscore that introduces
+-- a literal "_x" is encoded as _x005F_, so that decoding is
+-- unambiguous.  For example, "typst:property" is encoded as
+-- "typst_x003A_property".
+encodeAttrName :: Text -> Text
+encodeAttrName name =
+  case T.unpack name of
+    [] -> name
+    c : cs
+      | isNameStartChar c && all isNameChar cs && not ("_x" `T.isInfixOf` name) ->
+          name
+      | otherwise ->
+          T.pack $ concat $ go isNameStartChar (c : cs)
+  where
+    go _ [] = []
+    go ok (c : cs)
+      | c == '_' && take 1 cs == "x" = encodeChar '_' : go isNameChar cs
+      | ok c = [c] : go isNameChar cs
+      | otherwise = encodeChar c : go isNameChar cs
+    encodeChar c = "_x" ++ replicate (4 - length h) '0' ++ h ++ "_"
+      where
+        h = map toUpper $ showHex (ord c) ""
+
+-- | Decode an attribute name encoded by 'encodeAttrName': _xHHHH_
+-- sequences (four to six hexadecimal digits) are decoded to the
+-- character with the given code.
+decodeAttrName :: Text -> Text
+decodeAttrName name
+  | "_x" `T.isInfixOf` name = T.concat $ go name
+  | otherwise = name
+  where
+    go t =
+      case T.breakOn "_x" t of
+        (pre, rest)
+          | T.null rest -> [pre]
+          | otherwise ->
+              let body = T.drop 2 rest
+                  digits = T.takeWhile isHexDigit body
+                  n = T.length digits
+                  code = T.foldl' (\acc d -> 16 * acc + digitToInt d) 0 digits
+               in if n >= 4
+                    && n <= 6
+                    && "_" `T.isPrefixOf` T.drop n body
+                    && validChar code
+                    then pre : T.singleton (chr code) : go (T.drop (n + 1) body)
+                    else pre : "_x" : go body
+    validChar code = code <= 0x10FFFF && not (code >= 0xD800 && code <= 0xDFFF)
+
+-- the XML NameStartChar production, without the colon (which XML
+-- parsers treat as a namespace separator)
+isNameStartChar :: Char -> Bool
+isNameStartChar c =
+  isAsciiUpper c
+    || isAsciiLower c
+    || c == '_'
+    || (c >= '\xC0' && c <= '\xD6')
+    || (c >= '\xD8' && c <= '\xF6')
+    || (c >= '\xF8' && c <= '\x2FF')
+    || (c >= '\x370' && c <= '\x37D')
+    || (c >= '\x37F' && c <= '\x1FFF')
+    || (c >= '\x200C' && c <= '\x200D')
+    || (c >= '\x2070' && c <= '\x218F')
+    || (c >= '\x2C00' && c <= '\x2FEF')
+    || (c >= '\x3001' && c <= '\xD7FF')
+    || (c >= '\xF900' && c <= '\xFDCF')
+    || (c >= '\xFDF0' && c <= '\xFFFD')
+    || (c >= '\x10000' && c <= '\xEFFFF')
+
+-- the XML NameChar production, without the colon
+isNameChar :: Char -> Bool
+isNameChar c =
+  isNameStartChar c
+    || isDigit c
+    || c == '-'
+    || c == '.'
+    || c == '\xB7'
+    || (c >= '\x300' && c <= '\x36F')
+    || (c >= '\x203F' && c <= '\x2040')
 
 -- the attribute carrying the API version of pandoc types in the main Pandoc element
 atNameApiVersion :: Text

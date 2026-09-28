@@ -344,7 +344,7 @@ inlineToXML inline =
 maybeAttribute :: (T.Text, T.Text) -> Maybe XML.Attr
 maybeAttribute (_, "") = Nothing
 maybeAttribute ("", _) = Nothing
-maybeAttribute (name, value) = Just $ XML.Attr (unqual name) value
+maybeAttribute (name, value) = Just $ XML.Attr (unqual $ encodeAttrName name) value
 
 validAttributes :: [(T.Text, T.Text)] -> [XML.Attr]
 validAttributes pairs = mapMaybe maybeAttribute pairs
