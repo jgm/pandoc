@@ -357,10 +357,7 @@ Pandoc
       , Str "attributes"
       ]
   , CodeBlock
-      ( ""
-      , []
-      , [ ( "class" , "python" ) , ( "style" , "color:blue" ) ]
-      )
+      ( "" , [ "python" ] , [ ( "style" , "color:blue" ) ] )
       " for i in range(1, 5):\n     print(i)"
   , Header
       3
