@@ -476,7 +476,7 @@ attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attribut
   where
     idn = attrValue "id" e
     classes = T.words $ attrValue "class" e
-    attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
+    attributes = map (\a -> (decodeAttrName $ qName $ attrKey a, attrVal a)) $ elAttribs e
 
 addMeta :: (PandocMonad m) => (ToMetaValue a) => Text -> a -> XMLReader m ()
 addMeta field val = modify (setMeta field val)
