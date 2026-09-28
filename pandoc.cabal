@@ -533,7 +533,7 @@ library
                  citeproc              >= 0.14     && < 0.15,
                  commonmark            >= 0.3.1    && < 0.4,
                  commonmark-extensions >= 0.2.7.3  && < 0.3,
-                 commonmark-pandoc     >= 0.3.0.1  && < 0.4,
+                 commonmark-pandoc     >= 0.3.0.2  && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
                  crypton               >= 0.30     && < 2.1,
                  data-default          >= 0.4      && < 0.9,
