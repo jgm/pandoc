@@ -856,16 +856,13 @@ inlineToOpenXML' opts (Span ("",["csl-right-inline"],[]) ils) =
 inlineToOpenXML' opts (Span ("",["csl-indent"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
-      kvs' = filter (("id" /=) . fst) kvs
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
+      kvs' = filter ((\x -> x /= "comment-id" && x /= "id") . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
   return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
 inlineToOpenXML' opts (Span (ident,["comment-end"],kvs) content) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
+  -- now we use comment-id, but support id for legacy compat:
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
   -- process nested content: see #8189
   nestedContent <- inlinesToOpenXML opts content
   let thisCommentEnd =
