@@ -18,6 +18,7 @@ module Text.Pandoc.XML.Light.Output
     ppTopElement
   , ppElement
   , ppContent
+  , ppcTopElement
   , ppcElement
   , ppcContent
   , showTopElement
