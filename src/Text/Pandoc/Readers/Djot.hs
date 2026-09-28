@@ -72,8 +72,11 @@ convertBlock (D.Node pos attr bl) =  addAttrToBlock pos attr <$>
     D.Section bls -> divWith ("",["section"],[]) <$> convertBlocks bls
     D.Heading lev ils -> header lev <$> convertInlines ils
     D.BlockQuote bls -> blockQuote <$> convertBlocks bls
-    D.CodeBlock lang bs -> pure $
-      codeBlockWith ("", [UTF8.toText lang], []) $ UTF8.toText bs
+    D.CodeBlock lang bs ->
+      let classes = case UTF8.toText lang of
+                      "" -> []
+                      l -> [l]
+      in pure $ codeBlockWith ("", classes, []) $ UTF8.toText bs
     D.Div bls -> divWith nullAttr <$> convertBlocks bls
     D.OrderedList olattr listSpacing items ->
       orderedListWith olattr' .
