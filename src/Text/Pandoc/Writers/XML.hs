@@ -27,13 +27,12 @@ import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML
 import Text.Pandoc.XMLFormat
-import Text.XML.Light (xml_header)
 
 type PandocAttr = Text.Pandoc.Definition.Attr
 
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
-writeXML _ doc = do
-  return $ pandocToXmlText doc
+writeXML opts doc = do
+  return $ pandocToXmlText opts doc
 
 text_node :: T.Text -> Content
 text_node text = Text (CData CDataText text Nothing)
@@ -91,15 +90,22 @@ intAsText i = T.pack $ show i
 itemAsEmptyElement :: (Generic a, GConName (Rep a)) => a -> Element
 itemAsEmptyElement item = emptyElement $ itemName item
 
-pandocToXmlText :: Pandoc -> T.Text
-pandocToXmlText (Pandoc (Meta meta) blocks) = with_header . with_blocks . with_meta . with_version $ el
-  where
-    el = emptyElement "Pandoc"
-    with_version = addAttribute atNameApiVersion (T.intercalate "," $ map (T.pack . show) $ versionBranch pandocTypesVersion)
-    with_meta = appendContents (metaMapToXML meta "meta")
-    with_blocks = appendContents (asContents $ elementWithContents "blocks" $ blocksToXML blocks)
-    with_header :: Element -> T.Text
-    with_header e = T.concat [T.pack xml_header, "\n", ppcElement configPP e]
+pandocToXmlText :: WriterOptions -> Pandoc -> T.Text
+pandocToXmlText opts (Pandoc (Meta meta) blocks) =
+  case writerTemplate opts of
+       Just _ -> -- standalone document; include Pandoc and Meta
+         ppcTopElement configPP . with_blocks . with_meta . with_version $ el
+       Nothing -> -- fragment; just include blocks, as native writer does
+         mconcat $ map (ppcContent configPP) block_contents
+ where
+   el = emptyElement "Pandoc"
+   with_version = addAttribute atNameApiVersion version
+   version = (T.intercalate "," $ map (T.pack . show)
+                                $ versionBranch pandocTypesVersion)
+   with_meta = appendContents (metaMapToXML meta "meta")
+   with_blocks = appendContents $ asContents block_element
+   block_element = elementWithContents "blocks" block_contents
+   block_contents = blocksToXML blocks
 
 -- | Pretty-printing configuration: the contents of elements that
 -- contain inline content are kept on a single line, so that no
