@@ -634,7 +634,7 @@
     override it on the command line.
 
   * Depend on commonmark 0.3.1, commonmark-extensions 0.2.7.3,
-    commonmark-pandoc 0.3.0.1 (major performance improvements).
+    commonmark-pandoc 0.3.0.2 (major performance improvements).
 
   * Depend on released asciidoc 0.1.1 (major performance
     improvements).
