@@ -60,6 +60,7 @@
   * Docx reader:
 
     + Read ScreenTips as link titles (#11869, Robert Szarka).
+    + Use `comment-id` instead of `id` in AST for comments.
 
   * ODT reader:
 
@@ -152,6 +153,8 @@
     + Replace association list with Map for resolving note references.
       Parsing a document with 16000 named notes drops from 5.8s
       to 3.5s, and scaling is now linear.
+    + Fix a bug that led to an empty class for code blocks with
+      no specified language.
 
   * CommonMark reader:
 
@@ -173,12 +176,23 @@
       resolution follows document order. This makes the reader
       about twice as fast on typical documents.
 
+  * Djot reader:
+
+    + Fix a bug that led to an empty class for code blocks with
+      no specified language.
+
+  * Vimwiki reader:
+
+    + Split class attribute and put it in the proper slot in
+      pandoc's Attr.
+
   * Typst writer:
 
     + Omit blank line at end of block (#11844). This is just a
       cosmetic change; it is not semantically significant.
-    + Emit label for bare table if present (#11849). Previously a label was
-      only emitted if the table was figurized (and not `.typst:no-figure`).
+    + Emit label for bare table if present (#11849). Previously a label
+      was only emitted if the table was figurized (and not
+      `.typst:no-figure`).
 
   * RST writer:
 
@@ -191,9 +205,9 @@
       now scales image to percent of page width. Previously a
       percent width or height would just provide a maximum bound
       rather than scaling.
-    + Include default style even if paragraph has non-style props (#11867).
-      Previously a paragraph that was, e.g. center-aligned would
-      be missing its default Body Text style. Also ensure that
+    + Include default style even if paragraph has non-style props
+      (#11867). Previously a paragraph that was, e.g. center-aligned
+      would be missing its default Body Text style. Also ensure that
       any block sequence (list items, table cells, block quote,
       div), First Paragraph is set for the first paragraph in the item.
     + Use `_` to start all bookmark names (#11845). This ensures that
@@ -221,6 +235,10 @@
       some columns were ColWidthDefault and others ColWidth 0.x,
       we would get columns with a specified width of 0 for the default
       ones. Instead, treat all columns as default in this case.
+    + Use `comment-id` instead of `id` in AST for comments.
+      Note that the Docx writer will still interpret an `id`
+      attribute for legacy compatibility, so if you use markdown
+      files that specify `id`, they should still work.
 
   * TEI writer:
 
@@ -286,6 +304,35 @@
       widths, in both standalone and plain modes. The writer is
       about 4x faster. Also remove the pretty and pretty-show
       dependencies.
+
+  * XML writer:
+
+    + Respect `--standalone`. When standalone is selected,
+      we get a full Pandoc element with xml header and metadata. When
+      not, we get a fragment -- just the blocks. The API version is only
+      given in the standalone version.
+    + Use the pretty-printer instead of manual newlines.
+      Render the document with `ppcElement`, using a
+      configuration that treats elements with inline content as
+      inline tags, so that no significant whitespace is added
+      inside them. Consecutive text nodes are merged, SoftBreak
+      is written as a literal newline, and whitespace runs that
+      would not survive a roundtrip (e.g. `" \n"` or `"\n\n"`)
+      are encoded as Space and SoftBreak elements.
+    + Encode attribute names that are not valid XML names.
+      Pandoc attribute names may contain characters that are not
+      allowed in XML attribute names, such as colons
+      (`typst:property`). Use the common convention of encoding
+      such characters as `_xHHHH_`, where `HHHH` is the hexadecimal
+      code of the character: the writer encodes attribute names
+      (`foo:bar` becomes `foo_x003A_bar`) and the reader decodes
+      them.
+    + Don't drop attributes with empty values. The writer dropped
+      any attribute with an empty value, so user key-value
+      attributes like `("k","")` disappeared and did not round
+      trip.
+    + Improve performance: the XML writer is now on par with the
+      JSON writer.
 
   * EPUB writer:
 
@@ -413,7 +460,8 @@
       So e.g. `width="3 cm"` is now recognized.
     + Handle largesize and size-0 boxes in AVIF parser.
     + Make checkDpi default to 72 for negative dpi values, not
-      0; a negative dpi would produce negative dimensions in `sizeInPoints`.
+      0; a negative dpi would produce negative dimensions in
+      `sizeInPoints`.
 
   * Text.Pandoc.SelfContained:
 
@@ -470,8 +518,8 @@
       invalid UTF-8 sequence and report its actual position and byte.
     + Reset HTTP manager in `setNoCheckCertificate`. The HTTP manager
       is created lazily with TLS settings based on `stNoCheckCertificate`
-      and then cached in CommonState, so changing the option after the first
-      request had no effect. Discard the cached manager when the
+      and then cached in CommonState, so changing the option after the
+      first request had no effect. Discard the cached manager when the
       option's value changes.
     + Don't follow symlink cycles in `addToFileTree`.
     + Finish factoring `openURL` into Text.Pandoc.Class.IO.HTTP.
@@ -530,6 +578,10 @@
    + Use `text-builder` package for rendering, instead of text's
      lazy Text builder. On a large document this cuts docx conversion
      time by about 13%; output is byte-for-byte identical.
+   + Expose `ppcTopElement` from Output.
+   + ConfigPP now has a field `inlineTag` that checks for inline
+     tags. Inline tags are printed on one line and not indented,
+     by default. Export `useInlineTags`, `prettyConfigPP`.
 
   * Text.Pandoc.Sources:
 
