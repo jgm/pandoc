@@ -436,6 +436,16 @@ blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
+-- A section's bookmark goes in its heading's paragraph, around the
+-- heading's text, as Word writes one: it then marks the heading rather
+-- than the whole section (#11845, #8825), and the docx reader, which
+-- reads bookmarks only inside paragraphs, finds it, so a link to the
+-- heading survives a round trip.
+blockToOpenXML' opts (Div (ident,classes,kvs) (Header lev ("",hcls,hkvs) ils : bs))
+  | "section" `elem` classes
+  , not (T.null ident)
+  = blockToOpenXML' opts
+      (Div ("",classes,kvs) (Header lev (ident,hcls,hkvs) ils : bs))
 blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
   when ("math" `elem` classes) $ setFirstPara
   stylemod <- case lookup dynamicStyleKey kvs of
