@@ -242,10 +242,10 @@
 
   * TEI writer:
 
-    + Use rend, not rendition, on milestone (#11842, Yusuf Efe)
-      `rendition` takes pointers to rendition descriptions, while
-      `rend` is the free-text attribute, which is what a plain
-      "line" value needs.
+    + Use `rend`, not `rendition` attribute, on milestone
+      (#11842, Yusuf Efe) `rendition` takes pointers to rendition
+      descriptions, while `rend` is the free-text attribute,
+      which is what a plain "line" value needs.
 
   * LaTeX writer:
 
@@ -309,8 +309,7 @@
 
     + Respect `--standalone`. When standalone is selected,
       we get a full Pandoc element with xml header and metadata. When
-      not, we get a fragment -- just the blocks. The API version is only
-      given in the standalone version.
+      not, we get a fragment -- just the blocks.
     + Use the pretty-printer instead of manual newlines.
       Render the document with `ppcElement`, using a
       configuration that treats elements with inline content as
