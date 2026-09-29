@@ -167,6 +167,8 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (superscriptSpec <>) | isEnabled Ext_superscript opts ] ++
          [ (subscriptSpec <>) | isEnabled Ext_subscript opts ] ++
          [ (mathSpec <>) | isEnabled Ext_tex_math_dollars opts ] ++
+         [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
+         -- note: task_list before fancy_list, work around jgm/commonmark#180
          [ (fancyListSpec <>) | isEnabled Ext_fancy_lists opts ] ++
          [ (fencedDivSpec <>) | isEnabled Ext_fenced_divs opts ] ++
          [ (bracketedSpanSpec <>) | isEnabled Ext_bracketed_spans opts ] ++
@@ -187,7 +189,6 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
            | isEnabled Ext_implicit_header_references opts ] ++
          [ (footnoteSpec <>) | isEnabled Ext_footnotes opts ] ++
          [ (definitionListSpec <>) | isEnabled Ext_definition_lists opts ] ++
-         [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
          [ (wikilinksSpec TitleAfterPipe <>)
            | isEnabled Ext_wikilinks_title_after_pipe opts ] ++
          [ (wikilinksSpec TitleBeforePipe <>)
