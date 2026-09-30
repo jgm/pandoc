@@ -837,7 +837,7 @@ blockQuote = do
     case mbAlert of
       Nothing -> B.blockQuote <$> contents
       Just alert ->
-        (B.divWith ("", ["alert", alert], [])
+        (B.divWith ("", [alert, "alert"], [])
           . (B.divWith ("", ["title"], []) (B.para (B.str (T.toTitle alert))) <>))
            <$> contents
 
