@@ -832,15 +832,16 @@ inlineToOpenDocument o ils
           else fmap mkBookmarkedSpan i
       mkNote     l = do
         n <- gets stNoteCount
+        -- bump the counter before rendering the body, so that a note
+        -- nested inside this one does not reuse the same text:id
+        modify $ \st -> st{ stNoteCount = n + 1 }
         let footNote t = inTags False "text:note"
                          [ ("text:id"        , "ftn" <> tshow n)
                          , ("text:note-class", "footnote"     )] $
                          inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
-        nn <- footNote <$> withAlteredTextStyles (const mempty)
-                            (withParagraphStyle o "Footnote" l)
-        modify $ \st -> st{ stNoteCount = stNoteCount st + 1 }
-        return nn
+        footNote <$> withAlteredTextStyles (const mempty)
+                       (withParagraphStyle o "Footnote" l)
 
 formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
 formatOpenDocument _fmtOpts = map (map toHlTok)
