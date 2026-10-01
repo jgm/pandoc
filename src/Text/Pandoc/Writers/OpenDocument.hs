@@ -98,7 +98,9 @@ data WriterState =
                 , stListOverrides  :: Map.Map (ListNumberStyle,ListNumberDelim)
                                         (Text, Doc Text)
                 , stTextStyles     :: Map.Map (Set.Set TextStyle)
-                                        (Text, Doc Text)
+                                        (Int, Doc Text)
+                  -- ^ automatic text styles, with the number that
+                  -- makes up the style's @Tn@ name
                 , stTextStyleAttr  :: Set.Set TextStyle
                 , stIndentPara     :: Int
                 , stInDefinition   :: Bool
@@ -143,7 +145,7 @@ addParaStyle i = modify $ \s ->
     , stParaStyleCount = stParaStyleCount s + 1 }
 
 addTextStyle :: PandocMonad m
-             => Set.Set TextStyle -> (Text, Doc Text) -> OD m ()
+             => Set.Set TextStyle -> (Int, Doc Text) -> OD m ()
 addTextStyle attrs i = modify $ \s ->
   s { stTextStyles = Map.insert attrs i (stTextStyles s) }
 
@@ -214,11 +216,13 @@ inTextStyle d = do
        Nothing -> do
          styles <- gets stTextStyles
          case Map.lookup at styles of
-              Just (styleName, _) -> return $
-                inTags False "text:span" [("text:style-name",styleName)] d
+              Just (num, _) -> return $
+                inTags False "text:span"
+                  [("text:style-name", textStyleName num)] d
               Nothing -> do
-                let styleName = "T" <> tshow (Map.size styles + 1)
-                addTextStyle at (styleName,
+                let num = Map.size styles + 1
+                    styleName = textStyleName num
+                addTextStyle at (num,
                        inTags False "style:style"
                          [("style:name", styleName)
                          ,("style:family", "text")]
@@ -227,6 +231,10 @@ inTextStyle d = do
                                   $ L.foldl' textStyleAttr mempty (Set.toList at)))
                 return $ inTags False
                     "text:span" [("text:style-name",styleName)] d
+
+-- | Name of the @n@th automatic text style.
+textStyleName :: Int -> Text
+textStyleName num = "T" <> tshow num
 
 formulaStyles :: [Doc Text]
 formulaStyles = [formulaStyle InlineMath, formulaStyle DisplayMath]
@@ -335,6 +343,8 @@ writeOpenDocument opts (Pandoc meta blocks) = do
            a <- blocksToOpenDocument opts abstractBlocks
            b <- blocksToOpenDocument opts blocks
            return (b, a, m)
+  -- 'styles' is reversed below, so the text styles are put in
+  -- descending order here to come out as T1, T2, ..., T10
   let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
                      map snd (sortBy (comparing (Down . fst)) (
                         Map.elems (stTextStyles s)))

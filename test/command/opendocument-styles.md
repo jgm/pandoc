@@ -98,3 +98,34 @@ Text^[outer^[inner]]^[second]
 ^D
 <text:p text:style-name="Text_20_body">Text<text:note text:id="ftn0" text:note-class="footnote"><text:note-citation>1</text:note-citation><text:note-body><text:p text:style-name="Footnote">outer<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation><text:note-body><text:p text:style-name="Footnote">inner</text:p></text:note-body></text:note></text:p></text:note-body></text:note><text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">second</text:p></text:note-body></text:note></text:p>
 ```
+
+Automatic text styles are declared in numerical order: sorting them by
+name would put `T10` between `T1` and `T2`.
+
+```
+% pandoc -f native -t opendocument --wrap=none --template command/11301-styles.opendocument
+[Para [SmallCaps [Str "a"]
+      ,SmallCaps [Strikeout [Str "b"]]
+      ,SmallCaps [Superscript [Str "c"]]
+      ,SmallCaps [Subscript [Str "d"]]
+      ,SmallCaps [Underline [Str "e"]]
+      ,Strikeout [Superscript [Str "f"]]
+      ,Strikeout [Subscript [Str "g"]]
+      ,Strikeout [Underline [Str "h"]]
+      ,Underline [Superscript [Str "i"]]
+      ,Underline [Subscript [Str "j"]]]]
+^D
+<style:style style:name="T1" style:family="text"><style:text-properties fo:font-variant="small-caps" /></style:style>
+<style:style style:name="T2" style:family="text"><style:text-properties fo:font-variant="small-caps" style:text-line-through-style="solid" /></style:style>
+<style:style style:name="T3" style:family="text"><style:text-properties fo:font-variant="small-caps" style:text-position="super 58%" /></style:style>
+<style:style style:name="T4" style:family="text"><style:text-properties fo:font-variant="small-caps" style:text-position="sub 58%" /></style:style>
+<style:style style:name="T5" style:family="text"><style:text-properties fo:font-variant="small-caps" style:text-underline-color="font-color" style:text-underline-style="solid" style:text-underline-width="auto" /></style:style>
+<style:style style:name="T6" style:family="text"><style:text-properties style:text-line-through-style="solid" style:text-position="super 58%" /></style:style>
+<style:style style:name="T7" style:family="text"><style:text-properties style:text-line-through-style="solid" style:text-position="sub 58%" /></style:style>
+<style:style style:name="T8" style:family="text"><style:text-properties style:text-line-through-style="solid" style:text-underline-color="font-color" style:text-underline-style="solid" style:text-underline-width="auto" /></style:style>
+<style:style style:name="T9" style:family="text"><style:text-properties style:text-position="super 58%" style:text-underline-color="font-color" style:text-underline-style="solid" style:text-underline-width="auto" /></style:style>
+<style:style style:name="T10" style:family="text"><style:text-properties style:text-position="sub 58%" style:text-underline-color="font-color" style:text-underline-style="solid" style:text-underline-width="auto" /></style:style>
+<style:style style:name="fr2" style:family="graphic" style:parent-style-name="Formula"><style:graphic-properties style:vertical-pos="middle" style:vertical-rel="text" style:horizontal-pos="center" style:horizontal-rel="paragraph-content" style:wrap="none" /></style:style>
+<style:style style:name="fr1" style:family="graphic" style:parent-style-name="Formula"><style:graphic-properties style:vertical-pos="middle" style:vertical-rel="text" /></style:style>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T1">a</text:span><text:span text:style-name="T2">b</text:span><text:span text:style-name="T3">c</text:span><text:span text:style-name="T4">d</text:span><text:span text:style-name="T5">e</text:span><text:span text:style-name="T6">f</text:span><text:span text:style-name="T7">g</text:span><text:span text:style-name="T8">h</text:span><text:span text:style-name="T9">i</text:span><text:span text:style-name="T10">j</text:span></text:p>
+```
