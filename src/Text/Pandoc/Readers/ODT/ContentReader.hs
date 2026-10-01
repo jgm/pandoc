@@ -194,12 +194,8 @@ updateMediaWithResource :: (FilePath, B.ByteString) -> ODTReader ()
 updateMediaWithResource resource = modifyExtraState (insertMedia' resource)
 
 --
-lookupResource :: FilePath -> ODTReader (FilePath, B.ByteString)
-lookupResource target = do
-  state <- getExtraState
-  case M.lookup target (getMediaEnv state) of
-    Just bs -> return (target, bs)
-    Nothing -> return ("", B.empty)
+lookupResource :: FilePath -> ODTReader (Maybe B.ByteString)
+lookupResource target = M.lookup target . getMediaEnv <$> getExtraState
 
 type AnchorPrefix = T.Text
 
@@ -795,8 +791,10 @@ read_frame_img img = do
     src' -> do
       let exts = extensionsFromList [Ext_auto_identifiers]
           src'' = fixRelativeLink src'
-      resource   <- lookupResource (T.unpack src'')
-      updateMediaWithResource resource
+      -- The archive need not actually contain the referenced file; if it
+      -- does not, leave the media bag alone and just emit the link.
+      mbResource <- lookupResource (T.unpack src'')
+      mapM_ (updateMediaWithResource . (,) (T.unpack src'')) mbResource
       w          <- findAttr' NsSVG "width"
       h          <- findAttr' NsSVG "height"
       titleNodes <- matchContent' [ read_frame_title ]
@@ -825,7 +823,7 @@ read_frame_mathml obj = do
     src' -> do
       let path = T.unpack $
                   fromMaybe src' (T.stripPrefix "./" src') <> "/content.xml"
-      (_, mathml) <- lookupResource path
+      mathml <- fromMaybe B.empty <$> lookupResource path
       case readMathML (UTF8.toText $ B.toStrict mathml) of
         Left _     -> return mempty
         Right exps -> return $ firstMatch $ displayMath $ writeTeX exps
