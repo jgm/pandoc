@@ -581,10 +581,12 @@ parents style styles = go S.empty style
 
 -- | Looks up the style family of the current style. Normally, every style
 -- should have one. But if not, all parents are searched.
+-- Searching the parents recursively would repeatedly walk the same
+-- chains, taking time exponential in its length; the chain is linear,
+-- so we can just walk it once.
 getStyleFamily        :: Style       -> Styles -> Maybe StyleFamily
-getStyleFamily style@Style{..} styles
-  =     styleFamily
-    <|> F.asum (map (`getStyleFamily` styles) $ parents style styles)
+getStyleFamily style styles
+  = F.asum $ map styleFamily $ style : parents style styles
 
 -- | Each 'Style' has certain 'StyleProperties'. But sometimes not all property
 -- values are specified. Instead, a value might be inherited from a
