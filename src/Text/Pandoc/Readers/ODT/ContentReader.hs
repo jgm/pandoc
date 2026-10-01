@@ -39,6 +39,7 @@ import qualified Text.Pandoc.XML.Light as XML
 import Text.Pandoc.Builder hiding (underline)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -927,13 +928,30 @@ read_text = doc <$> matchSmushedChildBlocks' [ read_header
                                              ]
 
 post_process :: Pandoc -> Pandoc
-post_process (Pandoc m blocks) =
-  Pandoc m (post_process' blocks)
+post_process = walk (unwrapCaptions . attachCaptions)
 
-post_process' :: [Block] -> [Block]
-post_process' (Table attr _ specs th tb tf : Div ("", ["caption"], _) blks : xs)
-  = Table attr (Caption Nothing blks) specs th tb tf : post_process' xs
-post_process' bs = bs
+-- | Paragraphs styled as table captions are read as a Div with class
+-- @caption@ (see 'constructPara'). Attach each of them to the adjacent
+-- table; ODF puts the caption either before or after its table.
+attachCaptions :: [Block] -> [Block]
+attachCaptions (Table attr _ specs th tb tf : b : xs)
+  | Just blks <- captionBlocks b
+  = Table attr (Caption Nothing blks) specs th tb tf : attachCaptions xs
+attachCaptions (b : Table attr _ specs th tb tf : xs)
+  | Just blks <- captionBlocks b
+  = Table attr (Caption Nothing blks) specs th tb tf : attachCaptions xs
+attachCaptions (b : bs) = b : attachCaptions bs
+attachCaptions []       = []
+
+-- | The Div is only an internal marker, so a caption paragraph that
+-- turned out not to belong to a table is emitted as an ordinary
+-- paragraph rather than leaking the marker into the output.
+unwrapCaptions :: [Block] -> [Block]
+unwrapCaptions = concatMap (\b -> fromMaybe [b] (captionBlocks b))
+
+captionBlocks :: Block -> Maybe [Block]
+captionBlocks (Div ("", ["caption"], _) blks) = Just blks
+captionBlocks _                               = Nothing
 
 read_body :: ODTReader (Pandoc, MediaBag)
 read_body = executeInSub NsOffice "body"
