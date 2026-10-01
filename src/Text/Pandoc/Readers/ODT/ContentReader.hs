@@ -204,12 +204,13 @@ type AnchorPrefix = T.Text
 -- | An adaptation of 'uniqueIdent' from "Text.Pandoc.Shared" that generates a
 -- unique identifier but without assuming that the id should be for a header.
 -- Second argument is a list of already used identifiers.
-uniqueIdentFrom :: AnchorPrefix -> [Anchor] -> Anchor
+uniqueIdentFrom :: AnchorPrefix -> Set.Set Anchor -> Anchor
 uniqueIdentFrom baseIdent usedIdents =
   let  numIdent n = baseIdent <> "-" <> T.pack (show n)
-  in  if baseIdent `elem` usedIdents
+  in  if baseIdent `Set.member` usedIdents
         then maybe baseIdent numIdent
-             $ find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int])
+             $ find (\x -> numIdent x `Set.notMember` usedIdents)
+                 ([1..60000] :: [Int])
                -- if we have more than 60,000, allow repeats
         else baseIdent
 
@@ -222,7 +223,7 @@ getPrettyAnchor baseIdent uglyAnchor = do
   case lookupPrettyAnchor uglyAnchor state of
     Just prettyAnchor -> return prettyAnchor
     Nothing           -> do
-      let newPretty = uniqueIdentFrom baseIdent (Set.toList (usedAnchors state))
+      let newPretty = uniqueIdentFrom baseIdent (usedAnchors state)
       modifyExtraState (putPrettyAnchor uglyAnchor newPretty)
       return newPretty
 
