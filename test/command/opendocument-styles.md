@@ -1,3 +1,14 @@
+A requested paragraph style must also be applied to `Plain` blocks, not
+just to `Para`. The body of a caption-less figure is a `Plain`, so it
+should still get the `Figure` style:
+
+```
+% pandoc -f native -t opendocument --template command/opendocument-body.opendocument
+[Figure ("fig1",[],[]) (Caption Nothing []) [Plain [Str "placeholder"]]]
+^D
+<text:p text:style-name="Figure">placeholder</text:p>
+```
+
 Column style names must remain valid NCNames past the 26th column;
 incrementing a character code would run into `[`, `\`, etc.
 
