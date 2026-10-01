@@ -538,21 +538,55 @@ read_tab          = matchingElement NsText "tab"
 --
 read_span        :: InlineMatcher
 read_span         = matchingElement NsText "span"
-                    $ withNewStyle
-                    $ matchContent [ read_span
-                                   , read_spaces
-                                   , read_line_break
-                                   , read_tab
-                                   , read_link
-                                   , read_frame
-                                   , read_note
-                                   , read_citation
-                                   , read_bookmark
-                                   , read_bookmark_start
-                                   , read_reference_start
-                                   , read_bookmark_ref
-                                   , read_reference_ref
-                                   ] read_plain_text
+                    $ withNewStyle matchInlineContent
+
+-- | ODF wraps inline content in a few elements that carry nothing but
+-- metadata: @text:meta@ holds RDFa annotations, @text:meta-field@ marks
+-- up bibliographic data. They are transparent as far as we are concerned.
+read_meta        :: InlineMatcher
+read_meta         = matchingElement NsText "meta" matchInlineContent
+
+read_meta_field  :: InlineMatcher
+read_meta_field   = matchingElement NsText "meta-field" matchInlineContent
+
+-- | A ruby annotation glosses a base text. Pandoc cannot represent the
+-- gloss, so keep the base text rather than dropping both.
+read_ruby        :: InlineMatcher
+read_ruby         = matchingElement NsText "ruby"
+                    $ matchContent' [ matchingElement NsText "ruby-base"
+                                        matchInlineContent ]
+
+-- | Fields hold a value that the producing application computes, such as
+-- a page number, a document property or a user variable. The element
+-- content is the text that application last displayed for the field,
+-- which is the best rendering available to us.
+read_fields      :: [InlineMatcher]
+read_fields       = [ matchingElement NsText name (matchContent [] read_plain_text)
+                    | name <- fieldElements ]
+
+fieldElements    :: [ElementName]
+fieldElements     =
+  [ "page-number", "page-count", "page-continuation", "page-variable-get"
+  , "date", "time", "creation-date", "creation-time"
+  , "modification-date", "modification-time"
+  , "print-date", "print-time", "printed-by"
+  , "editing-cycles", "editing-duration"
+  , "author-name", "author-initials", "initial-creator", "creator"
+  , "title", "subject", "description", "keywords"
+  , "chapter", "file-name", "template-name", "sheet-name"
+  , "variable-get", "variable-set", "variable-input"
+  , "user-defined", "user-field-get", "user-field-input"
+  , "expression", "text-input", "placeholder"
+  , "word-count", "character-count", "paragraph-count"
+  , "table-count", "image-count", "object-count"
+  , "database-display", "database-name", "database-row-number"
+  , "sequence-ref", "note-ref"
+  , "sender-firstname", "sender-lastname", "sender-initials"
+  , "sender-title", "sender-position", "sender-email"
+  , "sender-company", "sender-street", "sender-city"
+  , "sender-postal-code", "sender-country", "sender-state-or-province"
+  , "sender-phone-private", "sender-phone-work", "sender-fax"
+  ]
 
 --
 read_paragraph   :: Matcher CombiningBlocks
@@ -560,9 +594,9 @@ read_paragraph    = matchingElement NsText "p" $ fmap CombiningBlocks $ do
                       fStyle <- tryC readStyleByName
                       case fStyle of
                         Right style | isPreformattedStyle style ->
-                          codeBlock . stringifyInlines <$> matchParagraphContent
+                          codeBlock . stringifyInlines <$> matchInlineContent
                         _ ->
-                          constructPara (para <$> withNewStyle matchParagraphContent)
+                          constructPara (para <$> withNewStyle matchInlineContent)
                     where
                       isPreformattedStyle :: (StyleName, Style) -> Bool
                       isPreformattedStyle ("Preformatted_20_Text", _) = True
@@ -570,22 +604,29 @@ read_paragraph    = matchingElement NsText "p" $ fmap CombiningBlocks $ do
                       isPreformattedStyle _ = False
 
 
-matchParagraphContent :: ODTReader Inlines
-matchParagraphContent = matchContent [ read_span
-                                     , read_spaces
-                                     , read_line_break
-                                     , read_tab
-                                     , read_link
-                                     , read_note
-                                     , read_citation
-                                     , read_bookmark
-                                     , read_bookmark_start
-                                     , read_reference_start
-                                     , read_bookmark_ref
-                                     , read_reference_ref
-                                     , read_frame
-                                     , read_text_seq
-                                     ] read_plain_text
+-- | Reads the inline content of a paragraph, heading or span.
+matchInlineContent :: ODTReader Inlines
+matchInlineContent = matchContent inlineMatchers read_plain_text
+
+inlineMatchers :: [InlineMatcher]
+inlineMatchers = [ read_span
+                 , read_spaces
+                 , read_line_break
+                 , read_tab
+                 , read_link
+                 , read_note
+                 , read_citation
+                 , read_bookmark
+                 , read_bookmark_start
+                 , read_reference_start
+                 , read_bookmark_ref
+                 , read_reference_ref
+                 , read_frame
+                 , read_text_seq
+                 , read_meta
+                 , read_meta_field
+                 , read_ruby
+                 ] ++ read_fields
 
 
 ----------------------
@@ -596,20 +637,7 @@ matchParagraphContent = matchContent [ read_span
 read_header      :: Matcher CombiningBlocks
 read_header       = matchingElement NsText "h" $ do
   level    <- readAttrWithDefault NsText "outline-level" 1
-  children <- matchContent [ read_span
-                           , read_spaces
-                           , read_line_break
-                           , read_tab
-                           , read_link
-                           , read_note
-                           , read_citation
-                           , read_bookmark
-                           , read_bookmark_start
-                           , read_reference_start
-                           , read_bookmark_ref
-                           , read_reference_ref
-                           , read_frame
-                           ] read_plain_text
+  children <- matchInlineContent
   anchor   <- getHeaderAnchor children
   let idAttr = (anchor, [], []) -- no classes, no key-value pairs
   return $ CombiningBlocks $ headerWith idAttr level children
