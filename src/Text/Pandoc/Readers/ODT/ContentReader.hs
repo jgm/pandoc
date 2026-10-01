@@ -27,6 +27,7 @@ import Control.Monad ((<=<))
 import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
 import Data.List (find)
+import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
@@ -723,7 +724,9 @@ table' (headers, rows) = compactifyTable $
     table emptyCaption (replicate numcols defaults) th [tb] tf
   where
     defaults = (AlignDefault, ColWidthDefault)
-    numcols = maximum $ map length $ headers ++ rows
+    -- A table element need not contain any rows, so guard against
+    -- taking the maximum of an empty list.
+    numcols = maybe 0 maximum $ nonEmpty $ map length $ headers ++ rows
     toRow = Row nullAttr
     th = TableHead nullAttr $ map toRow headers
     tb = TableBody nullAttr 0 [] $ map toRow rows
