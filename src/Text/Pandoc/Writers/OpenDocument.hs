@@ -517,7 +517,7 @@ blockToOpenDocument o = \case
     HorizontalRule   -> setFirstPara >> return (selfClosingTag "text:p"
                          [ ("text:style-name", "Horizontal_20_Line") ])
     b@(RawBlock f s) -> if f == Format "opendocument"
-                        then return $ text $ T.unpack s
+                        then return $ literal s
                         else empty <$ report (BlockNotRendered b)
     Figure a capt b  -> figure o a capt b
     where
@@ -619,7 +619,7 @@ numberedFigureCaption ident caption = do
 
 numberedCaption :: Text -> Text -> Text -> Int -> Text -> Doc Text -> Doc Text
 numberedCaption style term name num ident caption =
-    let t = text $ T.unpack term
+    let t = literal term
         r = num - 1
         ident' = case ident of
           "" -> "ref" <> name <> tshow r
@@ -776,7 +776,7 @@ inlineToOpenDocument o ils
                          inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l
     RawInline f s -> if f == Format "opendocument"
-                       then return $ text $ T.unpack s
+                       then return $ literal s
                        else do
                          report $ InlineNotRendered ils
                          return empty
