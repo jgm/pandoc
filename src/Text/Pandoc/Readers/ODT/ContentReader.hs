@@ -515,10 +515,16 @@ read_text_seq  = matchingElement NsText "sequence"
 -- specifically. I honor that, although the current implementation of 'mappend'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collapse them again.
 -- The rational is to be prepared for future modifications.
+-- The repeat count is attacker-controlled and unbounded in ODF, so cap
+-- it: a 832-byte document with @text:c="200000000"@ would otherwise
+-- exhaust memory.
+_MAX_SPACES_     :: Int
+_MAX_SPACES_      = 1000
+
 read_spaces      :: InlineMatcher
 read_spaces       = matchingElement NsText "s" $ do
                       count <- readAttrWithDefault NsText "c" 1 -- how many spaces?
-                      return $ fromList (replicate count Space)
+                      return $ fromList (replicate (min count _MAX_SPACES_) Space)
 --
 read_line_break  :: InlineMatcher
 read_line_break   = matchingElement NsText "line-break"
