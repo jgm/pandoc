@@ -298,12 +298,13 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let meta' = case lookupMetaBlocks "abstract" meta of
-                [] -> meta
-                xs -> B.setMeta "abstract"
-                        (B.divWith ("",[],[("custom-style","Abstract")])
-                          (B.fromList xs))
-                        meta
+  -- The abstract is the one template field that takes block-level
+  -- content, so it is rendered separately; everything else in the
+  -- metadata goes in a context where only inlines are allowed.
+  let abstractBlocks = case lookupMetaBlocks "abstract" meta of
+                         [] -> []
+                         xs -> [Div ("",[],[("custom-style","Abstract")]) xs]
+  let meta' = B.deleteMeta "abstract" meta
   -- Set the default writing direction from the "dir" metadata field;
   -- in its absence, a right-to-left main language implies RTL.
   let mbDir = case lookupMetaString "dir" meta of
@@ -313,7 +314,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                            Just l | Right lang <- parseLang l
                                   , isRTLLang lang -> Just RTL
                            _ -> Nothing
-  ((body, metadata),s) <- flip runStateT
+  ((body, abstract, metadata),s) <- flip runStateT
         defaultWriterState{ stDirection = mbDir } $ do
            let collectBlockIdent (Header _ (ident,_,_) _)      = [(ident,HeaderRef)]
                collectBlockIdent (Figure (ident,_,_) _ _ )     = [(ident,FigureRef)]
@@ -324,8 +325,9 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                   (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
                   meta'
+           a <- blocksToOpenDocument opts abstractBlocks
            b <- blocksToOpenDocument opts blocks
-           return (b, m)
+           return (b, a, m)
   let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
                      map snd (sortBy (comparing (Down . fst)) (
                         Map.elems (stTextStyles s)))
@@ -335,6 +337,9 @@ writeOpenDocument opts (Pandoc meta blocks) = do
               . defField "toc" (writerTableOfContents opts)
               . defField "toc-depth" (tshow $ writerTOCDepth opts)
               . defField "automatic-styles" automaticStyles
+              . (if null abstractBlocks
+                    then id
+                    else defField "abstract" abstract)
               $ metadata
   return $ render colwidth $
     case writerTemplate opts of
