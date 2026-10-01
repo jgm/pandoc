@@ -628,6 +628,20 @@ inlineMatchers = [ read_span
                  , read_ruby
                  ] ++ read_fields
 
+-- | Reads the block-level content that ODF permits wherever it permits a
+-- paragraph: in the body of the document, and in a section, a list item, a
+-- footnote or a table cell.
+matchBlockContent :: ODTReader Blocks
+matchBlockContent = matchSmushedChildBlocks' blockMatchers
+
+blockMatchers :: [Matcher CombiningBlocks]
+blockMatchers = [ read_paragraph
+                , read_header
+                , read_list
+                , read_table
+                , read_section
+                ]
+
 
 ----------------------
 -- Headers
@@ -664,12 +678,7 @@ read_list_header  = read_list_element "list-header"
 read_list_element               :: ElementName -> Matcher [Blocks]
 read_list_element listElement   = matchingElement NsText listElement
                                   $ compactify . (:[])
-                                  <$> matchSmushedChildBlocks'
-                                        [ read_paragraph
-                                        , read_header
-                                        , read_list
-                                        , read_section
-                                        ]
+                                  <$> matchBlockContent
 
 ----------------------
 -- Sections
@@ -678,12 +687,7 @@ read_list_element listElement   = matchingElement NsText listElement
 read_section :: Matcher CombiningBlocks
 read_section = matchingElement NsText "section"
                  $ CombiningBlocks . divWith nullAttr
-                 <$> matchSmushedChildBlocks' [ read_paragraph
-                                              , read_header
-                                              , read_list
-                                              , read_table
-                                              , read_section
-                                              ]
+                 <$> matchBlockContent
 
 
 ----------------------
@@ -724,8 +728,7 @@ read_note         = matchingElement NsText "note"
                     $ note <$> matchContent' [ read_note_body ]
 
 read_note_body   :: BlockMatcher
-read_note_body    = matchingElement NsText "note-body"
-                    $ matchSmushedChildBlocks' [ read_paragraph ]
+read_note_body    = matchingElement NsText "note-body" matchBlockContent
 
 -------------------------
 -- Citations
@@ -822,9 +825,7 @@ read_table_cell    = matchingElement NsTable "table-cell"
                        <$> (RowSpan <$> readAttrWithDefault NsTable "number-rows-spanned" 1)
                        <*> (ColSpan <$> readAttrWithDefault NsTable "number-columns-spanned" 1)
                        <*> (min _MAX_COLUMNS_ <$> repeated "number-columns-repeated")
-                       <*> matchSmushedChildBlocks' [ read_paragraph
-                                                    , read_list
-                                                    ]
+                       <*> matchBlockContent
   where
     cell' rowSpan colSpan repeat' blocks =
       concat $ replicate repeat'
@@ -983,12 +984,7 @@ read_reference_ref = matchingElement NsText "reference-ref"
 ----------------------
 
 read_text :: ODTReader Pandoc
-read_text = doc <$> matchSmushedChildBlocks' [ read_header
-                                             , read_paragraph
-                                             , read_list
-                                             , read_section
-                                             , read_table
-                                             ]
+read_text = doc <$> matchBlockContent
 
 post_process :: Pandoc -> Pandoc
 post_process = walk (unwrapCaptions . attachCaptions)
