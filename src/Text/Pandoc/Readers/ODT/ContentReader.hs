@@ -751,8 +751,8 @@ read_citation     = matchingElement NsText "bibliography-mark"
 read_table        :: Matcher CombiningBlocks
 read_table         = matchingElement NsTable "table"
                      $ fmap (CombiningBlocks . table')
-                     $ (,) <$> matchContent' [read_table_header]
-                           <*> matchContent' [read_table_row]
+                     $ (,) <$> matchContent' read_header_rows
+                           <*> matchContent' read_body_rows
 
 -- | A table without a caption.
 table' :: ([[Cell]], [[Cell]]) -> Blocks
@@ -770,11 +770,25 @@ table' (headers, rows) = compactifyTable $
     tb = TableBody nullAttr 0 [] $ map toRow rows
     tf = TableFoot nullAttr []
 
---
-read_table_header :: Matcher [[Cell]]
-read_table_header = matchingElement NsTable "table-header-rows"
-                      $ matchContent' [ read_table_row
-                                      ]
+-- | Rows need not be immediate children of the table: ODF lets them be
+-- wrapped in any number of @table:table-row-group@ and @table:table-rows@
+-- elements, which only group them for the benefit of outlining and
+-- formatting. The children are walked twice, once picking up the rows that a
+-- @table:table-header-rows@ marks as headers and once the remaining ones.
+read_header_rows  :: [Matcher [[Cell]]]
+read_header_rows   = [ matchingElement NsTable "table-header-rows"
+                         $ matchContent' [ read_table_row ]
+                     , matchingElement NsTable "table-row-group"
+                         $ matchContent' read_header_rows
+                     ]
+
+read_body_rows    :: [Matcher [[Cell]]]
+read_body_rows     = [ read_table_row
+                     , matchingElement NsTable "table-rows"
+                         $ matchContent' [ read_table_row ]
+                     , matchingElement NsTable "table-row-group"
+                         $ matchContent' read_body_rows
+                     ]
 
 -- | ODF abbreviates a run of identical rows or cells with a repeat count.
 -- The counts are unbounded in the format -- spreadsheets pad out to the end
