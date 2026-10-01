@@ -558,7 +558,7 @@ blockToOpenDocument o = \case
           (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies tfoot) = do
         tn <- gets stTableStyleCount
         pn <- gets stParaStyleCount
-        let  genIds      = map chr [65..]
+        let  genIds      = map colLetters [0..]
              name        = "Table" <> tshow (tn + 1)
              (aligns, mwidths) = unzip colspecs
              fromWidth (ColWidth w) | w > 0 = w
@@ -566,7 +566,7 @@ blockToOpenDocument o = \case
              widths = map fromWidth mwidths
              textWidth   = sum widths
              columnIds   = zip genIds widths
-             mkColumn  n = selfClosingTag "table:table-column" [("table:style-name", name <> "." <> T.singleton (fst n))]
+             mkColumn  n = selfClosingTag "table:table-column" [("table:style-name", name <> "." <> fst n)]
              columns     = map mkColumn columnIds
              paraHStyles = paraTableStyles "Heading"  pn aligns
              paraStyles  = paraTableStyles "Contents" (pn + length (newPara paraHStyles)) aligns
@@ -891,7 +891,15 @@ mkLink o identTypes s t d =
             then linkOrReference
             else link
 
-tableStyle :: Int -> Double -> [(Char,Double)] -> Doc Text
+-- | Spreadsheet-style column names (@A@, @B@, ..., @Z@, @AA@, @AB@, ...).
+-- Plain @chr@ arithmetic would run past @Z@ into characters like @[@
+-- and @\\@, which are not legal in a @style:name@.
+colLetters :: Int -> Text
+colLetters n
+  | n < 26    = T.singleton (chr (65 + n))
+  | otherwise = colLetters (n `div` 26 - 1) <> T.singleton (chr (65 + n `mod` 26))
+
+tableStyle :: Int -> Double -> [(Text,Double)] -> Doc Text
 tableStyle num textWidth wcs =
     let tableId        = "Table" <> tshow (num + 1)
         tableWidthAttr :: [(Text,Text)]
@@ -905,10 +913,10 @@ tableStyle num textWidth wcs =
                          selfClosingTag "style:table-properties"
                          (("table:align", "center") : tableWidthAttr)
         colStyle (c,0) = selfClosingTag "style:style"
-                         [ ("style:name"  , tableId <> "." <> T.singleton c)
+                         [ ("style:name"  , tableId <> "." <> c)
                          , ("style:family", "table-column"       )]
         colStyle (c,w) = inTags True "style:style"
-                         [ ("style:name"  , tableId <> "." <> T.singleton c)
+                         [ ("style:name"  , tableId <> "." <> c)
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
                          [("style:rel-column-width", T.pack $ printf "%d*" (floor $ w * 65535 :: Integer))]
