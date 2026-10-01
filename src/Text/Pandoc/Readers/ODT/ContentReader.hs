@@ -762,7 +762,9 @@ table' (headers, rows) = compactifyTable $
     defaults = (AlignDefault, ColWidthDefault)
     -- A table element need not contain any rows, so guard against
     -- taking the maximum of an empty list.
-    numcols = maybe 0 maximum $ nonEmpty $ map length $ headers ++ rows
+    numcols = maybe 0 maximum $ nonEmpty $ map rowWidth $ headers ++ rows
+    -- A cell spanning several columns occupies all of them.
+    rowWidth = sum . map (\(Cell _ _ _ (ColSpan cs) _) -> cs)
     toRow = Row nullAttr
     th = TableHead nullAttr $ map toRow headers
     tb = TableBody nullAttr 0 [] $ map toRow rows
@@ -774,12 +776,30 @@ read_table_header = matchingElement NsTable "table-header-rows"
                       $ matchContent' [ read_table_row
                                       ]
 
+-- | ODF abbreviates a run of identical rows or cells with a repeat count.
+-- The counts are unbounded in the format -- spreadsheets pad out to the end
+-- of the sheet with them -- so a handful of bytes could otherwise ask for an
+-- arbitrarily large table. Bound both the width a single cell element stands
+-- for and the number of cells a single row element expands to; capping the
+-- two counts separately would not do, as they multiply.
+_MAX_COLUMNS_, _MAX_ROW_CELLS_ :: Int
+_MAX_COLUMNS_      = 1000
+_MAX_ROW_CELLS_    = 10000
+
+repeated          :: ElementName -> ODTReader Int
+repeated attrName  = max 1 <$> readAttrWithDefault NsTable attrName 1
+
 --
 read_table_row    :: Matcher [[Cell]]
 read_table_row     = matchingElement NsTable "table-row"
-                     $ (:[])
+                     $ row'
                      <$> matchContent' [ read_table_cell
                                        ]
+                     <*> repeated "number-rows-repeated"
+  where
+    row' cells repeat' =
+      replicate (max 1 $ min repeat'
+                       $ _MAX_ROW_CELLS_ `div` max 1 (length cells)) cells
 
 --
 read_table_cell   :: Matcher [Cell]
@@ -787,11 +807,14 @@ read_table_cell    = matchingElement NsTable "table-cell"
                      $ cell'
                        <$> (RowSpan <$> readAttrWithDefault NsTable "number-rows-spanned" 1)
                        <*> (ColSpan <$> readAttrWithDefault NsTable "number-columns-spanned" 1)
+                       <*> (min _MAX_COLUMNS_ <$> repeated "number-columns-repeated")
                        <*> matchSmushedChildBlocks' [ read_paragraph
                                                     , read_list
                                                     ]
   where
-    cell' rowSpan colSpan blocks = map (cell AlignDefault rowSpan colSpan) $ compactify [blocks]
+    cell' rowSpan colSpan repeat' blocks =
+      concat $ replicate repeat'
+             $ map (cell AlignDefault rowSpan colSpan) (compactify [blocks])
 
 ----------------------
 -- Frames
