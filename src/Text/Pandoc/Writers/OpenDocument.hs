@@ -14,7 +14,6 @@
 Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
-import Control.Arrow ((***), (>>>))
 import Control.Monad (unless, liftM)
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr, isDigit)
@@ -131,9 +130,6 @@ defaultWriterState =
                 , stDirection      = Nothing
                 , stDirStyles      = Map.empty
                 }
-
-when :: Bool -> Doc Text -> Doc Text
-when p a = if p then a else empty
 
 addTableStyle :: PandocMonad m => Doc Text -> OD m ()
 addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
@@ -274,16 +270,23 @@ inQuotes DoubleQuote s = char '\8220' <> s <> char '\8221'
 handleSpaces :: Text -> Doc Text
 handleSpaces s = case T.uncons s of
   Just (' ', _) -> genTag s
-  Just ('\t',x) -> selfClosingTag "text:tab" [] <> rm x
+  Just ('\t',x) -> tabTag <> rm x
   _             -> rm s
   where
-    genTag = T.span (==' ') >>> tag . T.length *** rm >>> uncurry (<>)
-    tag n  = when (n /= 0) $ selfClosingTag "text:s" [("text:c", tshow n)]
-    rm t   = case T.uncons t of
-      Just ( ' ',xs) -> char ' ' <> genTag xs
-      Just ('\t',xs) -> selfClosingTag "text:tab" [] <> genTag xs
-      Just (   x,xs) -> char x <> rm xs
-      Nothing        -> empty
+    tabTag = selfClosingTag "text:tab" []
+    -- collapse a run of spaces into a single <text:s>
+    genTag t = let (spaces, t') = T.span (== ' ') t
+               in  tag (T.length spaces) <> rm t'
+    tag 0  = empty
+    tag n  = selfClosingTag "text:s" [("text:c", tshow n)]
+    -- emit text verbatim up to the next space or tab; a lone space is
+    -- kept literal and any further ones become a <text:s>
+    rm t = let (chunk, t') = T.break (\c -> c == ' ' || c == '\t') t
+               pre = if T.null chunk then empty else literal chunk
+           in  case T.uncons t' of
+                 Just (' ', xs) -> pre <> char ' ' <> genTag xs
+                 Just (_  , xs) -> pre <> tabTag <> genTag xs
+                 Nothing        -> pre
 
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
