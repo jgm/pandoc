@@ -84,6 +84,11 @@ data ReaderState
                    -- | A map from internal anchor names to "pretty" ones.
                    -- The mapping is a purely cosmetic one.
                  , bookmarkAnchors  :: M.Map Anchor Anchor
+                   -- | The "pretty" anchors handed out so far, i.e. the
+                   -- values of 'bookmarkAnchors'. Kept separately so that
+                   -- checking an anchor for uniqueness does not cost a
+                   -- traversal of the whole map.
+                 , usedAnchors      :: Set.Set Anchor
                    -- | A map of files / binary data from the archive
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
@@ -92,7 +97,8 @@ data ReaderState
   deriving ( Show )
 
 readerState :: Styles -> Media -> ReaderState
-readerState styles media = ReaderState styles [] 0 M.empty Nothing M.empty media mempty
+readerState styles media =
+  ReaderState styles [] 0 M.empty Nothing M.empty Set.empty media mempty
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -123,11 +129,9 @@ lookupPrettyAnchor anchor ReaderState{..} = M.lookup anchor bookmarkAnchors
 --
 putPrettyAnchor :: Anchor -> Anchor -> ReaderState -> ReaderState
 putPrettyAnchor ugly pretty state@ReaderState{..}
-  = state { bookmarkAnchors = M.insert ugly pretty bookmarkAnchors }
-
---
-usedAnchors :: ReaderState -> [Anchor]
-usedAnchors ReaderState{..} = M.elems bookmarkAnchors
+  = state { bookmarkAnchors = M.insert ugly pretty bookmarkAnchors
+          , usedAnchors     = Set.insert pretty usedAnchors
+          }
 
 getMediaBag :: ReaderState -> MediaBag
 getMediaBag ReaderState{..} = odtMediaBag
@@ -218,7 +222,7 @@ getPrettyAnchor baseIdent uglyAnchor = do
   case lookupPrettyAnchor uglyAnchor state of
     Just prettyAnchor -> return prettyAnchor
     Nothing           -> do
-      let newPretty = uniqueIdentFrom baseIdent (usedAnchors state)
+      let newPretty = uniqueIdentFrom baseIdent (Set.toList (usedAnchors state))
       modifyExtraState (putPrettyAnchor uglyAnchor newPretty)
       return newPretty
 
@@ -228,8 +232,7 @@ getHeaderAnchor :: Inlines -> ODTReader Anchor
 getHeaderAnchor title = do
   state <- getExtraState
   let exts = extensionsFromList [Ext_auto_identifiers]
-  let anchor = uniqueIdent exts (toList title)
-                (Set.fromList $ usedAnchors state)
+  let anchor = uniqueIdent exts (toList title) (usedAnchors state)
   modifyExtraState (putPrettyAnchor anchor anchor)
   return anchor
 
