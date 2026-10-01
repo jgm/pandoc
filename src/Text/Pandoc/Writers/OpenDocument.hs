@@ -14,10 +14,9 @@
 Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
-import Control.Monad (unless, liftM)
+import Control.Monad (unless, liftM, when)
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr, isDigit)
-import Data.Foldable (find)
 import Data.List (sortOn, sortBy)
 import qualified Data.List as L
 import qualified Data.Map as Map
@@ -107,7 +106,7 @@ data WriterState =
                 , stImageId        :: Int
                 , stTableCaptionId :: Int
                 , stImageCaptionId :: Int
-                , stIdentTypes     :: [(Text,ReferenceType)]
+                , stIdentTypes     :: Map.Map Text ReferenceType
                 , stDirection      :: Maybe Direction
                   -- ^ active writing mode
                 }
@@ -129,7 +128,7 @@ defaultWriterState =
                 , stImageId        = 1
                 , stTableCaptionId = 1
                 , stImageCaptionId = 1
-                , stIdentTypes     = []
+                , stIdentTypes     = Map.empty
                 , stDirection      = Nothing
                 }
 
@@ -316,11 +315,19 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                            _ -> Nothing
   ((body, abstract, metadata),s) <- flip runStateT
         defaultWriterState{ stDirection = mbDir } $ do
-           let collectBlockIdent (Header _ (ident,_,_) _)      = [(ident,HeaderRef)]
-               collectBlockIdent (Figure (ident,_,_) _ _ )     = [(ident,FigureRef)]
-               collectBlockIdent (Table (ident,_,_) _ _ _ _ _) = [(ident,TableRef)]
-               collectBlockIdent _                             = []
-           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
+           let collectBlockIdent (Header _ attr _)      = identRef HeaderRef attr
+               collectBlockIdent (Figure attr _ _ )     = identRef FigureRef attr
+               collectBlockIdent (Table attr _ _ _ _ _) = identRef TableRef attr
+               collectBlockIdent _                      = []
+               identRef ty (ident,_,_)
+                 | T.null ident = []
+                 | otherwise    = [(ident, ty)]
+           -- only needed to resolve cross references
+           when (isEnabled Ext_xrefs_name opts ||
+                 isEnabled Ext_xrefs_number opts) $
+             modify $ \s -> s{ stIdentTypes =
+                                 Map.fromListWith (\_ old -> old)
+                                   (query collectBlockIdent blocks) }
            m <- metaToContext opts
                   (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
@@ -859,12 +866,10 @@ toHlTok (toktype,tok) =
 preformatted :: Text -> Doc Text
 preformatted s = handleSpaces $ escapeStringForXML s
 
-mkLink :: WriterOptions -> [(Text,ReferenceType)] -> Text -> Text -> Doc Text -> Doc Text
+mkLink :: WriterOptions -> Map.Map Text ReferenceType -> Text -> Text
+       -> Doc Text -> Doc Text
 mkLink o identTypes s t d =
-  let maybeIdentAndType = case T.uncons s of
-                            Just ('#', ident) -> find ((ident ==) . fst) identTypes
-                            _                 -> Nothing
-      d' = inSpanTags "Definition" d
+  let d' = inSpanTags "Definition" d
       ref refType format ident       = inTags False refType
                                        [ ("text:reference-format", format ),
                                          ("text:ref-name", ident) ]
@@ -889,11 +894,14 @@ mkLink o identTypes s t d =
                                           , ("xlink:href" , s       )
                                           , ("office:name", t       )
                                           ] d'
-      linkOrReference = case maybeIdentAndType of
-                          Just (ident, HeaderRef) -> bookmarkRef' ident
-                          Just (ident, TableRef)  -> sequenceRef' ident
-                          Just (ident, FigureRef) -> sequenceRef' ident
-                          _                       -> link
+      linkOrReference = case T.uncons s of
+                          Just ('#', ident) ->
+                            case Map.lookup ident identTypes of
+                              Just HeaderRef -> bookmarkRef' ident
+                              Just TableRef  -> sequenceRef' ident
+                              Just FigureRef -> sequenceRef' ident
+                              Nothing        -> link
+                          _ -> link
       in if isEnabled Ext_xrefs_name o || isEnabled Ext_xrefs_number o
             then linkOrReference
             else link
