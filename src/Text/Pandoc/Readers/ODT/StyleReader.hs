@@ -446,8 +446,9 @@ readTextProperties =
           <*> readUnderlineMode
           <*> readStrikeThroughMode
   where isFontEmphasised = [("normal",False),("italic",True),("oblique",True)]
+        -- As in CSS, `bold` is weight 700; lighter weights are not bold.
         isFontBold = ("normal",False):("bold",True)
-                    :map ((,True) . tshow) ([100,200..900]::[Int])
+                    :map (\w -> (tshow w, w >= 700)) ([100,200..900]::[Int])
 
 readUnderlineMode     :: StyleReader (Maybe UnderlineMode)
 readUnderlineMode     = readLineMode "text-underline-mode"
