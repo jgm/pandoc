@@ -88,9 +88,11 @@ data Direction = LTR | RTL
   deriving (Show, Eq, Ord)
 
 data WriterState =
-    WriterState { stNotes          :: [Doc Text]
+    WriterState { stNoteCount      :: Int
                 , stTableStyles    :: [Doc Text]
+                , stTableStyleCount :: Int
                 , stParaStyles     :: [Doc Text]
+                , stParaStyleCount :: Int
                 , stListOverrides  :: Map.Map (ListNumberStyle,ListNumberDelim)
                                         (Text, Doc Text)
                 , stTextStyles     :: Map.Map (Set.Set TextStyle)
@@ -98,7 +100,6 @@ data WriterState =
                 , stTextStyleAttr  :: Set.Set TextStyle
                 , stIndentPara     :: Int
                 , stInDefinition   :: Bool
-                , stTight          :: Bool
                 , stFirstPara      :: Bool
                 , stImageId        :: Int
                 , stTableCaptionId :: Int
@@ -113,15 +114,16 @@ data WriterState =
 
 defaultWriterState :: WriterState
 defaultWriterState =
-    WriterState { stNotes          = []
+    WriterState { stNoteCount      = 0
                 , stTableStyles    = []
+                , stTableStyleCount = 0
                 , stParaStyles     = []
+                , stParaStyleCount = 0
                 , stListOverrides  = Map.empty
                 , stTextStyles     = Map.empty
                 , stTextStyleAttr  = Set.empty
                 , stIndentPara     = 0
                 , stInDefinition   = False
-                , stTight          = False
                 , stFirstPara      = False
                 , stImageId        = 1
                 , stTableCaptionId = 1
@@ -132,13 +134,14 @@ defaultWriterState =
                 }
 
 addTableStyle :: PandocMonad m => Doc Text -> OD m ()
-addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
-
-addNote :: PandocMonad m => Doc Text -> OD m ()
-addNote i = modify $ \s -> s { stNotes = i : stNotes s }
+addTableStyle i = modify $ \s ->
+  s { stTableStyles = i : stTableStyles s
+    , stTableStyleCount = stTableStyleCount s + 1 }
 
 addParaStyle :: PandocMonad m => Doc Text -> OD m ()
-addParaStyle i = modify $ \s -> s { stParaStyles = i : stParaStyles s }
+addParaStyle i = modify $ \s ->
+  s { stParaStyles = i : stParaStyles s
+    , stParaStyleCount = stParaStyleCount s + 1 }
 
 addTextStyle :: PandocMonad m
              => Set.Set TextStyle -> (Text, Doc Text) -> OD m ()
@@ -553,8 +556,8 @@ blockToOpenDocument o = \case
       table :: PandocMonad m => WriterOptions -> Ann.Table -> OD m (Doc Text)
       table opts
           (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies tfoot) = do
-        tn <- length <$> gets stTableStyles
-        pn <- length <$> gets stParaStyles
+        tn <- gets stTableStyleCount
+        pn <- gets stParaStyleCount
         let  genIds      = map chr [65..]
              name        = "Table" <> tshow (tn + 1)
              (aligns, mwidths) = unzip colspecs
@@ -828,7 +831,7 @@ inlineToOpenDocument o ils
           then i
           else fmap mkBookmarkedSpan i
       mkNote     l = do
-        n <- length <$> gets stNotes
+        n <- gets stNoteCount
         let footNote t = inTags False "text:note"
                          [ ("text:id"        , "ftn" <> tshow n)
                          , ("text:note-class", "footnote"     )] $
@@ -836,7 +839,7 @@ inlineToOpenDocument o ils
                          inTagsSimple "text:note-body" t
         nn <- footNote <$> withAlteredTextStyles (const mempty)
                             (withParagraphStyle o "Footnote" l)
-        addNote nn
+        modify $ \st -> st{ stNoteCount = stNoteCount st + 1 }
         return nn
 
 formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
@@ -933,23 +936,19 @@ paraStyle :: PandocMonad m => [(Text,Text)] -> OD m Text
 paraStyle attrs = do
   i  <- (*) (0.5 :: Double) . fromIntegral <$> gets stIndentPara
   b  <- gets stInDefinition
-  t  <- gets stTight
   dirAttrs <- getDirAttrs
   let indentVal = flip (<>) "in" . tshow $ if b then max 0.5 i else i
-      tight     = if t then [ ("fo:margin-top"          , "0in"    )
-                            , ("fo:margin-bottom"       , "0in"    )]
-                       else []
       indent    = if i /= 0 || b
                       then [ ("fo:margin-left"         , indentVal)
                            , ("fo:margin-right"        , "0in"    )
                            , ("fo:text-indent"         , "0in"    )
                            , ("style:auto-text-indent" , "false"  )]
                       else []
-      attributes = indent <> tight <> dirAttrs
+      attributes = indent <> dirAttrs
   case (attributes, attrs) of
     ([], [("style:parent-style-name", parent)]) -> return parent
     _ -> do
-      pn <- (+) 1 . length <$> gets stParaStyles
+      pn <- (+) 1 <$> gets stParaStyleCount
       let name      = "P" <> tshow pn
           styleAttr = [ ("style:name"  , name)
                       , ("style:family", "paragraph") ]
@@ -967,7 +966,7 @@ paraStyleFromParent parent attrs = do
   if null attrs'
      then return parent
      else do
-      pn <- (+) 1 . length <$> gets stParaStyles
+      pn <- (+) 1 <$> gets stParaStyleCount
       let name      = "P" <> tshow pn
           styleAttr = [ ("style:name"             , name)
                       , ("style:family"           , "paragraph")
