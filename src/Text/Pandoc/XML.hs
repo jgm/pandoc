@@ -47,20 +47,48 @@ escapeCharForXML x = case x of
                        '"' -> "&quot;"
                        c   -> T.singleton c
 
+-- | Is this character legal in XML at all?
+-- See <https://www.w3.org/TR/xml/#charsets>.
+isLegalXMLChar :: Char -> Bool
+isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
+                   (c >= '\x20' && c <= '\xD7FF') ||
+                   (c >= '\xE000' && c <= '\xFFFD') ||
+                   (c >= '\x10000' && c <= '\x10FFFF')
+
+-- | Does this character need to be replaced or dropped by
+-- 'escapeStringForXML'?
+isSpecialXMLChar :: Char -> Bool
+isSpecialXMLChar = \case
+  '&' -> True
+  '<' -> True
+  '>' -> True
+  '"' -> True
+  c   -> not (isLegalXMLChar c)
+
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: Text -> Text
-escapeStringForXML = T.concatMap escapeCharForXML . T.filter isLegalXMLChar
-  where isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
-                           (c >= '\x20' && c <= '\xD7FF') ||
-                           (c >= '\xE000' && c <= '\xFFFD') ||
-                           (c >= '\x10000' && c <= '\x10FFFF')
-  -- see https://www.w3.org/TR/xml/#charsets
+escapeStringForXML t
+  | T.null rest = t  -- nothing to do, so return the input without copying
+  | otherwise   = T.concat (chunk : go rest)
+ where
+  (chunk, rest) = T.break isSpecialXMLChar t
+  -- 'go' is always given text starting with a special character.  Text
+  -- between special characters is copied in runs rather than character
+  -- by character.
+  go t' = let (specials, t'') = T.span isSpecialXMLChar t'
+              (chunk', rest') = T.break isSpecialXMLChar t''
+           in T.concatMap escape specials :
+                if T.null rest' then [chunk'] else chunk' : go rest'
+  -- a special character is either one of & < > " or else not
+  -- representable in XML, in which case it is dropped
+  escape c | isLegalXMLChar c = escapeCharForXML c
+           | otherwise        = T.empty
 
 -- | Escape newline characters as &#10;
 escapeNls :: Text -> Text
-escapeNls = T.concatMap $ \case
-  '\n' -> "&#10;"
-  c    -> T.singleton c
+escapeNls t
+  | T.elem '\n' t = T.replace "\n" "&#10;" t
+  | otherwise     = t
 
 -- | Return a text object with a string of formatted XML attributes.
 attributeList :: (HasChars a, IsString a) => [(Text, Text)] -> Doc a
