@@ -345,12 +345,15 @@ withParagraphStyle :: PandocMonad m
                    => WriterOptions -> Text -> [Block] -> OD m (Doc Text)
 withParagraphStyle o s bs = do
   s' <- dirStyleFor s
+  -- 'Plain' is treated like 'Para' so that the requested style is not
+  -- lost (e.g. for metadata fields, figure bodies, or tight list items)
   let go (b:bs')
-        | Para l <- b = cont bs' =<<
-            inParagraphTagsWithStyle s' <$> inlinesToOpenDocument o l
-        | otherwise   = cont bs' =<< blockToOpenDocument o b
+        | Para  l <- b = cont bs' =<< styled l
+        | Plain l <- b = cont bs' =<< styled l
+        | otherwise    = cont bs' =<< blockToOpenDocument o b
       go [] = return empty
       cont bs' i = (<>) i <$> go bs'
+      styled l = inParagraphTagsWithStyle s' <$> inlinesToOpenDocument o l
   go bs
 
 inPreformattedTags :: [Doc Text] -> Doc Text
@@ -595,8 +598,7 @@ blockToOpenDocument o = \case
           [] ->
             withParagraphStyle o "Figure" body
           caption -> do
-            imageDoc <- withParagraphStyle o "FigureWithCaption" $
-                        map (\case {Plain i -> Para i; b -> b}) body
+            imageDoc <- withParagraphStyle o "FigureWithCaption" body
             captionDoc <- inlinesToOpenDocument o caption >>=
                           if isEnabled Ext_native_numbering o
                           then numberedFigureCaption ident
