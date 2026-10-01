@@ -93,6 +93,9 @@ data WriterState =
                 , stTableStyleCount :: Int
                 , stParaStyles     :: [Doc Text]
                 , stParaStyleCount :: Int
+                , stParaStyleCache :: Map.Map ([(Text,Text)],[(Text,Text)]) Text
+                  -- ^ cache of automatic paragraph styles, keyed on
+                  -- (style attributes, paragraph properties)
                 , stListOverrides  :: Map.Map (ListNumberStyle,ListNumberDelim)
                                         (Text, Doc Text)
                 , stTextStyles     :: Map.Map (Set.Set TextStyle)
@@ -107,9 +110,6 @@ data WriterState =
                 , stIdentTypes     :: [(Text,ReferenceType)]
                 , stDirection      :: Maybe Direction
                   -- ^ active writing mode
-                , stDirStyles      :: Map.Map (Text, Direction) Text
-                  -- ^ cache of direction-adjusted paragraph styles,
-                  -- keyed on (parent style, writing mode)
                 }
 
 defaultWriterState :: WriterState
@@ -119,6 +119,7 @@ defaultWriterState =
                 , stTableStyleCount = 0
                 , stParaStyles     = []
                 , stParaStyleCount = 0
+                , stParaStyleCache = Map.empty
                 , stListOverrides  = Map.empty
                 , stTextStyles     = Map.empty
                 , stTextStyleAttr  = Set.empty
@@ -130,7 +131,6 @@ defaultWriterState =
                 , stImageCaptionId = 1
                 , stIdentTypes     = []
                 , stDirection      = Nothing
-                , stDirStyles      = Map.empty
                 }
 
 addTableStyle :: PandocMonad m => Doc Text -> OD m ()
@@ -963,17 +963,7 @@ paraStyle attrs = do
       attributes = indent <> dirAttrs
   case (attributes, attrs) of
     ([], [("style:parent-style-name", parent)]) -> return parent
-    _ -> do
-      pn <- (+) 1 <$> gets stParaStyleCount
-      let name      = "P" <> tshow pn
-          styleAttr = [ ("style:name"  , name)
-                      , ("style:family", "paragraph") ]
-          paraProps = if null attributes
-                         then mempty
-                         else selfClosingTag
-                                 "style:paragraph-properties" attributes
-      addParaStyle $ inTags True "style:style" (styleAttr <> attrs) paraProps
-      return name
+    _ -> mkParaStyle attrs attributes
 
 paraStyleFromParent :: PandocMonad m => Text -> [(Text,Text)] -> OD m Text
 paraStyleFromParent parent attrs = do
@@ -981,14 +971,29 @@ paraStyleFromParent parent attrs = do
   let attrs' = attrs <> dirAttrs
   if null attrs'
      then return parent
-     else do
-      pn <- (+) 1 <$> gets stParaStyleCount
-      let name      = "P" <> tshow pn
-          styleAttr = [ ("style:name"             , name)
-                      , ("style:family"           , "paragraph")
-                      , ("style:parent-style-name", parent)]
-          paraProps = selfClosingTag "style:paragraph-properties" attrs'
+     else mkParaStyle [("style:parent-style-name", parent)] attrs'
+
+-- | Create an automatic paragraph style with the given @style:style@
+-- attributes and @style:paragraph-properties@, reusing an identical
+-- style if one has already been created.
+mkParaStyle :: PandocMonad m => [(Text,Text)] -> [(Text,Text)] -> OD m Text
+mkParaStyle attrs props = do
+  cache <- gets stParaStyleCache
+  case Map.lookup (attrs, props) cache of
+    Just name -> return name
+    Nothing -> do
+      name <- ("P" <>) . tshow . (+ 1) <$> gets stParaStyleCount
+      let styleAttr = ("style:name"  , name)
+                    : ("style:family", "paragraph")
+                    : attrs
+          paraProps = if null props
+                         then mempty
+                         else selfClosingTag
+                                 "style:paragraph-properties" props
       addParaStyle $ inTags True "style:style" styleAttr paraProps
+      modify $ \st -> st{ stParaStyleCache =
+                            Map.insert (attrs, props) name
+                                       (stParaStyleCache st) }
       return name
 
 getDirAttrs :: PandocMonad m => OD m [(Text, Text)]
@@ -1004,26 +1009,14 @@ getDirAttrs = do
 
 -- | Adjust a named paragraph style for the current writing direction.
 -- When a direction is active, an automatic style derived from the
--- given style with the appropriate @style:writing-mode@ is created
--- (and cached).  Automatic style names (@P1@, @P2@, ...) pass through
--- unchanged, since automatic styles are always created with the
--- current direction included.
+-- given style with the appropriate @style:writing-mode@ is created.
+-- With no direction active the name passes through unchanged, as do
+-- automatic style names (@P1@, @P2@, ...), since automatic styles are
+-- always created with the current direction included.
 dirStyleFor :: PandocMonad m => Text -> OD m Text
-dirStyleFor parent = do
-  mbDir <- gets stDirection
-  case mbDir of
-    Nothing -> return parent
-    Just d
-      | isAutoStyleName parent -> return parent
-      | otherwise -> do
-          cache <- gets stDirStyles
-          case Map.lookup (parent, d) cache of
-            Just name -> return name
-            Nothing -> do
-              name <- paraStyleFromParent parent []
-              modify $ \st -> st{ stDirStyles =
-                     Map.insert (parent, d) name (stDirStyles st) }
-              return name
+dirStyleFor parent
+  | isAutoStyleName parent = return parent
+  | otherwise              = paraStyleFromParent parent []
   where
     isAutoStyleName t = case T.uncons t of
       Just ('P', ds) -> not (T.null ds) && T.all isDigit ds

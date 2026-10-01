@@ -12,12 +12,6 @@
     <style:style style:name="P1" style:family="paragraph" style:parent-style-name="Quotations">
       <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
     </style:style>
-    <style:style style:name="P2" style:family="paragraph" style:parent-style-name="Quotations">
-      <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
-    </style:style>
-    <style:style style:name="P3" style:family="paragraph" style:parent-style-name="Quotations">
-      <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
-    </style:style>
     <text:list-style style:name="Pandoc_5f_Numbering_5f_1">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" style:num-prefix="(" style:num-suffix=")">
         <style:list-level-properties text:space-before="0.0000in" text:min-label-width="0.1965in" text:min-label-distance="0.1in" />
@@ -275,7 +269,7 @@ short.</text:p>
 </text:list>
 <text:p text:style-name="Quotations">Nested block quotes:</text:p>
 <text:p text:style-name="P1">nested</text:p>
-<text:p text:style-name="P2">nested</text:p>
+<text:p text:style-name="P1">nested</text:p>
 <text:p text:style-name="First_20_paragraph">This should not be a block quote: 2
 &gt; 1.</text:p>
 <text:p text:style-name="Text_20_body">And a following paragraph.</text:p>
@@ -620,7 +614,7 @@ fruit</text:p><text:p text:style-name="Definition_20_Definition">contains seeds,
 crisp, pleasant to taste</text:p>
 <text:p text:style-name="Definition_20_Term"><text:span text:style-name="Emphasis">orange</text:span></text:p>
 <text:p text:style-name="Definition_20_Definition">orange
-fruit</text:p><text:p text:style-name="Preformatted_20_Text">{ orange code block }</text:p><text:p text:style-name="P3">orange
+fruit</text:p><text:p text:style-name="Preformatted_20_Text">{ orange code block }</text:p><text:p text:style-name="P1">orange
 block quote</text:p>
 <text:p text:style-name="First_20_paragraph">Multiple definitions,
 tight:</text:p>
