@@ -1,3 +1,35 @@
+The `abstract` metadata field holds blocks, so it must be rendered
+with the block writer: previously it was flattened to inlines, which
+produced bare character data (not valid as a child of `office:text`)
+and dropped the `Abstract` style.
+
+```
+% pandoc -f markdown -t opendocument --template command/opendocument-abstract.opendocument
+---
+abstract: A one-line abstract.
+---
+
+Body.
+^D
+<text:p text:style-name="Abstract">A one-line abstract.</text:p>
+```
+
+A multi-paragraph abstract stays multi-paragraph:
+
+```
+% pandoc -f markdown -t opendocument --wrap=none --template command/opendocument-abstract.opendocument
+---
+abstract: |
+  First para.
+
+  Second para.
+---
+
+Body.
+^D
+<text:p text:style-name="Abstract">First para.</text:p><text:p text:style-name="Abstract">Second para.</text:p>
+```
+
 A requested paragraph style must also be applied to `Plain` blocks, not
 just to `Para`. The body of a caption-less figure is a `Plain`, so it
 should still get the `Figure` style:
