@@ -58,7 +58,7 @@ import qualified Data.Set as Set
 --------------------------------------------------------------------------------
 
 type Anchor = T.Text
-type Media = [(FilePath, B.ByteString)]
+type Media = M.Map FilePath B.ByteString
 
 data ReaderState
    = ReaderState { -- | A collection of styles read somewhere else.
@@ -96,9 +96,10 @@ data ReaderState
                  }
   deriving ( Show )
 
-readerState :: Styles -> Media -> ReaderState
+readerState :: Styles -> [(FilePath, B.ByteString)] -> ReaderState
 readerState styles media =
-  ReaderState styles [] 0 M.empty Nothing M.empty Set.empty media mempty
+  ReaderState styles [] 0 M.empty Nothing M.empty Set.empty
+              (M.fromList media) mempty
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -195,7 +196,7 @@ updateMediaWithResource resource = modifyExtraState (insertMedia' resource)
 lookupResource :: FilePath -> ODTReader (FilePath, B.ByteString)
 lookupResource target = do
   state <- getExtraState
-  case lookup target (getMediaEnv state) of
+  case M.lookup target (getMediaEnv state) of
     Just bs -> return (target, bs)
     Nothing -> return ("", B.empty)
 
