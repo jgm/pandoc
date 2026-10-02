@@ -35,12 +35,13 @@ extra-deps:
 - doclayout-0.6
 - doctemplates-0.11.1
 - asciidoc-0.1.1.1
-- texmath-0.13.3
 - commonmark-0.3.1
 - commonmark-pandoc-0.3.0.2
 - commonmark-extensions-0.2.7.3
 - djot-0.1.4.3
 - typst-0.12
+- git: https://github.com/jgm/texmath.git
+  commit: 19f61947d7720219121aafb2db0c9a75b539c029
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
