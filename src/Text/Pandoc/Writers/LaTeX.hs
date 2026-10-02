@@ -1205,7 +1205,8 @@ inlineToLaTeX (Image attr@(_,_,kvs) description (source, _)) = do
                   _ -> ["keepaspectratio"]) <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
-                maybe [] (\x -> ["alt=" <> braces (literal x)]) mbalt <>
+                maybe [] (\x -> ["alt=" <>
+                              braces (hsep $ map literal $ T.words x)]) mbalt <>
                 maybe [] (const ["clip"]) (lookup "clip" kvs)
       options = if null optList
                    then empty
