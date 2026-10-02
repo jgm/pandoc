@@ -1,0 +1,68 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Strikeout [ Str "single" , Space , Str "strikethrough" ]
+      , Str ","
+      , Space
+      , Str "and"
+      , Space
+      , Str "this"
+      , Space
+      , Str "is"
+      , Space
+      , Strikeout [ Str "double" , Space , Str "strikethrough" ]
+      , Str "."
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "character"
+      , Space
+      , Str "style"
+      , Space
+      , Str "can"
+      , Space
+      , Strikeout
+          [ Str "strike" , Space , Str "this" , Space , Str "out," ]
+      , Space
+      , Str "cancel"
+      , Space
+      , Str "this,"
+      , Space
+      , Strikeout
+          [ Str "or"
+          , Space
+          , Str "strike"
+          , Space
+          , Str "this"
+          , Space
+          , Str "out"
+          , Space
+          , Str "twice"
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Strikeout
+          [ Str "double-strikethrough,"
+          , Space
+          , Str "overridden"
+          , Space
+          , Str "to"
+          , Space
+          , Str "single,"
+          , Space
+          , Str "and"
+          ]
+      , Space
+      , Str "cancelled."
+      ]
+  ]

@@ -103,18 +103,19 @@ data CharStyle = CharStyle { cStyleId   :: CharStyleId
                            , cStyleData :: RunStyle
                            } deriving (Show)
 
-data RunStyle = RunStyle { isBold       :: Maybe Bool
-                         , isBoldCTL    :: Maybe Bool
-                         , isItalic     :: Maybe Bool
-                         , isItalicCTL  :: Maybe Bool
-                         , isSmallCaps  :: Maybe Bool
-                         , isStrike     :: Maybe Bool
-                         , isRTL        :: Maybe Bool
-                         , isForceCTL   :: Maybe Bool
-                         , rHighlight   :: Maybe Text
-                         , rVertAlign   :: Maybe VertAlign
-                         , rUnderline   :: Maybe Text
-                         , rParentStyle :: Maybe CharStyle
+data RunStyle = RunStyle { isBold         :: Maybe Bool
+                         , isBoldCTL      :: Maybe Bool
+                         , isItalic       :: Maybe Bool
+                         , isItalicCTL    :: Maybe Bool
+                         , isSmallCaps    :: Maybe Bool
+                         , isStrike       :: Maybe Bool
+                         , isDoubleStrike :: Maybe Bool
+                         , isRTL          :: Maybe Bool
+                         , isForceCTL     :: Maybe Bool
+                         , rHighlight     :: Maybe Text
+                         , rVertAlign     :: Maybe VertAlign
+                         , rUnderline     :: Maybe Text
+                         , rParentStyle   :: Maybe CharStyle
                          }
                 deriving Show
 
@@ -139,6 +140,7 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isItalicCTL = Nothing
                            , isSmallCaps = Nothing
                            , isStrike = Nothing
+                           , isDoubleStrike = Nothing
                            , isRTL = Nothing
                            , isForceCTL = Nothing
                            , rHighlight = Nothing
@@ -275,6 +277,7 @@ elemToRunStyle ns element parentStyle
       , isItalicCTL = checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
+      , isDoubleStrike = checkOnOff ns rPr (elemName ns "w" "dstrike")
       , isRTL = checkOnOff ns rPr (elemName ns "w" "rtl")
       , isForceCTL = checkOnOff ns rPr (elemName ns "w" "cs")
       , rHighlight =
