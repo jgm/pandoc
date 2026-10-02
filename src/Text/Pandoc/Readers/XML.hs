@@ -25,6 +25,7 @@ import qualified Data.Set as S (Set, fromList, member)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Lazy (fromStrict)
+import qualified Data.Text.Read as TR
 import Data.Version (Version, makeVersion)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
@@ -36,7 +37,6 @@ import Text.Pandoc.Version (pandocVersion)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.XML.Light
 import Text.Pandoc.XMLFormat
-import Text.Read (readMaybe)
 
 -- TODO: use xmlPath state to give better context when an error occurs
 
@@ -45,7 +45,6 @@ type XMLReader m = StateT XMLReaderState m
 data XMLReaderState = XMLReaderState
   { xmlApiVersion :: Version,
     xmlMeta :: Meta,
-    xmlContent :: [Content],
     xmlPath :: [Text]
   }
   deriving (Show)
@@ -55,7 +54,6 @@ instance Default XMLReaderState where
     XMLReaderState
       { xmlApiVersion = pandocVersion,
         xmlMeta = mempty,
-        xmlContent = [],
         xmlPath = ["root"]
       }
 
@@ -65,7 +63,7 @@ readXML _ inp = do
   tree <-
     either (throwError . PandocXMLError "") return $
       parseXMLContents (fromStrict . sourcesToText $ sources)
-  (bs, st') <- flip runStateT (def {xmlContent = tree}) $ mapM parseBlock tree
+  (bs, st') <- flip runStateT def $ mapM parseBlock tree
   let blockList = toList $ concatMany bs
   return $ Pandoc (xmlMeta st') blockList
 
@@ -117,7 +115,7 @@ parseBlock (Elem e) = do
         "Header" -> (headerWith attr level) <$> getInlines (elContent e)
           where
             level = textToInt (attrValue atNameLevel e) 1
-            attr = filterAttrAttributes [atNameLevel] $ attrFromElement e
+            attr = attrFromElementExcept [atNameLevel] e
         "HorizontalRule" -> return horizontalRule
         "BlockQuote" -> do
           contents <- getBlocks e
@@ -192,25 +190,39 @@ getContentsOfElements filter_element contents = mapMaybe element_contents $ filt
       _ -> Nothing
 
 strContentRecursive :: Element -> Text
-strContentRecursive =
-  strContent
-    . (\e' -> e' {elContent = map elementToStr $ elContent e'})
-
-elementToStr :: Content -> Content
-elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
-elementToStr x = x
+strContentRecursive e = case elContent e of
+  [Text (CData _ s _)] -> s -- the common case: no nested elements
+  cs -> T.concat $ map contentToStr cs
+  where
+    contentToStr (Text (CData _ s _)) = s
+    contentToStr (Elem e') = strContentRecursive e'
+    contentToStr (CRef _) = mempty
 
 textToInt :: Text -> Int -> Int
-textToInt t deflt =
-  let safe_to_int :: Text -> Maybe Int
-      safe_to_int s = readMaybe $ T.unpack s
-   in case (safe_to_int t) of
-        Nothing -> deflt
-        Just (n) -> n
+textToInt t deflt = case TR.signed TR.decimal (T.strip t) of
+  Right (n, rest) | T.null rest -> n
+  _ -> deflt
+
+-- | Split text into 'Str', 'Space' and 'SoftBreak' inlines.  This is
+-- 'Text.Pandoc.Builder.text', but it builds a list instead of a 'Seq'.
+textToInlines :: Text -> [Inline]
+textToInlines t
+  | T.null t = []
+  | isSpaceChar (T.head t) =
+      case T.span isSpaceChar t of
+        (spaces, rest) ->
+          (if T.any isNewlineChar spaces then SoftBreak else Space)
+            : textToInlines rest
+  | otherwise =
+      case T.break isSpaceChar t of
+        (word, rest) -> Str word : textToInlines rest
+  where
+    isSpaceChar c = c == ' ' || c == '\n' || c == '\r' || c == '\t'
+    isNewlineChar c = c == '\n' || c == '\r'
 
 parseInline :: (PandocMonad m) => Content -> XMLReader m Inlines
 parseInline (Text (CData _ s _)) =
-  return $ text s
+  return $ fromList $ textToInlines s
 parseInline (CRef ref) =
   return $
     maybe (text $ T.toUpper ref) text $
@@ -245,12 +257,12 @@ parseInline (Elem e) =
           where
             url = attrValue atNameLinkUrl e
             title = attrValue atNameTitle e
-            attr = filterAttrAttributes [atNameLinkUrl, atNameTitle] $ attrFromElement e
+            attr = attrFromElementExcept [atNameLinkUrl, atNameTitle] e
         "Image" -> innerInlines $ imageWith attr url title
           where
             url = attrValue atNameImageUrl e
             title = attrValue atNameTitle e
-            attr = filterAttrAttributes [atNameImageUrl, atNameTitle] $ attrFromElement e
+            attr = attrFromElementExcept [atNameImageUrl, atNameTitle] e
         "RawInline" -> do
           let format = (attrValue atNameFormat e)
           return $ rawInline format $ strContentRecursive e
@@ -308,6 +320,8 @@ alignmentFromText t = case t of
   "AlignCenter" -> AlignCenter
   _ -> AlignDefault
 
+-- NB. 'reads' is used rather than 'Data.Text.Read.double', which is
+-- not correctly rounded and so would not round-trip column widths.
 getColWidth :: Text -> ColWidth
 getColWidth txt = case reads (T.unpack txt) of
   [(value, "")] -> if value == 0.0 then ColWidthDefault else ColWidth value
@@ -322,7 +336,7 @@ getColspecs (Just cs) = do
 
 getTableBody :: (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
 getTableBody body_el = do
-  let attr = filterAttrAttributes [atNameRowHeadColumns] $ attrFromElement body_el
+  let attr = attrFromElementExcept [atNameRowHeadColumns] body_el
       bh = childrenNamed tgNameBodyHeader body_el
       bb = childrenNamed tgNameBodyBody body_el
       headcols = textToInt (attrValue atNameRowHeadColumns body_el) 0
@@ -355,7 +369,7 @@ getCell c = do
   let alignment = alignmentFromText $ attrValue atNameAlignment c
       rowspan = RowSpan $ textToInt (attrValue atNameRowspan c) 1
       colspan = ColSpan $ textToInt (attrValue atNameColspan c) 1
-      attr = filterAttrAttributes [atNameAlignment, atNameRowspan, atNameColspan] $ attrFromElement c
+      attr = attrFromElementExcept [atNameAlignment, atNameRowspan, atNameColspan] c
   blocks <- getBlocks c
   return $ Cell attr alignment rowspan colspan (toList blocks)
 
@@ -461,22 +475,26 @@ partitionFirstChildNamed tag contents = case (contents) of
 
 type PandocAttr = (Text, [Text], [(Text, Text)])
 
-filterAttributes :: S.Set Text -> [(Text, Text)] -> [(Text, Text)]
-filterAttributes to_be_removed a = filter keep_attr a
-  where
-    keep_attr (k, _) = not (k `S.member` to_be_removed)
-
-filterAttrAttributes :: [Text] -> PandocAttr -> PandocAttr
-filterAttrAttributes to_be_removed (idn, classes, a) = (idn, classes, filtered)
-  where
-    filtered = filterAttributes (S.fromList to_be_removed) a
-
 attrFromElement :: Element -> PandocAttr
-attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attributes)
+attrFromElement = attrFromElementExcept []
+
+-- | Build a pandoc 'Attr' from an element's XML attributes, skipping
+-- the attributes whose (decoded) names are listed in the first argument
+-- in addition to @id@ and @class@, which become the identifier and the
+-- classes of the 'Attr'.
+attrFromElementExcept :: [Text] -> Element -> PandocAttr
+attrFromElementExcept skip e = go (elAttribs e) "" "" []
   where
-    idn = attrValue "id" e
-    classes = T.words $ attrValue "class" e
-    attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
+    go [] idn classes kvs = (idn, T.words classes, reverse kvs)
+    go (a : as) idn classes kvs =
+      case qName (attrKey a) of
+        "id" -> go as (attrVal a) classes kvs
+        "class" -> go as idn (attrVal a) kvs
+        name ->
+          let name' = decodeAttrName name
+           in if name' `elem` skip
+                then go as idn classes kvs
+                else go as idn classes ((name', attrVal a) : kvs)
 
 addMeta :: (PandocMonad m) => (ToMetaValue a) => Text -> a -> XMLReader m ()
 addMeta field val = modify (setMeta field val)

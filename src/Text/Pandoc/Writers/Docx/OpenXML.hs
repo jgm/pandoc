@@ -444,6 +444,16 @@ blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
+-- A section's bookmark goes in its heading's paragraph, around the
+-- heading's text, as Word writes one: it then marks the heading rather
+-- than the whole section (#11845, #8825), and the docx reader, which
+-- reads bookmarks only inside paragraphs, finds it, so a link to the
+-- heading survives a round trip.
+blockToOpenXML' opts (Div (ident,classes,kvs) (Header lev ("",hcls,hkvs) ils : bs))
+  | "section" `elem` classes
+  , not (T.null ident)
+  = blockToOpenXML' opts
+      (Div ("",classes,kvs) (Header lev (ident,hcls,hkvs) ils : bs))
 blockToOpenXML' opts (Div (_,classes,_) bs) | "mark" `elem` classes =
   withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
     blocksToOpenXMLKeepingFirstPara opts bs
@@ -869,16 +879,13 @@ inlineToOpenXML' opts (Span ("",["csl-right-inline"],[]) ils) =
 inlineToOpenXML' opts (Span ("",["csl-indent"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
-      kvs' = filter (("id" /=) . fst) kvs
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
+      kvs' = filter ((\x -> x /= "comment-id" && x /= "id") . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
   return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
 inlineToOpenXML' opts (Span (ident,["comment-end"],kvs) content) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
+  -- now we use comment-id, but support id for legacy compat:
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
   -- process nested content: see #8189
   nestedContent <- inlinesToOpenXML opts content
   let thisCommentEnd =

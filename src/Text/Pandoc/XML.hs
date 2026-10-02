@@ -32,7 +32,7 @@ import qualified Data.Text as T
 import Commonmark.Entity (lookupEntity)
 import Text.HTML.TagSoup.Entity (htmlEntities)
 import Text.DocLayout
-    ( ($$), char, hcat, nest, text, Doc, HasChars )
+    ( ($$), nest, text, Doc, HasChars )
 import Text.Printf (printf)
 import qualified Data.Map as M
 import Data.String ( IsString )
@@ -47,35 +47,63 @@ escapeCharForXML x = case x of
                        '"' -> "&quot;"
                        c   -> T.singleton c
 
+-- | Is this character legal in XML at all?
+-- See <https://www.w3.org/TR/xml/#charsets>.
+isLegalXMLChar :: Char -> Bool
+isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
+                   (c >= '\x20' && c <= '\xD7FF') ||
+                   (c >= '\xE000' && c <= '\xFFFD') ||
+                   (c >= '\x10000' && c <= '\x10FFFF')
+
+-- | Does this character need to be replaced or dropped by
+-- 'escapeStringForXML'?
+isSpecialXMLChar :: Char -> Bool
+isSpecialXMLChar = \case
+  '&' -> True
+  '<' -> True
+  '>' -> True
+  '"' -> True
+  c   -> not (isLegalXMLChar c)
+
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: Text -> Text
-escapeStringForXML = T.concatMap escapeCharForXML . T.filter isLegalXMLChar
-  where isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
-                           (c >= '\x20' && c <= '\xD7FF') ||
-                           (c >= '\xE000' && c <= '\xFFFD') ||
-                           (c >= '\x10000' && c <= '\x10FFFF')
-  -- see https://www.w3.org/TR/xml/#charsets
+escapeStringForXML t
+  | T.null rest = t  -- nothing to do, so return the input without copying
+  | otherwise   = T.concat (chunk : go rest)
+ where
+  (chunk, rest) = T.break isSpecialXMLChar t
+  -- 'go' is always given text starting with a special character.  Text
+  -- between special characters is copied in runs rather than character
+  -- by character.
+  go t' = let (specials, t'') = T.span isSpecialXMLChar t'
+              (chunk', rest') = T.break isSpecialXMLChar t''
+           in T.concatMap escape specials :
+                if T.null rest' then [chunk'] else chunk' : go rest'
+  -- a special character is either one of & < > " or else not
+  -- representable in XML, in which case it is dropped
+  escape c | isLegalXMLChar c = escapeCharForXML c
+           | otherwise        = T.empty
 
 -- | Escape newline characters as &#10;
 escapeNls :: Text -> Text
-escapeNls = T.concatMap $ \case
-  '\n' -> "&#10;"
-  c    -> T.singleton c
+escapeNls t
+  | T.elem '\n' t = T.replace "\n" "&#10;" t
+  | otherwise     = t
 
--- | Return a text object with a string of formatted XML attributes.
-attributeList :: (HasChars a, IsString a) => [(Text, Text)] -> Doc a
-attributeList = hcat . map
-  (\(a, b) -> text (T.unpack $ " " <> escapeStringForXML a <> "=\"" <>
-  escapeNls (escapeStringForXML b) <> "\""))
+-- | The pieces of a string of formatted XML attributes, each attribute
+-- preceded by a space.
+attributeList :: [(Text, Text)] -> [Text]
+attributeList = concatMap
+  (\(a, b) -> [" ", escapeStringForXML a, "=\"",
+               escapeNls (escapeStringForXML b), "\""])
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
 inTags :: (HasChars a, IsString a)
       => Bool -> Text -> [(Text, Text)] -> Doc a -> Doc a
 inTags isIndented tagType attribs contents =
-  let openTag = char '<' <> text (T.unpack tagType) <> attributeList attribs <>
-                char '>'
-      closeTag  = text "</" <> text (T.unpack tagType) <> char '>'
+  let openTag  = tagDoc ("<" : tagType : attributeList attribs ++ [">"])
+      closeTag = tagDoc ["</", tagType, ">"]
   in  if isIndented
          then openTag $$ nest 2 contents $$ closeTag
          else openTag <> contents <> closeTag
@@ -84,7 +112,13 @@ inTags isIndented tagType attribs contents =
 selfClosingTag :: (HasChars a, IsString a)
                => Text -> [(Text, Text)] -> Doc a
 selfClosingTag tagType attribs =
-  char '<' <> text (T.unpack tagType) <> attributeList attribs <> text " />"
+  tagDoc ("<" : tagType : attributeList attribs ++ [" />"])
+
+-- | Assemble the pieces of a tag into a single 'Doc', so that a tag
+-- costs one 'Text' allocation and one 'Doc' node rather than one of
+-- each per tag name and per attribute.
+tagDoc :: (HasChars a, IsString a) => [Text] -> Doc a
+tagDoc = text . T.unpack . T.concat
 
 -- | Put the supplied contents between start and end tags of tagType.
 inTagsSimple :: (HasChars a, IsString a)

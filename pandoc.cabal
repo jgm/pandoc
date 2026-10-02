@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.11
+version:         3.12
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -11,7 +11,6 @@ bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 9.6.7, GHC == 9.8.4, GHC == 9.10.3, GHC == 9.12.2
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another.  The formats it can handle include
@@ -219,6 +218,7 @@ extra-source-files:
                  test/command/*.md
                  test/command/*.csl
                  test/command/*.svg
+                 test/command/2623.odt
                  test/command/7691.docx
                  test/command/9391.docx
                  test/command/9358.docx
@@ -533,7 +533,7 @@ library
                  citeproc              >= 0.14     && < 0.15,
                  commonmark            >= 0.3.1    && < 0.4,
                  commonmark-extensions >= 0.2.7.3  && < 0.3,
-                 commonmark-pandoc     >= 0.3.0.1  && < 0.4,
+                 commonmark-pandoc     >= 0.3.0.2  && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
                  crypton               >= 0.30     && < 2.1,
                  data-default          >= 0.4      && < 0.9,

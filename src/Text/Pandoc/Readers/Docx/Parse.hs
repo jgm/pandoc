@@ -1506,10 +1506,13 @@ hasCaptionStyle =
 
 stripCaptionLabel :: [Element] -> [Element]
 stripCaptionLabel els =
-  if any isNumberElt els
-     then dropWhile (not . isNumberElt) els
-     else els
+    if null afters
+       then els
+       else filter isBookmark befores <> afters
   where
+    (befores, afters) = break isNumberElt els
+    isBookmark (Element name _ _ _) =
+      qName name == "bookmarkStart" || qName name == "bookmarkEnd"
     isNumberElt el@(Element name attribs _ _) =
        (qName name == "fldSimple" &&
              case lookupAttrBy ((== "instr") . qName) attribs of
