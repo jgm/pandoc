@@ -86,7 +86,7 @@ escapeText opts = T.pack . go' . T.unpack
   go ('\\':c:cs)
     | isEnabled Ext_raw_tex opts = '\\':'\\':go (c:cs)
     | isAlphaNum c = '\\' : go (c:cs)
-    | otherwise = '\\':'\\': go cs
+    | otherwise = '\\':'\\': go (c:cs)
   go ('!':'[':cs) = '\\':'!':'[': go cs
   go ('=':'=':cs)
     | isEnabled Ext_mark opts = '\\':'=':go ('=':cs)
