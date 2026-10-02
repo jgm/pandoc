@@ -82,6 +82,12 @@ data RTFState = RTFState  { sOptions     :: ReaderOptions
                                                  -- paragraph numbering is in
                                                  -- effect; every paragraph in
                                                  -- scope is its own list item
+                          , sPendingSurrogate :: Maybe Word16
+                                                 -- A high surrogate from a \u
+                                                 -- control word, held back
+                                                 -- until we know whether the
+                                                 -- low surrogate completing it
+                                                 -- follows
                           } deriving (Show)
 
 instance Default RTFState where
@@ -99,6 +105,7 @@ instance Default RTFState where
                 , sEatChars = 0
                 , sListText = False
                 , sPnActive = False
+                , sPendingSurrogate = Nothing
                 }
 
 type FontTable = IntMap.IntMap FontFamily
@@ -385,11 +392,45 @@ addFormatting (props, txt) =
 
 addText :: PandocMonad m => Text -> RTFParser m ()
 addText t = do
+  -- A high surrogate held back by 'addUnicodeCodeUnit' can only be completed
+  -- by the next \u control word, so any text in between means it was
+  -- unpaired.  Empty text does not count: consuming a \u's fallback
+  -- characters ends in adding the empty remainder of them, and that happens
+  -- between the two halves of a surrogate pair.
+  unless (T.null t) $
+    updateState $ \s -> s{ sPendingSurrogate = Nothing }
   gs <- sGroupStack <$> getState
   let !props = case gs of
                 (x:_) -> x
                 _ -> def
   updateState (\s -> s{ sTextContent = (props, t) : sTextContent s })
+
+-- | Add the character denoted by the argument of a @\\u@ control word, which
+-- is a single UTF-16 code unit.  A character outside the Basic Multilingual
+-- Plane is written as a surrogate pair, that is, as two consecutive @\\u@
+-- words, each followed by its own fallback characters, so a high surrogate is
+-- held back until we know whether the low surrogate completing it follows.
+-- An unpaired surrogate denotes no character and cannot be represented in
+-- 'Text', so it is dropped.
+addUnicodeCodeUnit :: PandocMonad m => Word16 -> RTFParser m ()
+addUnicodeCodeUnit unit = do
+  mbHigh <- sPendingSurrogate <$> getState
+  updateState $ \s -> s{ sPendingSurrogate = Nothing }
+  case mbHigh of
+    Just high | isLowSurrogate unit ->      -- a complete pair
+      addText $ T.singleton $ chr $
+        0x10000 + (fromIntegral high - 0xD800) * 0x400
+                + (fromIntegral unit - 0xDC00)
+    _ | isHighSurrogate unit ->             -- wait for the low surrogate
+          updateState $ \s -> s{ sPendingSurrogate = Just unit }
+      | isLowSurrogate unit -> pure ()      -- unpaired, so dropped
+      | otherwise -> addText $ T.singleton $ chr $ fromIntegral unit
+
+isHighSurrogate :: Word16 -> Bool
+isHighSurrogate unit = unit >= 0xD800 && unit <= 0xDBFF
+
+isLowSurrogate :: Word16 -> Bool
+isLowSurrogate unit = unit >= 0xDC00 && unit <= 0xDFFF
 
 inGroup :: PandocMonad m => RTFParser m a -> RTFParser m a
 inGroup p = do
@@ -660,9 +701,7 @@ processTok bs (Tok pos tok') = do
       -- "RTF control words generally accept signed 16-bit numbers as
       -- arguments. For this reason, Unicode values greater than 32767
       -- must be expressed as negative numbers."
-      let codepoint :: Word16
-          codepoint = fromIntegral i
-      addText (T.singleton (chr $ fromIntegral codepoint))
+      addUnicodeCodeUnit (fromIntegral i)
     ControlWord "caps" mbp -> bs <$
       modifyGroup (\g -> g{ gCaps = boolParam mbp })
     ControlWord "deleted" mbp -> bs <$
