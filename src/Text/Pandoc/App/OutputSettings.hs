@@ -163,10 +163,12 @@ optToOutputSettings scriptingEngine opts = do
         case res of
               Left errstr -> throwError $ PandocSyntaxMapError $ T.pack errstr
               Right syn   -> return $
-                addSyntaxDefinition (resolveKeywords existingmap syn) existingmap
+                addSyntaxDefinition syn existingmap
 
-  syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
-                     (optSyntaxDefinitions opts)
+  syntaxMap <- case optSyntaxDefinitions opts of
+                  [] -> return defaultSyntaxMap
+                  sdefs -> (\m -> M.map (resolveKeywords m) m) <$>
+                            foldM addSyntaxMap defaultSyntaxMap sdefs
 
   hlStyle <- case optSyntaxHighlighting opts of
     NoHighlightingString        -> pure NoHighlighting
