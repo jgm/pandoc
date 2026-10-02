@@ -1,0 +1,9 @@
+[ Para
+    [ Span
+        ( "" , [ "mark" ] , [] )
+        [ Str "a " , Math InlineMath "x^2" , Str " b" ]
+    ]
+, Para
+    [ Span ( "" , [ "mark" ] , [] ) [ Math DisplayMath "z = 1" ] ]
+, Para [ Str "unmarked " , Math InlineMath "x^2" , Str " math" ]
+]
