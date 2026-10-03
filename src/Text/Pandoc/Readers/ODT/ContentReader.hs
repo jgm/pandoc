@@ -940,9 +940,11 @@ read_frame_mathml obj = do
             -- draw:object itself
             return $ XML.showElement . addMathMLNamespace <$> findMathML obj
        else do
-         let path = T.unpack $
-                     fromMaybe href (T.stripPrefix "./" href) <> "/content.xml"
-         fmap (UTF8.toText . B.toStrict) <$> lookupResource path
+         -- note that pandoc's own odt writer uses a trailing slash
+         let dir = T.dropWhileEnd (== '/') $
+                     fromMaybe href (T.stripPrefix "./" href)
+         fmap (UTF8.toText . B.toStrict) <$>
+           lookupResource (T.unpack (dir <> "/content.xml"))
   case readMathML <$> mbMathML of
     Just (Right exps) -> return $ firstMatch $ displayMath $ writeTeX exps
     _                 -> return mempty
