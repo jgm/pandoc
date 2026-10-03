@@ -69,7 +69,7 @@ writeODT  opts doc =
                           }
       doc' = fixInternalLinks . ensureValidXmlIdentifiers $ doc
   in
-    evalStateT (pandocToODT opts doc') initState
+    fromArchive <$> evalStateT (pandocToODT opts doc') initState
 
 -- | ODT internal links are evaluated relative to an imaginary folder
 -- structure that mirrors the zip structure.  The result is that relative
@@ -86,11 +86,11 @@ fixInternalLinks = walk go
         | not (null (uriPath u)) -> tshow $ u{ uriPath = "../" <> uriPath u }
       _ -> uri
 
--- | Produce an ODT file from a Pandoc document.
+-- | Produce an ODT archive from a Pandoc document.
 pandocToODT :: PandocMonad m
             => WriterOptions  -- ^ Writer options
             -> Pandoc         -- ^ Document to convert
-            -> O m B.ByteString
+            -> O m Archive
 pandocToODT opts doc@(Pandoc meta _) = do
   let title = docTitle meta
   let authors = docAuthors meta
@@ -199,7 +199,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   archive'' <- updateStyle opts lang
                   $ addEntryToArchive mimetypeEntry
                   $ addEntryToArchive metaEntry archive'
-  return $ fromArchive archive''
+  return archive''
 
 updateStyle :: forall m . PandocMonad m
             => WriterOptions -> Maybe Lang -> Archive -> O m Archive
