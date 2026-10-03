@@ -887,19 +887,23 @@ resolveImageSrc = do
        mapM_ (updateMediaWithResource . (,) (T.unpack src))
          =<< lookupResource (T.unpack src)
        return (Just src)
-     else findChild' NsOffice "binary-data" >>= traverse embedBase64Image
+     else do
+       drawImage <- getCurrentElement
+       findChild' NsOffice "binary-data"
+         >>= traverse (embedBase64Image drawImage)
 
 -- | Add the base64-encoded image data of an @office:binary-data@ element
--- to the media bag and return the path under which it was filed.
-embedBase64Image :: XML.Element -> ODTReader T.Text
-embedBase64Image binaryData = do
+-- to the media bag and return the path under which it was filed.  The
+-- mime type is declared on the enclosing @draw:image@.
+embedBase64Image :: XML.Element -> XML.Element -> ODTReader T.Text
+embedBase64Image drawImage binaryData = do
   let bytes = decodeLenient . UTF8.fromText
             . T.filter (not . isSpace) . XML.strContent $ binaryData
-  -- the mime type attribute is draw:mime-type in ODF 1.3 but
-  -- loext:mime-type in older LibreOffice output
+  -- the attribute is draw:mime-type in ODF 1.3 but loext:mime-type in
+  -- older LibreOffice output, so match on the local name only
   let mbExtension =
         ((("." <>) <$>) . extensionFromMimeType
-          =<< XML.findAttrBy ((== "mime-type") . XML.qName) binaryData)
+          =<< XML.findAttrBy ((== "mime-type") . XML.qName) drawImage)
         <|> (extensionForImageType <$> imageType bytes)
   n <- length . mediaItems . getMediaBag <$> getExtraState
   let path = "Pictures/image" <> show (n + 1) <> T.unpack (fromMaybe ".bin" mbExtension)
