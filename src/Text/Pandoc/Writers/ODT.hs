@@ -54,7 +54,12 @@ import qualified Text.XML.Light as XL
 import Network.URI (parseRelativeReference, URI(uriPath), isURI)
 import Skylighting
 
-newtype ODTState = ODTState { stEntries :: [Entry]
+-- | ODF can be written either as a zip archive of several XML files or
+-- as a single flat XML file.
+data ODTVariant = Zipped | Flat deriving (Eq, Show)
+
+data ODTState = ODTState { stEntries :: [Entry]
+                         , stVariant :: ODTVariant
                          }
 
 type O m = StateT ODTState m
@@ -66,6 +71,7 @@ writeODT :: PandocMonad m
          -> m B.ByteString
 writeODT  opts doc =
   let initState = ODTState{ stEntries = []
+                          , stVariant = Zipped
                           }
       doc' = fixInternalLinks . ensureValidXmlIdentifiers $ doc
   in
@@ -74,6 +80,7 @@ writeODT  opts doc =
 -- | ODT internal links are evaluated relative to an imaginary folder
 -- structure that mirrors the zip structure.  The result is that relative
 -- links in the document need to start with `..`.  See #3524.
+-- This does not apply to flat ODF, which is a single file.
 fixInternalLinks :: Pandoc -> Pandoc
 fixInternalLinks = walk go
  where
@@ -371,7 +378,13 @@ transformPicMath opts mbTextWidthPt (Image attr@(id', cls, _) lab (src,t)) =
                     case T.unpack src of
                       s | isURI s -> return src
                         | isAbsolute s -> return src
-                        | otherwise -> return $ T.pack $ ".." </> s
+                        | otherwise -> do
+                            -- see fixInternalLinks: relative references
+                            -- are resolved against the zip structure
+                            variant <- gets stVariant
+                            case variant of
+                              Zipped -> return $ T.pack $ ".." </> s
+                              Flat   -> return $ T.pack s
                   else do
                     entries <- gets stEntries
                     let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
