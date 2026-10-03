@@ -25,6 +25,7 @@ module Text.Pandoc.Readers.ODT.Generic.XMLConverter
 , modifyExtraState
 , getCurrentElement
 , elName
+, findChild'
 , filterChildrenName'
 , isSet'
 , isSetWithDefault

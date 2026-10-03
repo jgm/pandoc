@@ -24,7 +24,9 @@ module Text.Pandoc.Readers.ODT.ContentReader
 import Control.Applicative ((<|>))
 import Control.Monad ((<=<))
 
+import Data.ByteString.Base64 (decodeLenient)
 import qualified Data.ByteString.Lazy as B
+import Data.Char (isSpace)
 import Data.Foldable (fold)
 import Data.List (find)
 import Data.List.NonEmpty (nonEmpty)
@@ -37,7 +39,9 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.Pandoc.XML.Light as XML
 
 import Text.Pandoc.Builder hiding (underline)
-import Text.Pandoc.MediaBag (MediaBag, insertMedia)
+import Text.Pandoc.ImageSize (ImageType(..), imageType)
+import Text.Pandoc.MediaBag (MediaBag, insertMedia, mediaItems)
+import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
@@ -851,24 +855,70 @@ read_frame_child child =
 
 read_frame_img :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_img img = do
-  src <- executeIn img (findAttr' NsXLink "href")
-  case fold src of
-    ""   -> return mempty
-    src' -> do
+  mbSrc <- executeIn img resolveImageSrc
+  case mbSrc of
+    Nothing  -> return mempty
+    Just src -> do
+      -- note: the remaining attributes are read in the context of the
+      -- enclosing draw:frame, not of the draw:image
       let exts = extensionsFromList [Ext_auto_identifiers]
-          src'' = fixRelativeLink src'
-      -- The archive need not actually contain the referenced file; if it
-      -- does not, leave the media bag alone and just emit the link.
-      mbResource <- lookupResource (T.unpack src'')
-      mapM_ (updateMediaWithResource . (,) (T.unpack src'')) mbResource
       w          <- findAttr' NsSVG "width"
       h          <- findAttr' NsSVG "height"
       titleNodes <- matchContent' [ read_frame_title ]
       alt        <- matchContent [] read_plain_text
       return $ firstMatch
-             $ imageWith (image_attributes w h) src''
+             $ imageWith (image_attributes w h) src
                          (inlineListToIdentifier exts (toList titleNodes))
                          alt
+
+-- | Determine the media bag path of the image of the current
+-- @draw:image@ element.  The image data is either in another file of the
+-- archive, referenced by @xlink:href@, or embedded in the element as
+-- base64 in an @office:binary-data@ child (which is how a flat
+-- OpenDocument file must carry it).
+resolveImageSrc :: ODTReader (Maybe T.Text)
+resolveImageSrc = do
+  href <- fold <$> findAttr' NsXLink "href"
+  if not (T.null href)
+     then do
+       let src = fixRelativeLink href
+       -- The archive need not actually contain the referenced file; if it
+       -- does not, leave the media bag alone and just emit the link.
+       mapM_ (updateMediaWithResource . (,) (T.unpack src))
+         =<< lookupResource (T.unpack src)
+       return (Just src)
+     else findChild' NsOffice "binary-data" >>= traverse embedBase64Image
+
+-- | Add the base64-encoded image data of an @office:binary-data@ element
+-- to the media bag and return the path under which it was filed.
+embedBase64Image :: XML.Element -> ODTReader T.Text
+embedBase64Image binaryData = do
+  let bytes = decodeLenient . UTF8.fromText
+            . T.filter (not . isSpace) . XML.strContent $ binaryData
+  -- the mime type attribute is draw:mime-type in ODF 1.3 but
+  -- loext:mime-type in older LibreOffice output
+  let mbExtension =
+        ((("." <>) <$>) . extensionFromMimeType
+          =<< XML.findAttrBy ((== "mime-type") . XML.qName) binaryData)
+        <|> (extensionForImageType <$> imageType bytes)
+  n <- length . mediaItems . getMediaBag <$> getExtraState
+  let path = "Pictures/image" <> show (n + 1) <> T.unpack (fromMaybe ".bin" mbExtension)
+  updateMediaWithResource (path, B.fromStrict bytes)
+  return (T.pack path)
+
+extensionForImageType :: ImageType -> T.Text
+extensionForImageType imgType =
+  case imgType of
+    Png  -> ".png"
+    Jpeg -> ".jpeg"
+    Gif  -> ".gif"
+    Pdf  -> ".pdf"
+    Eps  -> ".eps"
+    Svg  -> ".svg"
+    Emf  -> ".emf"
+    Tiff -> ".tiff"
+    Webp -> ".webp"
+    Avif -> ".avif"
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchContent [] read_plain_text)
