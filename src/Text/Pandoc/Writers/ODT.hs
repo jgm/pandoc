@@ -39,6 +39,7 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (..),
 import Text.Pandoc.Highlighting (defaultStyle)
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, stringifyInlines, tshow)
+import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Version (pandocVersionText)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath, getLang,
@@ -105,7 +106,10 @@ pandocToODT opts doc@(Pandoc meta _) = do
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   let refTextWidth = referenceTextWidthPt opts refArchive
   doc' <- walkM (transformPicMath opts refTextWidth) $ walk fixDisplayMath doc
-  newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
+  tpl <- maybe (lift $ compileDefaultTemplate "opendocument") pure
+           (writerTemplate opts)
+  newContents <- lift $ writeOpenDocument
+                   opts{ writerWrapText = WrapNone, writerTemplate = Just tpl } doc'
   epochtime <- floor `fmap` lift P.getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromTextLazy $ TL.fromStrict newContents
