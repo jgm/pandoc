@@ -138,6 +138,15 @@ tests = [ testGroup "base tag"
             =?>
             codeBlockWith ("c", [], []) "print('hi mom!')"
           ]
+        , testGroup "footnotes"
+          [ test html "ordered lists inside footnotes" $
+            "<p>Text<a href=\"#fn1\" role=\"doc-noteref\">1</a></p>"
+            <> "<section role=\"doc-endnotes\"><ol>"
+            <> "<li id=\"fn1\"><p>Outer</p><ol><li><p>Inner</p></li></ol></li>"
+            <> "</ol></section>"
+            =?> para ("Text" <> note (para "Outer" <>
+              Text.Pandoc.Builder.orderedList [para "Inner"]))
+          ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue
