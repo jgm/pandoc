@@ -11,10 +11,11 @@
 Entry point to the odt reader.
 -}
 
-module Text.Pandoc.Readers.ODT ( readODT ) where
+module Text.Pandoc.Readers.ODT ( readODT, readFODT ) where
 
 import Codec.Archive.Zip
 import Text.Pandoc.XML.Light
+import qualified Text.Pandoc.XML.Light as XML
 import Text.Pandoc.Walk
 
 import Data.Char (isDigit)
@@ -22,9 +23,11 @@ import qualified Data.ByteString.Lazy as B
 
 import System.FilePath
 
+import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -40,6 +43,7 @@ import Text.Pandoc.Readers.ODT.StyleReader
 import Text.Pandoc.Readers.ODT.Generic.Fallible
 import Text.Pandoc.Readers.ODT.Generic.XMLConverter
 import Text.Pandoc.Shared (filteredFilesFromArchive)
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
 readODT :: PandocMonad m
         => ReaderOptions
@@ -50,6 +54,40 @@ readODT opts bytes = case readODT' opts bytes of
     P.setMediaBag mb
     return $ walk makeFigure doc
   Left e -> throwError e
+
+-- | Read a flat OpenDocument text file, i.e. ODF's representation as a
+-- single XML file rather than a zip archive.
+readFODT :: (PandocMonad m, ToSources a)
+         => ReaderOptions
+         -> a
+         -> m Pandoc
+readFODT _ inp = do
+  root <- either (throwError . PandocXMLError "") pure
+            (parseXMLElement (TL.fromStrict (sourcesToText (toSources inp))))
+  case elementToODT root of
+    Right (doc, mb) -> do
+      P.setMediaBag mb
+      return $ walk makeFigure doc
+    Left e -> throwError e
+
+-- | A flat file has exactly one of each of the top-level elements that a
+-- package distributes over @content.xml@ and @styles.xml@, and they are
+-- all children of the root.  The converter addresses everything relative
+-- to the element it is given, so it can simply be handed that root.
+elementToODT :: Element -> Either PandocError (Pandoc, MediaBag)
+elementToODT root = do
+  -- the local name only, consistently with the URI-based namespace
+  -- matching downstream; office:document-content is correctly rejected
+  unless (XML.qName (XML.elName root) == "document") $
+    Left $ PandocParseError
+      "Expected office:document at the root of the flat OpenDocument file"
+  styles <- either
+               (\_ -> Left $ PandocParseError "Could not read styles")
+               Right
+               (readStylesAt root)
+  -- the media list is empty: all media arrives in office:binary-data
+  either (\_ -> Left $ PandocParseError "Could not convert opendocument") Right
+    (runConverter read_body (readerState styles []) root)
 
 -- the ODT parser uses old-style figures: an image with title beginning
 -- "fig:" in a paragraph by itself.  Convert these to new Figure elements.
