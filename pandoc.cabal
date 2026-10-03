@@ -453,8 +453,10 @@ extra-source-files:
                  test/twiki-reader.twiki
                  test/tikiwiki-reader.tikiwiki
                  test/odt/odt/*.odt
+                 test/odt/fodt/*.fodt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/odt/fodt-native/*.native
                  test/xlsx-reader/*.xlsx
                  test/xlsx-reader/*.native
                  test/pod-reader.pod
