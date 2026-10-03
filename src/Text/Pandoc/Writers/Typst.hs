@@ -396,6 +396,9 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
+    Div (_, classes, _) blocks | "mark" `elem` classes -> do
+      contents <- blocksToTypst blocks
+      return $ "#highlight[" $$ nest 2 (chomp contents) $$ "]" $$ blankline
     Div (ident,_,kvs) blocks -> do
       let lab = case lookup "typst-label" kvs of
                   Just l -> toLabel FreestandingLabel l
