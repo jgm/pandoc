@@ -543,6 +543,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_xrefs_number
     ]
   getAll "odt"             = getAll "opendocument" <> autoIdExtensions
+  getAll "fodt"            = getAll "odt"
   getAll "muse"            = autoIdExtensions <>
     extensionsFromList
     [ Ext_amuse ]

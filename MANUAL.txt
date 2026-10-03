@@ -251,6 +251,7 @@ header when requesting a document from a URL:
     - `endnotexml` ([EndNote XML bibliography])
     - `epub` ([EPUB])
     - `fb2` ([FictionBook2] e-book)
+    - `fodt` (flat [OpenDocument text document][ODT])
     - `gfm` ([GitHub-Flavored Markdown]),
       or the deprecated and less accurate `markdown_github`;
       use [`markdown_github`](#markdown-variants) only
@@ -327,6 +328,7 @@ header when requesting a document from a URL:
     - `epub` or `epub3` ([EPUB] v3 book)
     - `epub2` (EPUB v2)
     - `fb2` ([FictionBook2] e-book)
+    - `fodt` (flat [OpenDocument text document][ODT])
     - `gfm` ([GitHub-Flavored Markdown]),
       or the deprecated and less accurate `markdown_github`;
       use [`markdown_github`](#markdown-variants) only
@@ -1146,7 +1148,10 @@ header when requesting a document from a URL:
 `--link-images[=true|false]`
 
 :   Include links to images instead of embedding the images in ODT.
-    (This option currently only affects ODT output.)
+    (This option currently only affects `odt` and `fodt` output.)
+    This is worth considering for `fodt`, where images have to be
+    base64-encoded and so take about a third more space than in the
+    compressed `odt` package.
 
 `--html-q-tags[=true|false]`
 
@@ -1407,6 +1412,12 @@ header when requesting a document from a URL:
         -o custom-reference.odt --print-default-data-file reference.odt`.
         Then open `custom-reference.odt` in LibreOffice, modify
         the styles as you wish, and save the file.
+
+        `fodt` output uses the same reference documents as `odt`;
+        the reference is still a zipped `.odt`, which is flattened
+        along with the generated content.  Note that an automatic
+        style of the reference document is dropped, with a warning,
+        if the generated content defines a style of the same name.
 
     PowerPoint
 
@@ -7876,11 +7887,11 @@ Currently, `idiomatic` only affects the following formats:
 
 # Custom Styles
 
-Custom styles can be used in the docx, odt and ICML formats.
+Custom styles can be used in the docx, odt, fodt and ICML formats.
 
 ## Output
 
-By default, pandoc's odt, docx and ICML output applies a predefined set of
+By default, pandoc's odt, fodt, docx and ICML output applies a predefined set of
 styles for blocks such as paragraphs and block quotes, and uses largely
 default formatting (italics, bold) for inlines. This will work for most
 purposes, especially alongside a [reference doc](#option--reference-doc) file.

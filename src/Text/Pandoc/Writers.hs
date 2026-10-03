@@ -61,6 +61,7 @@ module Text.Pandoc.Writers
     , writeMuse
     , writeNative
     , writeODT
+    , writeFODT
     , writeOPML
     , writeOpenDocument
     , writeOrg
@@ -161,6 +162,7 @@ writers = [
   ,("json"         , TextWriter writeJSON)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
+  ,("fodt"         , TextWriter writeFODT)
   ,("pptx"         , ByteStringWriter writePowerpoint)
   ,("epub"         , ByteStringWriter writeEPUB3)
   ,("epub2"        , ByteStringWriter writeEPUB2)

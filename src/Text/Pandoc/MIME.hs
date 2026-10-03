@@ -154,6 +154,7 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            ,("fbdoc","application/x-maker")
            ,("fch","chemical/x-gaussian-checkpoint")
            ,("fchk","chemical/x-gaussian-checkpoint")
+           ,("fodt","application/vnd.oasis.opendocument.text-flat-xml")
            ,("frm","application/x-maker")
            ,("fs","text/plain")
            ,("gal","chemical/x-gaussian-log")
