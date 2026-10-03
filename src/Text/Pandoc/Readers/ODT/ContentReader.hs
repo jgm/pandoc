@@ -933,16 +933,38 @@ image_attributes x y =
 
 read_frame_mathml :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_mathml obj = do
-  src <- executeIn obj (findAttr' NsXLink "href")
-  case fold src of
-    ""   -> return mempty
-    src' -> do
-      let path = T.unpack $
-                  fromMaybe src' (T.stripPrefix "./" src') <> "/content.xml"
-      mathml <- fromMaybe B.empty <$> lookupResource path
-      case readMathML (UTF8.toText $ B.toStrict mathml) of
-        Left _     -> return mempty
-        Right exps -> return $ firstMatch $ displayMath $ writeTeX exps
+  href <- fold <$> executeIn obj (findAttr' NsXLink "href")
+  mbMathML <-
+    if T.null href
+       then -- a flat OpenDocument file has to embed the formula in the
+            -- draw:object itself
+            return $ XML.showElement . addMathMLNamespace <$> findMathML obj
+       else do
+         let path = T.unpack $
+                     fromMaybe href (T.stripPrefix "./" href) <> "/content.xml"
+         fmap (UTF8.toText . B.toStrict) <$> lookupResource path
+  case readMathML <$> mbMathML of
+    Just (Right exps) -> return $ firstMatch $ displayMath $ writeTeX exps
+    _                 -> return mempty
+
+-- | Find the MathML of a formula embedded in a @draw:object@.  It is
+-- searched for as a descendant, not as a direct child, because the
+-- @math@ element may be wrapped in an @office:document@ element
+-- describing an embedded formula document.
+findMathML :: XML.Element -> Maybe XML.Element
+findMathML = XML.filterElementName ((== "math") . XML.qName)
+
+-- | XML.Light carries namespace prefixes literally and does not
+-- synthesise declarations, so the declaration of the MathML namespace
+-- may have been left behind on the root of the flat file.
+addMathMLNamespace :: XML.Element -> XML.Element
+addMathMLNamespace el =
+  el{ XML.elAttribs =
+        XML.Attr (XML.QName "xmlns" Nothing Nothing)
+                 "http://www.w3.org/1998/Math/MathML"
+        : filter (not . isDefaultNS . XML.attrKey) (XML.elAttribs el) }
+ where
+  isDefaultNS qn = XML.qName qn == "xmlns" && isNothing (XML.qPrefix qn)
 
 read_frame_text_box :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_text_box box = do
