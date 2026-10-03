@@ -865,7 +865,9 @@ read_frame_img img = do
       w          <- findAttr' NsSVG "width"
       h          <- findAttr' NsSVG "height"
       titleNodes <- matchContent' [ read_frame_title ]
-      alt        <- matchContent [] read_plain_text
+      -- trimmed because a pretty-printed file indents the children of
+      -- the frame, and that whitespace is not alt text
+      alt        <- trimInlines <$> matchContent [] read_plain_text
       return $ firstMatch
              $ imageWith (image_attributes w h) src
                          (inlineListToIdentifier exts (toList titleNodes))
