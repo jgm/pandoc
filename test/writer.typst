@@ -542,6 +542,7 @@ And nested without indentation:
 #block[
 #block[
 foo
+
 ]
 ]
 #block[
@@ -556,6 +557,7 @@ Here's a simple block:
 
 #block[
 foo
+
 ]
 This should be a code block, though:
 
