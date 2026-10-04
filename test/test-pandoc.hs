@@ -46,6 +46,7 @@ import qualified Tests.Writers.Markdown
 import qualified Tests.Writers.Ms
 import qualified Tests.Writers.Muse
 import qualified Tests.Writers.Native
+import qualified Tests.Writers.ODT
 import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
 import qualified Tests.Writers.Powerpoint
@@ -80,6 +81,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Plain" Tests.Writers.Plain.tests
           , testGroup "AsciiDoc" Tests.Writers.AsciiDoc.tests
           , testGroup "Docx" Tests.Writers.Docx.tests
+          , testGroup "ODT" Tests.Writers.ODT.tests
           , testGroup "RST" Tests.Writers.RST.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
           , testGroup "markua" Tests.Writers.Markua.tests
