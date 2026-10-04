@@ -24,9 +24,12 @@ module Text.Pandoc.Readers.ODT.ContentReader
 import Control.Applicative ((<|>))
 import Control.Monad ((<=<))
 
+import Data.ByteString.Base64 (decodeLenient)
 import qualified Data.ByteString.Lazy as B
+import Data.Char (isSpace)
 import Data.Foldable (fold)
 import Data.List (find)
+import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
@@ -36,8 +39,11 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.Pandoc.XML.Light as XML
 
 import Text.Pandoc.Builder hiding (underline)
-import Text.Pandoc.MediaBag (MediaBag, insertMedia)
+import Text.Pandoc.ImageSize (ImageType(..), imageType)
+import Text.Pandoc.MediaBag (MediaBag, insertMedia, mediaItems)
+import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Shared
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -57,7 +63,7 @@ import qualified Data.Set as Set
 --------------------------------------------------------------------------------
 
 type Anchor = T.Text
-type Media = [(FilePath, B.ByteString)]
+type Media = M.Map FilePath B.ByteString
 
 data ReaderState
    = ReaderState { -- | A collection of styles read somewhere else.
@@ -83,6 +89,11 @@ data ReaderState
                    -- | A map from internal anchor names to "pretty" ones.
                    -- The mapping is a purely cosmetic one.
                  , bookmarkAnchors  :: M.Map Anchor Anchor
+                   -- | The "pretty" anchors handed out so far, i.e. the
+                   -- values of 'bookmarkAnchors'. Kept separately so that
+                   -- checking an anchor for uniqueness does not cost a
+                   -- traversal of the whole map.
+                 , usedAnchors      :: Set.Set Anchor
                    -- | A map of files / binary data from the archive
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
@@ -90,8 +101,10 @@ data ReaderState
                  }
   deriving ( Show )
 
-readerState :: Styles -> Media -> ReaderState
-readerState styles media = ReaderState styles [] 0 M.empty Nothing M.empty media mempty
+readerState :: Styles -> [(FilePath, B.ByteString)] -> ReaderState
+readerState styles media =
+  ReaderState styles [] 0 M.empty Nothing M.empty Set.empty
+              (M.fromList media) mempty
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -122,11 +135,9 @@ lookupPrettyAnchor anchor ReaderState{..} = M.lookup anchor bookmarkAnchors
 --
 putPrettyAnchor :: Anchor -> Anchor -> ReaderState -> ReaderState
 putPrettyAnchor ugly pretty state@ReaderState{..}
-  = state { bookmarkAnchors = M.insert ugly pretty bookmarkAnchors }
-
---
-usedAnchors :: ReaderState -> [Anchor]
-usedAnchors ReaderState{..} = M.elems bookmarkAnchors
+  = state { bookmarkAnchors = M.insert ugly pretty bookmarkAnchors
+          , usedAnchors     = Set.insert pretty usedAnchors
+          }
 
 getMediaBag :: ReaderState -> MediaBag
 getMediaBag ReaderState{..} = odtMediaBag
@@ -153,9 +164,6 @@ getStyleByName :: StyleName -> ODTReader Style
 getStyleByName name = getStyles >>= fromMaybeF . lookupStyle name
 
 --
-findStyleFamily :: Style -> ODTReader StyleFamily
-findStyleFamily style = getStyles >>= fromMaybeF . getStyleFamily style
-
 --
 lookupListStyle :: StyleName -> ODTReader ListStyle
 lookupListStyle name = getStyles >>= fromMaybeF . lookupListStyleByName name
@@ -190,24 +198,21 @@ updateMediaWithResource :: (FilePath, B.ByteString) -> ODTReader ()
 updateMediaWithResource resource = modifyExtraState (insertMedia' resource)
 
 --
-lookupResource :: FilePath -> ODTReader (FilePath, B.ByteString)
-lookupResource target = do
-  state <- getExtraState
-  case lookup target (getMediaEnv state) of
-    Just bs -> return (target, bs)
-    Nothing -> return ("", B.empty)
+lookupResource :: FilePath -> ODTReader (Maybe B.ByteString)
+lookupResource target = M.lookup target . getMediaEnv <$> getExtraState
 
 type AnchorPrefix = T.Text
 
 -- | An adaptation of 'uniqueIdent' from "Text.Pandoc.Shared" that generates a
 -- unique identifier but without assuming that the id should be for a header.
 -- Second argument is a list of already used identifiers.
-uniqueIdentFrom :: AnchorPrefix -> [Anchor] -> Anchor
+uniqueIdentFrom :: AnchorPrefix -> Set.Set Anchor -> Anchor
 uniqueIdentFrom baseIdent usedIdents =
   let  numIdent n = baseIdent <> "-" <> T.pack (show n)
-  in  if baseIdent `elem` usedIdents
+  in  if baseIdent `Set.member` usedIdents
         then maybe baseIdent numIdent
-             $ find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int])
+             $ find (\x -> numIdent x `Set.notMember` usedIdents)
+                 ([1..60000] :: [Int])
                -- if we have more than 60,000, allow repeats
         else baseIdent
 
@@ -230,8 +235,7 @@ getHeaderAnchor :: Inlines -> ODTReader Anchor
 getHeaderAnchor title = do
   state <- getExtraState
   let exts = extensionsFromList [Ext_auto_identifiers]
-  let anchor = uniqueIdent exts (toList title)
-                (Set.fromList $ usedAnchors state)
+  let anchor = uniqueIdent exts (toList title) (usedAnchors state)
   modifyExtraState (putPrettyAnchor anchor anchor)
   return anchor
 
@@ -250,10 +254,6 @@ readStyleByName = do
   return (name, style)
 
 --
-isStyleToTrace :: Style -> ODTReader Bool
-isStyleToTrace style = (== FaText) <$> findStyleFamily style
-
---
 withNewStyle :: ODTReader Inlines -> ODTReader Inlines
 withNewStyle reader = do
   fStyle <- tryC readStyleByName
@@ -265,15 +265,10 @@ withNewStyle reader = do
           state <- getExtraState
           let mFamily  = styleFamily style
               modifier = modifierFromStyleDiff (state, textProps, mFamily)
-          fShouldTrace <- tryC (isStyleToTrace style)
-          case fShouldTrace of
-            Right True -> do
-              pushStyle style
-              inlines <- reader
-              popStyle
-              return $ modifier inlines
-            -- In case anything goes wrong
-            _ -> reader
+          pushStyle style
+          inlines <- reader
+          popStyle
+          return $ modifier inlines
     _ -> reader
   where
     isCodeStyle :: StyleName -> Bool
@@ -526,10 +521,16 @@ read_text_seq  = matchingElement NsText "sequence"
 -- specifically. I honor that, although the current implementation of 'mappend'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collapse them again.
 -- The rational is to be prepared for future modifications.
+-- The repeat count is attacker-controlled and unbounded in ODF, so cap
+-- it: a 832-byte document with @text:c="200000000"@ would otherwise
+-- exhaust memory.
+_MAX_SPACES_     :: Int
+_MAX_SPACES_      = 1000
+
 read_spaces      :: InlineMatcher
 read_spaces       = matchingElement NsText "s" $ do
                       count <- readAttrWithDefault NsText "c" 1 -- how many spaces?
-                      return $ fromList (replicate count Space)
+                      return $ fromList (replicate (min count _MAX_SPACES_) Space)
 --
 read_line_break  :: InlineMatcher
 read_line_break   = matchingElement NsText "line-break"
@@ -541,21 +542,55 @@ read_tab          = matchingElement NsText "tab"
 --
 read_span        :: InlineMatcher
 read_span         = matchingElement NsText "span"
-                    $ withNewStyle
-                    $ matchContent [ read_span
-                                   , read_spaces
-                                   , read_line_break
-                                   , read_tab
-                                   , read_link
-                                   , read_frame
-                                   , read_note
-                                   , read_citation
-                                   , read_bookmark
-                                   , read_bookmark_start
-                                   , read_reference_start
-                                   , read_bookmark_ref
-                                   , read_reference_ref
-                                   ] read_plain_text
+                    $ withNewStyle matchInlineContent
+
+-- | ODF wraps inline content in a few elements that carry nothing but
+-- metadata: @text:meta@ holds RDFa annotations, @text:meta-field@ marks
+-- up bibliographic data. They are transparent as far as we are concerned.
+read_meta        :: InlineMatcher
+read_meta         = matchingElement NsText "meta" matchInlineContent
+
+read_meta_field  :: InlineMatcher
+read_meta_field   = matchingElement NsText "meta-field" matchInlineContent
+
+-- | A ruby annotation glosses a base text. Pandoc cannot represent the
+-- gloss, so keep the base text rather than dropping both.
+read_ruby        :: InlineMatcher
+read_ruby         = matchingElement NsText "ruby"
+                    $ matchContent' [ matchingElement NsText "ruby-base"
+                                        matchInlineContent ]
+
+-- | Fields hold a value that the producing application computes, such as
+-- a page number, a document property or a user variable. The element
+-- content is the text that application last displayed for the field,
+-- which is the best rendering available to us.
+read_fields      :: [InlineMatcher]
+read_fields       = [ matchingElement NsText name (matchContent [] read_plain_text)
+                    | name <- fieldElements ]
+
+fieldElements    :: [ElementName]
+fieldElements     =
+  [ "page-number", "page-count", "page-continuation", "page-variable-get"
+  , "date", "time", "creation-date", "creation-time"
+  , "modification-date", "modification-time"
+  , "print-date", "print-time", "printed-by"
+  , "editing-cycles", "editing-duration"
+  , "author-name", "author-initials", "initial-creator", "creator"
+  , "title", "subject", "description", "keywords"
+  , "chapter", "file-name", "template-name", "sheet-name"
+  , "variable-get", "variable-set", "variable-input"
+  , "user-defined", "user-field-get", "user-field-input"
+  , "expression", "text-input", "placeholder"
+  , "word-count", "character-count", "paragraph-count"
+  , "table-count", "image-count", "object-count"
+  , "database-display", "database-name", "database-row-number"
+  , "sequence-ref", "note-ref"
+  , "sender-firstname", "sender-lastname", "sender-initials"
+  , "sender-title", "sender-position", "sender-email"
+  , "sender-company", "sender-street", "sender-city"
+  , "sender-postal-code", "sender-country", "sender-state-or-province"
+  , "sender-phone-private", "sender-phone-work", "sender-fax"
+  ]
 
 --
 read_paragraph   :: Matcher CombiningBlocks
@@ -563,9 +598,9 @@ read_paragraph    = matchingElement NsText "p" $ fmap CombiningBlocks $ do
                       fStyle <- tryC readStyleByName
                       case fStyle of
                         Right style | isPreformattedStyle style ->
-                          codeBlock . stringifyInlines <$> matchParagraphContent
+                          codeBlock . stringifyInlines <$> matchInlineContent
                         _ ->
-                          constructPara (para <$> withNewStyle matchParagraphContent)
+                          constructPara (para <$> withNewStyle matchInlineContent)
                     where
                       isPreformattedStyle :: (StyleName, Style) -> Bool
                       isPreformattedStyle ("Preformatted_20_Text", _) = True
@@ -573,22 +608,43 @@ read_paragraph    = matchingElement NsText "p" $ fmap CombiningBlocks $ do
                       isPreformattedStyle _ = False
 
 
-matchParagraphContent :: ODTReader Inlines
-matchParagraphContent = matchContent [ read_span
-                                     , read_spaces
-                                     , read_line_break
-                                     , read_tab
-                                     , read_link
-                                     , read_note
-                                     , read_citation
-                                     , read_bookmark
-                                     , read_bookmark_start
-                                     , read_reference_start
-                                     , read_bookmark_ref
-                                     , read_reference_ref
-                                     , read_frame
-                                     , read_text_seq
-                                     ] read_plain_text
+-- | Reads the inline content of a paragraph, heading or span.
+matchInlineContent :: ODTReader Inlines
+matchInlineContent = matchContent inlineMatchers read_plain_text
+
+inlineMatchers :: [InlineMatcher]
+inlineMatchers = [ read_span
+                 , read_spaces
+                 , read_line_break
+                 , read_tab
+                 , read_link
+                 , read_note
+                 , read_citation
+                 , read_bookmark
+                 , read_bookmark_start
+                 , read_reference_start
+                 , read_bookmark_ref
+                 , read_reference_ref
+                 , read_frame
+                 , read_text_seq
+                 , read_meta
+                 , read_meta_field
+                 , read_ruby
+                 ] ++ read_fields
+
+-- | Reads the block-level content that ODF permits wherever it permits a
+-- paragraph: in the body of the document, and in a section, a list item, a
+-- footnote or a table cell.
+matchBlockContent :: ODTReader Blocks
+matchBlockContent = matchSmushedChildBlocks' blockMatchers
+
+blockMatchers :: [Matcher CombiningBlocks]
+blockMatchers = [ read_paragraph
+                , read_header
+                , read_list
+                , read_table
+                , read_section
+                ]
 
 
 ----------------------
@@ -599,20 +655,7 @@ matchParagraphContent = matchContent [ read_span
 read_header      :: Matcher CombiningBlocks
 read_header       = matchingElement NsText "h" $ do
   level    <- readAttrWithDefault NsText "outline-level" 1
-  children <- matchContent [ read_span
-                           , read_spaces
-                           , read_line_break
-                           , read_tab
-                           , read_link
-                           , read_note
-                           , read_citation
-                           , read_bookmark
-                           , read_bookmark_start
-                           , read_reference_start
-                           , read_bookmark_ref
-                           , read_reference_ref
-                           , read_frame
-                           ] read_plain_text
+  children <- matchInlineContent
   anchor   <- getHeaderAnchor children
   let idAttr = (anchor, [], []) -- no classes, no key-value pairs
   return $ CombiningBlocks $ headerWith idAttr level children
@@ -639,12 +682,7 @@ read_list_header  = read_list_element "list-header"
 read_list_element               :: ElementName -> Matcher [Blocks]
 read_list_element listElement   = matchingElement NsText listElement
                                   $ compactify . (:[])
-                                  <$> matchSmushedChildBlocks'
-                                        [ read_paragraph
-                                        , read_header
-                                        , read_list
-                                        , read_section
-                                        ]
+                                  <$> matchBlockContent
 
 ----------------------
 -- Sections
@@ -653,12 +691,7 @@ read_list_element listElement   = matchingElement NsText listElement
 read_section :: Matcher CombiningBlocks
 read_section = matchingElement NsText "section"
                  $ CombiningBlocks . divWith nullAttr
-                 <$> matchSmushedChildBlocks' [ read_paragraph
-                                              , read_header
-                                              , read_list
-                                              , read_table
-                                              , read_section
-                                              ]
+                 <$> matchBlockContent
 
 
 ----------------------
@@ -699,8 +732,7 @@ read_note         = matchingElement NsText "note"
                     $ note <$> matchContent' [ read_note_body ]
 
 read_note_body   :: BlockMatcher
-read_note_body    = matchingElement NsText "note-body"
-                    $ matchSmushedChildBlocks' [ read_paragraph ]
+read_note_body    = matchingElement NsText "note-body" matchBlockContent
 
 -------------------------
 -- Citations
@@ -726,8 +758,8 @@ read_citation     = matchingElement NsText "bibliography-mark"
 read_table        :: Matcher CombiningBlocks
 read_table         = matchingElement NsTable "table"
                      $ fmap (CombiningBlocks . table')
-                     $ (,) <$> matchContent' [read_table_header]
-                           <*> matchContent' [read_table_row]
+                     $ (,) <$> matchContent' read_header_rows
+                           <*> matchContent' read_body_rows
 
 -- | A table without a caption.
 table' :: ([[Cell]], [[Cell]]) -> Blocks
@@ -735,24 +767,60 @@ table' (headers, rows) = compactifyTable $
     table emptyCaption (replicate numcols defaults) th [tb] tf
   where
     defaults = (AlignDefault, ColWidthDefault)
-    numcols = maximum $ map length $ headers ++ rows
+    -- A table element need not contain any rows, so guard against
+    -- taking the maximum of an empty list.
+    numcols = maybe 0 maximum $ nonEmpty $ map rowWidth $ headers ++ rows
+    -- A cell spanning several columns occupies all of them.
+    rowWidth = sum . map (\(Cell _ _ _ (ColSpan cs) _) -> cs)
     toRow = Row nullAttr
     th = TableHead nullAttr $ map toRow headers
     tb = TableBody nullAttr 0 [] $ map toRow rows
     tf = TableFoot nullAttr []
 
---
-read_table_header :: Matcher [[Cell]]
-read_table_header = matchingElement NsTable "table-header-rows"
-                      $ matchContent' [ read_table_row
-                                      ]
+-- | Rows need not be immediate children of the table: ODF lets them be
+-- wrapped in any number of @table:table-row-group@ and @table:table-rows@
+-- elements, which only group them for the benefit of outlining and
+-- formatting. The children are walked twice, once picking up the rows that a
+-- @table:table-header-rows@ marks as headers and once the remaining ones.
+read_header_rows  :: [Matcher [[Cell]]]
+read_header_rows   = [ matchingElement NsTable "table-header-rows"
+                         $ matchContent' [ read_table_row ]
+                     , matchingElement NsTable "table-row-group"
+                         $ matchContent' read_header_rows
+                     ]
+
+read_body_rows    :: [Matcher [[Cell]]]
+read_body_rows     = [ read_table_row
+                     , matchingElement NsTable "table-rows"
+                         $ matchContent' [ read_table_row ]
+                     , matchingElement NsTable "table-row-group"
+                         $ matchContent' read_body_rows
+                     ]
+
+-- | ODF abbreviates a run of identical rows or cells with a repeat count.
+-- The counts are unbounded in the format -- spreadsheets pad out to the end
+-- of the sheet with them -- so a handful of bytes could otherwise ask for an
+-- arbitrarily large table. Bound both the width a single cell element stands
+-- for and the number of cells a single row element expands to; capping the
+-- two counts separately would not do, as they multiply.
+_MAX_COLUMNS_, _MAX_ROW_CELLS_ :: Int
+_MAX_COLUMNS_      = 1000
+_MAX_ROW_CELLS_    = 10000
+
+repeated          :: ElementName -> ODTReader Int
+repeated attrName  = max 1 <$> readAttrWithDefault NsTable attrName 1
 
 --
 read_table_row    :: Matcher [[Cell]]
 read_table_row     = matchingElement NsTable "table-row"
-                     $ (:[])
+                     $ row'
                      <$> matchContent' [ read_table_cell
                                        ]
+                     <*> repeated "number-rows-repeated"
+  where
+    row' cells repeat' =
+      replicate (max 1 $ min repeat'
+                       $ _MAX_ROW_CELLS_ `div` max 1 (length cells)) cells
 
 --
 read_table_cell   :: Matcher [Cell]
@@ -760,11 +828,12 @@ read_table_cell    = matchingElement NsTable "table-cell"
                      $ cell'
                        <$> (RowSpan <$> readAttrWithDefault NsTable "number-rows-spanned" 1)
                        <*> (ColSpan <$> readAttrWithDefault NsTable "number-columns-spanned" 1)
-                       <*> matchSmushedChildBlocks' [ read_paragraph
-                                                    , read_list
-                                                    ]
+                       <*> (min _MAX_COLUMNS_ <$> repeated "number-columns-repeated")
+                       <*> matchBlockContent
   where
-    cell' rowSpan colSpan blocks = map (cell AlignDefault rowSpan colSpan) $ compactify [blocks]
+    cell' rowSpan colSpan repeat' blocks =
+      concat $ replicate repeat'
+             $ map (cell AlignDefault rowSpan colSpan) (compactify [blocks])
 
 ----------------------
 -- Frames
@@ -786,22 +855,76 @@ read_frame_child child =
 
 read_frame_img :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_img img = do
-  src <- executeIn img (findAttr' NsXLink "href")
-  case fold src of
-    ""   -> return mempty
-    src' -> do
+  mbSrc <- executeIn img resolveImageSrc
+  case mbSrc of
+    Nothing  -> return mempty
+    Just src -> do
+      -- note: the remaining attributes are read in the context of the
+      -- enclosing draw:frame, not of the draw:image
       let exts = extensionsFromList [Ext_auto_identifiers]
-          src'' = fixRelativeLink src'
-      resource   <- lookupResource (T.unpack src'')
-      updateMediaWithResource resource
       w          <- findAttr' NsSVG "width"
       h          <- findAttr' NsSVG "height"
       titleNodes <- matchContent' [ read_frame_title ]
-      alt        <- matchContent [] read_plain_text
+      -- trimmed because a pretty-printed file indents the children of
+      -- the frame, and that whitespace is not alt text
+      alt        <- trimInlines <$> matchContent [] read_plain_text
       return $ firstMatch
-             $ imageWith (image_attributes w h) src''
+             $ imageWith (image_attributes w h) src
                          (inlineListToIdentifier exts (toList titleNodes))
                          alt
+
+-- | Determine the media bag path of the image of the current
+-- @draw:image@ element.  The image data is either in another file of the
+-- archive, referenced by @xlink:href@, or embedded in the element as
+-- base64 in an @office:binary-data@ child (which is how a flat
+-- OpenDocument file must carry it).
+resolveImageSrc :: ODTReader (Maybe T.Text)
+resolveImageSrc = do
+  href <- fold <$> findAttr' NsXLink "href"
+  if not (T.null href)
+     then do
+       let src = fixRelativeLink href
+       -- The archive need not actually contain the referenced file; if it
+       -- does not, leave the media bag alone and just emit the link.
+       mapM_ (updateMediaWithResource . (,) (T.unpack src))
+         =<< lookupResource (T.unpack src)
+       return (Just src)
+     else do
+       drawImage <- getCurrentElement
+       findChild' NsOffice "binary-data"
+         >>= traverse (embedBase64Image drawImage)
+
+-- | Add the base64-encoded image data of an @office:binary-data@ element
+-- to the media bag and return the path under which it was filed.  The
+-- mime type is declared on the enclosing @draw:image@.
+embedBase64Image :: XML.Element -> XML.Element -> ODTReader T.Text
+embedBase64Image drawImage binaryData = do
+  let bytes = decodeLenient . UTF8.fromText
+            . T.filter (not . isSpace) . XML.strContent $ binaryData
+  -- the attribute is draw:mime-type in ODF 1.3 but loext:mime-type in
+  -- older LibreOffice output, so match on the local name only
+  let mbExtension =
+        ((("." <>) <$>) . extensionFromMimeType
+          =<< XML.findAttrBy ((== "mime-type") . XML.qName) drawImage)
+        <|> (extensionForImageType <$> imageType bytes)
+  n <- length . mediaItems . getMediaBag <$> getExtraState
+  let path = "Pictures/image" <> show (n + 1) <> T.unpack (fromMaybe ".bin" mbExtension)
+  updateMediaWithResource (path, B.fromStrict bytes)
+  return (T.pack path)
+
+extensionForImageType :: ImageType -> T.Text
+extensionForImageType imgType =
+  case imgType of
+    Png  -> ".png"
+    Jpeg -> ".jpeg"
+    Gif  -> ".gif"
+    Pdf  -> ".pdf"
+    Eps  -> ".eps"
+    Svg  -> ".svg"
+    Emf  -> ".emf"
+    Tiff -> ".tiff"
+    Webp -> ".webp"
+    Avif -> ".avif"
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchContent [] read_plain_text)
@@ -816,16 +939,40 @@ image_attributes x y =
 
 read_frame_mathml :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_mathml obj = do
-  src <- executeIn obj (findAttr' NsXLink "href")
-  case fold src of
-    ""   -> return mempty
-    src' -> do
-      let path = T.unpack $
-                  fromMaybe src' (T.stripPrefix "./" src') <> "/content.xml"
-      (_, mathml) <- lookupResource path
-      case readMathML (UTF8.toText $ B.toStrict mathml) of
-        Left _     -> return mempty
-        Right exps -> return $ firstMatch $ displayMath $ writeTeX exps
+  href <- fold <$> executeIn obj (findAttr' NsXLink "href")
+  mbMathML <-
+    if T.null href
+       then -- a flat OpenDocument file has to embed the formula in the
+            -- draw:object itself
+            return $ XML.showElement . addMathMLNamespace <$> findMathML obj
+       else do
+         -- note that pandoc's own odt writer uses a trailing slash
+         let dir = T.dropWhileEnd (== '/') $
+                     fromMaybe href (T.stripPrefix "./" href)
+         fmap (UTF8.toText . B.toStrict) <$>
+           lookupResource (T.unpack (dir <> "/content.xml"))
+  case readMathML <$> mbMathML of
+    Just (Right exps) -> return $ firstMatch $ displayMath $ writeTeX exps
+    _                 -> return mempty
+
+-- | Find the MathML of a formula embedded in a @draw:object@.  It is
+-- searched for as a descendant, not as a direct child, because the
+-- @math@ element may be wrapped in an @office:document@ element
+-- describing an embedded formula document.
+findMathML :: XML.Element -> Maybe XML.Element
+findMathML = XML.filterElementName ((== "math") . XML.qName)
+
+-- | XML.Light carries namespace prefixes literally and does not
+-- synthesise declarations, so the declaration of the MathML namespace
+-- may have been left behind on the root of the flat file.
+addMathMLNamespace :: XML.Element -> XML.Element
+addMathMLNamespace el =
+  el{ XML.elAttribs =
+        XML.Attr (XML.QName "xmlns" Nothing Nothing)
+                 "http://www.w3.org/1998/Math/MathML"
+        : filter (not . isDefaultNS . XML.attrKey) (XML.elAttribs el) }
+ where
+  isDefaultNS qn = XML.qName qn == "xmlns" && isNothing (XML.qPrefix qn)
 
 read_frame_text_box :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_text_box box = do
@@ -917,21 +1064,33 @@ read_reference_ref = matchingElement NsText "reference-ref"
 ----------------------
 
 read_text :: ODTReader Pandoc
-read_text = doc <$> matchSmushedChildBlocks' [ read_header
-                                             , read_paragraph
-                                             , read_list
-                                             , read_section
-                                             , read_table
-                                             ]
+read_text = doc <$> matchBlockContent
 
 post_process :: Pandoc -> Pandoc
-post_process (Pandoc m blocks) =
-  Pandoc m (post_process' blocks)
+post_process = walk (unwrapCaptions . attachCaptions)
 
-post_process' :: [Block] -> [Block]
-post_process' (Table attr _ specs th tb tf : Div ("", ["caption"], _) blks : xs)
-  = Table attr (Caption Nothing blks) specs th tb tf : post_process' xs
-post_process' bs = bs
+-- | Paragraphs styled as table captions are read as a Div with class
+-- @caption@ (see 'constructPara'). Attach each of them to the adjacent
+-- table; ODF puts the caption either before or after its table.
+attachCaptions :: [Block] -> [Block]
+attachCaptions (Table attr _ specs th tb tf : b : xs)
+  | Just blks <- captionBlocks b
+  = Table attr (Caption Nothing blks) specs th tb tf : attachCaptions xs
+attachCaptions (b : Table attr _ specs th tb tf : xs)
+  | Just blks <- captionBlocks b
+  = Table attr (Caption Nothing blks) specs th tb tf : attachCaptions xs
+attachCaptions (b : bs) = b : attachCaptions bs
+attachCaptions []       = []
+
+-- | The Div is only an internal marker, so a caption paragraph that
+-- turned out not to belong to a table is emitted as an ordinary
+-- paragraph rather than leaking the marker into the output.
+unwrapCaptions :: [Block] -> [Block]
+unwrapCaptions = concatMap (\b -> fromMaybe [b] (captionBlocks b))
+
+captionBlocks :: Block -> Maybe [Block]
+captionBlocks (Div ("", ["caption"], _) blks) = Just blks
+captionBlocks _                               = Nothing
 
 read_body :: ODTReader (Pandoc, MediaBag)
 read_body = executeInSub NsOffice "body"

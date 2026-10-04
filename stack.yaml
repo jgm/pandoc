@@ -3,6 +3,13 @@ flags:
     embed_data_files: true
   QuickCheck:
     old-random: false
+allow-newer: true
+allow-newer-deps:
+  # This needs zip-archive 0.5
+  - hslua-module-zip
+  # These need to allow doclayout 0.6
+  - gridtables
+  - hslua-module-doclayout
 packages:
 - '.'
 - 'pandoc-cli'
@@ -23,27 +30,20 @@ extra-deps:
 - skylighting-0.15
 - skylighting-core-0.15
 - typst-symbols-0.3
-- git: https://github.com/jgm/citeproc
-  commit: a62b54417f558cb0886f428343eb0e08ffba2ecb
-- git: https://github.com/jgm/commonmark-hs
-  commit: c8482bb339350d7817b865baa925f607c2f9d349
-  subdirs: [commonmark, commonmark-extensions, commonmark-pandoc]
-- git: https://github.com/jgm/zip-archive
-  commit: 37d12aad8ebdcb2aefd14af6b992faddcf9e307a
-- git: https://github.com/jgm/asciidoc-hs
-  commit: 8d090846ddb061871e2434f6f55462467cb5a052
-- git: https://github.com/jgm/doclayout
-  commit: d98289d576ba621a17e184ca5a1ff9a8d8390542
-- git: https://github.com/jgm/doctemplates
-  commit: 3c3a61267b709de279074e54ecf391f0f631bb2f
-- git: https://github.com/jgm/typst-hs
-  commit: a2ebb326923ff7c3e8bfe99d24a6e62d2a3984ee
-- git: https://github.com/jgm/djoths
-  commit: 20549c6b7466cfbf8c3645ddfac68e223ca113f3
-- git: https://github.com/jgm/texmath
-  commit: 9fdba44fac47740e179884667b1e08331cba60dd
-
-# needed because not yet in nixpkgs:
+- zip-archive-0.5
+- doclayout-0.6
+- doctemplates-0.11.1
+- asciidoc-0.1.1.1
+- commonmark-0.3.1
+- commonmark-pandoc-0.3.0.2
+- commonmark-extensions-0.2.7.3
+- djot-0.1.4.3
+- typst-0.12
+- git: https://github.com/jgm/texmath.git
+  commit: 19f61947d7720219121aafb2db0c9a75b539c029
+- git: https://github.com/jgm/citeproc.git
+  commit: b99816d929208654b7f810fd9c1be8ff59becbb0
++# needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
 - emojis-0.1.5

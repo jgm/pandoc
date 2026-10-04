@@ -196,24 +196,24 @@ getLang opts meta =
                _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: HasChars a => a -> Attr -> Doc a
+tagWithAttrs :: (HasChars a, FromText a) => a -> Attr -> Doc a
 tagWithAttrs tag attr = "<" <> literal tag <> (htmlAttrs attr) <> ">"
 
 -- | Produce HTML for the given pandoc attributes, to be used in HTML tags
-htmlAttrs :: HasChars a => Attr -> Doc a
+htmlAttrs :: (HasChars a, FromText a) => Attr -> Doc a
 htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
   if T.null ident
       then empty
-      else "id=" <> doubleQuotes (text $ T.unpack (escapeStringForXML ident))
+      else "id=" <> doubleQuotes (literal $ fromText (escapeStringForXML ident))
   ,if null classes
       then empty
       else "class=" <> doubleQuotes
-             (text $ T.unpack . escapeStringForXML $ T.unwords classes)
+             (literal $ fromText . escapeStringForXML $ T.unwords classes)
   ,hsep (map (\(k,v) -> formatKey k <> "=" <>
-                doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
+                doubleQuotes (literal $ fromText (escapeStringForXML v))) kvs)
   ])
  where
-   formatKey x = text . T.unpack $
+   formatKey x = literal . fromText $
         if ((x `Set.member` html5Attributes || x `Set.member` rdfaAttributes)
             && x /= "label") -- #10048
              || T.any (== ':') x -- e.g. epub: namespace
@@ -719,6 +719,10 @@ endsWithPlain xs =
     Just Plain{} -> True
     Just (BulletList is) -> maybe False endsWithPlain (lastMay is)
     Just (OrderedList _ is) -> maybe False endsWithPlain (lastMay is)
+    Just (DefinitionList defs) ->
+      case lastMay defs of
+        Just (_, ds) -> maybe False endsWithPlain (lastMay ds)
+        Nothing      -> False
     _ -> False
 
 -- | Convert the relevant components of a new-style table (with block
@@ -818,43 +822,45 @@ splitSentences = go . toList
 -- and modify internal links accordingly. (Yes, XML allows an
 -- underscore, but HTML 4 doesn't, so we are more conservative.)
 ensureValidXmlIdentifiers :: Pandoc -> Pandoc
-ensureValidXmlIdentifiers = walk fixLinks . walkAttr fixIdentifiers
+ensureValidXmlIdentifiers = walk goInline . walk goBlock
  where
-  fixIdentifiers (ident, classes, kvs) =
+  fixAttr (ident, classes, kvs) =
     (case T.uncons ident of
       Nothing -> ident
       Just (c, _) | isLetter c -> ident
       _ -> "id_" <> ident,
      classes, kvs)
-  needsFixing src =
+  fixSrc src =
     case T.uncons src of
       Just ('#',t) ->
         case T.uncons t of
-          Just (c,_) | not (isLetter c) -> Just ("#id_" <> t)
-          _ -> Nothing
-      _ -> Nothing
-  fixLinks (Link attr ils (src, tit))
-    | Just src' <- needsFixing src = Link attr ils (src', tit)
-  fixLinks (Image attr ils (src, tit))
-    | Just src' <- needsFixing src = Image attr ils (src', tit)
-  fixLinks x = x
+          Just (c,_) | not (isLetter c) -> "#id_" <> t
+          _ -> src
+      _ -> src
 
--- | Walk Pandoc document, modifying attributes.
-walkAttr :: (Attr -> Attr) -> Pandoc -> Pandoc
-walkAttr f = walk goInline . walk goBlock
- where
-  goInline (Span attr ils) = Span (f attr) ils
-  goInline (Link attr ils target) = Link (f attr) ils target
-  goInline (Image attr ils target) = Image (f attr) ils target
-  goInline (Code attr txt) = Code (f attr) txt
+  goInline (Span attr ils) = Span (fixAttr attr) ils
+  goInline (Link attr ils (src, tit)) = Link (fixAttr attr) ils (fixSrc src, tit)
+  goInline (Image attr ils (src, tit)) =
+    Image (fixAttr attr) ils (fixSrc src, tit)
+  goInline (Code attr txt) = Code (fixAttr attr) txt
   goInline x = x
 
-  goBlock (Header lev attr ils) = Header lev (f attr) ils
-  goBlock (CodeBlock attr txt) = CodeBlock (f attr) txt
+  goBlock (Header lev attr ils) = Header lev (fixAttr attr) ils
+  goBlock (CodeBlock attr txt) = CodeBlock (fixAttr attr) txt
   goBlock (Table attr cap colspecs thead tbodies tfoot) =
-    Table (f attr) cap colspecs thead tbodies tfoot
-  goBlock (Div attr bs) = Div (f attr) bs
+    Table (fixAttr attr) cap colspecs
+      (goTableHead thead) (map goTableBody tbodies) (goTableFoot tfoot)
+  goBlock (Div attr bs) = Div (fixAttr attr) bs
+  goBlock (Figure attr cap bs) = Figure (fixAttr attr) cap bs
   goBlock x = x
+
+  goTableHead (TableHead attr rows) = TableHead (fixAttr attr) (map goRow rows)
+  goTableBody (TableBody attr rhc hd bd) =
+    TableBody (fixAttr attr) rhc (map goRow hd) (map goRow bd)
+  goTableFoot (TableFoot attr rows) = TableFoot (fixAttr attr) (map goRow rows)
+  goRow (Row attr cells) = Row (fixAttr attr) (map goCell cells)
+  goCell (Cell attr align rowspan colspan bs) =
+    Cell (fixAttr attr) align rowspan colspan bs
 
 -- | Convert links to spans; most useful when writing elements that must not
 -- contain links, e.g. to avoid nested links.
@@ -882,8 +888,12 @@ isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
 toTaskListItem :: MonadPlus m => [Block] -> m (Bool, [Block])
 toTaskListItem (Plain (Str "☐":Space:ils):xs) = pure (False, Plain ils:xs)
 toTaskListItem (Plain (Str "☒":Space:ils):xs) = pure (True, Plain ils:xs)
+toTaskListItem (Plain [Str "☐"]:xs)           = pure (False, Plain []:xs)
+toTaskListItem (Plain [Str "☒"]:xs)           = pure (True, Plain []:xs)
 toTaskListItem (Para  (Str "☐":Space:ils):xs) = pure (False, Para ils:xs)
 toTaskListItem (Para  (Str "☒":Space:ils):xs) = pure (True, Para ils:xs)
+toTaskListItem (Para  [Str "☐"]:xs)           = pure (False, Para []:xs)
+toTaskListItem (Para  [Str "☒"]:xs)           = pure (True, Para []:xs)
 toTaskListItem _                              = mzero
 
 -- | Add an opener and closer to a Doc. If the Doc begins or ends
@@ -964,9 +974,11 @@ takePreviousSpansAtColumn columnPosition previousSpans
 -- For handling previous row spans that are next to the end of a row's cells
 -- that were previously added with 'insertCurrentSpansAtColumn'.
 decrementTrailingRowSpans :: Int -> M.Map Int (RowSpan, ColSpan) -> M.Map Int (RowSpan, ColSpan)
-decrementTrailingRowSpans columnPosition = M.mapWithKey decrementTrailing
+decrementTrailingRowSpans columnPosition = M.mapMaybeWithKey decrementTrailing
   where
-    decrementTrailing previousColumnPosition previousSpan@(RowSpan rowSpan, colSpan) =
-      if previousColumnPosition >= columnPosition && rowSpan >= 1
-        then (RowSpan rowSpan - 1, colSpan)
-        else previousSpan
+    decrementTrailing previousColumnPosition previousSpan@(RowSpan rowSpan, colSpan)
+      | previousColumnPosition >= columnPosition && rowSpan >= 1 =
+          if rowSpan > 1
+            then Just (RowSpan rowSpan - 1, colSpan)
+            else Nothing  -- span is used up; drop it instead of keeping a 0 entry
+      | otherwise = Just previousSpan

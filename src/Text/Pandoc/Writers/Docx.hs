@@ -23,6 +23,7 @@ import Codec.Archive.Zip
       findEntryByPath,
       fromArchive,
       toArchive,
+      toArchiveOrFail,
       toEntry,
       Entry(eRelativePath) )
 import Control.Monad (MonadPlus(mplus), foldM)
@@ -506,10 +507,21 @@ loadArchives opts = do
   P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
-                   Just f  -> toArchive . BL.fromStrict . fst
+                   Just f  -> do
+                     arch <- toArchiveOrFail . BL.fromStrict . fst
                                  <$> P.fetchItem (T.pack f)
-                   Nothing -> toArchive . BL.fromStrict <$>
-                        readDataFile "reference.docx"
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference-doc " <>
+                           tshow f <> ": " <> T.pack err
+                       Right x -> pure x
+                   Nothing -> do
+                     arch <- toArchiveOrFail . BL.fromStrict <$>
+                                 readDataFile "reference.docx"
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference.docx: " <> T.pack err
+                       Right x -> pure x
   return (refArchive, distArchive, username, utctime)
 
 isWmlNamespace :: QName -> Bool

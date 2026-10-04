@@ -27,6 +27,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Text (Text)
+import Skylighting (TokenType)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.MIME (MimeType)
@@ -120,6 +121,9 @@ data WriterState = WriterState{
        , stInsId          :: Int
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
+       , stTokTypesMap    :: M.Map TokenType Element
+         -- ^ cached rStyle element for each highlighting token type;
+         --   computed once from stStyleMaps at the start of writing
        , stFirstPara      :: Bool
        , stFirstSectionHeader :: Bool  -- ^ True until first section header is processed
        , stNumIdUsed      :: Bool  -- ^ True if the current numId (envListNumId) has been used.
@@ -146,6 +150,7 @@ defaultWriterState = WriterState{
       , stInsId          = 1
       , stDelId          = 1
       , stStyleMaps      = StyleMaps M.empty M.empty
+      , stTokTypesMap    = M.empty
       , stFirstPara      = False
       , stFirstSectionHeader = True
       , stNumIdUsed      = False

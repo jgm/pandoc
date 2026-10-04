@@ -70,7 +70,7 @@ tests = [ testGroup "code blocks"
             "\\begin{description}\n\\item[foo] ~ \n\\subsection{bar}\n\nbaz\n\\end{description}"
           , "containing image" =:
             header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
-            "\\section{\\texorpdfstring{\\protect\\pandocbounded{\\includegraphics[keepaspectratio,alt={Alt text}]{imgs/foo.jpg}}}{Alt text}}"
+            "\\section{\\texorpdfstring{\\protect\\pandocbounded{\\includegraphics[keepaspectratio,alt={Alt\ntext}]{imgs/foo.jpg}}}{Alt text}}"
           ]
         , testGroup "inline code"
           [ "struck out and highlighted" =:
@@ -249,7 +249,7 @@ tests = [ testGroup "code blocks"
             (plain $ image (pack "img.jpg") (pack "") (text "alt text"))
             =?>
               "\\begin{figure}[htbp]\n\\centering\n"
-              <> "\\pandocbounded{\\includegraphics[keepaspectratio,alt={alt text}]{img.jpg}}\n"
+              <> "\\pandocbounded{\\includegraphics[keepaspectratio,alt={alt\ntext}]{img.jpg}}\n"
               <> "\\caption{caption}\n\\end{figure}"
           ]
         ]

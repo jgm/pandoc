@@ -266,8 +266,10 @@ runToText _                = ""
 
 parPartToText :: ParPart -> T.Text
 parPartToText (PlainRun run)             = runToText run
-parPartToText (InternalHyperLink _ children) = T.concat $ map parPartToText children
-parPartToText (ExternalHyperLink _ children) = T.concat $ map parPartToText children
+parPartToText (InternalHyperLink _ _ children) =
+  T.concat $ map parPartToText children
+parPartToText (ExternalHyperLink _ _ children) =
+  T.concat $ map parPartToText children
 parPartToText _                          = ""
 
 blacklistedCharStyles :: [CharStyleName]
@@ -410,14 +412,15 @@ parPartToInlines' (CommentStart cmtId author date bodyParts) = do
     AllChanges -> do
       blks <- smushBlocks <$> mapM bodyPartToBlocks bodyParts
       ils <- blocksToInlinesWarn cmtId blks
-      let attr = ("", ["comment-start"], ("id", cmtId) : addAuthorAndDate author date)
+      let attr = ("", ["comment-start"], ("comment-id", cmtId) :
+                    addAuthorAndDate author date)
       return $ spanWith attr ils
     _ -> return mempty
 parPartToInlines' (CommentEnd cmtId) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
-      let attr = ("", ["comment-end"], [("id", cmtId)])
+      let attr = ("", ["comment-end"], [("comment-id", cmtId)])
       return $ spanWith attr mempty
     _ -> return mempty
 parPartToInlines' (BookMark _ anchor) | anchor `elem` dummyAnchors =
@@ -460,19 +463,20 @@ parPartToInlines' Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 parPartToInlines' Diagram =
   return $ spanWith ("", ["diagram"], []) $ text "[DIAGRAM]"
-parPartToInlines' (InternalHyperLink anchor children) = do
+parPartToInlines' (InternalHyperLink anchor tooltip children) = do
   ils <- smushInlines <$> mapM parPartToInlines' children
-  return $ link ("#" <> anchor) "" ils
-parPartToInlines' (ExternalHyperLink target children) = do
+  return $ link ("#" <> anchor) tooltip ils
+parPartToInlines' (ExternalHyperLink target tooltip children) = do
   ils <- smushInlines <$> mapM parPartToInlines' children
-  return $ link target "" ils
+  return $ link target tooltip ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
 parPartToInlines' (OMathPara exps) =
   return $ displayMath $ writeTeX exps
 parPartToInlines' (Field info children) =
   case info of
-    HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
+    HyperlinkField url ->
+      parPartToInlines' $ ExternalHyperLink url "" children
     IndexrefField ie ->
       pure $ spanWith ("",["indexref"],
                            (("entry", entryTitle ie) :
@@ -480,8 +484,10 @@ parPartToInlines' (Field info children) =
                           ++ maybe [] (\x -> [("yomi",x)]) (entryYomi ie)
                           ++ [("bold","") | entryBold ie]
                           ++ [("italic","") | entryItalic ie])) mempty
-    PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
-    CrossrefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
+    PagerefField fieldAnchor True ->
+      parPartToInlines' $ InternalHyperLink fieldAnchor "" children
+    CrossrefField fieldAnchor True ->
+      parPartToInlines' $ InternalHyperLink fieldAnchor "" children
     EndNoteCite t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
       opts <- asks docxOptions

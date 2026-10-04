@@ -39,7 +39,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Extensions (Extension(Ext_smart))
 import Data.Char (isLetter, isSpace, isDigit, isAscii, ord, isAlphaNum)
-import Text.Printf (printf)
+import Numeric (showHex)
 import Text.Pandoc.Shared (safeRead)
 import qualified Data.Text.Normalize as Normalize
 import Data.List (uncons)
@@ -199,7 +199,7 @@ toLabel z = go `fmap` stringToLaTeX URLString z
    go = T.concatMap $ \x -> case x of
      _ | (isLetter x || isDigit x) && isAscii x -> T.singleton x
        | T.any (== x) "_-+=:;." -> T.singleton x
-       | otherwise -> T.pack $ "ux" <> printf "%x" (ord x)
+       | otherwise -> T.pack $ "ux" <> showHex (ord x) ""
 
 -- | Puts contents into LaTeX command.
 inCmd :: Text -> Doc Text -> Doc Text

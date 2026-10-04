@@ -30,6 +30,7 @@ module Text.Pandoc.Readers
   , readPptx
   , readXlsx
   , readODT
+  , readFODT
   , readMarkdown
   , readCommonMark
   , readCreole
@@ -167,6 +168,7 @@ readers = [("native"       , TextReader readNative)
           ,("pptx"         , ByteStringReader readPptx)
           ,("xlsx"         , ByteStringReader readXlsx)
           ,("odt"          , ByteStringReader readODT)
+          ,("fodt"         , TextReader readFODT)
           ,("t2t"          , TextReader readTxt2Tags)
           ,("epub"         , ByteStringReader readEPUB)
           ,("muse"         , TextReader readMuse)

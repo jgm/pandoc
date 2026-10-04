@@ -116,6 +116,10 @@ tests = [ testGroup "document"
             "docx/links.docx"
             "docx/links.native"
           , testCompare
+            "hyperlinks with ScreenTips"
+            "docx/link_tooltips.docx"
+            "docx/link_tooltips.native"
+          , testCompare
             "hyperlinks in <w:instrText> tag"
             "docx/instrText_hyperlink.docx"
             "docx/instrText_hyperlink.native"

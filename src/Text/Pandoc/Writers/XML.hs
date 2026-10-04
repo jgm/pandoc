@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 --   Module      : Text.Pandoc.Writers.XML
@@ -18,19 +20,19 @@ import Data.Map (Map, toList)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Version (versionBranch)
+import GHC.Generics
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML
 import Text.Pandoc.XMLFormat
-import Text.XML.Light (xml_header)
 
 type PandocAttr = Text.Pandoc.Definition.Attr
 
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
-writeXML _ doc = do
-  return $ pandocToXmlText doc
+writeXML opts doc = do
+  return $ pandocToXmlText opts doc
 
 text_node :: T.Text -> Content
 text_node text = Text (CData CDataText text Nothing)
@@ -65,40 +67,85 @@ elementWithAttributes tag attributes =
 elementWithAttrAndContents :: T.Text -> PandocAttr -> [Content] -> Element
 elementWithAttrAndContents tag attr contents = addAttrAttributes attr $ elementWithContents tag contents
 
-asBlockOfInlines :: Element -> [Content]
-asBlockOfInlines el = [Elem el, text_node "\n"]
+-- | Extract the name of a value's constructor via GHC.Generics.
+class GConName f where
+  gConName :: f p -> String
 
-asBlockOfBlocks :: Element -> [Content]
-asBlockOfBlocks el = [Elem newline_before_first, newline]
-  where
-    newline = text_node "\n"
-    newline_before_first = if null (elContent el) then el else prependContents [newline] el
+instance (GConName f) => GConName (M1 D d f) where
+  gConName (M1 x) = gConName x
 
-itemName :: (Show a) => a -> T.Text
-itemName a = T.pack $ takeWhile (/= ' ') (show a)
+instance (GConName f, GConName g) => GConName (f :+: g) where
+  gConName (L1 x) = gConName x
+  gConName (R1 x) = gConName x
+
+instance (Constructor c) => GConName (M1 C c f) where
+  gConName = conName
+
+itemName :: (Generic a, GConName (Rep a)) => a -> T.Text
+itemName = T.pack . gConName . from
 
 intAsText :: Int -> T.Text
 intAsText i = T.pack $ show i
 
-itemAsEmptyElement :: (Show a) => a -> Element
+itemAsEmptyElement :: (Generic a, GConName (Rep a)) => a -> Element
 itemAsEmptyElement item = emptyElement $ itemName item
 
-pandocToXmlText :: Pandoc -> T.Text
-pandocToXmlText (Pandoc (Meta meta) blocks) = with_header . with_blocks . with_meta . with_version $ el
-  where
-    el = prependContents [text_node "\n"] $ emptyElement "Pandoc"
-    with_version = addAttribute atNameApiVersion (T.intercalate "," $ map (T.pack . show) $ versionBranch pandocTypesVersion)
-    with_meta = appendContents (metaMapToXML meta "meta")
-    with_blocks = appendContents (asBlockOfBlocks $ elementWithContents "blocks" $ blocksToXML blocks)
-    with_header :: Element -> T.Text
-    with_header e = T.concat [T.pack xml_header, "\n", showElement e]
+pandocToXmlText :: WriterOptions -> Pandoc -> T.Text
+pandocToXmlText opts (Pandoc (Meta meta) blocks) =
+  case writerTemplate opts of
+       Just _ -> -- standalone document; include Pandoc and Meta
+         ppcTopElement configPP . with_blocks . with_meta . with_version $ el
+       Nothing -> -- fragment; just include blocks, as native writer does
+         mconcat $ map (ppcContent configPP) block_contents
+ where
+   el = emptyElement "Pandoc"
+   with_version = addAttribute atNameApiVersion version
+   version = (T.intercalate "," $ map (T.pack . show)
+                                $ versionBranch pandocTypesVersion)
+   with_meta = appendContents (metaMapToXML meta "meta")
+   with_blocks = appendContents $ asContents block_element
+   block_element = elementWithContents "blocks" block_contents
+   block_contents = blocksToXML blocks
+
+-- | Pretty-printing configuration: the contents of elements that
+-- contain inline content are kept on a single line, so that no
+-- significant whitespace is added inside them.
+configPP :: ConfigPP
+configPP = useInlineTags (isInlineTag . qName) prettyConfigPP
+
+-- | Check whether a tag is for an element with inline content.
+isInlineTag :: T.Text -> Bool
+isInlineTag t =
+  case t of
+    "Para" -> True
+    "Plain" -> True
+    "Header" -> True
+    "MetaInlines" -> True
+    "Emph" -> True
+    "Strong" -> True
+    "Strikeout" -> True
+    "Superscript" -> True
+    "Subscript" -> True
+    "SmallCaps" -> True
+    "Underline" -> True
+    "Quoted" -> True
+    "Cite" -> True
+    "Link" -> True
+    "Image" -> True
+    "Span" -> True
+    _ ->
+      t == tgNameLineItem
+        || t == tgNameDefListTerm
+        || t == tgNameCitationPrefix
+        || t == tgNameCitationSuffix
+        || t == tgNameShortCaption
 
 metaMapToXML :: Map T.Text MetaValue -> T.Text -> [Content]
-metaMapToXML mmap tag = asBlockOfBlocks $ elementWithContents tag entries
+metaMapToXML mmap tag = asContents $ elementWithContents tag entries
   where
     entries = concatMap to_entry $ toList mmap
     to_entry :: (T.Text, MetaValue) -> [Content]
-    to_entry (text, metavalue) = asBlockOfBlocks with_key
+    to_entry (text, metavalue) = asContents with_key
       where
         entry = elementWithContents tgNameMetaMapEntry $ metaValueToXML metavalue
         with_key = addAttribute atNameMetaMapEntryKey text entry
@@ -108,20 +155,59 @@ metaValueToXML value =
   let name = itemName value
       el = itemAsEmptyElement value
    in case (value) of
-        MetaBool b -> asBlockOfInlines $ addAttribute atNameMetaBoolValue bool_value el
+        MetaBool b -> asContents $ addAttribute atNameMetaBoolValue bool_value el
           where
             bool_value = if b then "true" else "false"
-        MetaString s -> asBlockOfInlines $ appendContents [text_node s] el
-        MetaInlines inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
-        MetaBlocks blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) el
-        MetaList items -> asBlockOfBlocks $ appendContents (concatMap metaValueToXML items) el
+        MetaString s -> asContents $ appendContents [text_node s] el
+        MetaInlines inlines -> asContents $ appendContents (inlinesToXML inlines) el
+        MetaBlocks blocks -> asContents $ appendContents (blocksToXML blocks) el
+        MetaList items -> asContents $ appendContents (concatMap metaValueToXML items) el
         MetaMap mm -> metaMapToXML mm name
 
 blocksToXML :: [Block] -> [Content]
 blocksToXML blocks = concatMap blockToXML blocks
 
 inlinesToXML :: [Inline] -> [Content]
-inlinesToXML inlines = concatMap inlineContentToContents (ilsToIlsContent inlines [])
+inlinesToXML inlines = concatMap wsRunsAsElements $ mergeTextNodes $ concatMap inlineContentToContents (ilsToIlsContent inlines [])
+
+-- | Merge consecutive text nodes into a single text node; otherwise
+-- the pretty-printer would render each one on a line of its own.
+mergeTextNodes :: [Content] -> [Content]
+mergeTextNodes (Text (CData CDataText t _) : rest) =
+  text_node (T.concat (t : ts)) : mergeTextNodes rest'
+  where
+    (ts, rest') = textRun rest
+    textRun (Text (CData CDataText t' _) : cs) =
+      let (ts', cs') = textRun cs in (t' : ts', cs')
+    textRun cs = ([], cs)
+mergeTextNodes (c : rest) = c : mergeTextNodes rest
+mergeTextNodes [] = []
+
+-- | A whitespace run in a text node is read back as a single Space
+-- (a run of spaces) or a single SoftBreak (a run containing a
+-- newline), so runs like " \n" or "\n\n" would not roundtrip: encode
+-- them as sequences of Space and SoftBreak elements instead.
+wsRunsAsElements :: Content -> [Content]
+wsRunsAsElements (Text (CData CDataText t _))
+  | hasLongWsRun = go [] (T.groupBy (\a b -> isWs a == isWs b) t)
+  where
+    isWs ch = ch == ' ' || ch == '\n'
+    -- a whitespace run needs encoding only if it is longer than one
+    -- character (single-character runs are " " or "\n", which are
+    -- kept); the common case of no such run avoids the work below
+    hasLongWsRun = fst $ T.foldl' adjacent (False, False) t
+    adjacent (found, prevWs) ch =
+      let ws = isWs ch in (found || (prevWs && ws), ws)
+    keep r = r == " " || r == "\n" || not (T.any isWs r)
+    go acc (r : rs)
+      | keep r = go (r : acc) rs
+      | otherwise = flush acc ++ map toElem (T.unpack r) ++ go [] rs
+    go acc [] = flush acc
+    flush [] = []
+    flush acc = [text_node $ T.concat $ reverse acc]
+    toElem '\n' = Elem $ emptyElement "SoftBreak"
+    toElem _ = Elem $ emptyElement "Space"
+wsRunsAsElements c = [c]
 
 data InlineContent
   = NormalInline Inline
@@ -159,28 +245,28 @@ asContents :: Element -> [Content]
 asContents el = [Elem el]
 
 wrapBlocks :: T.Text -> [Block] -> [Content]
-wrapBlocks tag blocks = asBlockOfBlocks $ elementWithContents tag $ blocksToXML blocks
+wrapBlocks tag blocks = asContents $ elementWithContents tag $ blocksToXML blocks
 
 wrapArrayOfBlocks :: T.Text -> [[Block]] -> [Content]
 wrapArrayOfBlocks tag array = concatMap (wrapBlocks tag) array
 
 -- wrapInlines :: T.Text -> [Inline] -> [Content]
--- wrapInlines tag inlines = asBlockOfInlines $ element_with_contents tag $ inlinesToXML inlines
+-- wrapInlines tag inlines = asContents $ element_with_contents tag $ inlinesToXML inlines
 
 blockToXML :: Block -> [Content]
 blockToXML block =
   let el = itemAsEmptyElement block
    in case (block) of
-        Para inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
-        Header level (idn, cls, attrs) inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) with_attr
+        Para inlines -> asContents $ appendContents (inlinesToXML inlines) el
+        Header level (idn, cls, attrs) inlines -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
             with_attr = addAttrAttributes (idn, cls, attrs ++ [(atNameLevel, intAsText level)]) el
-        Plain inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
-        Div attr blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) with_attr
+        Plain inlines -> asContents $ appendContents (inlinesToXML inlines) el
+        Div attr blocks -> asContents $ appendContents (blocksToXML blocks) with_attr
           where
             with_attr = addAttrAttributes attr el
-        BulletList items -> asBlockOfBlocks $ appendContents (wrapArrayOfBlocks tgNameListItem items) el
-        OrderedList (start, style, delim) items -> asBlockOfBlocks $ with_contents . with_attrs $ el
+        BulletList items -> asContents $ appendContents (wrapArrayOfBlocks tgNameListItem items) el
+        OrderedList (start, style, delim) items -> asContents $ with_contents . with_attrs $ el
           where
             with_attrs =
               addAttributes
@@ -191,16 +277,16 @@ blockToXML block =
                     ]
                 )
             with_contents = appendContents (wrapArrayOfBlocks tgNameListItem items)
-        BlockQuote blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) el
-        HorizontalRule -> asBlockOfInlines el
-        CodeBlock attr text -> asBlockOfInlines $ with_contents . with_attr $ el
+        BlockQuote blocks -> asContents $ appendContents (blocksToXML blocks) el
+        HorizontalRule -> asContents el
+        CodeBlock attr text -> asContents $ with_contents . with_attr $ el
           where
             with_contents = appendContents [text_node text]
             with_attr = addAttrAttributes attr
-        LineBlock lins -> asBlockOfBlocks $ appendContents (concatMap wrapInlines lins) el
+        LineBlock lins -> asContents $ appendContents (concatMap wrapInlines lins) el
           where
             wrapInlines inlines = asContents $ appendContents (inlinesToXML inlines) $ emptyElement tgNameLineItem
-        Table attr caption colspecs thead tbodies tfoot -> asBlockOfBlocks $ with_foot . with_bodies . with_head . with_colspecs . with_caption . with_attr $ el
+        Table attr caption colspecs thead tbodies tfoot -> asContents $ with_foot . with_bodies . with_head . with_colspecs . with_caption . with_attr $ el
           where
             with_attr = addAttrAttributes attr
             with_caption = appendContents (captionToXML caption)
@@ -208,7 +294,7 @@ blockToXML block =
             with_head = appendContents (tableHeadToXML thead)
             with_bodies = appendContents (concatMap tableBodyToXML tbodies)
             with_foot = appendContents (tableFootToXML tfoot)
-        Figure attr caption blocks -> asBlockOfBlocks $ with_contents . with_caption . with_attr $ el
+        Figure attr caption blocks -> asContents $ with_contents . with_caption . with_attr $ el
           where
             with_attr = addAttrAttributes attr
             with_caption = appendContents (captionToXML caption)
@@ -216,7 +302,7 @@ blockToXML block =
         RawBlock (Format format) text -> asContents $ appendContents [text_node text] raw
           where
             raw = addAttribute atNameFormat format el
-        DefinitionList items -> asBlockOfBlocks $ appendContents (map definitionListItemToXML items) el
+        DefinitionList items -> asContents $ appendContents (map definitionListItemToXML items) el
 
 inlineToXML :: Inline -> [Content]
 inlineToXML inline =
@@ -235,17 +321,17 @@ inlineToXML inline =
         SmallCaps inlines -> wrapInlines inlines
         Superscript inlines -> wrapInlines inlines
         Subscript inlines -> wrapInlines inlines
-        SoftBreak -> asContents el
+        SoftBreak -> [text_node "\n"]
         LineBreak -> asContents el
         Span attr inlines -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
             with_attr = addAttrAttributes attr el
         Link (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttrAttributes (idn, cls, attrs ++ [(atNameLinkUrl, url), (atNameTitle, title)]) el
+            with_attr = addAttrAttributes (idn, cls, attrs ++ optionalAttribute atNameLinkUrl url ++ optionalAttribute atNameTitle title) el
         Image (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttrAttributes (idn, cls, attrs ++ [(atNameImageUrl, url), (atNameTitle, title)]) el
+            with_attr = addAttrAttributes (idn, cls, attrs ++ optionalAttribute atNameImageUrl url ++ optionalAttribute atNameTitle title) el
         RawInline (Format format) text -> asContents $ appendContents [text_node text] raw
           where
             raw = addAttribute atNameFormat format el
@@ -262,9 +348,14 @@ inlineToXML inline =
 
 -- TODO: don't let an attribute overwrite id or class
 maybeAttribute :: (T.Text, T.Text) -> Maybe XML.Attr
-maybeAttribute (_, "") = Nothing
 maybeAttribute ("", _) = Nothing
-maybeAttribute (name, value) = Just $ XML.Attr (unqual name) value
+maybeAttribute (name, value) = Just $ XML.Attr (unqual $ encodeAttrName name) value
+
+-- | An optional attribute, omitted when its value is empty (the
+-- reader treats a missing attribute as an empty value).
+optionalAttribute :: T.Text -> T.Text -> [(T.Text, T.Text)]
+optionalAttribute _ "" = []
+optionalAttribute name value = [(name, value)]
 
 validAttributes :: [(T.Text, T.Text)] -> [XML.Attr]
 validAttributes pairs = mapMaybe maybeAttribute pairs
@@ -286,13 +377,17 @@ addAttribute attr_name attr_value el = el {elAttribs = new_attr : elAttribs el}
 addAttrAttributes :: PandocAttr -> Element -> Element
 addAttrAttributes (identifier, classes, attributes) el = addAttributes attrs' el
   where
-    attrs' = mapMaybe maybeAttribute (("id", identifier) : ("class", T.intercalate " " classes) : attributes)
+    attrs' =
+      mapMaybe maybeAttribute $
+        optionalAttribute "id" identifier
+          ++ optionalAttribute "class" (T.intercalate " " classes)
+          ++ attributes
 
 addCitations :: [Citation] -> Element -> Element
-addCitations citations el = appendContents [Elem $ elementWithContents tgNameCitations $ (text_node "\n") : concatMap citation_to_elem citations] el
+addCitations citations el = appendContents [Elem $ elementWithContents tgNameCitations $ concatMap citation_to_elem citations] el
   where
     citation_to_elem :: Citation -> [Content]
-    citation_to_elem citation = asBlockOfInlines with_suffix
+    citation_to_elem citation = asContents with_suffix
       where
         cit_elem = elementWithAttributes (itemName citation) attrs
         prefix = citationPrefix citation
@@ -309,7 +404,7 @@ addCitations citations el = appendContents [Elem $ elementWithContents tgNameCit
           map
             (\(n, v) -> XML.Attr (unqual n) v)
             [ ("id", citationId citation),
-              (atNameCitationMode, T.pack $ show $ citationMode citation),
+              (atNameCitationMode, itemName $ citationMode citation),
               (atNameCitationNoteNum, intAsText $ citationNoteNum citation),
               (atNameCitationHash, intAsText $ citationHash citation)
             ]
@@ -317,18 +412,18 @@ addCitations citations el = appendContents [Elem $ elementWithContents tgNameCit
 definitionListItemToXML :: ([Inline], [[Block]]) -> Content
 definitionListItemToXML (inlines, defs) = Elem $ elementWithContents tgNameDefListItem $ term ++ wrapArrayOfBlocks tgNameDefListDef defs
   where
-    term = asBlockOfInlines $ appendContents (inlinesToXML inlines) $ emptyElement tgNameDefListTerm
+    term = asContents $ appendContents (inlinesToXML inlines) $ emptyElement tgNameDefListTerm
 
 captionToXML :: Caption -> [Content]
-captionToXML (Caption short blocks) = asBlockOfBlocks with_short_caption
+captionToXML (Caption short blocks) = asContents with_short_caption
   where
     el = elementWithContents "Caption" $ blocksToXML blocks
     with_short_caption = case (short) of
-      Just inlines -> prependContents (asBlockOfInlines $ elementWithContents tgNameShortCaption $ inlinesToXML inlines) el
+      Just inlines -> prependContents (asContents $ elementWithContents tgNameShortCaption $ inlinesToXML inlines) el
       _ -> el
 
 colSpecToXML :: (Alignment, ColWidth) -> [Content]
-colSpecToXML (align, cw) = asBlockOfInlines colspec
+colSpecToXML (align, cw) = asContents colspec
   where
     colspec = elementWithAttributes "ColSpec" $ validAttributes [(atNameAlignment, itemName align), (atNameColWidth, colwidth)]
     colwidth = case (cw) of
@@ -336,27 +431,27 @@ colSpecToXML (align, cw) = asBlockOfInlines colspec
       ColWidthDefault -> "0"
 
 colSpecsToXML :: [(Alignment, ColWidth)] -> [Content]
-colSpecsToXML colspecs = asBlockOfBlocks $ elementWithContents tgNameColspecs $ concatMap colSpecToXML colspecs
+colSpecsToXML colspecs = asContents $ elementWithContents tgNameColspecs $ concatMap colSpecToXML colspecs
 
 tableHeadToXML :: TableHead -> [Content]
-tableHeadToXML (TableHead attr rows) = asBlockOfBlocks $ elementWithAttrAndContents "TableHead" attr $ concatMap rowToXML rows
+tableHeadToXML (TableHead attr rows) = asContents $ elementWithAttrAndContents "TableHead" attr $ concatMap rowToXML rows
 
 tableBodyToXML :: TableBody -> [Content]
-tableBodyToXML (TableBody (idn, cls, attrs) (RowHeadColumns headcols) hrows brows) = asBlockOfBlocks $ elementWithAttrAndContents "TableBody" attr children
+tableBodyToXML (TableBody (idn, cls, attrs) (RowHeadColumns headcols) hrows brows) = asContents $ elementWithAttrAndContents "TableBody" attr children
   where
     attr = (idn, cls, (atNameRowHeadColumns, intAsText headcols) : attrs)
-    header_rows = asBlockOfBlocks $ elementWithContents tgNameBodyHeader $ concatMap rowToXML hrows
-    body_rows = asBlockOfBlocks $ elementWithContents tgNameBodyBody $ concatMap rowToXML brows
+    header_rows = asContents $ elementWithContents tgNameBodyHeader $ concatMap rowToXML hrows
+    body_rows = asContents $ elementWithContents tgNameBodyBody $ concatMap rowToXML brows
     children = header_rows ++ body_rows
 
 tableFootToXML :: TableFoot -> [Content]
-tableFootToXML (TableFoot attr rows) = asBlockOfBlocks $ elementWithAttrAndContents "TableFoot" attr $ concatMap rowToXML rows
+tableFootToXML (TableFoot attr rows) = asContents $ elementWithAttrAndContents "TableFoot" attr $ concatMap rowToXML rows
 
 rowToXML :: Row -> [Content]
-rowToXML (Row attr cells) = asBlockOfBlocks $ elementWithAttrAndContents "Row" attr $ concatMap cellToXML cells
+rowToXML (Row attr cells) = asContents $ elementWithAttrAndContents "Row" attr $ concatMap cellToXML cells
 
 cellToXML :: Cell -> [Content]
-cellToXML (Cell (idn, cls, attrs) alignment (RowSpan rowspan) (ColSpan colspan) blocks) = asBlockOfBlocks $ elementWithAttrAndContents "Cell" attr $ blocksToXML blocks
+cellToXML (Cell (idn, cls, attrs) alignment (RowSpan rowspan) (ColSpan colspan) blocks) = asContents $ elementWithAttrAndContents "Cell" attr $ blocksToXML blocks
   where
     with_alignment a = (atNameAlignment, itemName alignment) : a
     with_rowspan a = if rowspan > 1 then (atNameRowspan, intAsText rowspan) : a else a

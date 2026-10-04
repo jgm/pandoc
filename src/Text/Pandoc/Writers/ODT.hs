@@ -11,15 +11,16 @@
 
 Conversion of 'Pandoc' documents to ODT.
 -}
-module Text.Pandoc.Writers.ODT ( writeODT ) where
+module Text.Pandoc.Writers.ODT ( writeODT, writeFODT ) where
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify, lift)
 import Control.Monad (MonadPlus(mplus))
+import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Lazy as B
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (catMaybes, fromMaybe, listToMaybe, mapMaybe, maybeToList)
 import Data.Generics (everywhere', mkT)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, partition)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -39,21 +40,28 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (..),
 import Text.Pandoc.Highlighting (defaultStyle)
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, stringifyInlines, tshow)
+import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Version (pandocVersionText)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath, getLang,
                                    ensureValidXmlIdentifiers)
-import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
+import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toText, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
+import qualified Text.Pandoc.XML.Light as XML
 import Text.TeXMath
 import qualified Text.XML.Light as XL
 import Network.URI (parseRelativeReference, URI(uriPath), isURI)
 import Skylighting
 
-newtype ODTState = ODTState { stEntries :: [Entry]
+-- | ODF can be written either as a zip archive of several XML files or
+-- as a single flat XML file.
+data ODTVariant = Zipped | Flat deriving (Eq, Show)
+
+data ODTState = ODTState { stEntries :: [Entry]
+                         , stVariant :: ODTVariant
                          }
 
 type O m = StateT ODTState m
@@ -65,14 +73,16 @@ writeODT :: PandocMonad m
          -> m B.ByteString
 writeODT  opts doc =
   let initState = ODTState{ stEntries = []
+                          , stVariant = Zipped
                           }
       doc' = fixInternalLinks . ensureValidXmlIdentifiers $ doc
   in
-    evalStateT (pandocToODT opts doc') initState
+    fromArchive <$> evalStateT (pandocToODT opts doc') initState
 
 -- | ODT internal links are evaluated relative to an imaginary folder
 -- structure that mirrors the zip structure.  The result is that relative
 -- links in the document need to start with `..`.  See #3524.
+-- This does not apply to flat ODF, which is a single file.
 fixInternalLinks :: Pandoc -> Pandoc
 fixInternalLinks = walk go
  where
@@ -85,11 +95,209 @@ fixInternalLinks = walk go
         | not (null (uriPath u)) -> tshow $ u{ uriPath = "../" <> uriPath u }
       _ -> uri
 
--- | Produce an ODT file from a Pandoc document.
+-- | Produce a flat OpenDocument text file (@.fodt@) from a Pandoc
+-- document.  This is the same content as an ODT, but as a single XML
+-- file instead of a zip archive.
+writeFODT :: PandocMonad m
+          => WriterOptions  -- ^ Writer options
+          -> Pandoc         -- ^ Document to convert
+          -> m T.Text
+writeFODT opts doc = do
+  let initState = ODTState{ stEntries = []
+                          , stVariant = Flat
+                          }
+      -- note: no fixInternalLinks, since a flat file has no zip
+      -- structure for relative references to be resolved against
+      doc' = ensureValidXmlIdentifiers doc
+  evalStateT (pandocToODT opts doc') initState >>= flattenODT
+
+officeNS :: T.Text
+officeNS = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+
+officeQName :: T.Text -> QName
+officeQName n = QName n (Just officeNS) (Just "office")
+
+-- | The top-level child of an ODF part, e.g. @office:body@ of
+-- @content.xml@.  Only the local name is matched if the document gives
+-- no namespace URI.
+officeChild :: T.Text -> Element -> Maybe Element
+officeChild name el = listToMaybe
+  [ e | Elem e <- elContent el
+      , qName (elName e) == name
+      , maybe True (== officeNS) (qURI (elName e)) ]
+
+-- | Convert an ODT archive into the equivalent flat OpenDocument file.
+--
+-- A flat ODF file is a single @office:document@ element whose children
+-- are exactly the top-level elements that are otherwise distributed over
+-- @content.xml@, @styles.xml@, @meta.xml@ and @settings.xml@, in this
+-- order:
+--
+-- > office:meta? office:settings? office:scripts? office:font-face-decls?
+-- > office:styles? office:automatic-styles? office:master-styles? office:body
+--
+-- Anything that would be a separate archive entry -- images and
+-- formulas -- is embedded inline instead.
+flattenODT :: forall m . PandocMonad m => Archive -> m T.Text
+flattenODT archive = do
+  contentRoot <- getRoot "content.xml"
+  stylesRoot  <- getRoot "styles.xml"
+  metaRoot    <- getRoot "meta.xml"
+  -- the bundled reference.odt has no settings.xml, but a reference doc
+  -- written by LibreOffice does
+  settingsRoot <- traverse parseEntry (findEntryByPath "settings.xml" archive)
+  let roots = [contentRoot, stylesRoot, metaRoot] ++ maybeToList settingsRoot
+  -- only one of each of these is allowed in a document, so the ones
+  -- from content.xml and styles.xml must be combined
+  let (fontFaceDecls, _) = mergeParts (officeChild "font-face-decls" contentRoot)
+                                      (officeChild "font-face-decls" stylesRoot)
+  let (automaticStyles, dropped) =
+        mergeParts (officeChild "automatic-styles" contentRoot)
+                   (officeChild "automatic-styles" stylesRoot)
+  mapM_ (\e -> report $ UnusualConversion $
+                 "flat OpenDocument output: dropping the automatic style "
+                 <> snd (partKey e) <> " from styles.xml, because content.xml "
+                 <> "defines a style of the same name")
+        dropped
+  let children = catMaybes
+        [ officeChild "meta" metaRoot
+        , settingsRoot >>= officeChild "settings"
+        , listToMaybe $ mapMaybe (officeChild "scripts") roots
+        , fontFaceDecls
+        , officeChild "styles" stylesRoot
+        , automaticStyles
+        , officeChild "master-styles" stylesRoot
+        , officeChild "body" contentRoot
+        ]
+  let root = Element (officeQName "document")
+               ( Attr (officeQName "mimetype")
+                      "application/vnd.oasis.opendocument.text"
+               : Attr (officeQName "version") "1.3"
+               : nsDecls roots )
+               (map (Elem . embedArchiveRefs archive) children)
+               Nothing
+  -- note: not prettyConfigPP, which would inject whitespace into text
+  -- content and thereby change the document
+  return $ showTopElement root
+ where
+  parseEntry :: Entry -> m Element
+  parseEntry e =
+    case parseXMLElement (toTextLazy (fromEntry e)) of
+      Left msg -> throwError $ PandocXMLError (T.pack (eRelativePath e)) msg
+      Right el -> return el
+  getRoot :: FilePath -> m Element
+  getRoot path =
+    case findEntryByPath path archive of
+      Nothing -> throwError $ PandocSomeError $
+                   "Could not find " <> T.pack path <> " in the ODT archive"
+      Just e  -> parseEntry e
+
+-- | The union of the namespace declarations on the given elements.
+-- Declarations survive parsing as ordinary attributes with the prefix
+-- @xmlns@, and are not synthesised on output, so they must be carried
+-- over to the flat file's root by hand.  Declarations on nested elements
+-- are copied along with those elements.
+nsDecls :: [Element] -> [XML.Attr]
+nsDecls els = Map.elems $ Map.fromListWith (\_new old -> old)
+  [ ((qPrefix (attrKey a), qName (attrKey a)), a)
+  | el <- els
+  , a <- elAttribs el
+  , isNSDecl (attrKey a) ]
+ where
+  isNSDecl qn = qPrefix qn == Just "xmlns"
+                || (qPrefix qn == Nothing && qName qn == "xmlns")
+
+-- | Combine two @office:font-face-decls@ or @office:automatic-styles@
+-- elements, preferring the first.  Returns the merged element and the
+-- declarations of the second that were dropped as duplicates.
+mergeParts :: Maybe Element -> Maybe Element -> (Maybe Element, [Element])
+mergeParts Nothing  mbSecond = (mbSecond, [])
+mergeParts mbFirst  Nothing  = (mbFirst, [])
+mergeParts (Just first) (Just second) =
+  (Just first{ elContent = elContent first ++ map Elem kept }, dropped)
+ where
+  keys = map partKey [ e | Elem e <- elContent first ]
+  (dropped, kept) = partition ((`elem` keys) . partKey)
+                              [ e | Elem e <- elContent second ]
+
+-- | Identify a font face or automatic style by its element name and
+-- @style:name@.
+partKey :: Element -> (T.Text, T.Text)
+partKey e = (qName (elName e), partStyleName e)
+
+partStyleName :: Element -> T.Text
+partStyleName e = T.concat [ attrVal a
+                           | a <- elAttribs e
+                           , qName (attrKey a) == "name"
+                           , qPrefix (attrKey a) == Just "style" ]
+
+-- | Replace references to other entries of the ODT archive by the
+-- entries' contents, which is the only way a flat file can carry them:
+-- images become base64 in an @office:binary-data@ child, formulas
+-- become MathML inside the @draw:object@.
+--
+-- Note that this is applied to every copied part, not just the body, so
+-- that images used by a reference document's headers, footers and master
+-- styles are embedded too.  References that do not resolve to an archive
+-- entry are left alone; in particular, this is what makes
+-- @--link-images@ work, since it writes no @Pictures/@ entry.
+embedArchiveRefs :: Archive -> Element -> Element
+embedArchiveRefs archive = go
+ where
+  go el =
+    case qName (elName el) of
+      "image"
+        | Just entry <- flip findEntryByPath archive . T.unpack =<< xlinkHref el
+        -> embedImage entry el
+      "object"
+        | Just path <- formulaPath =<< xlinkHref el
+        , Just entry <- findEntryByPath path archive
+        , Right mathml <- parseXMLElement (toTextLazy (fromEntry entry))
+        -> (dropXlinkAttrs el){ elContent = [Elem mathml] }
+      _ -> el{ elContent = map goContent (elContent el) }
+  goContent (Elem e) = Elem (go e)
+  goContent c = c
+
+  embedImage entry el =
+    case dropXlinkAttrs el of
+      el' -> el'{ elAttribs = mimeAttrs ++ elAttribs el'
+                , elContent = elContent el' ++ [Elem binaryData] }
+   where
+    mimeAttrs = [ Attr (QName "mime-type" Nothing (Just "draw")) m
+                | Just m <- [getMimeType (eRelativePath entry)] ]
+    binaryData = Element (officeQName "binary-data") []
+                   [XML.Text (CData CDataText (base64 (fromEntry entry)) Nothing)]
+                   Nothing
+
+  base64 = T.intercalate "\n" . T.chunksOf 76 . toText . encode . B.toStrict
+
+  -- the formula's MathML lives in content.xml of the directory the
+  -- reference names
+  formulaPath href =
+    case fromMaybe href (T.stripPrefix "./" href) of
+      "" -> Nothing
+      h  -> Just $ T.unpack $
+              (if "/" `T.isSuffixOf` h then h else h <> "/") <> "content.xml"
+
+xlinkHref :: Element -> Maybe T.Text
+xlinkHref el = listToMaybe [ attrVal a
+                           | a <- elAttribs el
+                           , qName (attrKey a) == "href"
+                           , qPrefix (attrKey a) == Just "xlink" ]
+
+-- | Drop the attributes with which the ODT writer refers to an archive
+-- entry; the content is about to be embedded instead.
+dropXlinkAttrs :: Element -> Element
+dropXlinkAttrs el = el{ elAttribs = filter (not . isRef . attrKey) (elAttribs el) }
+ where
+  isRef qn = qPrefix qn == Just "xlink"
+             && qName qn `elem` ["href", "type", "show", "actuate"]
+
+-- | Produce an ODT archive from a Pandoc document.
 pandocToODT :: PandocMonad m
             => WriterOptions  -- ^ Writer options
             -> Pandoc         -- ^ Document to convert
-            -> O m B.ByteString
+            -> O m Archive
 pandocToODT opts doc@(Pandoc meta _) = do
   let title = docTitle meta
   let authors = docAuthors meta
@@ -105,7 +313,10 @@ pandocToODT opts doc@(Pandoc meta _) = do
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   let refTextWidth = referenceTextWidthPt opts refArchive
   doc' <- walkM (transformPicMath opts refTextWidth) $ walk fixDisplayMath doc
-  newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
+  tpl <- maybe (lift $ compileDefaultTemplate "opendocument") pure
+           (writerTemplate opts)
+  newContents <- lift $ writeOpenDocument
+                   opts{ writerWrapText = WrapNone, writerTemplate = Just tpl } doc'
   epochtime <- floor `fmap` lift P.getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromTextLazy $ TL.fromStrict newContents
@@ -195,7 +406,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   archive'' <- updateStyle opts lang
                   $ addEntryToArchive mimetypeEntry
                   $ addEntryToArchive metaEntry archive'
-  return $ fromArchive archive''
+  return archive''
 
 updateStyle :: forall m . PandocMonad m
             => WriterOptions -> Maybe Lang -> Archive -> O m Archive
@@ -367,7 +578,13 @@ transformPicMath opts mbTextWidthPt (Image attr@(id', cls, _) lab (src,t)) =
                     case T.unpack src of
                       s | isURI s -> return src
                         | isAbsolute s -> return src
-                        | otherwise -> return $ T.pack $ ".." </> s
+                        | otherwise -> do
+                            -- see fixInternalLinks: relative references
+                            -- are resolved against the zip structure
+                            variant <- gets stVariant
+                            case variant of
+                              Zipped -> return $ T.pack $ ".." </> s
+                              Flat   -> return $ T.pack s
                   else do
                     entries <- gets stEntries
                     let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack

@@ -108,6 +108,7 @@ getDefaultTemplate format = do
        "asciidoc_legacy" -> getDefaultTemplate "asciidoc"
        "docx"    -> getDefaultTemplate "openxml"
        "odt"     -> getDefaultTemplate "opendocument"
+       "fodt"    -> getDefaultTemplate "opendocument"
        "html"    -> getDefaultTemplate "html5"
        "docbook" -> getDefaultTemplate "docbook5"
        "epub"    -> getDefaultTemplate "epub3"

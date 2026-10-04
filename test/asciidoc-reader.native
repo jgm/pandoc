@@ -256,7 +256,7 @@ Pandoc
       ]
   , Para
       [ Image
-          ( "" , [ "red icon" ] , [] )
+          ( "" , [ "red" , "icon" ] , [] )
           []
           ( "./images/icons/heart.png" , "" )
       ]
