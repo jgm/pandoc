@@ -113,6 +113,44 @@ inlines = trimInlinesF . mconcat <$> many1 inline
 specialChars :: [Char]
 specialChars = "\"$'()*+-,./:;<=>@[\\]^_{|}~"
 
+-- | True for characters that terminate a run of plain text, i.e. the
+-- 'specialChars' plus spaces and newlines.  Written as a @case@ so that
+-- GHC compiles it to a jump table; this is applied to every single
+-- character of the input, so a linear scan over 'specialChars' here is
+-- a significant cost.
+isStrEnd :: Char -> Bool
+isStrEnd c = case c of
+  ' '  -> True
+  '\n' -> True
+  '\r' -> True
+  '"'  -> True
+  '$'  -> True
+  '\'' -> True
+  '('  -> True
+  ')'  -> True
+  '*'  -> True
+  '+'  -> True
+  '-'  -> True
+  ','  -> True
+  '.'  -> True
+  '/'  -> True
+  ':'  -> True
+  ';'  -> True
+  '<'  -> True
+  '='  -> True
+  '>'  -> True
+  '@'  -> True
+  '['  -> True
+  '\\' -> True
+  ']'  -> True
+  '^'  -> True
+  '_'  -> True
+  '{'  -> True
+  '|'  -> True
+  '}'  -> True
+  '~'  -> True
+  _    -> False
+
 
 whitespace :: PandocMonad m => OrgParser m (F Inlines)
 whitespace = pure B.space <$ skipMany1 spaceChar
@@ -125,7 +163,7 @@ linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: PandocMonad m => OrgParser m (F Inlines)
 str = return . B.str <$>
-      ( takeWhile1P (`notElem` (specialChars ++ "\n\r ")) >>= updatePositions' )
+      ( takeWhile1P (not . isStrEnd) >>= updatePositions' )
       <* updateLastStrPos
   where
     updatePositions' str' = str' <$
