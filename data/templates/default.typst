@@ -22,6 +22,18 @@ $if(highlighting-definitions)$
 $highlighting-definitions$
 
 $endif$
+$if(csl-settings)$
+// formatting called for by CSL style
+#show <refs>: set par(
+$if(csl-hanging-indent)$
+  hanging-indent: $csl-hanging-indent$,
+$endif$
+$if(csl-entry-spacing)$
+  spacing: $csl-entry-spacing$,
+$endif$
+)
+
+$endif$
 $if(template)$
 #import "$template$": conf
 $else$

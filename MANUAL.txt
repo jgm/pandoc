@@ -3603,6 +3603,16 @@ The `--css` option also affects the output.
 :   color for external links, internal links, and citation links,
     respectively: expects a hexadecimal color code
 
+`csl-entry-spacing`
+:   entry spacing between citeproc-generated bibliography entries
+    (with a unit, e.g. `1em`). This will be set automatically
+    based on the CSL style but can be overridden.
+
+`csl-hanging-indent`
+:   amount of hanging indent in citeproc-generated bibliography entries
+    (with a unit, e.g. `1.5em`). This will be set automatically
+    based on the CSL style but can be overridden.
+
 ### Variables for ms
 
 `fontfamily`

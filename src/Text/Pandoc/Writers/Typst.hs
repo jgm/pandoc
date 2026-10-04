@@ -28,7 +28,7 @@ import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
-import Control.Monad (unless)
+import Control.Monad (unless, when)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
@@ -61,7 +61,11 @@ writeTypst options document =
   evalStateT (pandocToTypst options document)
     WriterState{ stOptions = options,
                  stEscapeContext = NormalContext,
-                 stHighlighting = False }
+                 stHighlighting = False,
+                 stCsl = False,
+                 stCslHangingIndent = Nothing,
+                 stCslEntrySpacing = Nothing
+               }
 
 data EscapeContext = NormalContext | TermContext
   deriving (Show, Eq)
@@ -70,7 +74,10 @@ data WriterState =
   WriterState {
     stOptions :: WriterOptions,
     stEscapeContext :: EscapeContext,
-    stHighlighting :: Bool
+    stHighlighting :: Bool,
+    stCsl :: Bool,
+    stCslHangingIndent :: Maybe Text,
+    stCslEntrySpacing :: Maybe Text
     }
 
 type TW m = StateT WriterState m
@@ -96,7 +103,9 @@ pandocToTypst options (Pandoc meta blocks) = do
                            _         -> [])
                   $ lookupMetaInlines "nocite" meta
   hasHighlighting <- gets stHighlighting
-
+  hasCslSettings <- gets stCsl
+  cslHangingIndent <- gets stCslHangingIndent
+  cslEntrySpacing <- gets stCslEntrySpacing
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
@@ -113,6 +122,9 @@ pandocToTypst options (Pandoc meta blocks) = do
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
               $ defField "csl" (lookupMetaString "citation-style" meta) -- #10661
+              $ defField "csl-settings" hasCslSettings
+              $ maybe id (defField "csl-hanging-indent") cslHangingIndent
+              $ maybe id (defField "csl-entry-spacing") cslEntrySpacing
               $ defField "smart" (isEnabled Ext_smart options)
               $ defField "abstract-title" abstractTitle
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
@@ -402,22 +414,19 @@ blockToTypst block =
                   Just l -> toLabel FreestandingLabel l
                   Nothing -> toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
-      let hangingIndent = "hanging-indent" `elem` cls
-      let (mbEntrySpacing :: Maybe Int) = lookup "entry-spacing" kvs
-                                            >>= readMaybe . T.unpack
-      let cslProperties = if "csl-bib-body" `elem` cls
-                             then literal $
-                                  "#set par(" <>
-                                   (T.intercalate ", " $
-                                     [ "hanging-indent: 1.5em" | hangingIndent ]
-                                     ++ maybe []
-                                        (\x -> ["spacing: " <> tshow x <> "em"])
-                                        mbEntrySpacing
-                                   ) <> ")"
-                             else mempty
+      when ("csl-bib-body" `elem` cls) $
+        modify $ \st -> st{ stCsl = True
+                          , stCslEntrySpacing =
+                              case lookup "entry-spacing" kvs >>=
+                                     readMaybe . T.unpack of
+                                Just (n :: Int) -> Just $ tshow n <> "em"
+                                Nothing -> Nothing
+                          , stCslHangingIndent =
+                              if "hanging-indent" `elem` cls
+                                 then Just "1.5em"
+                                 else Nothing }
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ cslProperties
         $$ toTypstPoundSetText typstTextAttrs
         $$ contents
         $$ ("]" <+> lab)
