@@ -6660,54 +6660,6 @@ Note that `venue` is for the event's venue, unlike `location`
 which describes the publisher's location; do not use the latter
 for an unpublished conference paper.
 
-### Names
-
-Names may have the fields `family`, `given`, `dropping-particle`,
-`non-dropping-particle`, and `suffix`. For the distinction between
-dropping and non-dropping particles, see the
-[CSL documentation on Name
-Particles](https://docs.citationstyles.org/en/stable/specification.html#name-particles).
-Particles and suffixes can be specified explicitly with
-additional fields in a name object, but if they are not they will
-be parsed automatically from the given and family name, using the
-heuristic that lowercase elements before the family name are
-non-dropping particles and lowercase elements after the given
-name are dropping particles. For example,
-
-    - given: Vincent van, III
-      family: Gogh
-
-will be treated like
-
-    - given: Vincent
-      family: Gogh
-      suffix: III
-      dropping-particle: van
-
-and
-
-    - given: Vincent
-      family: van Gogh
-
-will be treated like
-
-    - given: Vincent
-      family: Gogh
-      non-dropping-particle: van
-
-This parsing can be defeated by putting the whole family name in
-literal double quotes:
-
-    - family: |
-        \"de Gaulle\"
-
-(The backslashes are needed to ensure that the quotes aren't
-turned to curly quotes by the `smart` extesion.)
-
-For an author with a corporate name, you can use `literal`:
-
-    - literal: U.S. Bureau of the Census
-
 ## Specifying a citation style
 
 Citations and references can be formatted using any style supported by the

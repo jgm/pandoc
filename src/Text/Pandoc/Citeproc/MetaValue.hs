@@ -188,7 +188,7 @@ metaValueToNames (MetaList xs) = mapMaybe metaValueToName xs
 metaValueToNames x = maybeToList $ metaValueToName x
 
 metaValueToName :: MetaValue -> Maybe Name
-metaValueToName (MetaMap m) = extractParticles <$>
+metaValueToName (MetaMap m) =
   Just Name
     { nameFamily = family
     , nameGiven = given
@@ -212,7 +212,7 @@ metaValueToName (MetaMap m) = extractParticles <$>
   staticordering = fromMaybe False $
     M.lookup "static-ordering" m >>= metaValueToBool
   literal = M.lookup "literal" m >>= metaValueToText
-metaValueToName x = extractParticles <$>
+metaValueToName x =
   case metaValueToText x of
     Nothing -> Nothing
     Just lit -> Just Name
