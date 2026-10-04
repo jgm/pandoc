@@ -31,7 +31,6 @@ extra-deps:
 - skylighting-core-0.15
 - typst-symbols-0.3
 - zip-archive-0.5
-- citeproc-0.14
 - doclayout-0.6
 - doctemplates-0.11.1
 - asciidoc-0.1.1.1
@@ -42,7 +41,9 @@ extra-deps:
 - typst-0.12
 - git: https://github.com/jgm/texmath.git
   commit: 19f61947d7720219121aafb2db0c9a75b539c029
-# needed because not yet in nixpkgs:
+- git: https://github.com/jgm/citeproc.git
+  commit: b99816d929208654b7f810fd9c1be8ff59becbb0
++# needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
 - emojis-0.1.5
