@@ -890,7 +890,7 @@ highlightMathRuns hl = go
     case break isWrPr cs of
       (before, XML.Elem e : rest) ->
         before ++ XML.Elem e{ XML.elContent = XML.elContent e ++ [XML.Elem hl] } : rest
-      (_, []) ->
+      _ ->
         case cs of
           (XML.Elem e : rest) | is "m" "rPr" e ->
             XML.Elem e : wrPr : rest
