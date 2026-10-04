@@ -30,7 +30,7 @@ import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust, listToMaybe)
 import Control.Monad.State ( gets, modify, MonadTrans(lift) )
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
@@ -840,6 +840,69 @@ formattedRun els = do
   props <- getTextProps
   return $ mknode "w:r" [] $ props ++ els
 
+-- | Inject a highlight into every run of a converted math element:
+-- glyph runs in a @w:rPr@ child, and a structure's non-glyph parts
+-- (bars, operator spacing) in the @m:ctrlPr@ of its property element
+-- (@m:sSupPr@ and the like), which Word pens when an equation is
+-- highlighted by hand and which the converters omit when empty.
+highlightMathRuns :: XML.Element -> XML.Element -> XML.Element
+highlightMathRuns hl = go
+ where
+  isTag pfx n e = XML.qName (XML.elName e) == n
+              && XML.qPrefix (XML.elName e) == Just pfx
+  go e
+    | isTag "m" "r" e || isTag "m" "ctrlPr" e =
+        e{ XML.elContent = insertHl (map walkContent (XML.elContent e)) }
+    | Just "m" <- XML.qPrefix (XML.elName e)
+    , XML.qName (XML.elName e) `elem` structures =
+        e{ XML.elContent =
+             ensureCtrlPr (XML.qName (XML.elName e) <> "Pr")
+                          (map walkContent (XML.elContent e)) }
+    | otherwise = e{ XML.elContent = map walkContent (XML.elContent e) }
+  walkContent (XML.Elem e) = XML.Elem (go e)
+  walkContent c            = c
+  -- OMML structures (ECMA-376 22.1.2); each takes an m:<name>Pr
+  -- property element as its first child
+  structures =
+    [ "sSup", "sSub", "sSubSup", "sPre"
+    , "f", "nary", "d", "rad", "func", "groupChr"
+    , "limLow", "limUpp", "m", "eqArr", "bar"
+    , "phant", "box", "borderBox", "acc" ]
+  pennedCtrlPr = XML.Elem (mknode "m:ctrlPr" [] (mknode "w:rPr" [] hl))
+  ensureCtrlPr prName cs = case cs of
+    (XML.Elem e : rest) | isTag "m" prName e ->
+      if any isCtrlPr (XML.elContent e)
+        then cs
+        else XML.Elem e{ XML.elContent = XML.elContent e ++ [pennedCtrlPr] } : rest
+    _ -> XML.Elem (mknode ("m:" <> prName) [] pennedCtrlPr) : cs
+  isCtrlPr (XML.Elem e) = isTag "m" "ctrlPr" e
+  isCtrlPr _            = False
+  -- merge into an existing w:rPr child if there is one, else insert a
+  -- fresh w:rPr after an optional m:rPr
+  insertHl cs =
+    case break isWrPr cs of
+      (before, XML.Elem e : rest) ->
+        before ++ XML.Elem e{ XML.elContent = insertInRPr (XML.elContent e) } : rest
+      _ ->
+        case cs of
+          (XML.Elem e : rest) | isTag "m" "rPr" e ->
+            XML.Elem e : wrPr : rest
+          _ -> wrPr : cs
+  -- w:rPr children come in a fixed order (rPrTagOrder): the
+  -- highlight goes before the first child that must follow it, and
+  -- after children not in the order
+  insertInRPr [] = [XML.Elem hl]
+  insertInRPr (c:rest)
+    | followsHl c = XML.Elem hl : c : rest
+    | otherwise = c : insertInRPr rest
+  followsHl (XML.Elem e) =
+    maybe False (> rPrTagOrder M.! "highlight") $
+      M.lookup (XML.qName (XML.elName e)) rPrTagOrder
+  followsHl _ = False
+  isWrPr (XML.Elem e) = isTag "w" "rPr" e
+  isWrPr _            = False
+  wrPr = XML.Elem (mknode "w:rPr" [] hl)
+
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
@@ -973,7 +1036,14 @@ inlineToOpenXML' opts (Math mathType str) = do
   when (mathType == DisplayMath) setFirstPara
   res <- (lift . lift) (convertMath writeOMML mathType str)
   case res of
-       Right r -> return [Elem $ fromXLElement r]
+       Right r -> do
+         tprops <- asks envTextProperties
+         let r' = fromXLElement r
+             mbhl = listToMaybe
+               [ e | e <- otherElements tprops
+                    , XML.qName (XML.elName e) == "highlight"
+                    , XML.qPrefix (XML.elName e) == Just "w" ]
+         return [Elem (maybe r' (`highlightMathRuns` r') mbhl)]
        Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do

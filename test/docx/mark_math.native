@@ -1,0 +1,12 @@
+[ Para
+    [ Span
+        ( "" , [ "mark" ] , [] )
+        [ Str "a " , Math InlineMath "x^2" , Str " b" ]
+    ]
+, Para
+    [ Span ( "" , [ "mark" ] , [] ) [ Math DisplayMath "z = 1" ] ]
+, Para [ Span ( "" , [ "mark" ] , [] ) [ Math InlineMath "\\hat{x}" ] ]
+, Para [ Span ( "" , [ "mark" ] , [] )
+  [ Math InlineMath "\\sin x + \\sum_{i=1}^n i + \\frac{a}{b} + \\sqrt[3]{x}" ] ]
+, Para [ Str "unmarked " , Math InlineMath "x^2" , Str " math" ]
+]
