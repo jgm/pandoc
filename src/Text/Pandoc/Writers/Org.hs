@@ -652,7 +652,7 @@ escapeLinkDescription = fixEnd . fixDouble
 orgPath :: Text -> Text
 orgPath src = case T.uncons src of
   Nothing            -> ""             -- wiki link
-  Just ('#', _)      -> src            -- internal link
+  Just ('#', rest)      -> T.replace "#" "_" rest -- internal link
   _ | isUrl src      -> src
   _ | isFilePath src -> src
   _                  -> "file:" <> src
