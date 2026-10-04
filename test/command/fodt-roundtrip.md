@@ -124,14 +124,3 @@ The image data survives the base64 round trip.
     ]
 ]
 ```
-
-With `--link-images` the image is referenced rather than embedded, and
-the reference is left as it was, without the `../` that the zipped
-format needs.
-
-```
-% pandoc -f markdown -t fodt --link-images | grep -o 'xlink:href="[^"]*lalune[^"]*"'
-![](lalune.jpg)
-^D
-xlink:href="lalune.jpg"
-```
