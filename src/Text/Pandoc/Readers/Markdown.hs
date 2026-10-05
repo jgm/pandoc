@@ -1933,7 +1933,8 @@ bracketedSpan :: PandocMonad m => MarkdownParser m (F Inlines)
 bracketedSpan = do
   guardEnabled Ext_bracketed_spans
   try $ do
-    (lab,_) <- reference
+    guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
+    lab <- inBalancedBrackets inlines
     attr <- attributes
     return $ wrapSpan attr <$> lab
 
