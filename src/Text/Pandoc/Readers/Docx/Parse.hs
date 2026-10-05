@@ -109,6 +109,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envFont          :: Maybe Font
                            , envCharStyles    :: CharStyleMap
                            , envParStyles     :: ParStyleMap
+                           , envTableStyles   :: TableStyleMap
                            , envLocation      :: DocumentLocation
                            , envDocXmlPath    :: FilePath
                            , envTextWidth     :: Int
@@ -232,6 +233,8 @@ type Media = [(FilePath, B.ByteString)]
 type CharStyleMap = M.Map CharStyleId CharStyle
 
 type ParStyleMap = M.Map ParaStyleId ParStyle
+
+type TableStyleMap = M.Map TableStyleId TableStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -443,7 +446,7 @@ archiveToDocxWithWarnings archive = do
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive docXmlPath
       media     = filteredFilesFromArchive archive filePathIsMedia
-      (styles, parstyles) = archiveToStyles archive
+      (styles, parstyles, tabstyles) = archiveToStyles archive
       textWidth = archiveToTextWidth archive
       rEnv = ReaderEnv { envNotes = notes
                        , envComments = comments
@@ -453,6 +456,7 @@ archiveToDocxWithWarnings archive = do
                        , envFont = Nothing
                        , envCharStyles = styles
                        , envParStyles = parstyles
+                       , envTableStyles = tabstyles
                        , envLocation = InDocument
                        , envDocXmlPath = docXmlPath
                        , envTextWidth = fromMaybe 9360 textWidth
@@ -512,8 +516,8 @@ elemToBody ns element
       | otherwise
       = ((:[]) <$> elemToBodyPart ns' el) `catchError` (\_ -> return [])
 
-archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
-archiveToStyles = archiveToStyles' getStyleId getStyleId
+archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap, TableStyleMap)
+archiveToStyles = archiveToStyles' getStyleId getStyleId getStyleId
 
 class HasParentStyle a where
   getParentStyle :: a -> Maybe a
