@@ -80,7 +80,28 @@ spaceOutInlines ils =
   let (fs, ils') = unstackInlines ils
       (left, (right, contents')) = second (spanr isSpace) $ spanl isSpace $ unMany ils'
       -- NOTE: spanr counterintuitively returns suffix as the FIRST tuple element
-  in (Many left, (fs, Many contents'), Many right)
+  in case breakAtTrackedChange fs of
+       -- A space at the edge of an inserted or deleted run belongs to the
+       -- change: moving it out of the span would lose it when the change is
+       -- accepted or rejected later (#4427). It is still moved out of the
+       -- formatting inside the change.
+       Just (outer, inner) ->
+         (mempty, (outer, Many left <> stackInlines inner (Many contents')
+                           <> Many right), mempty)
+       Nothing -> (Many left, (fs, Many contents'), Many right)
+
+-- | Split a modifier stack (outermost first) after its innermost
+-- tracked-change span, if it has one.
+breakAtTrackedChange :: [Modifier a] -> Maybe ([Modifier a], [Modifier a])
+breakAtTrackedChange fs =
+  case L.findIndex isTrackedChange (reverse fs) of
+    Nothing -> Nothing
+    Just i  -> Just (splitAt (length fs - i) fs)
+
+isTrackedChange :: Modifier a -> Bool
+isTrackedChange (AttrModifier _ (_, classes, _)) =
+  any (`elem` classes) ["insertion", "deletion"]
+isTrackedChange _ = False
 
 isSpace :: Inline -> Bool
 isSpace Space = True
