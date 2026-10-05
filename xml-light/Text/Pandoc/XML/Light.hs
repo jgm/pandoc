@@ -42,7 +42,6 @@ module Text.Pandoc.XML.Light
   ) where
 
 import qualified Control.Exception as E
-import qualified Text.XML as Conduit
 import qualified Text.XML.Stream.Parse as P
 import Data.Conduit (runConduit, (.|))
 import qualified Data.Conduit.List as CL
@@ -50,7 +49,6 @@ import Data.Char (isSpace)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe)
 import Text.Pandoc.XML.Light.Types
 import Text.Pandoc.XML.Light.Proc
 import Text.Pandoc.XML.Light.Output
@@ -61,14 +59,20 @@ parseXMLElement :: TL.Text -> Either T.Text Element
 parseXMLElement = parseXMLElementWithEntities mempty
 
 -- Drop in replacement for parseXMLDoc in xml-light.
+-- Like 'parseXMLContentsWithEntities', but requires the document to
+-- consist of a single root element.
 parseXMLElementWithEntities :: M.Map T.Text T.Text
                             -> TL.Text -> Either T.Text Element
 parseXMLElementWithEntities entityMap t =
-  elementToElement .  Conduit.documentRoot <$>
-    either (Left . T.pack . E.displayException) Right
-    (Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True
-                                  , Conduit.psDecodeEntities =
-                                      entityResolver entityMap } t)
+  parseXMLContentsWithEntities entityMap t >>= documentElement
+ where
+  -- 'parseXMLContentsWithEntities' has already dropped whitespace
+  -- around a lone root element, so anything else left here is either
+  -- a missing root or content outside of it.
+  documentElement [Elem e] = Right e
+  documentElement cs
+    | null [e | Elem e <- cs] = Left "XML document has no root element"
+    | otherwise = Left "unexpected content after the root XML element"
 
 parseXMLContents :: TL.Text -> Either T.Text [Content]
 parseXMLContents = parseXMLContentsWithEntities mempty
@@ -183,25 +187,11 @@ normalizeTop cs =
   isWhitespaceText (Text cd) = T.all isSpace (cdData cd)
   isWhitespaceText _         = False
 
-nameToQName :: Conduit.Name -> QName
-nameToQName (Conduit.Name localName mbns mbpref) =
+nameToQName :: XML.Name -> QName
+nameToQName (XML.Name localName mbns mbpref) =
   case mbpref of
     Nothing ->
       case T.stripPrefix "xmlns:" localName of
         Just rest -> QName rest mbns (Just "xmlns")
         Nothing   -> QName localName mbns mbpref
     _ -> QName localName mbns mbpref
-
-elementToElement :: Conduit.Element -> Element
-elementToElement (Conduit.Element name attribMap nodes) =
-  Element (nameToQName name) attrs (mapMaybe nodeToContent nodes) Nothing
- where
-  attrs = map (\(n,v) -> Attr (nameToQName n) v) $
-              M.toList attribMap
-
-nodeToContent :: Conduit.Node -> Maybe Content
-nodeToContent (Conduit.NodeElement el) =
-  Just (Elem (elementToElement el))
-nodeToContent (Conduit.NodeContent t) =
-  Just (Text (CData CDataText t Nothing))
-nodeToContent _ = Nothing
