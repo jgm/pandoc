@@ -425,8 +425,8 @@ tests = [ testGroup "document"
             "docx/track_changes_deletion_reject.native"
           , testCompareWithOpts def{readerTrackChanges=AllChanges}
             "keep insertion (all)"
-            "docx/track_changes_deletion.docx"
-            "docx/track_changes_deletion_all.native"
+            "docx/track_changes_insertion.docx"
+            "docx/track_changes_insertion_all.native"
           , testCompareWithOpts def{readerTrackChanges=AllChanges}
             "keep deletion (all)"
             "docx/track_changes_deletion.docx"
