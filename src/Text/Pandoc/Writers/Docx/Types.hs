@@ -17,6 +17,7 @@ module Text.Pandoc.Writers.Docx.Types
   , ListMarker (..)
   , listMarkerToId
   , pStyleM
+  , tblStyleM
   , isStyle
   , setFirstPara
   , withParaProp
@@ -149,7 +150,7 @@ defaultWriterState = WriterState{
       , stExampleId      = Nothing
       , stInsId          = 1
       , stDelId          = 1
-      , stStyleMaps      = StyleMaps M.empty M.empty
+      , stStyleMaps      = StyleMaps M.empty M.empty M.empty
       , stTokTypesMap    = M.empty
       , stFirstPara      = False
       , stFirstSectionHeader = True
@@ -200,6 +201,12 @@ withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withParaPropM md p = do
   d <- md
   withParaProp d p
+
+tblStyleM :: (PandocMonad m) => TableStyleName -> WS m XML.Element
+tblStyleM styleName = do
+  tStyleMap <- gets (smTableStyle . stStyleMaps)
+  let sty' = getStyleIdFromName styleName tStyleMap
+  return $ mknode "w:tblStyle" [("w:val", fromStyleId sty')] ()
 
 isStyle :: Element -> Bool
 isStyle e = isElem [] "w" "rStyle" e ||

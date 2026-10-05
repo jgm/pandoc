@@ -23,6 +23,7 @@ import Control.Monad.Except ( throwError )
 import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
 import Data.Maybe (catMaybes, fromMaybe)
+import Data.String
 import Text.Pandoc.Definition
     ( ColSpec,
       Caption(Caption),
@@ -42,6 +43,7 @@ import Text.Pandoc.Writers.Docx.Types
       WriterEnv(..),
       setFirstPara,
       pStyleM,
+      tblStyleM,
       withParaProp,
       withParaPropM )
 import Control.Monad.Reader (asks)
@@ -110,11 +112,12 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   let (gridCols, tblWattr) = tableLayout (elems colspecs)
   listLevel <- asks envListLevel
   let tblStyle =  fromMaybe "Table" (lookup "custom-style" tableAttr)
+  sty' <- tblStyleM (fromString $ T.unpack tblStyle)
   let indent = (listLevel + 1) * 720
   let hasWidths = not $ all ((== ColWidthDefault) . snd) colspecs
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
-          ( [ mknode "w:tblStyle" [("w:val",tblStyle)] (),
+          ( [ sty',
               mknode "w:tblW" tblWattr () ] ++
             [ mknode "w:jc" [("w:val","left")] () | indent > 0 ] ++
             [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()

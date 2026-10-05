@@ -16,6 +16,7 @@ Mappings of element styles (word to pandoc-internal).
 module Text.Pandoc.Writers.Docx.StyleMap ( StyleMaps(..)
                                          , ParaStyleName
                                          , CharStyleName
+                                         , TableStyleName
                                          , getStyleMaps
                                          , getStyleIdFromName
                                          , hasStyleName
@@ -30,7 +31,10 @@ import qualified Data.Text as T
 import Data.String
 import Data.Char (isSpace)
 
-data StyleMaps = StyleMaps { smCharStyle :: CharStyleNameMap, smParaStyle :: ParaStyleNameMap }
+data StyleMaps = StyleMaps { smCharStyle  :: CharStyleNameMap
+                           , smParaStyle  :: ParaStyleNameMap
+                           , smTableStyle :: TableStyleNameMap }
+type TableStyleNameMap = M.Map TableStyleName TableStyle
 type ParaStyleNameMap = M.Map ParaStyleName ParStyle
 type CharStyleNameMap = M.Map CharStyleName CharStyle
 
@@ -44,4 +48,6 @@ hasStyleName :: (Ord sn, HasStyleId sty)
 hasStyleName styleName = M.member styleName
 
 getStyleMaps :: Archive -> StyleMaps
-getStyleMaps = uncurry StyleMaps . archiveToStyles' getStyleName getStyleName
+getStyleMaps arch =
+  let (s1, s2, s3) = archiveToStyles' getStyleName getStyleName getStyleName arch
+  in  StyleMaps s1 s2 s3
