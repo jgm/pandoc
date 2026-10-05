@@ -39,10 +39,8 @@ extra-deps:
 - commonmark-extensions-0.2.7.3
 - djot-0.1.4.3
 - typst-0.12
-- git: https://github.com/jgm/texmath.git
-  commit: 19f61947d7720219121aafb2db0c9a75b539c029
-- git: https://github.com/jgm/citeproc.git
-  commit: b99816d929208654b7f810fd9c1be8ff59becbb0
+- texmath-0.13.3.1
+- citeproc-0.14.1
 +# needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
