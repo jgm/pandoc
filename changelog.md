@@ -1,5 +1,207 @@
 # Revision history for pandoc
 
+## pandoc 3.12.1 (2026-10-04)
+
+  * New input and output format: `fodt` (#4010). This is ODF's
+    "flat" representation of a text document: a single XML file
+    instead of a zip package (ODT).a It supports the same options
+    as `odt`, including `--reference-doc` (which should be a
+    zipped `odt`) and `--link-images`.
+
+  * Resolve keywords after loading a syntax definition (#11921, #11923).
+    This fixes a 3.12 regression in `--syntax-definition` that was due to a
+    change in skylighting. As the skylighting changelog indicates, users must
+    now apply `resolveKeywords` after parsing a syntax definition.
+
+  * With `--citeproc`, we no longer extract particles from given and
+    family names in structured CSL JSON or CSL YAML references (#11911).
+    Thus, for example, `family: de Gaulle` should not create a
+    non-dropping particle "de"; "de Gaulle" should be considered
+    the integral family name. This is a behavior change that
+    could affect some bibliography processing.
+
+  * Commonmark reader:
+
+    + Make task lists work in `commonmark_x`. Previously `task_lists`
+      would not work if `fancy_lists` was enabled, for any
+      `commonmark` variant.
+
+  * Markdown reader:
+
+    + Put `alert` after `tip`, etc. in classes (#11919). Some of
+      the writers (gfm, docbook, asciidoc, rst) check for the
+      admonition name as the first class, so the change putting
+      `alert` first broke the output. (Regression from 3.12.)
+
+  * Docx reader:
+
+    + Keep bookmark when stipping caption label (#11918).
+      This allows us to preserve internal links to figures.
+
+  * ODT reader:
+
+    + Don't crash on a table with no rows.
+    + Don't loop forever on cyclic style inheritance.
+    + Make `getStyleFamily` linear in the inheritance depth. A style
+      whose family had to be inherited took time exponential in the
+      chain length.
+    + Cap the number of spaces produced by `text:s`. `text:c` is
+      unbounded in ODF, so `<text:s text:c="200000000"/>` let an
+      832-byte document allocate until the OOM killer stepped in.
+    + Keep the set of used anchors in the reader state.
+    + Look up used anchors in a Set in `uniqueIdentFrom`.
+    + Keep the archive's media in a Map rather than an association list.
+    + Attach table captions wherever they occur. `post_process'` matched
+      a table followed by a caption only at the very head of the block list
+      and then stopped, so a caption was picked up only if its table was
+      the first block of the document; anywhere else the caption was dropped
+      and the internal marker Div leaked into the output. Walk
+      the whole document instead, so captions nested in sections,
+      cells and list items are found too. Accept the caption before
+      its table as well as after it.
+    + Don't add a bogus media entry for a missing image.
+    + Only treat font weights of 700 and up as bold. Every numeric
+      `fo:font-weight` from 100 to 900 was mapped to bold, so text
+      in a hairline or light weight was read as Strong.
+    + Read text wrapped in metadata elements and fields.
+      Content of an element the reader did not recognize was discarded along
+      with the element, which silently lost text: fields such as
+      `text:page-number`, `text:author-name` or `text:chapter`, the RDFa
+      wrapper `text:meta`, the bibliographic wrapper `text:meta-field`,
+      and ruby annotations.  Add matchers for those; for ruby, keep the base
+      text and drop the gloss, which pandoc cannot represent.
+    + Honour `table:number-{columns,rows}-repeated`. ODF abbreviates a
+      run of identical cells or rows with a repeat count.  The
+      reader ignored both counts, so a row of five cells written as three
+      elements came out three cells wide. Also count a cell
+      spanning several columns as occupying all of them when
+      working out the number of columns, rather than as one.
+    + Read rows wrapped in `table:table-row-group`. Rows need not be
+      immediate children of the table.
+    + Read blocks nested in list items, footnotes and cells. ODF allows
+      the same block-level content wherever it allows a paragraph,
+      but the reader spelled the list of block matchers out
+      separately at each site and each spelling was missing
+      something: a table in a list item was dropped, a list or
+      table in a footnote was dropped, and a heading or nested
+      table in a table cell was dropped. Keep a single list and
+      use it everywhere, so the sites cannot drift apart again.
++   + Read images embedded in `office:binary-data`.
+    + Read MathML embedded inline in `draw:object`. A flat OpenDocument file
+      cannot refer to a separate formula document, so
+      the MathML is a descendant of the draw:object instead.
+    + Add `readFODT` for flat OpenDocument input [API change].
+    + Fix formula lookup when the href has a trailing slash.
+    + Trim the alt text of an image.
+
+  * RTF reader:
+
+    + Combine UTF-16 surrogate pairs (#11920).
+
+  * Org reader:
+
+    + Improve performance: use a jump table to find the end of plain text
+      runs, and dispatch on the next character in `inline`.
+
+  * Docx writer:
+
+    + Put a heading's bookmark in its paragraph (Robert Szarka,
+      #11845, cf. #8825). The bookmark for a section's id
+      surrounded the whole section, at body level, so a screen
+      reader met it at the section's last line rather than at the
+      heading. Moreover, the docx reader looks for bookmarks only
+      inside paragraphs, so the ids did not round-trip.
+    + Improve highlighting of `marked` spans containing math (#11885,
+      Samuel Huang).
+
+  * OpenDocument writer:
+
+    + Use `literal` instead of `text . T.unpack`.
+    + Emit whitespace runs in one piece.
+    + Count styles and notes in O(1).
+    + Give nested notes distinct ids.
+    + Use valid column style names past column 26 (`AA`, `AB`, etc.).
+    + Apply the requested style to `Plain` blocks. `withParagraphStyle`
+      only wrapped `Para` in a paragraph with the requested
+      style; a `Plain` fell through to `blockToOpenDocument` and came
+      out with the default style.
+    + Render the abstract as blocks. The abstract was wrapped in a Div
+      with `custom-style` set to `Abstract`, but then handed to
+      `metaToContext`, which renders metadata fields with the inline writer.
+      The style was lost, as well as any block-level formatting.
+      Regression from 013351f602.
+    + Reuse identical automatic paragraph styles. Every blockquote,
+      every explicitly aligned table cell, and every direction-adjusted
+      style got a fresh `Pn` automatic style, even when an
+      identical one already existed.
+    + Look up cross-reference targets in a Map. Skip the collecting walk
+      altogether unless `xrefs_name` or `xrefs_number` is enabled, since
+      nothing reads the result otherwise and neither is on by default.
+      Elements with an empty identifier are no longer collected, so a link to
+      "#" can no longer resolve to a reference with an empty ref-name.
+    + Sort automatic text styles numerically rather than alphabetically
+      (`T9`, `T10`, ...).
+
+  * ODT writer:
+
+    + Always render `content.xml` with a template. `writeOpenDocument`
+      returns a bare body fragment when writerTemplate is
+      Nothing.  This is needed mainly for the `fodt` writer.
+    + Have `pandocToODT` return an Archive instead of a ByteString.
+      This lets an alternative entry point post-process the archive.
+    + Add `writeFODT` for flat OpenDocument output [API change].
+
+  * LaTeX writer:
+
+    + Allow alt text in figure to wrap (#11924).
+
+  * Commonmark writer:
+
+    + Fix escaping bug (#11927). A non-alphanumeric after an
+      escaped backslash would be omitted.
+
+  * Typst writer:
+
+    + Revert pandoc 3.12 change that omitted a blank line at the end
+      of a `block`. The blank line actually is semantically significant;
+      without it, styling of `par` will have no effect.
+    + Support `hanging-indent` and `entry-spacing` in CSL bibliography
+      entries (#11926). Instead of hard-coding the formatting in
+      the block, we use a show rule on `<refs>`, included
+      conditionally by the default template. Values will be set
+      for `csl-hanging-indent` and `csl-entry-spacing` based on
+      the CSL style, but these variables can be overridden on the
+      command line using `--variable`. It is also possible to
+      include a new show rule in header-includes, which will take
+      priority over the other.
+
+  * Markdown writer:
+
+    + Put `<..>` around link or image destinations containing
+      spaces (rca-umb).
+
+  * Text.Pandoc.XML:
+
+    + Make `escapeStringForXML` and `escapeNls` more efficient.
+    + Build XML tags with a single doclayout allocation rather than
+      several.
+
+  * Text.Pandoc.XML.Light:
+
+    + Build the root element from the event stream.
+      Instead of using xml-conduit's DOM parser and then converting
+      the result back to our Element type, just reuse
+      `parseXMLContentsWithEntities`, which folds the event stream
+      directly into our types. This speeds up every XML-based reader.
+      Behavior change: Attributes now preserve document order instead of
+      being sorted alphabetically, as was already the case for
+      `parseXMLContentsWithEntities`.
+
+  * Bump version of reveal.js to 6. Version 6 is required for the
+    changes in plugin locations incorporated in pandoc 3.12.
+
+  * latest citeproc, texmath.
+
 ## pandoc 3.12 (2026-09-27)
 
   * Markdown reader:
