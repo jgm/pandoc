@@ -591,8 +591,6 @@
   <w:style w:type="table" w:default="1" w:styleId="Table">
     <w:name w:val="Table" />
     <w:basedOn w:val="TableNormal" />
-    <w:semiHidden />
-    <w:unhideWhenUsed />
     <w:qFormat />
     <w:tblPr>
       <w:tblInd w:w="0" w:type="dxa" />
