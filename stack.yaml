@@ -41,7 +41,7 @@ extra-deps:
 - typst-0.12
 - texmath-0.13.3.1
 - citeproc-0.14.1
-+# needed because not yet in nixpkgs:
+# needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
 - emojis-0.1.5
