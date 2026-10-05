@@ -40,14 +40,14 @@ mathWith op cl = try $ do
   words' <- many1Till (
                        mathComment
                    <|> mathGroup
-                   <|> ("\n" <$ blankline <* notFollowedBy' blankline <*
-                          (guard (op /= "$") <|> notFollowedBy (char '$')))
                    <|> (T.singleton <$>
                           satisfy (\c -> not
                                     (isSpaceChar c || c == '\\' || c == '{')))
-                   <|> (char '\\' >> (\c -> T.pack ['\\',c]) <$> anyChar)
                    <|> (T.pack <$> many1 spaceChar <*
                           (guard (op /= "$") <|> notFollowedBy (char '$')))
+                   <|> ("\n" <$ newline <* notFollowedBy' blankline <*
+                          (guard (op /= "$") <|> notFollowedBy (char '$')))
+                   <|> (char '\\' >> (\c -> T.pack ['\\',c]) <$> anyChar)
                     ) (try $ textStr cl)
   when (cl == "$") $ notFollowedBy digit  -- to prevent capture of $5
   return $ trimMath $ T.concat words'
