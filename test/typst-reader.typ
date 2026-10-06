@@ -29,6 +29,16 @@ The first #count numbers of the sequence are:
   [1], [A longer descriptive label that wraps], [2], [Another longer label],
 )
 
+#table(
+  columns: (1fr, 1fr, 2fr),
+  [a], [b], [c],
+)
+
+#table(
+  columns: (auto, auto),
+  [d], [e],
+)
+
 #include "undergradmath.typ"
 
 
