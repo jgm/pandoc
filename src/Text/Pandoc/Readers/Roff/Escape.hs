@@ -123,7 +123,7 @@ escapeNormal = do
   case c of
     ' ' -> return $ emit " " -- mandoc_char(7) says this should be a nonbreaking space
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
-    '#' -> mempty <$ manyTill anyChar newline
+    '#' -> mempty <$ (skipMany (satisfy (/='\n')) <* newline)
     '%' -> return mempty  -- optional hyphenation
     '&' -> return mempty  -- nonprintable zero-width
     ')' -> return mempty  -- nonprintable zero-width
@@ -212,11 +212,11 @@ signedNumber = try $ do
 escapeArg :: (PandocMonad m, RoffLikeLexer x) => Lexer m x T.Text
 escapeArg = choice
     [ char '[' *> optional expandString *>
-                  manyTillChar (noneOf ['\n',']']) (char ']')
+                  takeWhileP (\c -> c /= '\n' && c /= ']') <* char ']'
     , char '(' *> optional expandString *>
                   countChar 2 (satisfy (/='\n'))
     ]
 
 -- Parses: '..'
 quoteArg :: (PandocMonad m, RoffLikeLexer x) => Lexer m x T.Text
-quoteArg = char '\'' *> manyTillChar (noneOf ['\n','\'']) (char '\'')
+quoteArg = char '\'' *> takeWhile1P (\c -> c /= '\n' && c /= '\'') <* char '\''
