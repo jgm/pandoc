@@ -329,7 +329,8 @@ mmdTitleBlock = do
 
 kvPair :: PandocMonad m => Bool -> MarkdownParser m (Text, MetaValue)
 kvPair allowEmpty = try $ do
-  key <- many1TillChar (alphaNum <|> oneOf "_- ") (char ':')
+  key <- takeWhile1P (\c -> isAlphaNum c || c == '_' || c == '-' || c == ' ')
+  _ <- char ':'
   val <- trim <$> manyTillChar anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   guard $ allowEmpty || not (T.null val)
@@ -695,7 +696,7 @@ rawAttribute = do
   char '{'
   skipMany spaceChar
   char '='
-  format <- many1Char $ satisfy (\c -> isAlphaNum c || c `elem` ['-', '_'])
+  format <- takeWhile1P (\c -> isAlphaNum c || c `elem` ['-', '_'])
   skipMany spaceChar
   char '}'
   return format
@@ -712,8 +713,8 @@ codeBlockFenced = try $ do
      (Left <$> (guardEnabled Ext_raw_attribute >> try rawAttribute))
     <|>
      (Right <$> do
-         let pLangId = many1Char . satisfy $ \x ->
-               x `notElem` ['`', '{', '}'] && not (isSpace x)
+         let pLangId = takeWhile1P (\x ->
+               x `notElem` ['`', '{', '}'] && not (isSpace x))
          mbLanguageId <- optionMaybe (toLanguageId <$> pLangId)
          skipMany spaceChar
          mbAttr <- optionMaybe
