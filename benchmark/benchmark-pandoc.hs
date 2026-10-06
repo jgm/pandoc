@@ -40,18 +40,17 @@ readerBench doc name = either (const Nothing) Just $
   runPure $ do
     (rdr, rexts) <- getReader $ FlavoredFormat name mempty
     (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
-    tmpl <- Just <$> compileDefaultTemplate name
     case (rdr, wtr) of
       (TextReader r, TextWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = tmpl } doc
+                    , writerTemplate = Nothing } doc
         return $ bench (T.unpack name) $
           nf (either (error . show) id . runPure . r def) inp
       (ByteStringReader r, ByteStringWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = tmpl } doc
+                    , writerTemplate = Nothing } doc
         return $ bench (T.unpack name) $
           nf (either (error . show) id .
                 runPure . r def{readerExtensions = rexts}) inp
