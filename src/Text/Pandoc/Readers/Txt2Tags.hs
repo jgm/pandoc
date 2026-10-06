@@ -550,6 +550,27 @@ image =  try $ do
 specialChars :: [Char]
 specialChars = "%*-_/|:+;"
 
+-- | True for characters that terminate a run of plain text, i.e. the
+-- 'specialChars' plus newlines and spaces.  Written as a @case@ so that
+-- GHC compiles it to a jump table; this is applied to every single
+-- character of the input, so a linear scan over the list here is a
+-- significant cost.  Must be kept in sync with 'specialChars'.
+isStrEnd :: Char -> Bool
+isStrEnd c = case c of
+  '\n' -> True
+  '\r' -> True
+  ' '  -> True
+  '%'  -> True
+  '*'  -> True
+  '+'  -> True
+  '-'  -> True
+  '/'  -> True
+  ':'  -> True
+  ';'  -> True
+  '_'  -> True
+  '|'  -> True
+  _    -> False
+
 tab :: T2T Char
 tab = char '\t'
 
@@ -574,7 +595,7 @@ endline = try $ do
   return B.softbreak
 
 str :: T2T Inlines
-str = try $ B.str <$> takeWhile1P (`notElem` (specialChars ++ "\n\r "))
+str = try $ B.str <$> takeWhile1P (not . isStrEnd)
 
 whitespace :: T2T Inlines
 whitespace = try $ B.space <$ spaceChar

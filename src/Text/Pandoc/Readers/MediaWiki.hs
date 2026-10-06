@@ -94,8 +94,31 @@ instance HasLogMessages MWState where
 specialChars :: [Char]
 specialChars = "'[]<=&*{}|\":\\_"
 
-spaceChars :: [Char]
-spaceChars = " \n\t"
+-- | True for characters that terminate a run of plain text, i.e. the
+-- 'specialChars' plus space, newline and tab.  Written as a @case@ so that
+-- GHC compiles it to a jump table; this is applied to every single
+-- character of the input, so a linear scan over the list here is a
+-- significant cost.  Must be kept in sync with 'specialChars'.
+isStrEnd :: Char -> Bool
+isStrEnd c = case c of
+  '\t' -> True
+  '\n' -> True
+  ' '  -> True
+  '"'  -> True
+  '&'  -> True
+  '\'' -> True
+  '*'  -> True
+  ':'  -> True
+  '<'  -> True
+  '='  -> True
+  '['  -> True
+  '\\' -> True
+  ']'  -> True
+  '_'  -> True
+  '{'  -> True
+  '|'  -> True
+  '}'  -> True
+  _    -> False
 
 sym :: PandocMonad m => Text -> MWParser m ()
 sym s = () <$ try (string $ T.unpack s)
@@ -616,7 +639,7 @@ inline =  whitespace
       <|> special
 
 str :: PandocMonad m => MWParser m Inlines
-str = B.str <$> takeWhile1P (`notElem` (specialChars ++ spaceChars))
+str = B.str <$> takeWhile1P (not . isStrEnd)
 
 math :: PandocMonad m => MWParser m Inlines
 math = (B.displayMath . trim <$> try (many1 (char ':') >> textInTags "math"))
