@@ -349,7 +349,8 @@ rawFieldListItem minIndent = try $ do
   indent <- length <$> many (char ' ')
   guard $ indent >= minIndent
   char ':'
-  name <- many1TillChar (noneOf "\n") (char ':')
+  name <- takeWhile1P (\c -> c /= '\n' && c /= ':')
+  char ':'
   (void (lookAhead newline)) <|> skipMany1 spaceChar
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
