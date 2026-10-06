@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 {-
 Copyright (C) 2012-2024 John MacFarlane <jgm@berkeley.edu>
 
@@ -19,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Text.Pandoc
 import Text.Pandoc.MIME
 import Text.Pandoc.Shared (stringify, stringifyInlines)
+import Text.Pandoc.MediaBag (mediaItems)
 import Control.DeepSeq (force)
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -30,6 +32,8 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe)
 import Data.List (sortOn)
 import Text.Pandoc.Format (FlavoredFormat(..))
+import System.IO.Temp
+import Data.Maybe
 
 readerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Pandoc
@@ -65,12 +69,17 @@ readerBench imgs doc name = either (const Nothing) Just $
       _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
                            <> name
 
-getImages :: IO [(FilePath, MimeType, BL.ByteString)]
-getImages = do
-  ll <- B.readFile "test/lalune.jpg"
-  mv <- B.readFile "test/movie.jpg"
-  return [("lalune.jpg", "image/jpg", BL.fromStrict ll)
-         ,("movie.jpg", "image/jpg", BL.fromStrict mv)]
+getSample :: FilePath -> IO (Pandoc, [(FilePath, MimeType, BL.ByteString)])
+getSample fp = do
+  inp <- UTF8.toText <$> B.readFile fp
+  let opts = def
+  doc' <- runIOorExplode $ readMarkdown opts inp
+  withSystemTempDirectory "pandoc-bench-resources" $ \tmpdir ->
+    runIOorExplode $ do
+      doc <- extractMedia tmpdir doc'
+      fillMediaBag doc
+      items <- mediaItems <$> getMediaBag
+      pure $! (doc, items)
 
 writerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Pandoc
@@ -112,21 +121,23 @@ bigInlines = concat $ replicate 1000
 
 main :: IO ()
 main = do
-  let sample = "test/testsuite.txt"
-  inp <- UTF8.toText <$> B.readFile sample
-  let opts = def
-  doc <- runIOorExplode $ readMarkdown opts inp
-  defaultMain
-    [ env getImages $ \imgs ->
-      bgroup ("with sample: " <> sample)
-      [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
-                           (sortOn fst
-                             writers :: [(T.Text, Writer PandocPure)])
-      , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
-                           (sortOn fst
-                             readers :: [(T.Text, Reader PandocPure)])
-      ]
-    , env (pure $ force bigInlines) $ \ils ->
+  let samples = [("markup-heavy", "test/testsuite.txt")
+                ,("text-heavy", "MANUAL.txt")]
+  samples <- mapM (\(name, fp) -> (name,) <$> getSample fp) samples
+  defaultMain $
+    map
+      (\(name, (doc, imgs)) ->
+        bgroup name
+          [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+                               (sortOn fst
+                                 writers :: [(T.Text, Writer PandocPure)])
+          , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
+                               (sortOn fst
+                                 readers :: [(T.Text, Reader PandocPure)])
+          ])
+      samples
+    ++
+    [ env (pure $ force bigInlines) $ \ils ->
       bgroup "stringify"
         [ bench "stringify" $ nf stringify ils
         , bench "stringifyInlines" $ nf stringifyInlines ils

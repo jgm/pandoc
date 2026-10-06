@@ -941,6 +941,7 @@ benchmark benchmark-pandoc
                    tasty-bench >= 0.4     && <= 0.5,
                    mtl         >= 2.2     && < 2.4,
                    text        >= 2.0     && < 2.2,
+                   temporary,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
