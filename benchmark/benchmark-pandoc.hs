@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 {-
 Copyright (C) 2012-2024 John MacFarlane <jgm@berkeley.edu>
 
@@ -19,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Text.Pandoc
 import Text.Pandoc.MIME
 import Text.Pandoc.Shared (stringify, stringifyInlines)
+import Text.Pandoc.MediaBag (mediaItems)
 import Control.DeepSeq (force)
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -27,43 +29,61 @@ import qualified Data.Text as T
 import Test.Tasty.Bench
 -- import Gauge
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (mapMaybe)
 import Data.List (sortOn)
 import Text.Pandoc.Format (FlavoredFormat(..))
+import System.IO.Temp
+import Data.Maybe
 
-readerBench :: Pandoc
+readerBench :: [(FilePath, MimeType, BL.ByteString)]
+            -> Pandoc
             -> T.Text
             -> Maybe Benchmark
-readerBench _ name
+readerBench _ _ name
   | name `elem` ["bibtex", "biblatex", "csljson"] = Nothing
-readerBench doc name = either (const Nothing) Just $
+readerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
     (rdr, rexts) <- getReader $ FlavoredFormat name mempty
     (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
-    tmpl <- Just <$> compileDefaultTemplate name
     case (rdr, wtr) of
       (TextReader r, TextWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = tmpl } doc
-        return $ bench (T.unpack name) $
-          nf (either (error . show) id . runPure . r def) inp
+                    , writerTemplate = Nothing } doc
+        return $ bench (T.unpack name)
+               $ nf (\x -> either (error . show) id $
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         r def x)
+                    inp
       (ByteStringReader r, ByteStringWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = tmpl } doc
-        return $ bench (T.unpack name) $
-          nf (either (error . show) id .
-                runPure . r def{readerExtensions = rexts}) inp
+                    , writerTemplate = Nothing } doc
+        return $ bench (T.unpack name)
+               $ nf (\x -> either (error . show) id $
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         r def{readerExtensions = rexts} x)
+                    inp
       _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
                            <> name
 
-getImages :: IO [(FilePath, MimeType, BL.ByteString)]
-getImages = do
-  ll <- B.readFile "test/lalune.jpg"
-  mv <- B.readFile "test/movie.jpg"
-  return [("lalune.jpg", "image/jpg", BL.fromStrict ll)
-         ,("movie.jpg", "image/jpg", BL.fromStrict mv)]
+getSample :: FilePath -> IO (Pandoc, [(FilePath, MimeType, BL.ByteString)])
+getSample fp = do
+  inp <- UTF8.toText <$> B.readFile fp
+  let opts = def
+  doc' <- runIOorExplode $ do
+            (_, rexts) <- getReader $ FlavoredFormat "markdown" mempty
+            readMarkdown
+              opts{ readerExtensions = enableExtension Ext_rebase_relative_paths
+                                              rexts }
+              [(fp, inp)]
+  withSystemTempDirectory "pandoc-bench-resources" $ \tmpdir ->
+    runIOorExplode $ do
+      doc <- extractMedia tmpdir doc'
+      fillMediaBag doc
+      items <- mediaItems <$> getMediaBag
+      pure $! (doc, items)
 
 writerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Pandoc
@@ -105,18 +125,23 @@ bigInlines = concat $ replicate 1000
 
 main :: IO ()
 main = do
-  inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
-  let opts = def
-  let doc = either (error . show) force $ runPure $ readMarkdown opts inp
-  defaultMain
-    [ env getImages $ \imgs ->
-      bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
-                         (sortOn fst
-                           writers :: [(T.Text, Writer PandocPure)])
-    , bgroup "readers" $ mapMaybe (readerBench doc . fst)
-                         (sortOn fst
-                           readers :: [(T.Text, Reader PandocPure)])
-    , env (pure $ force bigInlines) $ \ils ->
+  samples <- mapM (\(name, fp) -> (name,) <$> getSample fp)
+                [("markup-heavy", "benchmark/markup-heavy.md")
+                ,("text-heavy", "benchmark/text-heavy.md")]
+  defaultMain $
+    map
+      (\(name, (doc, imgs)) ->
+        bgroup name
+          [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+                               (sortOn fst
+                                 writers :: [(T.Text, Writer PandocPure)])
+          , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
+                               (sortOn fst
+                                 readers :: [(T.Text, Reader PandocPure)])
+          ])
+      samples
+    ++
+    [ env (pure $ force bigInlines) $ \ils ->
       bgroup "stringify"
         [ bench "stringify" $ nf stringify ils
         , bench "stringifyInlines" $ nf stringifyInlines ils

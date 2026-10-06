@@ -462,6 +462,10 @@ extra-source-files:
                  test/pod-reader.pod
                  test/vimdoc/*.markdown
                  test/vimdoc/*.vimdoc
+                 benchmark/markup-heavy.md
+                 benchmark/text-heavy.md
+                 benchmark/movie.jpg
+                 benchmark/lalune.jpg
 source-repository head
   type:          git
   location:      https://github.com/jgm/pandoc.git
@@ -941,6 +945,7 @@ benchmark benchmark-pandoc
                    tasty-bench >= 0.4     && <= 0.5,
                    mtl         >= 2.2     && < 2.4,
                    text        >= 2.0     && < 2.2,
+                   temporary,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
