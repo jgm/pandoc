@@ -31,12 +31,13 @@ import Data.Maybe (mapMaybe)
 import Data.List (sortOn)
 import Text.Pandoc.Format (FlavoredFormat(..))
 
-readerBench :: Pandoc
+readerBench :: [(FilePath, MimeType, BL.ByteString)]
+            -> Pandoc
             -> T.Text
             -> Maybe Benchmark
-readerBench _ name
+readerBench _ _ name
   | name `elem` ["bibtex", "biblatex", "csljson"] = Nothing
-readerBench doc name = either (const Nothing) Just $
+readerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
     (rdr, rexts) <- getReader $ FlavoredFormat name mempty
     (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
@@ -45,15 +46,22 @@ readerBench doc name = either (const Nothing) Just $
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
                     , writerTemplate = Nothing } doc
-        return $ bench (T.unpack name) $
-          nf (either (error . show) id . runPure . r def) inp
+        return $ bench (T.unpack name)
+               $ nf (\x -> either (error . show) id $
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         r def x)
+                    inp
       (ByteStringReader r, ByteStringWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
                     , writerTemplate = Nothing } doc
-        return $ bench (T.unpack name) $
-          nf (either (error . show) id .
-                runPure . r def{readerExtensions = rexts}) inp
+        return $ bench (T.unpack name)
+               $ nf (\x -> either (error . show) id $
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         r def{readerExtensions = rexts} x)
+                    inp
       _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
                            <> name
 
@@ -104,17 +112,20 @@ bigInlines = concat $ replicate 1000
 
 main :: IO ()
 main = do
-  inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
+  let sample = "test/testsuite.txt"
+  inp <- UTF8.toText <$> B.readFile sample
   let opts = def
-  let doc = either (error . show) force $ runPure $ readMarkdown opts inp
+  doc <- runIOorExplode $ readMarkdown opts inp
   defaultMain
     [ env getImages $ \imgs ->
-      bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
-                         (sortOn fst
-                           writers :: [(T.Text, Writer PandocPure)])
-    , bgroup "readers" $ mapMaybe (readerBench doc . fst)
-                         (sortOn fst
-                           readers :: [(T.Text, Reader PandocPure)])
+      bgroup ("with sample: " <> sample)
+      [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+                           (sortOn fst
+                             writers :: [(T.Text, Writer PandocPure)])
+      , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
+                           (sortOn fst
+                             readers :: [(T.Text, Reader PandocPure)])
+      ]
     , env (pure $ force bigInlines) $ \ils ->
       bgroup "stringify"
         [ bench "stringify" $ nf stringify ils
