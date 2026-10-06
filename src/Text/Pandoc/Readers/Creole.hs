@@ -299,7 +299,7 @@ symbol :: PandocMonad m => CRLParser m B.Inlines
 symbol = fmap (B.str . T.singleton) (oneOf specialChars)
 
 str :: PandocMonad m => CRLParser m B.Inlines
-str = fmap B.str (many1Char (satisfy (not . isStrEnd)))
+str = fmap B.str (takeWhile1P (not . isStrEnd))
 
 bold :: PandocMonad m => CRLParser m B.Inlines
 bold = B.strong . mconcat <$>
