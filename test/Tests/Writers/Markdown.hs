@@ -55,6 +55,20 @@ tests = [ "indented code after list"
         , "link destination with space and pointy brackets"
              =: link "a b<c>.pdf" "" "link"
              =?> "[link](<a b\\<c\\>.pdf>)"
+        , "bullet marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <>
+                                     str "-" <> space <> str "alpha") ]
+             =?> "1.  Lead:\\\n    \\- alpha\n"
+        , "ordered marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <>
+                                     str "3." <> space <> str "alpha") ]
+             =?> "1.  Lead:\\\n    3\\. alpha\n"
+        , "lone bullet marker after linebreak"
+             =: plain (str "Lead:" <> linebreak <> str "-")
+             =?> "Lead:\\\n\\-"
+        , "lone ordered marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <> str "3.") ]
+             =?> "1.  Lead:\\\n    3\\."
         ] ++ [noteTests] ++ [shortcutLinkRefsTests]
 
 {-
