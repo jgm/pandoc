@@ -588,7 +588,7 @@ setextHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
-  lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
+  lookAhead $ anyLine >> setextUnderline
   skipSpaces
   (text, raw) <- withRaw $ do
     oldAllowLineBreaks <- stateAllowLineBreaks <$> getState
