@@ -577,6 +577,13 @@ mmdHeaderIdentifier = do
   skipSpaces
   return attr
 
+setextUnderline :: PandocMonad m => MarkdownParser m Char
+setextUnderline = do
+  underlineChar <- oneOf setextHChars
+  skipMany (char underlineChar)
+  blanklines
+  pure underlineChar
+
 setextHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
@@ -591,9 +598,7 @@ setextHeader = try $ do
     updateState $ \st -> st{ stateAllowLineBreaks = oldAllowLineBreaks }
     return res
   attr <- setextHeaderEnd
-  underlineChar <- oneOf setextHChars
-  many (char underlineChar)
-  blanklines
+  underlineChar <- setextUnderline
   let level = fromMaybe 0 (elemIndex underlineChar setextHChars) + 1
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
