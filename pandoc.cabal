@@ -282,6 +282,8 @@ extra-source-files:
                  test/command/11486/scroll.revealjs
                  test/command/11498.png
                  test/command/11301-styles.opendocument
+                 test/command/opendocument-abstract.opendocument
+                 test/command/opendocument-body.opendocument
                  test/command/11888/section1/lab.md
                  test/command/11888/section2/lab.md
                  test/command/11888/section3/lab.md
