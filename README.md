@@ -54,6 +54,8 @@ It can convert *from*
 - `fb2`
   ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
   e-book)
+- `fodt` (flat [OpenDocument text
+  document](https://en.wikipedia.org/wiki/OpenDocument))
 - `gfm` ([GitHub-Flavored
   Markdown](https://help.github.com/articles/github-flavored-markdown/)),
   or the deprecated and less accurate `markdown_github`; use
@@ -161,6 +163,8 @@ It can convert *to*
 - `fb2`
   ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
   e-book)
+- `fodt` (flat [OpenDocument text
+  document](https://en.wikipedia.org/wiki/OpenDocument))
 - `gfm` ([GitHub-Flavored
   Markdown](https://help.github.com/articles/github-flavored-markdown/)),
   or the deprecated and less accurate `markdown_github`; use
