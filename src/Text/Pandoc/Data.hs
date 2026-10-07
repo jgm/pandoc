@@ -19,8 +19,8 @@ module Text.Pandoc.Data ( readDefaultDataFile
                         , getDataFileNames
                         , defaultUserDataDir
                         ) where
-import Text.Pandoc.Class (PandocMonad(..), checkUserDataDir, getTimestamp,
-                          getUserDataDir, getPOSIXTime)
+import Text.Pandoc.Class (PandocMonad(..), checkDataDirs, getTimestamp,
+                          getPOSIXTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
@@ -66,18 +66,24 @@ checkExistence fn = do
      else throwError $ PandocCouldNotFindDataFileError $ T.pack fn
 #endif
 
---- | Read file from user data directory or,
---- if not found there, from the default data files.
+--- | Read file from user data directory or the additional data
+--- directories or, if not found there, from the default data files.
 readDataFile :: PandocMonad m => FilePath -> m B.ByteString
-readDataFile fname = do
-  datadir <- checkUserDataDir fname
-  case datadir of
-       Nothing -> readDefaultDataFile fname
-       Just userDir -> do
-         exists <- fileExists (userDir </> fname)
-         if exists
-            then readFileStrict (userDir </> fname)
-            else readDefaultDataFile fname
+readDataFile fname =
+  findDataFile fname >>= maybe (readDefaultDataFile fname) readFileStrict
+
+-- | Returns the path of the file in the first data directory that
+-- contains it (see 'checkDataDirs'), or 'Nothing' if it isn't found in
+-- any of them.
+findDataFile :: PandocMonad m => FilePath -> m (Maybe FilePath)
+findDataFile fname = checkDataDirs fname >>= go
+  where
+    go [] = return Nothing
+    go (d:ds) = do
+      exists <- fileExists (d </> fname)
+      if exists
+         then return (Just (d </> fname))
+         else go ds
 
 -- | Retrieve default reference.docx.
 getDefaultReferenceDocx :: PandocMonad m => m Archive
@@ -103,14 +109,7 @@ getDefaultReferenceDocx = do
         epochtime <- floor . utcTimeToPOSIXSeconds <$> getTimestamp
         contents <- toLazy <$> readDataFile ("docx/" ++ path)
         return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.docx")
-                       if exists
-                          then return (Just (d </> "reference.docx"))
-                          else return Nothing
+  mbArchive <- findDataFile "reference.docx"
   case mbArchive of
      Just arch -> toArchive <$> readFileLazy arch
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
@@ -129,14 +128,7 @@ getDefaultReferenceODT = do
                             contents <- (BL.fromChunks . (:[])) `fmap`
                                           readDataFile ("odt/" ++ path)
                             return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.odt")
-                       if exists
-                          then return (Just (d </> "reference.odt"))
-                          else return Nothing
+  mbArchive <- findDataFile "reference.odt"
   case mbArchive of
      Just arch -> toArchive <$> readFileLazy arch
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
@@ -203,14 +195,7 @@ getDefaultReferencePptx = do
         epochtime <- floor <$> getPOSIXTime
         contents <- toLazy <$> readDataFile ("pptx/" ++ path)
         return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.pptx")
-                       if exists
-                          then return (Just (d </> "reference.pptx"))
-                          else return Nothing
+  mbArchive <- findDataFile "reference.pptx"
   case mbArchive of
      Just arch -> toArchive <$> readFileLazy arch
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
