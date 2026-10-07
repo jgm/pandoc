@@ -685,7 +685,7 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
          isEnabled Ext_pipe_tables opts -> do
            tbl <- mkTable (pipeTable opts)
            return $ (tbl $$ caption''') $$ blankline
-       | not (hasBlocks || hasColRowSpans || hasFooter) &&
+       | not (hasBlocks || hasColRowSpans || hasFooter || null rows) &&
          isEnabled Ext_multiline_tables opts -> do
            tbl <- mkTable (pandocTable opts True)
            return $ nest 2 (tbl $$ caption''') $$ blankline
