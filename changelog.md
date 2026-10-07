@@ -4,7 +4,7 @@
 
   * New input and output format: `fodt` (#4010). This is ODF's
     "flat" representation of a text document: a single XML file
-    instead of a zip package (ODT).a It supports the same options
+    instead of a zip package (ODT). It supports the same options
     as `odt`, including `--reference-doc` (which should be a
     zipped `odt`) and `--link-images`.
 
@@ -39,17 +39,15 @@
 
   * Docx reader:
 
-    + Keep bookmark when stipping caption label (#11918).
+    + Keep bookmark when stripping caption label (#11918).
       This allows us to preserve internal links to figures.
     + Add map of table styles to the reader environment.
-    + Use table style `id` in the `tblStyle` element (#11932).
-      Previously we used the table style `name`. This happened to work
-      for the default table style, but only because its name and id matched.
-      It failed for custom styles whose names did not match their ids.
     + Fix double strikethrough being dropped (Kyohei Takahashi).
       `w:dstrike` was not parsed at all, so text marked with Word's double
       strikethrough was read as plain text, with no indication that it had
       been struck out. Treat it as Strikeout.
+    + Keep spaces at the edges of tracked changes in the span (#11904,
+      Raffaele Mancuso). This is important for tracking insertions/deletions.
 
   * ODT reader:
 
@@ -99,13 +97,15 @@
       table in a footnote was dropped, and a heading or nested
       table in a table cell was dropped. Keep a single list and
       use it everywhere, so the sites cannot drift apart again.
-+   + Read images embedded in `office:binary-data`.
+    + Read images embedded in `office:binary-data`.
     + Read MathML embedded inline in `draw:object`. A flat OpenDocument file
       cannot refer to a separate formula document, so
       the MathML is a descendant of the draw:object instead.
     + Add `readFODT` for flat OpenDocument input [API change].
     + Fix formula lookup when the href has a trailing slash.
     + Trim the alt text of an image.
+    + Look up the image mime type on the `draw:image` element instead of guessing
+      from magic bytes.
 
   * RTF reader:
 
@@ -147,6 +147,10 @@
 
   * Docx writer:
 
+    + Use table style `id` in the `tblStyle` element (#11932).
+      Previously we used the table style `name`. This happened to work
+      for the default table style, but only because its name and id matched.
+      It failed for custom styles whose names did not match their ids.
     + Put a heading's bookmark in its paragraph (Robert Szarka,
       #11845, cf. #8825). The bookmark for a section's id
       surrounded the whole section, at body level, so a screen
@@ -234,12 +238,12 @@
 
     + Fix regression in escaping of data URIs (#11942). A change
       in 3.12 broke escaping of data URIs, so that `--embed-resources`
-      no longer worked properly with JavaScript includes.
+      no longer worked properly.
 
   * Text.Pandoc.Parsing:
 
     + `mathDisplay`, `mathInline`: respect TeX groups and comments (#11887,
-      Eric Demaine). . Prevent math delimiters inside TeX brace groups
+      Erik Demaine). Prevent math delimiters inside TeX brace groups
       and percent comments from prematurely closing an equation.
 
   * Text.Pandoc.XML.Light:
