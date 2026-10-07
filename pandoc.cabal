@@ -462,8 +462,7 @@ extra-source-files:
                  test/pod-reader.pod
                  test/vimdoc/*.markdown
                  test/vimdoc/*.vimdoc
-                 benchmark/markup-heavy.md
-                 benchmark/text-heavy.md
+                 benchmark/sample.md
                  benchmark/movie.jpg
                  benchmark/lalune.jpg
 source-repository head
