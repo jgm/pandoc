@@ -689,9 +689,7 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
          isEnabled Ext_multiline_tables opts -> do
            tbl <- mkTable (pandocTable opts True)
            return $ nest 2 (tbl $$ caption''') $$ blankline
-       | isEnabled Ext_grid_tables opts &&
-          (hasColRowSpans || writerColumns opts >= 8 * numcols
-                          || hasFooter) -> do
+       | isEnabled Ext_grid_tables opts -> do
            tbl <- gridTable opts blockListToMarkdown
                      specs thead tbody tfoot
            return $ (tbl $$ caption''') $$ blankline
