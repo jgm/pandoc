@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.12.1 (2026-10-04)
+## pandoc 3.12.1 (2026-10-07)
 
   * New input and output format: `fodt` (#4010). This is ODF's
     "flat" representation of a text document: a single XML file
@@ -32,11 +32,24 @@
       the writers (gfm, docbook, asciidoc, rst) check for the
       admonition name as the first class, so the change putting
       `alert` first broke the output. (Regression from 3.12.)
+    + Don't trim spaces in inline span. Previously we trimmed the
+      space in e.g. `[ test ]{.class}`. This behavior has no good rationale,
+      and it made it impossible to represent insertions and deletions properly.
+    + Make lookahead for setext header line more efficient.
 
   * Docx reader:
 
     + Keep bookmark when stipping caption label (#11918).
       This allows us to preserve internal links to figures.
+    + Add map of table styles to the reader environment.
+    + Use table style `id` in the `tblStyle` element (#11932).
+      Previously we used the table style `name`. This happened to work
+      for the default table style, but only because its name and id matched.
+      It failed for custom styles whose names did not match their ids.
+    + Fix double strikethrough being dropped (Kyohei Takahashi).
+      `w:dstrike` was not parsed at all, so text marked with Word's double
+      strikethrough was read as plain text, with no indication that it had
+      been struck out. Treat it as Strikeout.
 
   * ODT reader:
 
@@ -98,10 +111,39 @@
 
     + Combine UTF-16 surrogate pairs (#11920).
 
+  * Typst reader:
+
+    + Do not emit mixed table column widths (#11898, Samuel Huang).
+      Previously we evenly split the remaining width, but generally
+      it looks better just to make every column `auto` if any column
+      is default width.
+    + Treat zero-width table fractions as unspecified (#11898, Samuel Huang).
+
   * Org reader:
 
     + Improve performance: use a jump table to find the end of plain text
       runs, and dispatch on the next character in `inline`.
+
+  * Creole reader:
+
+    + Use jump tables to find the end of plain text runs.
+    + Use `takeWhile1P` in `str`.
+
+  * RST reader:
+
+    + Use `takeWhile1P` for raw field list items.
+
+  * Textile, Vimwiki, MediaWiki, Txt2Tags readers:
+
+    + Use jump tables to find the end of plain text runs.
+
+  * Roff readers:
+
+    + Use `takeWhile1P` for `regularText`.
+
+  * Mdoc reader:
+
+    + Use `takeWhile1P` in lexer.
 
   * Docx writer:
 
@@ -179,12 +221,26 @@
 
     + Put `<..>` around link or image destinations containing
       spaces (rca-umb).
+    + Escape list markers after a line break (#11863, Aslak Hellesøy).
+    + Don't use a multiline table for a header-only table (#11939).
 
   * Text.Pandoc.XML:
 
     + Make `escapeStringForXML` and `escapeNls` more efficient.
     + Build XML tags with a single doclayout allocation rather than
       several.
+
+  * Text.Pandoc.SelfContained:
+
+    + Fix regression in escaping of data URIs (#11942). A change
+      in 3.12 broke escaping of data URIs, so that `--embed-resources`
+      no longer worked properly with JavaScript includes.
+
+  * Text.Pandoc.Parsing:
+
+    + `mathDisplay`, `mathInline`: respect TeX groups and comments (#11887,
+      Eric Demaine). . Prevent math delimiters inside TeX brace groups
+      and percent comments from prematurely closing an equation.
 
   * Text.Pandoc.XML.Light:
 
@@ -200,7 +256,17 @@
   * Bump version of reveal.js to 6. Version 6 is required for the
     changes in plugin locations incorporated in pandoc 3.12.
 
-  * latest citeproc, texmath.
+  * `reference.docx`: don't make Table style `semiHidden` (#11931).
+    This allows it to appear in the table styles gallery.
+
+  * Benchmark improvements:
+
+    + Include the benchmark sample in the benchmark directory, to ensure
+      that it doesn't change between releases. Include images too.
+    + Change the benchmark sample to a mix of markup-heavy and prose-heavy
+      text, including tables.
+
+  * Use latest citeproc, texmath.
 
 ## pandoc 3.12 (2026-09-27)
 
