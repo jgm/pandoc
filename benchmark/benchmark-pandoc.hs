@@ -128,23 +128,15 @@ bigInlines = concat $ replicate 1000
 
 main :: IO ()
 main = do
-  samples <- mapM (\(name, fp) -> (name,) <$> getSample fp)
-                [("markup-heavy", "benchmark/markup-heavy.md")
-                ,("text-heavy", "benchmark/text-heavy.md")]
+  (doc, imgs) <- getSample "benchmark/sample.md"
   defaultMain $
-    map
-      (\(name, (doc, imgs)) ->
-        bgroup name
-          [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
-                               (sortOn fst
-                                 writers :: [(T.Text, Writer PandocPure)])
-          , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
-                               (sortOn fst
-                                 readers :: [(T.Text, Reader PandocPure)])
-          ])
-      samples
-    ++
-    [ env (pure $ force bigInlines) $ \ils ->
+    [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+                            (sortOn fst
+                              writers :: [(T.Text, Writer PandocPure)])
+    , bgroup "readers" $ mapMaybe (readerBench imgs doc . fst)
+                            (sortOn fst
+                               readers :: [(T.Text, Reader PandocPure)])
+    , env (pure $ force bigInlines) $ \ils ->
       bgroup "stringify"
         [ bench "stringify" $ nf stringify ils
         , bench "stringifyInlines" $ nf stringifyInlines ils
