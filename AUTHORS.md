@@ -44,6 +44,7 @@
 - Arlo O'Keeffe
 - Artem Pelenitsyn
 - Artyom Kazak
+- Aslak Hellesøy
 - Asliddinbek Azizovich
 - B. Scott Michel
 - Bastien Dumont
@@ -127,6 +128,7 @@
 - Eric Kow
 - Eric Schrijver
 - Eric Seidel
+- Erik Demaine
 - Erik Post
 - Erik Rask
 - Ethan Riley
@@ -253,6 +255,7 @@
 - Konstantin Zudov
 - Kristof Bastiaensen
 - Krystof Beuermann
+- Kyohei Takahashi
 - Lars-Dominik Braun
 - Laurent P. René de Cotret
 - Lawrence Chonavel
@@ -362,6 +365,7 @@
 - Puneeth Chaganti
 - Quinn
 - R. N. West
+- Raffaele Mancuso
 - Ralf Stephan
 - Raniere Silva
 - Raymond Berger
@@ -530,6 +534,7 @@
 - priiduonu
 - qerub
 - quasicomputational
+- rca-umb
 - reptee
 - ricnorr
 - robabla
