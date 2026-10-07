@@ -44,11 +44,12 @@ readerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
     (rdr, rexts) <- getReader $ FlavoredFormat name mempty
     (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
+    tpl <- compileDefaultTemplate name 
     case (rdr, wtr) of
       (TextReader r, TextWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = Nothing } doc
+                    , writerTemplate = Just tpl } doc
         return $ bench (T.unpack name)
                $ nf (\x -> either (error . show) id $
                        runPure $ do
@@ -58,7 +59,7 @@ readerBench imgs doc name = either (const Nothing) Just $
       (ByteStringReader r, ByteStringWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
                     , writerExtensions = wexts
-                    , writerTemplate = Nothing } doc
+                    , writerTemplate = Just tpl } doc
         return $ bench (T.unpack name)
                $ nf (\x -> either (error . show) id $
                        runPure $ do
@@ -94,20 +95,22 @@ writerBench _ _ name
 writerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
     (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
+    tpl <- compileDefaultTemplate name
+    let opts = def{ writerExtensions = wexts, writerTemplate = Just tpl }
     case wtr of
       TextWriter writerFun ->
         return $ bench (T.unpack name)
                $ nf (\d -> either (error . show) id $
                        runPure $ do
                          mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
-                         writerFun def{ writerExtensions = wexts} d)
+                         writerFun opts d)
                     doc
       ByteStringWriter writerFun ->
         return $ bench (T.unpack name)
                $ nf (\d -> either (error . show) id $
                        runPure $ do
                          mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
-                         writerFun def{ writerExtensions = wexts} d)
+                         writerFun opts d)
                     doc
 
 -- | A large inline sequence exercising both the common constructors
