@@ -104,6 +104,41 @@ blockquote {
   color: $if(quotecolor)$$quotecolor$$else$#606060$endif$;
   color: light-dark($if(quotecolor)$$quotecolor$$else$#606060$endif$, $if(quotecolordark)$$quotecolordark$$else$#b6b6b6$endif$);
 }
+/* Alert styling (when +alerts is active) */
+div.alert {
+  padding: 0.5em 1em;
+  border-radius: 0.25em;
+  margin: 1em 0;
+}
+
+div.alert div.title p, div.alert div.alert-title p {
+  font-weight: bold;
+}
+
+div.alert.note, div.alert.alert-note {
+  color: rgb(125, 125, 125);
+  background-color: rgb(220, 220, 220);
+}
+
+div.alert.tip, div.alert.alert-tip {
+  color: rgb(75, 134, 75);
+  background-color: rgb(200, 250, 200);
+}
+
+div.alert.important, div.alert.alert-important {
+  color: rgb(133, 87, 133);
+  background-color: rgb(250, 180, 250);
+}
+
+div.alert.warning, div.alert.alert-warning {
+  color: rgb(130, 130, 48);
+  background-color: rgb(250, 250, 180);
+}
+
+div.alert.caution, div.alert.alert-caution {
+  color: rgb(148, 76, 76);
+  background-color: rgb(250, 210, 210);
+}
 $if(abstract)$
 div.abstract {
   margin: 2em 2em 2em 2em;
