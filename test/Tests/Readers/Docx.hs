@@ -136,6 +136,18 @@ tests = [ testGroup "document"
             "docx/empty_field.docx"
             "docx/empty_field.native"
           , testCompare
+            "field without <w:instrText> does not corrupt later lists"
+            "docx/field_no_instrText.docx"
+            "docx/field_no_instrText.native"
+          , testCompare
+            "field with <w:instrText> in tracked change does not corrupt later lists"
+            "docx/field_tracked_instrText.docx"
+            "docx/field_tracked_instrText.native"
+          , testCompare
+            "field without <w:instrText> in a code block keeps its text"
+            "docx/field_no_instrText_codeblock.docx"
+            "docx/field_no_instrText_codeblock.native"
+          , testCompare
             "pageref hyperlinks in <w:instrText> tag"
             "docx/pageref.docx"
             "docx/pageref.native"
