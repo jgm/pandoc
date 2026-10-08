@@ -1109,18 +1109,28 @@ elemToParPart ns element
           info <- eitherToD $ parseFieldInfo t
           modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
           return []
+        -- A field with no instruction (e.g. a dead cross-reference, or
+        -- one whose w:instrText sits inside a tracked change):
+        FldCharOpen : ancestors | fldCharType == "separate" -> do
+          modify $ \st -> st {stateFldCharState = FldCharContent UnknownField [] : ancestors}
+          return []
         -- Some fields have no content, e.g. index XE:
         FldCharFieldInfo t : ancestors | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = ancestors}
           info <- eitherToD $ parseFieldInfo t
           return [Field info []]
-        [FldCharContent info children] | fldCharType == "end" -> do
-          modify $ \st -> st {stateFldCharState = []}
-          return [Field info $ reverse children]
+        FldCharOpen : ancestors | fldCharType == "end" -> do
+          modify $ \st -> st {stateFldCharState = ancestors}
+          return [Field UnknownField []]
         FldCharContent info children : FldCharContent parentInfo siblings : ancestors | fldCharType == "end" ->
           let parent = FldCharContent parentInfo $ (Field info (reverse children)) : siblings in do
             modify $ \st -> st {stateFldCharState = parent : ancestors}
             return []
+        -- Always pop the field, even if the enclosing field is not
+        -- (yet) in its content, so that the state cannot get stuck:
+        FldCharContent info children : ancestors | fldCharType == "end" -> do
+          modify $ \st -> st {stateFldCharState = ancestors}
+          return [Field info $ reverse children]
         _ -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element

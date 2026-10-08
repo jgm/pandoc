@@ -1,0 +1,24 @@
+[ Para
+    [ Str "Error!"
+    , Space
+    , Str "Reference"
+    , Space
+    , Str "source"
+    , Space
+    , Str "not"
+    , Space
+    , Str "found."
+    ]
+, Para
+    [ Link
+        ( "" , [] , [] )
+        [ Str "Target" , Space , Str "B" ]
+        ( "#_Ref2" , "" )
+    ]
+, BulletList
+    [ [ Para [ Str "Item" , Space , Str "one" ] ]
+    , [ Para [ Str "Item" , Space , Str "two" ] ]
+    ]
+, Para
+    [ Str "After" , Space , Str "the" , Space , Str "list." ]
+]
