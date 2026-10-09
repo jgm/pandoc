@@ -25,6 +25,7 @@
 - Amy de Buitléir
 - Anabra
 - Anders Waldenborg
+- Andonome
 - Andreas Deininger
 - Andreas Lööw
 - Andreas Scherer
@@ -43,6 +44,7 @@
 - Arlo O'Keeffe
 - Artem Pelenitsyn
 - Artyom Kazak
+- Aslak Hellesøy
 - Asliddinbek Azizovich
 - B. Scott Michel
 - Bastien Dumont
@@ -87,6 +89,7 @@
 - Christoffer Sawicki
 - Christophe Dervieux
 - Christopher Kenny
+- Clar Fon
 - Clare Macrae
 - Clint Adams
 - Conal Elliott
@@ -125,6 +128,7 @@
 - Eric Kow
 - Eric Schrijver
 - Eric Seidel
+- Erik Demaine
 - Erik Post
 - Erik Rask
 - Ethan Riley
@@ -151,6 +155,7 @@
 - Fyodor Sheremetyev
 - Gabor Pali
 - Gabriel Lewertowski
+- Gaurav Vijay Jadhav
 - Gavin Beatty
 - George Stagg
 - Georgi Lyubenov
@@ -250,6 +255,7 @@
 - Konstantin Zudov
 - Kristof Bastiaensen
 - Krystof Beuermann
+- Kyohei Takahashi
 - Lars-Dominik Braun
 - Laurent P. René de Cotret
 - Lawrence Chonavel
@@ -359,6 +365,7 @@
 - Puneeth Chaganti
 - Quinn
 - R. N. West
+- Raffaele Mancuso
 - Ralf Stephan
 - Raniere Silva
 - Raymond Berger
@@ -366,6 +373,7 @@
 - Recai Oktaş
 - Repetitive
 - Reuben Thomas
+- Robert Szarka
 - Robertas
 - Rowan Rodrik van der Molen
 - Roland Hieber
@@ -378,6 +386,7 @@
 - Salim B
 - Sam S. Almahri
 - Sam May
+- Samuel Huang
 - Samuel Tardieu
 - Saumel Lemmenmeier
 - Santiago Zarate
@@ -467,6 +476,7 @@
 - Yoan Blanc
 - You Jiangbin
 - Yuchen Pei
+- Yusuf Efe
 - Zihang Chen
 - 3w36zj6
 - arcnmx
@@ -524,6 +534,7 @@
 - priiduonu
 - qerub
 - quasicomputational
+- rca-umb
 - reptee
 - ricnorr
 - robabla
@@ -549,4 +560,5 @@
 - willj-dev
 - wuffi
 - wzy
+- zenor0
 - λx.x

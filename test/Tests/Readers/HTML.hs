@@ -57,7 +57,48 @@ roundTrip b = d'' == d'''
                             { writerWrapText = WrapPreserve })
 
 tests :: [TestTree]
-tests = [ testGroup "base tag"
+tests = [ testGroup "math groups and comments"
+          [ testGroup name
+            [ test reader "nested math in a color box" $
+                wrap "\\colorbox{aqua}{$F=ma$}" =?>
+                  para (makeMath "\\colorbox{aqua}{$F=ma$}")
+            , test reader "unpaired escaped opening brace" $
+                wrap "{\\{x}" =?> para (makeMath "{\\{x}")
+            , test reader "unpaired escaped closing brace" $
+                wrap escapedClosing =?> para (makeMath escapedClosing)
+            , test reader "commented delimiters and braces" $
+                wrap commented =?> para (makeMath commented)
+            , test reader "commented closing brace inside a group" $
+                wrap ("{x% } " <> close <> "\ny}") =?>
+                  para (makeMath $ "{x% } " <> close <> "\ny}")
+            , test reader "commented opening brace inside a group" $
+                wrap "{x% {\ny}" =?> para (makeMath "{x% {\ny}")
+            , test reader "escaped percent is literal" $
+                wrap "x\\%" =?> para (makeMath "x\\%")
+            , test reader "percent after an escaped backslash is a comment" $
+                wrap ("x\\\\% " <> close <> "\ny") =?>
+                  para (makeMath $ "x\\\\% " <> close <> "\ny")
+            ]
+          | (name, ext, open, close, makeMath) <-
+              [ ("dollars", Ext_tex_math_dollars, "$", "$", math)
+              , ("double dollars", Ext_tex_math_dollars,
+                 "$$", "$$", displayMath)
+              , ("parentheses", Ext_tex_math_single_backslash,
+                 "\\(", "\\)", math)
+              , ("brackets", Ext_tex_math_single_backslash,
+                 "\\[", "\\]", displayMath)
+              , ("double-backslash parentheses", Ext_tex_math_double_backslash,
+                 "\\\\(", "\\\\)", math)
+              , ("double-backslash brackets", Ext_tex_math_double_backslash,
+                 "\\\\[", "\\\\]", displayMath)
+              ]
+          , let reader = purely $ readHtml def
+                  { readerExtensions = extensionsFromList [ext] }
+                wrap s = "<p>" <> open <> s <> close <> "</p>"
+                escapedClosing = "{\\} hi " <> open <> "x" <> close <> " bye}"
+                commented = "x% " <> close <> " { } \\%\ny"
+          ]
+        , testGroup "base tag"
           [ test html "simple" $
             "<head><base href=\"http://www.w3schools.com/images/foo\" ></head><body><img src=\"stickman.gif\" alt=\"Stickman\"></head>" =?>
             plain (image "http://www.w3schools.com/images/stickman.gif" "" (text "Stickman"))

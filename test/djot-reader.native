@@ -299,7 +299,7 @@ Pandoc
               , Str "quote:"
               ]
           , CodeBlock
-              ( "" , [ "" ] , [] )
+              ( "" , [] , [] )
               "sub status {\n    print \"working\";\n}\n"
           , Para [ Str "A" , Space , Str "list:" ]
           , OrderedList
@@ -355,11 +355,11 @@ Pandoc
           1 ( "" , [] , [] ) [ Str "Code" , Space , Str "Blocks" ]
       , Para [ Str "Code:" ]
       , CodeBlock
-          ( "" , [ "" ] , [] )
+          ( "" , [] , [] )
           "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\nthis code block is indented by one tab\n"
       , Para [ Str "And:" ]
       , CodeBlock
-          ( "" , [ "" ] , [] )
+          ( "" , [] , [] )
           "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
       , HorizontalRule
       ]
@@ -839,8 +839,7 @@ Pandoc
             )
           , ( [ Emph [ Str "orange" ] ]
             , [ [ Para [ Str "orange" , Space , Str "fruit" ]
-                , CodeBlock
-                    ( "" , [ "" ] , [] ) "{ orange code block }\n"
+                , CodeBlock ( "" , [] , [] ) "{ orange code block }\n"
                 , BlockQuote
                     [ Para
                         [ Str "orange"
@@ -1016,10 +1015,10 @@ Pandoc
           , Space
           , Str "though:"
           ]
-      , CodeBlock ( "" , [ "" ] , [] ) "<div>\n    foo\n</div>\n"
+      , CodeBlock ( "" , [] , [] ) "<div>\n    foo\n</div>\n"
       , Para
           [ Str "As" , Space , Str "should" , Space , Str "this:" ]
-      , CodeBlock ( "" , [ "" ] , [] ) "<div>foo</div>\n"
+      , CodeBlock ( "" , [] , [] ) "<div>foo</div>\n"
       , Para [ Str "Now," , Space , Str "nested:" ]
       , Div
           ( "" , [] , [] )
@@ -1044,7 +1043,7 @@ Pandoc
           ]
       , Para [ Str "Multiline:" ]
       , Para [ Str "Code" , Space , Str "block:" ]
-      , CodeBlock ( "" , [ "" ] , [] ) "<!-- Comment -->\n"
+      , CodeBlock ( "" , [] , [] ) "<!-- Comment -->\n"
       , Para
           [ Str "Just"
           , Space
@@ -1065,7 +1064,7 @@ Pandoc
           , Str "line:"
           ]
       , Para [ Str "Code:" ]
-      , CodeBlock ( "" , [ "" ] , [] ) "<hr />\n"
+      , CodeBlock ( "" , [] , [] ) "<hr />\n"
       , Para [ Str "Hr\8217s:" ]
       , HorizontalRule
       ]
@@ -1824,7 +1823,7 @@ Pandoc
               , Space
               , Str "link."
               ]
-          , CodeBlock ( "" , [ "" ] , [] ) "[not]: /url\n"
+          , CodeBlock ( "" , [] , [] ) "[not]: /url\n"
           , Para
               [ Str "Foo"
               , Space
@@ -2003,7 +2002,7 @@ Pandoc
               , Code ( "" , [] , [] ) "<http://example.com/>"
               ]
           , CodeBlock
-              ( "" , [ "" ] , [] ) "or here: <http://example.com/>\n"
+              ( "" , [] , [] ) "or here: <http://example.com/>\n"
           , HorizontalRule
           ]
       ]
@@ -2177,7 +2176,7 @@ Pandoc
                   , Space
                   , Str "items)."
                   ]
-              , CodeBlock ( "" , [ "" ] , [] ) "{ <code> }\n"
+              , CodeBlock ( "" , [] , [] ) "{ <code> }\n"
               , Para
                   [ Str "If"
                   , Space

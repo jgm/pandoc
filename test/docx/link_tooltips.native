@@ -1,0 +1,112 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "An"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "external" , Space , Str "link" ]
+          ( "https://example.org/report.pdf"
+          , "Annual report, PDF, 2 MB"
+          )
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "ScreenTip."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "external"
+          , Space
+          , Str "link"
+          , Space
+          , Str "to"
+          , Space
+          , Str "a"
+          , Space
+          , Str "fragment"
+          ]
+          ( "https://example.org/guide.html#install"
+          , "Installation steps"
+          )
+      , Str ","
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "ScreenTip."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "internal" , Space , Str "link" ]
+          ( "#methods" , "Jump to the Methods section" )
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "ScreenTip."
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "link" ]
+          ( "https://example.com/" , "" )
+      , Space
+      , Str "without"
+      , Space
+      , Str "a"
+      , Space
+      , Str "ScreenTip."
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "ScreenTip"
+      , Space
+      , Str "with"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "markup" , Space , Str "characters" ]
+          ( "https://example.org/escape" , "Q&A: \"Why?\" <draft>" )
+      , Str "."
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "field-code" , Space , Str "link" ]
+          ( "https://example.org/field"
+          , "ScreenTip from a field code"
+          )
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "ScreenTip."
+      ]
+  , Para
+      [ Span ( "methods" , [ "anchor" ] , [] ) []
+      , Str "Methods"
+      , Space
+      , Str "are"
+      , Space
+      , Str "described"
+      , Space
+      , Str "here."
+      ]
+  ]

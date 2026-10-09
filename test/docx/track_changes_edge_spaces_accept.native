@@ -1,0 +1,4 @@
+[Para [Str "start-ups",Space,Str "grow."]
+,Para [Str "adog"]
+,Para [Str "the",Space,Str "new."]
+,Para [Str "an",Space,Emph [Str "italic"],Space,Str "word."]]

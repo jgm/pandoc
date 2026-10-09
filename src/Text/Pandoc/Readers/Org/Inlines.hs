@@ -34,7 +34,7 @@ import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 import Safe (lastMay)
 import Control.Monad (guard, mplus, mzero, unless, when, void)
 import Control.Monad.Trans (lift)
-import Data.Char (isAlphaNum, isSpace)
+import Data.Char (isAlpha, isAlphaNum, isSpace)
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -79,8 +79,27 @@ addToNotesTable note = do
 
 -- | Parse a single Org-mode inline element
 inline :: PandocMonad m => OrgParser m (F Inlines)
-inline =
-  choice [ whitespace
+inline = do
+  c <- lookAhead anyChar
+  (if isStrEnd c then inlineMarkup else inlineWord c)
+    <* (guard =<< newlinesCountWithinLimits)
+    <?> "inline"
+ where
+  -- Fast path for a character that starts a plain word.  Every
+  -- alternative in 'inlineMarkup' other than those below begins with a
+  -- character for which 'isStrEnd' holds, so none of them can match
+  -- here; and 'str' always succeeds, so nothing after it is reachable.
+  -- The remaining candidates are 'plainLink' (whose URI schemes all
+  -- start with a letter), the org-ref form of 'cite' (which must start
+  -- with "cite") and 'inlineCodeBlock' (which must start with "src_").
+  inlineWord c = case c of
+    'c' -> cite <|> plainLink <|> str
+    's' -> plainLink <|> inlineCodeBlock <|> str
+    _ | isAlpha c -> plainLink <|> str
+      | otherwise -> str
+
+  inlineMarkup = choice
+         [ whitespace
          , linebreak
          , cite
          , footnote
@@ -102,8 +121,7 @@ inline =
          , smartQuotes
          , specialStrings
          , symbol
-         ] <* (guard =<< newlinesCountWithinLimits)
-  <?> "inline"
+         ]
 
 -- | Read the rest of the input as inlines.
 inlines :: PandocMonad m => OrgParser m (F Inlines)
@@ -112,6 +130,43 @@ inlines = trimInlinesF . mconcat <$> many1 inline
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
 specialChars = "\"$'()*+-,./:;<=>@[\\]^_{|}~"
+
+-- | True for characters that terminate a plain 'str' run, i.e. the
+-- 'specialChars' plus whitespace and newlines.  Written as a @case@ so
+-- that GHC compiles it to a jump table instead of a linear scan over
+-- 'specialChars'; this predicate is applied to every input character.
+isStrEnd :: Char -> Bool
+isStrEnd c = case c of
+  ' '  -> True
+  '\n' -> True
+  '\r' -> True
+  '"'  -> True
+  '$'  -> True
+  '\'' -> True
+  '('  -> True
+  ')'  -> True
+  '*'  -> True
+  '+'  -> True
+  '-'  -> True
+  ','  -> True
+  '.'  -> True
+  '/'  -> True
+  ':'  -> True
+  ';'  -> True
+  '<'  -> True
+  '='  -> True
+  '>'  -> True
+  '@'  -> True
+  '['  -> True
+  '\\' -> True
+  ']'  -> True
+  '^'  -> True
+  '_'  -> True
+  '{'  -> True
+  '|'  -> True
+  '}'  -> True
+  '~'  -> True
+  _    -> False
 
 
 whitespace :: PandocMonad m => OrgParser m (F Inlines)
@@ -125,7 +180,7 @@ linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: PandocMonad m => OrgParser m (F Inlines)
 str = return . B.str <$>
-      ( takeWhile1P (`notElem` (specialChars ++ "\n\r ")) >>= updatePositions' )
+      ( takeWhile1P (not . isStrEnd) >>= updatePositions' )
       <* updateLastStrPos
   where
     updatePositions' str' = str' <$

@@ -49,6 +49,26 @@ tests = [ "indented code after list"
         , "emph/strong with spaces (#10696)"
              =: emph (str "f" <> strong (space <> str "d" <> space)) <> str "l" =?>
              "*f **d*** l"
+        , "image destination with space"
+             =: image "home/image folder/image.png" "title" "pic"
+             =?> "![pic](<home/image folder/image.png> \"title\")"
+        , "link destination with space and pointy brackets"
+             =: link "a b<c>.pdf" "" "link"
+             =?> "[link](<a b\\<c\\>.pdf>)"
+        , "bullet marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <>
+                                     str "-" <> space <> str "alpha") ]
+             =?> "1.  Lead:\\\n    \\- alpha\n"
+        , "ordered marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <>
+                                     str "3." <> space <> str "alpha") ]
+             =?> "1.  Lead:\\\n    3\\. alpha\n"
+        , "lone bullet marker after linebreak"
+             =: plain (str "Lead:" <> linebreak <> str "-")
+             =?> "Lead:\\\n\\-"
+        , "lone ordered marker after linebreak in list item"
+             =: orderedList [ plain (str "Lead:" <> linebreak <> str "3.") ]
+             =?> "1.  Lead:\\\n    3\\."
         ] ++ [noteTests] ++ [shortcutLinkRefsTests]
 
 {-
@@ -227,6 +247,12 @@ shortcutLinkRefsTests =
                        , "  [foo]: /url1"
                        , "  [1]: /url2"
                        , "  [2]: /url3"
+                       ]
+     , "Reference link destination with space"
+           =: para (link "my file.pdf" "" "link")
+           =?> unlines [ "[link]"
+                       , ""
+                       , "  [link]: <my file.pdf>"
                        ]
      , "Reference link is followed by text in brackets"
           =:  para (link "/url" "" "link" <> "[text in brackets]")

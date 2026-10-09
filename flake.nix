@@ -31,15 +31,24 @@
 
       perSystem = { self', pkgs, lib, system, ... }:
         let
-          # Single source of truth for dependency versions: pandoc's own
-          # `stack.yaml` `extra-deps`. haskell-flake's package set lags pandoc's
-          # `build-depends`, so we apply the very same overrides stack does.
-          # Parsed at eval time (IFD: yaml -> json).
-          stackExtraDeps = builtins.fromJSON (builtins.readFile
-            (pkgs.runCommand "stack-extra-deps.json" { } ''
-              ${pkgs.yq-go}/bin/yq -o=json '.extra-deps' \
+          # Single source of truth for dependency versions and bound
+          # relaxation: pandoc's own `stack.yaml`. haskell-flake's package set
+          # lags pandoc's `build-depends`, so we apply the very same overrides
+          # stack does. Parsed at eval time (IFD: yaml -> json).
+          stackYaml = builtins.fromJSON (builtins.readFile
+            (pkgs.runCommand "stack.json" { } ''
+              ${pkgs.yq-go}/bin/yq -o=json '.' \
                 ${inputs.self + "/stack.yaml"} > $out
             ''));
+
+          stackExtraDeps = stackYaml.extra-deps or [ ];
+
+          # stack's `allow-newer` / `allow-newer-deps`:
+          #   allow-newer: true, no allow-newer-deps  -> relax bounds everywhere
+          #   allow-newer: true, allow-newer-deps: [..] -> only those packages
+          #   allow-newer: false / absent              -> nothing
+          allowNewer = stackYaml.allow-newer or false;
+          allowNewerDeps = stackYaml.allow-newer-deps or null;
 
           # "hslua-module-doclayout-1.2.1.1" -> name + version
           # (Hackage versions contain no '-', so version = last '-'-segment).
@@ -110,6 +119,22 @@
             })
             directHackageDeps;
 
+          localPackageNames =
+            [ "pandoc" "pandoc-cli" "pandoc-lua-engine" "pandoc-server" ];
+
+          # Everything this flake builds from source. With a bare
+          # `allow-newer: true` we jailbreak all of these.
+          projectPackageNames =
+            localPackageNames
+            ++ builtins.attrNames bumpedDeps
+            ++ builtins.attrNames gitSources
+            ++ builtins.attrNames directHackageDeps;
+
+          allowNewerPackages =
+            if !allowNewer then [ ]
+            else if allowNewerDeps == null then projectPackageNames
+            else allowNewerDeps;
+
         in
         {
         haskellProjects.default = {
@@ -135,38 +160,47 @@
           // lib.mapAttrs (_: version: { source = version; }) bumpedDeps
           // directSources;
 
-          settings = {
-            pandoc = {
-              # Set flags (cabal.project is ignored):
-              cabalFlags.embed_data_files = true;
-              cabalFlags.http = true;
-              # Skip the (slow) test suite and haddock in `nix build`.
-              check = false;
-              haddock = false;
-            };
-            pandoc-cli = {
-              check = false;
-              haddock = false;
-              buildFromSdist = true;
-            };
-            pandoc-lua-engine = {
-              check = false;
-              haddock = false;
-              buildFromSdist = true;
-            };
-            pandoc-server = {
-              check = false;
-              haddock = false;
-              buildFromSdist = true;
-            };
+          # mkMerge (rather than `//`) so that per-package settings from the
+          # different sources below are merged option-by-option instead of
+          # one block silently replacing another.
+          settings = lib.mkMerge [
+            {
+              pandoc = {
+                # Set flags (cabal.project is ignored):
+                cabalFlags.embed_data_files = true;
+                cabalFlags.http = true;
+                # Skip the (slow) test suite and haddock in `nix build`.
+                check = false;
+                haddock = false;
+              };
+              pandoc-cli = {
+                check = false;
+                haddock = false;
+                buildFromSdist = true;
+              };
+              pandoc-lua-engine = {
+                check = false;
+                haddock = false;
+                buildFromSdist = true;
+              };
+              pandoc-server = {
+                check = false;
+                haddock = false;
+                buildFromSdist = true;
+              };
+            }
 
-            # The git sources (texmath) and the bumped Hackage deps: skip
-            # tests/haddock and relax stale bounds against this GHC's boot libs.
-          } // lib.genAttrs
-            (builtins.attrNames bumpedDeps
-             ++ builtins.attrNames gitSources
-             ++ builtins.attrNames directHackageDeps)
-            (_: { check = false; haddock = false; jailbreak = true; });
+            # The git sources and the bumped Hackage deps: skip tests/haddock
+            # and relax stale bounds against this GHC's boot libs.
+            (lib.genAttrs
+              (builtins.attrNames bumpedDeps
+               ++ builtins.attrNames gitSources
+               ++ builtins.attrNames directHackageDeps)
+              (_: { check = false; haddock = false; jailbreak = true; }))
+
+            # stack.yaml's allow-newer / allow-newer-deps.
+            (lib.genAttrs allowNewerPackages (_: { jailbreak = true; }))
+          ];
 
           # Dev shell (`nix develop`). haskell-flake already provides
           # cabal-install, haskell-language-server, ghcid and hlint.

@@ -329,7 +329,8 @@ mmdTitleBlock = do
 
 kvPair :: PandocMonad m => Bool -> MarkdownParser m (Text, MetaValue)
 kvPair allowEmpty = try $ do
-  key <- many1TillChar (alphaNum <|> oneOf "_- ") (char ':')
+  key <- takeWhile1P (\c -> isAlphaNum c || c == '_' || c == '-' || c == ' ')
+  _ <- char ':'
   val <- trim <$> manyTillChar anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   guard $ allowEmpty || not (T.null val)
@@ -576,11 +577,18 @@ mmdHeaderIdentifier = do
   skipSpaces
   return attr
 
+setextUnderline :: PandocMonad m => MarkdownParser m Char
+setextUnderline = do
+  underlineChar <- oneOf setextHChars
+  skipMany (char underlineChar)
+  blanklines
+  pure underlineChar
+
 setextHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
-  lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
+  lookAhead $ anyLine >> setextUnderline
   skipSpaces
   (text, raw) <- withRaw $ do
     oldAllowLineBreaks <- stateAllowLineBreaks <$> getState
@@ -590,9 +598,7 @@ setextHeader = try $ do
     updateState $ \st -> st{ stateAllowLineBreaks = oldAllowLineBreaks }
     return res
   attr <- setextHeaderEnd
-  underlineChar <- oneOf setextHChars
-  many (char underlineChar)
-  blanklines
+  underlineChar <- setextUnderline
   let level = fromMaybe 0 (elemIndex underlineChar setextHChars) + 1
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
@@ -695,7 +701,7 @@ rawAttribute = do
   char '{'
   skipMany spaceChar
   char '='
-  format <- many1Char $ satisfy (\c -> isAlphaNum c || c `elem` ['-', '_'])
+  format <- takeWhile1P (\c -> isAlphaNum c || c `elem` ['-', '_'])
   skipMany spaceChar
   char '}'
   return format
@@ -712,8 +718,8 @@ codeBlockFenced = try $ do
      (Left <$> (guardEnabled Ext_raw_attribute >> try rawAttribute))
     <|>
      (Right <$> do
-         let pLangId = many1Char . satisfy $ \x ->
-               x `notElem` ['`', '{', '}'] && not (isSpace x)
+         let pLangId = takeWhile1P (\x ->
+               x `notElem` ['`', '{', '}'] && not (isSpace x))
          mbLanguageId <- optionMaybe (toLanguageId <$> pLangId)
          skipMany spaceChar
          mbAttr <- optionMaybe
@@ -815,6 +821,7 @@ emailBlockQuote = try $ do
 
 blockQuote :: PandocMonad m => MarkdownParser m (F Blocks)
 blockQuote = do
+  pos <- getPosition
   raw <- emailBlockQuote
   (mbAlert, raw') <-
     (do guardEnabled Ext_alerts
@@ -830,12 +837,13 @@ blockQuote = do
           _ -> pure (Nothing, raw))
       <|> pure (Nothing, raw)
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString' parseBlocks $ T.intercalate "\n" raw' <> "\n\n"
+  contents <- parseFromString' (setPosition pos >> parseBlocks)
+               $ T.intercalate "\n" raw' <> "\n\n"
   return $
     case mbAlert of
       Nothing -> B.blockQuote <$> contents
       Just alert ->
-        (B.divWith ("", ["alert", alert], [])
+        (B.divWith ("", [alert, "alert"], [])
           . (B.divWith ("", ["title"], []) (B.para (B.str (T.toTitle alert))) <>))
            <$> contents
 
@@ -972,11 +980,12 @@ listItem fourSpaceRule start = try $ do
   state <- getState
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
+  pos <- getPosition
   (first, continuationIndent) <- rawListItem fourSpaceRule start
   continuations <- many (listContinuation continuationIndent)
   -- parse the extracted block, which may contain various block elements:
   let raw = T.concat (first:continuations)
-  contents <- parseFromString' parseBlocks raw
+  contents <- parseFromString' (setPosition pos >> parseBlocks) raw
   updateState (\st -> st {stateParserContext = oldContext})
   exts <- getOption readerExtensions
   return $ B.fromList . taskListItemFromAscii exts . B.toList <$> contents
@@ -1017,8 +1026,9 @@ defListStart = do
 
 definitionListItem :: PandocMonad m => MarkdownParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
+  pos <- getPosition
   rawLine' <- anyLine
-  term <- parseFromString' (trimInlinesF <$> inlines) rawLine'
+  term <- parseFromString' (setPosition pos >> (trimInlinesF <$> inlines)) rawLine'
   isTight <- (False <$ blanklines) <|> pure True
   fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule) <|> pure False
   contents <- many1 $ listItem fourSpaceRule defListStart
@@ -1224,8 +1234,9 @@ lineBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lineBlock = do
   guardEnabled Ext_line_blocks
   try $ do
+    pos <- getPosition
     lines' <- lineBlockLines >>=
-              mapM (parseFromString' (trimInlinesF <$> inlines))
+              mapM (parseFromString' (setPosition pos >> (trimInlinesF <$> inlines)))
     return $ B.lineBlock <$> sequence lines'
 
 --
@@ -1312,8 +1323,9 @@ rawTableLine indices = do
 tableLine :: PandocMonad m
           => [Int]
           -> MarkdownParser m (F [Blocks])
-tableLine indices = rawTableLine indices >>=
-  fmap sequence . mapM (parseFromString' (mconcat <$> many plain))
+tableLine indices = do
+  raw <- rawTableLine indices
+  sequence <$> mapM (parseFromString' (mconcat <$> many plain)) raw
 
 -- Parse a multiline table row and return a list of blocks (columns).
 multilineRow :: PandocMonad m
@@ -1398,7 +1410,7 @@ multilineTableHeader headless = try $ do
                     then []
                     else map (T.unlines . map trim) rawHeadsList
   heads <- fmap sequence $
-            mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads
+            mapM (parseFromString' (mconcat <$> many plain) . trim) rawHeads
   return (fmap (:[]) heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
@@ -1927,7 +1939,8 @@ bracketedSpan :: PandocMonad m => MarkdownParser m (F Inlines)
 bracketedSpan = do
   guardEnabled Ext_bracketed_spans
   try $ do
-    (lab,_) <- reference
+    guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
+    lab <- inBalancedBrackets inlines
     attr <- attributes
     return $ wrapSpan attr <$> lab
 

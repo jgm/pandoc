@@ -109,6 +109,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envFont          :: Maybe Font
                            , envCharStyles    :: CharStyleMap
                            , envParStyles     :: ParStyleMap
+                           , envTableStyles   :: TableStyleMap
                            , envLocation      :: DocumentLocation
                            , envDocXmlPath    :: FilePath
                            , envTextWidth     :: Int
@@ -232,6 +233,8 @@ type Media = [(FilePath, B.ByteString)]
 type CharStyleMap = M.Map CharStyleId CharStyle
 
 type ParStyleMap = M.Map ParaStyleId ParStyle
+
+type TableStyleMap = M.Map TableStyleId TableStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -382,6 +385,7 @@ leftBiasedMergeRunStyle a b = RunStyle
     , isItalicCTL = isItalicCTL a <|> isItalicCTL b
     , isSmallCaps = isSmallCaps a <|> isSmallCaps b
     , isStrike = isStrike a <|> isStrike b
+    , isDoubleStrike = isDoubleStrike a <|> isDoubleStrike b
     , isRTL = isRTL a <|> isRTL b
     , isForceCTL = isForceCTL a <|> isForceCTL b
     , rHighlight = rHighlight a <|> rHighlight b
@@ -398,8 +402,8 @@ data ParPart = PlainRun Run
              | CommentStart CommentId Author (Maybe CommentDate) [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
-             | InternalHyperLink Anchor [ParPart]
-             | ExternalHyperLink URL [ParPart]
+             | InternalHyperLink Anchor T.Text [ParPart]          -- tooltip
+             | ExternalHyperLink URL T.Text [ParPart]             -- tooltip
              | Drawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
              | Diagram                                            -- placeholder for now
@@ -443,7 +447,7 @@ archiveToDocxWithWarnings archive = do
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive docXmlPath
       media     = filteredFilesFromArchive archive filePathIsMedia
-      (styles, parstyles) = archiveToStyles archive
+      (styles, parstyles, tabstyles) = archiveToStyles archive
       textWidth = archiveToTextWidth archive
       rEnv = ReaderEnv { envNotes = notes
                        , envComments = comments
@@ -453,6 +457,7 @@ archiveToDocxWithWarnings archive = do
                        , envFont = Nothing
                        , envCharStyles = styles
                        , envParStyles = parstyles
+                       , envTableStyles = tabstyles
                        , envLocation = InDocument
                        , envDocXmlPath = docXmlPath
                        , envTextWidth = fromMaybe 9360 textWidth
@@ -512,8 +517,8 @@ elemToBody ns element
       | otherwise
       = ((:[]) <$> elemToBodyPart ns' el) `catchError` (\_ -> return [])
 
-archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
-archiveToStyles = archiveToStyles' getStyleId getStyleId
+archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap, TableStyleMap)
+archiveToStyles = archiveToStyles' getStyleId getStyleId getStyleId
 
 class HasParentStyle a where
   getParentStyle :: a -> Maybe a
@@ -1217,18 +1222,20 @@ elemToParPart' ns element
     location <- asks envLocation
     children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     rels <- asks envRelationships
+    let tooltip = fromMaybe "" $ findAttrByName ns "w" "tooltip" element
     case lookupRelationship location relId rels of
       Just target ->
          case findAttrByName ns "w" "anchor" element of
              Just anchor -> return
-               [ExternalHyperLink (target <> "#" <> anchor) children]
-             Nothing -> return [ExternalHyperLink target children]
-      Nothing     -> return [ExternalHyperLink "" children]
+               [ExternalHyperLink (target <> "#" <> anchor) tooltip children]
+             Nothing -> return [ExternalHyperLink target tooltip children]
+      Nothing     -> return [ExternalHyperLink "" tooltip children]
 elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just anchor <- findAttrByName ns "w" "anchor" element = do
     children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
-    return [InternalHyperLink anchor children]
+    let tooltip = fromMaybe "" $ findAttrByName ns "w" "tooltip" element
+    return [InternalHyperLink anchor tooltip children]
 elemToParPart' ns element
   | isElem ns "w" "commentRangeStart" element
   , Just cmtId <- findAttrByName ns "w" "id" element = do
@@ -1504,10 +1511,13 @@ hasCaptionStyle =
 
 stripCaptionLabel :: [Element] -> [Element]
 stripCaptionLabel els =
-  if any isNumberElt els
-     then dropWhile (not . isNumberElt) els
-     else els
+    if null afters
+       then els
+       else filter isBookmark befores <> afters
   where
+    (befores, afters) = break isNumberElt els
+    isBookmark (Element name _ _ _) =
+      qName name == "bookmarkStart" || qName name == "bookmarkEnd"
     isNumberElt el@(Element name attribs _ _) =
        (qName name == "fldSimple" &&
              case lookupAttrBy ((== "instr") . qName) attribs of

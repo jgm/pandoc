@@ -187,6 +187,7 @@ formatFromFilePath x =
     ".dokuwiki" -> defFlavor "dokuwiki"
     ".epub"     -> defFlavor "epub"
     ".fb2"      -> defFlavor "fb2"
+    ".fodt"     -> defFlavor "fodt"
     ".htm"      -> defFlavor "html"
     ".html"     -> defFlavor "html"
     ".icml"     -> defFlavor "icml"

@@ -14,14 +14,15 @@ module Text.Pandoc.Writers.Markdown.Inline (
   inlineListToMarkdown,
   linkAttributes,
   attrsToMarkdown,
-  attrsToMarkua
+  attrsToMarkua,
+  linkDestination
   ) where
 import Control.Monad (when, liftM2)
 import Control.Monad.Reader
     ( asks, MonadReader(local) )
 import Control.Monad.State.Strict
     ( MonadState(get), gets, modify )
-import Data.Char (isAlphaNum, isDigit)
+import Data.Char (isAlphaNum, isDigit, isSpace)
 import Data.List (find, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as M
@@ -86,7 +87,7 @@ escapeText opts = T.pack . go' . T.unpack
   go ('\\':c:cs)
     | isEnabled Ext_raw_tex opts = '\\':'\\':go (c:cs)
     | isAlphaNum c = '\\' : go (c:cs)
-    | otherwise = '\\':'\\': go cs
+    | otherwise = '\\':'\\': go (c:cs)
   go ('!':'[':cs) = '\\':'!':'[': go cs
   go ('=':'=':cs)
     | isEnabled Ext_mark opts = '\\':'=':go ('=':cs)
@@ -337,6 +338,17 @@ avoidBadWraps inListItem = go . toList
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
   toList (Concat a b) = a : toList b
   toList x = [x]
+
+-- | Render a link destination, enclosing it in angle brackets if
+-- it contains whitespace, which is not allowed in a bare destination.
+linkDestination :: Text -> Text
+linkDestination src
+  | T.any isSpace src = "<" <> T.concatMap escapeChar src <> ">"
+  | otherwise = src
+  where
+    escapeChar c
+      | c `elem` ['<', '>', '\\'] = T.pack ['\\', c]
+      | otherwise = T.singleton c
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
@@ -700,8 +712,8 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
             writeHtml5String opts{ writerTemplate = Nothing }
             (Pandoc nullMeta [Plain [lnk]])
       | otherwise -> return $
-         "[" <> linktext <> "](" <> literal src <> linktitle <> ")" <>
-         linkAttributes opts attr
+         "[" <> linktext <> "](" <> literal (linkDestination src) <> linktitle
+         <> ")" <> linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&

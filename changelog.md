@@ -1,5 +1,1010 @@
 # Revision history for pandoc
 
+## pandoc 3.12.1 (2026-10-07)
+
+  * New input and output format: `fodt` (#4010). This is ODF's
+    "flat" representation of a text document: a single XML file
+    instead of a zip package (ODT). It supports the same options
+    as `odt`, including `--reference-doc` (which should be a
+    zipped `odt`) and `--link-images`.
+
+  * Resolve keywords after loading a syntax definition (#11921, #11923).
+    This fixes a 3.12 regression in `--syntax-definition` that was due to a
+    change in skylighting. As the skylighting changelog indicates, users must
+    now apply `resolveKeywords` after parsing a syntax definition.
+
+  * With `--citeproc`, we no longer extract particles from given and
+    family names in structured CSL JSON or CSL YAML references (#11911).
+    Thus, for example, `family: de Gaulle` should not create a
+    non-dropping particle "de"; "de Gaulle" should be considered
+    the integral family name. This is a behavior change that
+    could affect some bibliography processing.
+
+  * Commonmark reader:
+
+    + Make task lists work in `commonmark_x`. Previously `task_lists`
+      would not work if `fancy_lists` was enabled, for any
+      `commonmark` variant.
+
+  * Markdown reader:
+
+    + Put `alert` after `tip`, etc. in classes (#11919). Some of
+      the writers (gfm, docbook, asciidoc, rst) check for the
+      admonition name as the first class, so the change putting
+      `alert` first broke the output. (Regression from 3.12.)
+    + Don't trim spaces in inline span. Previously we trimmed the
+      space in e.g. `[ test ]{.class}`. This behavior has no good rationale,
+      and it made it impossible to represent insertions and deletions properly.
+    + Make lookahead for setext header line more efficient.
+
+  * Docx reader:
+
+    + Keep bookmark when stripping caption label (#11918).
+      This allows us to preserve internal links to figures.
+    + Add map of table styles to the reader environment.
+    + Fix double strikethrough being dropped (Kyohei Takahashi).
+      `w:dstrike` was not parsed at all, so text marked with Word's double
+      strikethrough was read as plain text, with no indication that it had
+      been struck out. Treat it as Strikeout.
+    + Keep spaces at the edges of tracked changes in the span (#11904,
+      Raffaele Mancuso). This is important for tracking insertions/deletions.
+
+  * ODT reader:
+
+    + Don't crash on a table with no rows.
+    + Don't loop forever on cyclic style inheritance.
+    + Make `getStyleFamily` linear in the inheritance depth. A style
+      whose family had to be inherited took time exponential in the
+      chain length.
+    + Cap the number of spaces produced by `text:s`. `text:c` is
+      unbounded in ODF, so `<text:s text:c="200000000"/>` let an
+      832-byte document allocate until the OOM killer stepped in.
+    + Keep the set of used anchors in the reader state.
+    + Look up used anchors in a Set in `uniqueIdentFrom`.
+    + Keep the archive's media in a Map rather than an association list.
+    + Attach table captions wherever they occur. `post_process'` matched
+      a table followed by a caption only at the very head of the block list
+      and then stopped, so a caption was picked up only if its table was
+      the first block of the document; anywhere else the caption was dropped
+      and the internal marker Div leaked into the output. Walk
+      the whole document instead, so captions nested in sections,
+      cells and list items are found too. Accept the caption before
+      its table as well as after it.
+    + Don't add a bogus media entry for a missing image.
+    + Only treat font weights of 700 and up as bold. Every numeric
+      `fo:font-weight` from 100 to 900 was mapped to bold, so text
+      in a hairline or light weight was read as Strong.
+    + Read text wrapped in metadata elements and fields.
+      Content of an element the reader did not recognize was discarded along
+      with the element, which silently lost text: fields such as
+      `text:page-number`, `text:author-name` or `text:chapter`, the RDFa
+      wrapper `text:meta`, the bibliographic wrapper `text:meta-field`,
+      and ruby annotations.  Add matchers for those; for ruby, keep the base
+      text and drop the gloss, which pandoc cannot represent.
+    + Honour `table:number-{columns,rows}-repeated`. ODF abbreviates a
+      run of identical cells or rows with a repeat count.  The
+      reader ignored both counts, so a row of five cells written as three
+      elements came out three cells wide. Also count a cell
+      spanning several columns as occupying all of them when
+      working out the number of columns, rather than as one.
+    + Read rows wrapped in `table:table-row-group`. Rows need not be
+      immediate children of the table.
+    + Read blocks nested in list items, footnotes and cells. ODF allows
+      the same block-level content wherever it allows a paragraph,
+      but the reader spelled the list of block matchers out
+      separately at each site and each spelling was missing
+      something: a table in a list item was dropped, a list or
+      table in a footnote was dropped, and a heading or nested
+      table in a table cell was dropped. Keep a single list and
+      use it everywhere, so the sites cannot drift apart again.
+    + Read images embedded in `office:binary-data`.
+    + Read MathML embedded inline in `draw:object`. A flat OpenDocument file
+      cannot refer to a separate formula document, so
+      the MathML is a descendant of the draw:object instead.
+    + Add `readFODT` for flat OpenDocument input [API change].
+    + Fix formula lookup when the href has a trailing slash.
+    + Trim the alt text of an image.
+    + Look up the image mime type on the `draw:image` element instead of guessing
+      from magic bytes.
+
+  * RTF reader:
+
+    + Combine UTF-16 surrogate pairs (#11920).
+
+  * Typst reader:
+
+    + Do not emit mixed table column widths (#11898, Samuel Huang).
+      Previously we evenly split the remaining width, but generally
+      it looks better just to make every column `auto` if any column
+      is default width.
+    + Treat zero-width table fractions as unspecified (#11898, Samuel Huang).
+
+  * Org reader:
+
+    + Improve performance: use a jump table to find the end of plain text
+      runs, and dispatch on the next character in `inline`.
+
+  * Creole reader:
+
+    + Use jump tables to find the end of plain text runs.
+    + Use `takeWhile1P` in `str`.
+
+  * RST reader:
+
+    + Use `takeWhile1P` for raw field list items.
+
+  * Textile, Vimwiki, MediaWiki, Txt2Tags readers:
+
+    + Use jump tables to find the end of plain text runs.
+
+  * Roff readers:
+
+    + Use `takeWhile1P` for `regularText`.
+
+  * Mdoc reader:
+
+    + Use `takeWhile1P` in lexer.
+
+  * Docx writer:
+
+    + Use table style `id` in the `tblStyle` element (#11932).
+      Previously we used the table style `name`. This happened to work
+      for the default table style, but only because its name and id matched.
+      It failed for custom styles whose names did not match their ids.
+    + Put a heading's bookmark in its paragraph (Robert Szarka,
+      #11845, cf. #8825). The bookmark for a section's id
+      surrounded the whole section, at body level, so a screen
+      reader met it at the section's last line rather than at the
+      heading. Moreover, the docx reader looks for bookmarks only
+      inside paragraphs, so the ids did not round-trip.
+    + Improve highlighting of `marked` spans containing math (#11885,
+      Samuel Huang).
+
+  * OpenDocument writer:
+
+    + Use `literal` instead of `text . T.unpack`.
+    + Emit whitespace runs in one piece.
+    + Count styles and notes in O(1).
+    + Give nested notes distinct ids.
+    + Use valid column style names past column 26 (`AA`, `AB`, etc.).
+    + Apply the requested style to `Plain` blocks. `withParagraphStyle`
+      only wrapped `Para` in a paragraph with the requested
+      style; a `Plain` fell through to `blockToOpenDocument` and came
+      out with the default style.
+    + Render the abstract as blocks. The abstract was wrapped in a Div
+      with `custom-style` set to `Abstract`, but then handed to
+      `metaToContext`, which renders metadata fields with the inline writer.
+      The style was lost, as well as any block-level formatting.
+      Regression from 013351f602.
+    + Reuse identical automatic paragraph styles. Every blockquote,
+      every explicitly aligned table cell, and every direction-adjusted
+      style got a fresh `Pn` automatic style, even when an
+      identical one already existed.
+    + Look up cross-reference targets in a Map. Skip the collecting walk
+      altogether unless `xrefs_name` or `xrefs_number` is enabled, since
+      nothing reads the result otherwise and neither is on by default.
+      Elements with an empty identifier are no longer collected, so a link to
+      "#" can no longer resolve to a reference with an empty ref-name.
+    + Sort automatic text styles numerically rather than alphabetically
+      (`T9`, `T10`, ...).
+
+  * ODT writer:
+
+    + Always render `content.xml` with a template. `writeOpenDocument`
+      returns a bare body fragment when writerTemplate is
+      Nothing.  This is needed mainly for the `fodt` writer.
+    + Have `pandocToODT` return an Archive instead of a ByteString.
+      This lets an alternative entry point post-process the archive.
+    + Add `writeFODT` for flat OpenDocument output [API change].
+
+  * LaTeX writer:
+
+    + Allow alt text in figure to wrap (#11924).
+
+  * Commonmark writer:
+
+    + Fix escaping bug (#11927). A non-alphanumeric after an
+      escaped backslash would be omitted.
+
+  * Typst writer:
+
+    + Revert pandoc 3.12 change that omitted a blank line at the end
+      of a `block`. The blank line actually is semantically significant;
+      without it, styling of `par` will have no effect.
+    + Support `hanging-indent` and `entry-spacing` in CSL bibliography
+      entries (#11926). Instead of hard-coding the formatting in
+      the block, we use a show rule on `<refs>`, included
+      conditionally by the default template. Values will be set
+      for `csl-hanging-indent` and `csl-entry-spacing` based on
+      the CSL style, but these variables can be overridden on the
+      command line using `--variable`. It is also possible to
+      include a new show rule in header-includes, which will take
+      priority over the other.
+
+  * Markdown writer:
+
+    + Put `<..>` around link or image destinations containing
+      spaces (rca-umb).
+    + Escape list markers after a line break (#11863, Aslak Hellesøy).
+    + Don't use a multiline table for a header-only table (#11939).
+
+  * Text.Pandoc.XML:
+
+    + Make `escapeStringForXML` and `escapeNls` more efficient.
+    + Build XML tags with a single doclayout allocation rather than
+      several.
+
+  * Text.Pandoc.SelfContained:
+
+    + Fix regression in escaping of data URIs (#11942). A change
+      in 3.12 broke escaping of data URIs, so that `--embed-resources`
+      no longer worked properly.
+
+  * Text.Pandoc.Parsing:
+
+    + `mathDisplay`, `mathInline`: respect TeX groups and comments (#11887,
+      Erik Demaine). Prevent math delimiters inside TeX brace groups
+      and percent comments from prematurely closing an equation.
+
+  * Text.Pandoc.XML.Light:
+
+    + Build the root element from the event stream.
+      Instead of using xml-conduit's DOM parser and then converting
+      the result back to our Element type, just reuse
+      `parseXMLContentsWithEntities`, which folds the event stream
+      directly into our types. This speeds up every XML-based reader.
+      Behavior change: Attributes now preserve document order instead of
+      being sorted alphabetically, as was already the case for
+      `parseXMLContentsWithEntities`.
+
+  * Bump version of reveal.js to 6. Version 6 is required for the
+    changes in plugin locations incorporated in pandoc 3.12.
+
+  * `reference.docx`: don't make Table style `semiHidden` (#11931).
+    This allows it to appear in the table styles gallery.
+
+  * Benchmark improvements:
+
+    + Include the benchmark sample in the benchmark directory, to ensure
+      that it doesn't change between releases. Include images too.
+    + Change the benchmark sample to a mix of markup-heavy and prose-heavy
+      text, including tables.
+
+  * Use latest citeproc, texmath.
+
+## pandoc 3.12 (2026-09-27)
+
+  * Markdown reader:
+
+    + Make alert keywords case-insensitive (#11836, Hendrik Erz).
+      In addition, the class `alert` is now added to the produced
+      Divs.
+    + Fix stream position handling in `base64DataURI`.
+    + Cheaply reject `bareURL` before trying uri/emailAddress.
+    + Reset sourcepos in `parseWithString'` when parsing a block
+      quote or list item. Otherwise it can happen that by the
+      time `parseWithString'` is called, the position has already
+      been set to the next file on the command line. Fixes an
+      odd bug with `rebase_relative_paths` (#11888).
+    + `rebase_relative_paths`: recognize URLs with unknown schemes
+      (#11858).
+    + Use `takeWhile1P` in the hot inline parsers `str`, `code`,
+      `enclosure`, and `mmdShortSubscript`.
+    + Reset sourcepos in `parseWithString'` when parsing a block quote
+      or list item (#11888). This ensures that `rebase_relative_paths`
+      will see the right source file.
+
+  * Typst reader:
+
+    + Map `form: "prose"` citations to AuthorInText (#11846,
+      Samuel Huang).
+    + Make the handler maps monomorphic by wrapping the handlers
+      in newtypes with polymorphic fields (BlockHandler, InlineHandler).
+    + Store document labels in a Set instead of a list.
+    + In `pInline`, only perform the label-target check for
+      `ref` elements, not for every inline element.
+    + Handle `highlight` as a mark span (#11879, Samuel Huang).
+    + Collapse citations around soft break (#11897).
+    + Handle block content in inline element bodies (#11881,
+      Samuel Huang).
+    + Handle `#par` (explicit paragraph element).
+
+  * LaTeX reader:
+
+    + Support LaTeX3 (xparse) document commands (#7540).
+      Support the features described in the LaTeX usrguide.
+    + Fix `\qed` to produce U+00A0 (nbsp) instead of BEL.
+    + Fix `unescapeURL` handling of escaped backslash.
+    + Require that `\newif` names begin with "if".
+    + Fix position off-by-one after `##` in tokenizer.
+    + Fix doubled source positions in `retokenizeComment`.
+    + Make raw token capture O(1) per token.
+    + Make `untokenize` linear instead of quadratic.
+    + Fail `macroDef` fast on non-macro-defining commands.
+    + Peek at next token directly in `peekTok` instead of going
+      through `satisfyTok`.
+    + Skip `doMacros` state update for non-macro tokens.
+    + Build command dispatch maps (`inlineCommands`, etc.) once per parse.
+    + Keep ASCII quotes when ligatures are disabled.
+    + Don't discard state changes made in optional arguments.
+    + Keep nested conditionals balanced in `\iftrue` etc.
+
+  * Docx reader:
+
+    + Read ScreenTips as link titles (#11869, Robert Szarka).
+    + Use `comment-id` instead of `id` in AST for comments.
+
+  * ODT reader:
+
+    + Rewrite in monadic style. Net -994 lines. No changes to test output.
+    + Handle `textProperties` on paragraph styles (#2623).
+      Previously these just got ignored, not applied to the
+      paragraph's text.
+
+  * HTML reader:
+
+    + Don't require a closing tag for checkbox inputs.
+      `<input>` is a void element.
+    + Allow omitted `</tr>` in tables. The `</tr>` closing
+      tag is optional in HTML.
+    + Don't drop cells when there are too few `<col>` elements.
+    + Let the first of duplicate attributes win. HTML specifies that
+      the first occurrence wins.
+    + Respect `raw_html` for inline `<style>` elements.
+    + Use a Map for the note table.
+    + Report the noteref position for unresolved notes. The
+      ReferenceNotFound warning was logged after the
+      whole document had been parsed, so it always pointed at the
+      end of the input. Record the position of the first reference
+      to each note and use it in the warning.
+    + Find list style anywhere in the class attribute.
+      Previously `<ol class="fancy lower-roman">` got DefaultStyle,
+      because the whole class attribute was compared against the
+      known style names. Check each class individually. As a side
+      effect, an unrecognized class no longer prevents falling back
+      to the style attribute.
+    + Limit iframe nesting depth.
+    + `htmlTag`: Don't copy the remaining input on each invocation. A
+      space was appended to the remaining input to guarantee a
+      TagPosition token after the parsed tag; since the input is a
+      strict Text, this copied the entire remaining input every
+      time htmlTag was called (e.g. for every inline HTML tag in a
+      markdown document), giving quadratic behavior in tag-dense
+      documents. Instead, handle the case where the tag is the
+      final token by computing the end-of-input position directly.
+    + Pass the tag name to `pSpanLike`. The inline dispatcher already
+      knows which span-like element it is looking at, so there is
+      no need for pSpanLike to try a parser.
+    + Fix `pre/code` attribute precedence for first-wins dedup.
+    + Implement `pSatisfy` as a single parsec primitive.
+    + Add a fast path to `pTagText`: when the text contains no
+      character that could parse as anything but Str, Space, or
+      SoftBreak under the enabled extensions (and we are not in a
+      pre element), return B.text directly.
+    + Reorder `pTagContents` to try `pStr` and `pSpace` before the
+      math, smart punctuation, and raw TeX parsers. This is safe
+      because pStr cannot consume the special characters that
+      start those parsers, and it avoids most guard checks on the
+      slow path. This makes the html reader benchmark about 33%
+      faster and halves its allocation.
+
+  * Muse reader:
+
+    + Try `str` earlier in inline parser. This makes the reader 2x
+      faster and reduces heap allocation by 60%.
+    + Check raw line before parsing table rows. Table row parsers
+      are speculatively tried at every paragraph line boundary via
+      the terminator continuation. This change gives another 2x
+      speed improvement.
+
+  * Org reader:
+
+    + Fix hard parse failure on bare backslash.
+    + Recognize `.pdf` as an image format (#11859). This matches
+      the behavior of Emacs, which will render `[[file:foo.pdf]]`
+      as an image.
+    + Make `#+OPTIONS: ^:nil` disable all sub-/superscript parsing.
+    + Allow `-` and `_` in inline footnote labels. Org footnote labels
+      may contain word-constituent characters, hyphens and underscores.
+    + Fix swapped arguments in exportSettings parser.
+    + Don't lowercase meta keyword twice.
+    + Avoid quadratic complexity when parsing table rows. Parsing
+      a 32000-row table drops from 7.8s to 0.9s (and scales
+      linearly instead of quadratically); maximum residency also improves.
+    + Use a Set for anchor ids. Reading a document with 64000
+      anchors and as many internal links drops from 23.5s to 5.2s
+      and now scales linearly.
+
+  * RST reader:
+
+    + Use a predicate to test for for special characters.
+    + Avoid double-parsing lines preceding a non-underline.
+    + Fail fast when no link can start at this position.
+    + Use `lookupGE` to find the next anonymous key. Parsing a
+      document with 16000 anonymous links drops from 5.2s to 2.0s.
+    + Replace association list with Map for resolving note references.
+      Parsing a document with 16000 named notes drops from 5.8s
+      to 3.5s, and scaling is now linear.
+    + Fix a bug that led to an empty class for code blocks with
+      no specified language.
+
+  * CommonMark reader:
+
+    + Avoid nested walks in `tex_math_gfm` handling.
+    + Avoid rebuilding the token list with `map id` in
+      `sourceToToks` in the common case where the source starts
+      at line 1.
+
+  * AsciiDoc reader:
+
+    + Resolve footnotes, stem, and icons during conversion.
+      Previously the reader made three separate passes
+      over the parsed AsciiDoc AST (for footnotes, stem math types,
+      and icons) before converting to the pandoc AST. Instead,
+      resolve all three during the toPandoc conversion, which
+      already traverses everything once, threading footnote state
+      and document attributes through a StateT layer. Table
+      headers are now converted before body rows so that footnote
+      resolution follows document order. This makes the reader
+      about twice as fast on typical documents.
+
+  * Djot reader:
+
+    + Fix a bug that led to an empty class for code blocks with
+      no specified language.
+
+  * Vimwiki reader:
+
+    + Split class attribute and put it in the proper slot in
+      pandoc's Attr.
+
+  * Typst writer:
+
+    + Omit blank line at end of block (#11844). This is just a
+      cosmetic change; it is not semantically significant.
+    + Emit label for bare table if present (#11849). Previously a label
+      was only emitted if the table was figurized (and not
+      `.typst:no-figure`).
+
+  * RST writer:
+
+    + Apply `nowrap` to just footnote label, not body.
+      This bug surfaced after `nowrap` was fixed in doclayout.
+
+  * Docx writer:
+
+    + Fix sizing for images (#11838). Setting size to a percent
+      now scales image to percent of page width. Previously a
+      percent width or height would just provide a maximum bound
+      rather than scaling.
+    + Include default style even if paragraph has non-style props
+      (#11867). Previously a paragraph that was, e.g. center-aligned
+      would be missing its default Body Text style. Also ensure that
+      any block sequence (list items, table cells, block quote,
+      div), First Paragraph is set for the first paragraph in the item.
+    + Use `_` to start all bookmark names (#11845). This ensures that
+      they are "hidden" and will not be read by screen readers.
+    + Honor CSL hanging-indent and spacing hints (#11871, Samuel Huang).
+    + Add a fast path to `withDirection`.
+    + Avoid double `withDirection` for Space and SoftBreak.
+    + Map link/image titles to ScreenTips.
+    + Write link titles as ScreenTips (#11869, Robert Szarka).
+    + Properly signal error if reference docx can't be parsed.
+      Previously this led to an incomprehensible error at a later
+      phase.
+    + Make `convertSpace` linear instead of quadratic. On an ad
+      hoc benchmark (4 paragraphs of 80K words each), conversion
+      time drops from 3.2s to 1.1s, and time no longer depends on
+      paragraph length (16 x 20K words previously took 1.8s, now
+      also 1.2s).
+    + Cache token-type styles instead of rebuilding per Code.
+      On an ad hoc benchmark with 100K inline code spans,
+      conversion time drops from 2.4s to 1.5s.
+    + Add FirstParagraph class after display math (#11900).
+      This way the continuation text can be styled flush-left
+      in a style where normal paragraphs are indented.
+    + Treat a "mixed" widths table as all-default (#11899). Previously if
+      some columns were ColWidthDefault and others ColWidth 0.x,
+      we would get columns with a specified width of 0 for the default
+      ones. Instead, treat all columns as default in this case.
+    + Use `comment-id` instead of `id` in AST for comments.
+      Note that the Docx writer will still interpret an `id`
+      attribute for legacy compatibility, so if you use markdown
+      files that specify `id`, they should still work.
+
+  * TEI writer:
+
+    + Use `rend`, not `rendition` attribute, on milestone
+      (#11842, Yusuf Efe) `rendition` takes pointers to rendition
+      descriptions, while `rend` is the free-text attribute,
+      which is what a plain "line" value needs.
+
+  * LaTeX writer:
+
+    + Avoid nested walk in table cell line-break handling.
+    + Don't use `footnotehyper` for notes in longtable.
+      Instead, generate them manually as we do for floating tables.
+      This removes our dependency on footnotehyper, and resolves a
+      compatibility problem with `endfloat` (#11857).
+    + Remove unused `stInternalLinks` state field. The
+      field has not been read since the writer switched to always
+      adding hypertargets, but we were still doing a full-document
+      query to populate it.
+    + Avoid needless conversions in `sectionHeader`.
+      The note-free and link-free variants of the heading text
+      were rendered for every heading, even though the former is
+      only needed when the heading contains a note, image, or
+      identified span, and the latter only for unnumbered, listed
+      headings.
+    + Fuse preprocessing passes in `inlineListToLaTeX`.
+      The strut-insertion and quote-kerning fixups were separate
+      list traversals, allocating an intermediate list each, and
+      this function is called at every level of inline nesting.
+      Combine them into a single pass.
+    + Avoid String round-trip for highlighted inline code.
+    + Don't unpack code string to choose `lstinline` delimiter.
+    + Only compute PDF trailer ID when `SOURCE_DATE_EPOCH` is set.
+    + Use `showHex` instead of (slower) `printf` in `toLabel`.
+
+  * RST writer:
+
+    + Don't re-transform stored labels and alt text.
+      Reference labels, image substitution labels, and alt text are
+      stored after the document-wide walk in inlineListToRST has
+      already applied transformInlines (flattening, backslash-space
+      insertion, etc.). Rendering them with inlineListToRST applied
+      these non-idempotent transformations a second time, inserting
+      duplicate `\ ` markers. With `--reference-links` this could
+      make the inline reference and its definition render
+      differently, producing a broken RST reference.
+
+  * Native writer:
+
+    + Render directly instead of using pretty-show.
+      Previously writeNative used pretty-show's `ppDoc`, which shows
+      the document, tokenizes and re-parses the result into a
+      generic Value, and lays that out via Text.PrettyPrint.HughesPJ.
+      The layout step dominated the cost of the writer (and of
+      any pipeline producing native output). We now build a
+      width-cached layout tree directly from the AST and render
+      it with a small renderer that reproduces HughesPJ's layout
+      algorithm exactly (including the ribbon computation with
+      ribbonsPerLine = 1.2 and the treatment of glued closing
+      delimiters), so the output is byte-for-byte identical to
+      before. Verified against the old binary on all golden
+      .native files and the markdown test corpus at many column
+      widths, in both standalone and plain modes. The writer is
+      about 4x faster. Also remove the pretty and pretty-show
+      dependencies.
+
+  * XML writer:
+
+    + Respect `--standalone`. When standalone is selected,
+      we get a full Pandoc element with xml header and metadata. When
+      not, we get a fragment -- just the blocks.
+    + Use the pretty-printer instead of manual newlines.
+      Render the document with `ppcElement`, using a
+      configuration that treats elements with inline content as
+      inline tags, so that no significant whitespace is added
+      inside them. Consecutive text nodes are merged, SoftBreak
+      is written as a literal newline, and whitespace runs that
+      would not survive a roundtrip (e.g. `" \n"` or `"\n\n"`)
+      are encoded as Space and SoftBreak elements.
+    + Encode attribute names that are not valid XML names.
+      Pandoc attribute names may contain characters that are not
+      allowed in XML attribute names, such as colons
+      (`typst:property`). Use the common convention of encoding
+      such characters as `_xHHHH_`, where `HHHH` is the hexadecimal
+      code of the character: the writer encodes attribute names
+      (`foo:bar` becomes `foo_x003A_bar`) and the reader decodes
+      them.
+    + Don't drop attributes with empty values. The writer dropped
+      any attribute with an empty value, so user key-value
+      attributes like `("k","")` disappeared and did not round
+      trip.
+    + Improve performance: the XML writer is now on par with the
+      JSON writer.
+
+  * EPUB writer:
+
+    + Render TOC item titles in the host monad. Previously each TOC
+      item title in the nav entry was rendered with a separate
+      `runPure (writeHtmlStringForEPUB ...)`. Since every one of
+      these invocations starts with a fresh CommonState, the
+      translations YAML file was re-read and re-parsed for every
+      TOC item, which accounted for a significant part of the
+      EPUB writer's run time on documents with many sections.
+    + Speed up MathML/SVG detection for the manifest.
+
+  * Powerpoint writer:
+
+    + Add archive entries in a single pass.
+    + Cache the parsed slide master in WriterEnv.
+    + Skip speaker-notes walk when there are no notes.
+
+  * ANSI writer:
+
+    + Fix missing bar on blockquote's first line (#11804,
+      Gaurav Vijay Jadhav D.).
+
+  * HTML writer:
+
+    + Fix typo in `intrinsicEventsHTML4`. The list had
+      `onmouseout` twice and was missing `onmousemove`.
+    + Don't emit `<p></p>` for paragraphs with no rendered content.
+    + Improve email obfuscation. Preserve formatting (e.g. emphasis)
+      in the link text of obfuscated mailto links. Preserve link
+      attributes in reference- and JavaScript-obfuscated links.
+      Avoid double-escaping the already-rendered link text in the
+      fallback branch for unparseable mailto URLs.
+    + Respect `--id-prefix` in EPUB3 footnote section id.
+    + Respect incremental/nonincremental classes inside columns.
+    + Make KaTeX CSS URL handling consistent with the JS URL.
+    + Use truncate consistently for table width percentages.
+      Previously the table width could exceed the sum of column widths.
+    + Avoid walking section contents when not producing slides.
+    + Hoist attribute set unions to top level.
+    + Make `strToHtml` more efficient. Replace the
+      `T.groupBy`-based implementation, which allocated a list of
+      Text fragments and round-tripped through String, with a
+      simple `T.break` scanner.
+
+  * Org writer:
+
+    + Don't render table body rows twice. Table rows
+      were converted once to compute column widths and then again
+      to produce the output. Since blockListToOrg is stateful, any
+      footnote in a table cell was registered twice, yielding
+      duplicate footnote definitions and skewed numbering; it also
+      doubled the rendering work. Reuse the first conversion.
+    + Use `#+begin_export html` for raw HTML blocks. `#+begin_html`
+      was removed in Org 9.0 (2016).
+    + Don't treat bare punctuation as a list marker.
+      The check that keeps ordered list markers from ending up at
+      the beginning of a line matched `Str "."` and `Str ")"`,
+      since `T.all isDigit ""` is True. Require at least one digit.
+    + Don't emit `<<>>` for spans with no id.
+    + Avoid `=` delimiter for inline code containing `=`.
+      Org has no escape mechanism inside verbatim text, so `=code
+      with ==` did not parse as verbatim. Fall back to the
+      equivalent `~...~` delimiter when the content contains `=`
+      (and no `~`).
+    + Escape square brackets in links. Link targets
+      containing square brackets broke the bracket link syntax.
+      Escape targets the way Emacs' `org-link-escape` does:
+      backslash-escape brackets and double backslash runs occurring
+      before a bracket or at the end of the target. Link
+      descriptions cannot contain escapes; instead, like
+      `org-link-make-string`, insert a zero-width space between
+      consecutive closing brackets and before a closing bracket at
+      the end of the description.
+    + Build escaped strings from chunks, not characters.
+      `escapeString` allocated one Doc node per character for any
+      string containing a non-alphanumeric character. Split on the
+      (rare) special characters instead and emit intervening text
+      as single literals. No change in output.
+    + Emit definitions for footnotes nested in footnotes.
+    + Use a counter for footnote numbers. Computing the
+      reference number as `length stNotes + 1` walked the
+      accumulated note list for every footnote, making note
+      numbering quadratic in the number of notes.
+
+  * Org reader and writer:
+
+    + Make code line comma-escaping match Emacs' behavior.
+      Org's escaping rule for code in src/example blocks adds a
+      comma to lines matching `^[ \t]*,*(\*|#\+)`, i.e. lines
+      already starting with commas before `*` or `#+` get an
+      additional comma; unescaping removes one comma from such
+      lines. The writer previously left a literal `,#+foo` line
+      unescaped, and the reader then stripped its comma when
+      reading the result back, corrupting the code on round trips.
+      Writer and reader now both handle runs of commas, matching Emacs.
+
+  * Text.Pandoc.ImageSize:
+
+    + ImageType now derives Eq [API change].
+    + Fix typo in bare JPEG signature detection.
+    + Fix size detection for lossless (VP8L) WebP.
+    + Make EMF parsing more robust.
+    + Don't let zlib errors escape as exceptions in `pdfSize`.
+      Treat malformed streams as a parse scanner (so we keep
+      scanning the rest for a `/MediaBox`).
+    + Fix AVIF detection and parsing.
+    + Take bounding box origin into account for EPS. The
+      size was computed from the upper corner alone, giving wrong
+      dimensions for EPS files whose bounding box has a non-zero origin.
+    + Handle commas and fractional numbers in SVG `viewBox`.
+    + Add tests for image type and size detection (Tests.ImageSize).
+    + Determine JPEG size without decoding the image (which can
+      allocate huge amounts of memory). If the header scan fails,
+      we still fall back to the full decoder.
+    + Scan PDF object streams in chunks, not byte by byte.
+    + Speed up `findSvgTag` by using a single pass. Up to 60X
+      faster on files with few `<` characters.
+    + Determine PNG size without decoding the image.
+      If the header scan fails, we still fall back to the full decoder.
+    + Use `writerDpi` for AVIF images instead of hardcoding 72.
+      With the default options this changes the assumed resolution from
+      72 to 96 dpi.
+    + Allow whitespace between number and unit in `numUnit`.
+      So e.g. `width="3 cm"` is now recognized.
+    + Handle largesize and size-0 boxes in AVIF parser.
+    + Make checkDpi default to 72 for negative dpi values, not
+      0; a negative dpi would produce negative dimensions in
+      `sizeInPoints`.
+
+  * Text.Pandoc.SelfContained:
+
+    + Fix inverted charset condition in `makeDataURI`.
+    + Keep semicolon in `@import` fallback output.
+    + Make `</script` check case-insensitive.
+    + Prefix all `url(#...)` occurrences in SVG attributes.
+      Previously only the first got prefixed rewritten.
+    + Handle gzip decompression errors gracefully.
+    + Remove unused `isHtml5` field from ConvertState.
+    + Cache fetched resources. Previously every occurrence of a
+      resource was fetched, decompressed, and CSS-rewritten
+      independently, so a document referencing the same image
+      N times triggered N network requests. Failed fetches are
+      cached too, so each missing resource is now reported only once.
+    + Only add `role` and `aria-label` when inlining SVGs.
+      Do not add them to other elements with `src` attributes.
+    + Escape only what is needed in textual data URIs.
+
+  * Text.Pandoc.UTF8:
+
+    + Avoid copying input when it contains no CRs. `toText` and
+      `toTextLazy `unconditionally ran a CR-removing
+      filter over the input, allocating a full copy of the document
+      even in the common case where no CRs are present. Check for a
+      CR first (B.elem, a fast memchr) and reuse the input buffer
+      unchanged if none is found; for the lazy variant, do this
+      chunk-wise to preserve laziness. On a 10 MB LF-only input
+      this makes `toText` over 4x faster; when CRs are present the
+      extra scan is not measurable.
+    + Make `readFile` exception-safe. Use `withFile`
+      instead of `openFile` so the handle is closed even if reading
+      throws.
+
+  * Text.Pandoc.Class:
+
+    + Avoid copying input in `toTextM`. Skip the CR-filtering
+      copy when the input contains no CRs, as already done in
+      Text.Pandoc.UTF8.toText.
+    + Make `runSilently` error-safe. Previously, if the action
+      passed to runSilently threw an error that was later caught,
+      the verbosity remained pinned at ERROR and all previously
+      accumulated log messages were lost. Now the original log
+      and verbosity are restored even when the action fails.
+    + Fix `isRelativeToParentDir`. Compare the first path
+      component rather than just looking at a prefix, to
+      correctly handle paths like `..foo/bar.yaml`.
+    + Fix base64 detection in `extractURIData`. The base64 indicator
+      in a data URI is the final parameter of the media type and may
+      follow other parameters, e.g. `charset`. Previously, the
+      code expected `;base64` to be the only parameter.
+    + Fix percent-decoding in `extractURIData`.
+    + Report accurate offset in `toTextM` errors. Scan for the first
+      invalid UTF-8 sequence and report its actual position and byte.
+    + Reset HTTP manager in `setNoCheckCertificate`. The HTTP manager
+      is created lazily with TLS settings based on `stNoCheckCertificate`
+      and then cached in CommonState, so changing the option after the
+      first request had no effect. Discard the cached manager when the
+      option's value changes.
+    + Don't follow symlink cycles in `addToFileTree`.
+    + Finish factoring `openURL` into Text.Pandoc.Class.IO.HTTP.
+      Commit 455bea907 added the new module but did not register it
+      in pandoc.cabal or remove the original definitions.
+    + `logOutput`: avoid multiple `hPutStrLn`, which can cause confusing
+      interleaving.
+
+  * Text.Pandoc.MediaBag:
+
+    + Use hashlazy to avoid copying media contents.
+    + Treat `data:` and `file:` URI schemes case-insensitively.
+    + Make MediaItem mime type and path strict. `mediaContents`
+      is left lazy so contents need not be forced at insert time.
+    + Use `Text.Pandoc.URI.isURI` in `canonicalize`. `Network.URI.isURI`
+      treats Windows drive-letter paths like `c:/foo.png` as URIs.
+    + Only reject `..` as a path component. The insertMedia check used
+      `isInfixOf`, so a harmless name like foo..bar.png was silently
+      renamed to its content hash.
+    + Collapse `.` and `..` components in `canonicalize`. `normalise`
+      does not remove redundant path components, so `img/../a.png`
+      and `a.png` were distinct keys. Use `makeCanonical` (as
+      PandocPure's FileTree already does for its path-indexed map),
+      which also handles duplicate and trailing slashes, replacing
+      backslashes with slashes first.
+    + Prevent `mediaPath` collisions between keys. The friendly
+      mediaPath was derived by percent-unescaping the key, so
+      distinct keys like `a%20b.png` and `a b.png` produced the same
+      mediaPath ("a b.png") and silently clobbered each other on
+      extraction (and inside docx/epub archives). Now the original name
+      is only kept if the key contains no percent sign, so `mediaPath`
+      equals the key and distinct keys yield distinct paths; anything
+      percent-encoded gets a content-hash name. Hashed names can
+      only coincide for identical contents, which is harmless.
+
+  * Text.Pandoc.XML.Light:
+
+    + Fix escaping of repeated `]]>` in `CDATA`.
+    + Make `escStr` more efficient.
+    + Avoid round-trips in `ppCDataS` prettify path.
+      This makes `showCData` and `ppcCData` unused, so they are
+      removed.
+    + Parse XML fragments from the event stream instead of using
+      xml-conduit's document parser, which requires a single root
+      element. Our earlier woraround with a wrapper element was
+      fragile. Behavior changes:
+
+      - Content fragments with an XML declaration or DOCTYPE
+        followed by multiple root elements, and text-only or empty
+        input, now parse instead of erroring.
+      - Attributes now preserve document order instead of being sorted
+        alphabetically (the document parser stored them in a Map).
+      - Errors for unresolved entities and mismatched tags now
+        report source positions.
+
+   + Use `text-builder` package for rendering, instead of text's
+     lazy Text builder. On a large document this cuts docx conversion
+     time by about 13%; output is byte-for-byte identical.
+   + Expose `ppcTopElement` from Output.
+   + ConfigPP now has a field `inlineTag` that checks for inline
+     tags. Inline tags are printed on one line and not indented,
+     by default. Export `useInlineTags`, `prettyConfigPP`.
+
+  * Text.Pandoc.Sources:
+
+    + Add bulk `takeWhileP`/`takeWhile1P` combinators [API change].
+      Character streams over Sources previously had to be
+      consumed one character at a time via `satisfy`, at a cost of
+      several allocations and monadic binds per character. The new
+      combinators scan a whole run of matching characters with a
+      single parser invocation using `T.span`, while replicating the
+      exact semantics of `T.pack <$> many/many1 (satisfy f)`,
+      including empty-chunk handling, position updates at chunk
+      boundaries, and parsec's error messages.
+    + Use the new bulk `takeWhileP`/`takeWhile1P` combinators across
+      readers.
+
+  * Text.Pandoc.Translations:
+
+    + `setTranslations` now keeps an already-loaded translation
+       table when the language is unchanged, instead of
+       unconditionally clearing the cache and forcing a re-read and
+       re-parse of the translations YAML file on the next `translateTerm`.
+    + Term names in translation files are now parsed with a
+       precomputed Map lookup instead of the derived Read instance,
+       which is very slow for a 22-constructor enum.
+
+  * Text.Pandoc.Chunks:
+
+    + Remove vestigial `nav-path` attribute and `rmNavAttrs` walk.
+      This no longer did anything; output is unaffected.
+    + Use `compactifyTable` for tables produced by all readers.
+      Remove old ad hoc `paraToPlain` at the table cell level.
+      This should ensure that we don't get tables that mix Plain
+      and Para (#11864). Such tables tend to look funny when rendered in
+      docx and other formats.
+
+  * Text.Pandoc.Data:
+
+    + Fix `getDataFileNames` with `-embed_data_files`. Previously
+      it was not looking in the right directory and not
+      recursing.
+
+  * Text.Pandoc.Shared:
+
+    + `taskListItemFromAscii`: Fix incorrect treatment of `[ ]` as
+      checked.
+    + Add `stringifyInlines`, a single-pass `stringify` for
+      inlines [API change]. This is about 6x faster than `stringify`
+      for long inline sequences
+    + Speed up `stringify` by making it accumulate `[Text]`
+      and concatenate once at the end, instead of mappending at every node.
+    + Use `stringifyInlines` instead of `stringify` where possible.
+    + Add new function `compactifyTable`. [API change]
+      This converts cells that consist in a single Para block to a
+      Plain, provided the table contains only such cells (or empty cells).
+    + Drop expired entries in `decrementTrailingRowSpans`.
+      Entries whose RowSpan fell to 0 were left in the map, relying
+      on every consumer to guard against them. Delete them instead.
+    + Recognize empty task list items in `toTaskListItem`.
+    + Make `endsWithPlain` look inside DefinitionList.
+      endsWithPlain recursed into the last item of BulletList and
+      OrderedList but ignored DefinitionList, so list items ending
+      with a compact definition list were treated as loose by the
+      RST, Org, and Haddock writers.
+    + Avoid Text -> String round-trips in `htmlAttrs`.
+      This adds a FromText constraint to `htmlAttrs` and
+      `tagWithAttrs` [API change].
+    + Fuse traversals in `ensureValidXmlIdentifiers`.
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Fix logic bug in `splitSentences`.
+    + `lookupMetaBool`: treat empty block or inline list as False.
+    + `htmlAttrs`: escape id and class attributes, like the others.
+    + `stripLeadingTrailingSpace` - strip multiple Space, if present.
+    + `toSubscript`: handle minus sign.
+    + Fix `ensureValidXmlIdentifiers` for Figure and table
+      sub-elements, resolving a bug that produced broken internal
+      links in the HTML4/XHTML, EPUB, DocBook, TEI, ICML, FB2, and
+      ODT writers.
+
+  * Text.Pandoc.Parsing:
+
+    + Improve performance of `uriScheme` by using a trie. Up to 15%
+      faster in URL-heavy documents with `autolink_bare_uris`.
+    + Minor code cleanup.
+    + Remove `$` checks in math when delim is `\(` or `\\(`.
+    + Make `anyOrderedListMarker` more efficient.
+
+  * HTML template:
+
+    + Dark mode support (#11831, Clar Fon).
+
+  * reveal.js template:
+
+    + Fix plugin paths (#11907).
+
+  * flake.nix: parse allow-newer and allow-newer-deps in
+    stack.yaml.
+
+  * Make `embed_data_files` flag default to True. Remove flag
+    settings from cabal.project. This makes it possible to
+    override it on the command line.
+
+  * Depend on commonmark 0.3.1, commonmark-extensions 0.2.7.3,
+    commonmark-pandoc 0.3.0.2 (major performance improvements).
+
+  * Depend on released asciidoc 0.1.1 (major performance
+    improvements).
+
+  * Use released texmath 0.13.3 (major performance improvements).
+
+  * Depend on released djot 0.1.4.3 (major performance
+    improvements).
+
+  * Use released citeproc 0.14 (major performance improvements).
+
+  * Use released doclayout 0.6.
+
+  * Use released zip-archive 0.5 (major performance
+    improvements).
+
+  * Use released skylighting-0.15 (major performance
+    improvements).
+
+  * Depend on released doctemplates 0.11.1.
+
+  * Depend on released typst 0.12.
+
+  * Require text >= 2.0.
+
+  * Bump upper bound for unicode-data.
+
+  * Allow crypton 2.0.x.
+
+  * Allow Diff 2.0.
+
+  * Add `tools/diff-golden-tests.sh`.
+
+  * Fix `tools/diff-zip.sh` on non-Darwin.
+
+  * Add `tools/benchplot.js`. This creates a nice graph comparing two
+    benchmarks.
+
+  * `typst-properties.md`: fix fill syntax in Typst property
+    examples (#11855, zenor0).
+
+  * Remove tested-with from cabal file. We tend not to keep it up to date.
+
+  * Fix typo in Lua filter example (#11875, Andonome).
+
+  * Fix a bug in jats-reader.xml (duplicate attribute)
+
 ## pandoc 3.11 (2026-08-28)
 
   * Add `--math-method` option. This replaces (now deprecated but

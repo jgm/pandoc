@@ -28,7 +28,7 @@ import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
-import Control.Monad (unless)
+import Control.Monad (unless, when)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
@@ -49,6 +49,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
+import Text.Read (readMaybe)
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 import Unicode.Char (isXIDContinue)
@@ -60,7 +61,11 @@ writeTypst options document =
   evalStateT (pandocToTypst options document)
     WriterState{ stOptions = options,
                  stEscapeContext = NormalContext,
-                 stHighlighting = False }
+                 stHighlighting = False,
+                 stCsl = False,
+                 stCslHangingIndent = Nothing,
+                 stCslEntrySpacing = Nothing
+               }
 
 data EscapeContext = NormalContext | TermContext
   deriving (Show, Eq)
@@ -69,7 +74,10 @@ data WriterState =
   WriterState {
     stOptions :: WriterOptions,
     stEscapeContext :: EscapeContext,
-    stHighlighting :: Bool
+    stHighlighting :: Bool,
+    stCsl :: Bool,
+    stCslHangingIndent :: Maybe Text,
+    stCslEntrySpacing :: Maybe Text
     }
 
 type TW m = StateT WriterState m
@@ -95,7 +103,9 @@ pandocToTypst options (Pandoc meta blocks) = do
                            _         -> [])
                   $ lookupMetaInlines "nocite" meta
   hasHighlighting <- gets stHighlighting
-
+  hasCslSettings <- gets stCsl
+  cslHangingIndent <- gets stCslHangingIndent
+  cslEntrySpacing <- gets stCslEntrySpacing
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
@@ -112,6 +122,9 @@ pandocToTypst options (Pandoc meta blocks) = do
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
               $ defField "csl" (lookupMetaString "citation-style" meta) -- #10661
+              $ defField "csl-settings" hasCslSettings
+              $ maybe id (defField "csl-hanging-indent") cslHangingIndent
+              $ maybe id (defField "csl-entry-spacing") cslEntrySpacing
               $ defField "smart" (isEnabled Ext_smart options)
               $ defField "abstract-title" abstractTitle
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
@@ -396,15 +409,26 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
-    Div (ident,_,kvs) blocks -> do
+    Div (ident,cls,kvs) blocks -> do
       let lab = case lookup "typst-label" kvs of
                   Just l -> toLabel FreestandingLabel l
                   Nothing -> toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
+      when ("csl-bib-body" `elem` cls) $
+        modify $ \st -> st{ stCsl = True
+                          , stCslEntrySpacing =
+                              case lookup "entry-spacing" kvs >>=
+                                     readMaybe . T.unpack of
+                                Just (n :: Int) -> Just $ tshow n <> "em"
+                                Nothing -> Nothing
+                          , stCslHangingIndent =
+                              if "hanging-indent" `elem` cls
+                                 then Just "1.5em"
+                                 else Nothing }
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
         $$ toTypstPoundSetText typstTextAttrs
-        $$ chomp contents
+        $$ contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
@@ -412,7 +436,7 @@ defListItemToTypst (term, defns) = do
   modify $ \st -> st{ stEscapeContext = TermContext }
   term' <- inlinesToTypst term
   modify $ \st -> st{ stEscapeContext = NormalContext }
-  defns' <- mapM (fmap chomp . blocksToTypst) defns
+  defns' <- mapM blocksToTypst defns
   return $
     case defns of
       [[Plain _]] -> hang 4 (nowrap ("/ " <> term' <> ": ")) (vcat defns')

@@ -349,7 +349,8 @@ rawFieldListItem minIndent = try $ do
   indent <- length <$> many (char ' ')
   guard $ indent >= minIndent
   char ':'
-  name <- many1TillChar (noneOf "\n") (char ':')
+  name <- takeWhile1P (\c -> c /= '\n' && c /= ':')
+  char ':'
   (void (lookAhead newline)) <|> skipMany1 spaceChar
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
@@ -1221,8 +1222,8 @@ codeblock ident classes fields lang rmTrailingNewlines body =
                                      then stripTrailingNewlines
                                      else id
           attribs = (ident, classes', kvs)
-          classes' = lang
-                    : ["numberLines" | isJust (lookup "number-lines" fields)]
+          classes' =   [ lang | not (T.null lang) ]
+                    ++ ["numberLines" | isJust (lookup "number-lines" fields)]
                     ++ classes
           kvs = [(k,v) | (k,v) <- fields, k /= "number-lines", k /= "class",
                                           k /= "id", k /= "name"]

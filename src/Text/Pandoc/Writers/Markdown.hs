@@ -50,7 +50,8 @@ import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown,
                                             linkAttributes,
                                             attrsToMarkdown,
-                                            attrsToMarkua)
+                                            attrsToMarkua,
+                                            linkDestination)
 import Text.Pandoc.Writers.Markdown.Table (pipeTable, pandocTable)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
@@ -290,7 +291,8 @@ keyToMarkdown opts (label', (src, tit), attr) = do
                 then empty
                 else space <> "\"" <> literal tit <> "\""
   return $ nest 2 $ hang 2
-            ("[" <> literal label' <> "]:" <> space) (literal src <> tit')
+            ("[" <> literal label' <> "]:" <> space)
+            (literal (linkDestination src) <> tit')
             <+> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
@@ -429,28 +431,39 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
          where (id',classes',kvs') = attrs
                attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
-  -- escape if para starts with ordered list marker
+  -- escape if a line starts with a list marker.  This must be done at the
+  -- start of every line, not just the start of the block: a sublist can
+  -- interrupt a list item's text after a LineBreak, so an unescaped marker
+  -- there would be read back as a nested list, destroying the LineBreak.
   variant <- asks envVariant
   let escapeMarker = T.concatMap $ \x -> if T.any (== x) ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
   let startsWithSpace (Space:_)     = True
       startsWithSpace (SoftBreak:_) = True
+      startsWithSpace (LineBreak:_) = True
       startsWithSpace _             = False
+  let escapeLineStart ils =
+        case ils of
+          (Str t:ys)
+            | null ys || startsWithSpace ys
+            , beginsWithOrderedListMarker t
+            -> RawInline (Format "markdown") (escapeMarker t):ys
+          (Str t:_)
+            | t == "+" || t == "-" ||
+              (t == "%" && isEnabled Ext_pandoc_title_block opts &&
+                           isEnabled Ext_all_symbols_escapable opts)
+            -> RawInline (Format "markdown") "\\" : ils
+          _ -> ils
+  -- apply escapeLineStart to the head of the list, then after each LineBreak
+  let go ils = case ils of
+                 []             -> []
+                 (LineBreak:ys) -> LineBreak : go (escapeLineStart ys)
+                 (y:ys)         -> y : go ys
   let inlines' =
         if variant == PlainText
            then inlines
-           else case inlines of
-                  (Str t:ys)
-                    | null ys || startsWithSpace ys
-                    , beginsWithOrderedListMarker t
-                    -> RawInline (Format "markdown") (escapeMarker t):ys
-                  (Str t:_)
-                    | t == "+" || t == "-" ||
-                      (t == "%" && isEnabled Ext_pandoc_title_block opts &&
-                                   isEnabled Ext_all_symbols_escapable opts)
-                    -> RawInline (Format "markdown") "\\" : inlines
-                  _ -> inlines
+           else go (escapeLineStart inlines)
   contents <- inlineListToMarkdown opts inlines'
   return $ contents <> cr
 blockToMarkdown' opts (Para inlines) =
@@ -672,7 +685,7 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
          isEnabled Ext_pipe_tables opts -> do
            tbl <- mkTable (pipeTable opts)
            return $ (tbl $$ caption''') $$ blankline
-       | not (hasBlocks || hasColRowSpans || hasFooter) &&
+       | not (hasBlocks || hasColRowSpans || hasFooter || null rows) &&
          isEnabled Ext_multiline_tables opts -> do
            tbl <- mkTable (pandocTable opts True)
            return $ nest 2 (tbl $$ caption''') $$ blankline

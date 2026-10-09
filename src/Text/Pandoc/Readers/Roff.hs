@@ -530,7 +530,8 @@ macroArg = try $ do
 
 regularText :: PandocMonad m => RoffLexer m [LinePart]
 regularText = do
-  s <- many1Char $ noneOf "\n\r\t \\\""
+  s <- takeWhile1P (\c -> not (c == '\n' || c == '\r' || c == '\t' ||
+                               c == ' ' || c == '\\' || c == '"'))
   return [RoffStr s]
 
 quoteChar :: PandocMonad m => RoffLexer m [LinePart]

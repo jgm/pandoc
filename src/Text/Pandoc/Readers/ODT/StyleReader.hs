@@ -41,7 +41,6 @@ import Control.Applicative ((<|>), optional)
 
 import Data.Default
 import qualified Data.Foldable as F
-import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Text (Text)
@@ -447,8 +446,9 @@ readTextProperties =
           <*> readUnderlineMode
           <*> readStrikeThroughMode
   where isFontEmphasised = [("normal",False),("italic",True),("oblique",True)]
+        -- As in CSS, `bold` is weight 700; lighter weights are not bold.
         isFontBold = ("normal",False):("bold",True)
-                    :map ((,True) . tshow) ([100,200..900]::[Int])
+                    :map (\w -> (tshow w, w >= 700)) ([100,200..900]::[Int])
 
 readUnderlineMode     :: StyleReader (Maybe UnderlineMode)
 readUnderlineMode     = readLineMode "text-underline-mode"
@@ -567,17 +567,27 @@ lookupListStyleByName name Styles{..} = M.lookup name listStylesByName
 -- | Returns a chain of parent of the current style. The direct parent will
 -- be the first element of the list, followed by its parent and so on.
 -- The current style is not in the list.
+-- Note that @style:parent-style-name@ references can be cyclic, so we
+-- keep track of the names already seen to avoid looping forever.
 parents               :: Style       -> Styles ->      [Style]
-parents style styles = L.unfoldr findNextParent style -- Ha!
-  where findNextParent Style{..}
-          = fmap (\p -> (p, p)) $ (`lookupStyle` styles) =<< styleParentName
+parents style styles = go S.empty style
+  where
+    go seen Style{..}
+      | Just name <- styleParentName
+      , not (name `S.member` seen)
+      , Just parent <- lookupStyle name styles
+      = parent : go (S.insert name seen) parent
+      | otherwise
+      = []
 
 -- | Looks up the style family of the current style. Normally, every style
 -- should have one. But if not, all parents are searched.
+-- Searching the parents recursively would repeatedly walk the same
+-- chains, taking time exponential in its length; the chain is linear,
+-- so we can just walk it once.
 getStyleFamily        :: Style       -> Styles -> Maybe StyleFamily
-getStyleFamily style@Style{..} styles
-  =     styleFamily
-    <|> F.asum (map (`getStyleFamily` styles) $ parents style styles)
+getStyleFamily style styles
+  = F.asum $ map styleFamily $ style : parents style styles
 
 -- | Each 'Style' has certain 'StyleProperties'. But sometimes not all property
 -- values are specified. Instead, a value might be inherited from a

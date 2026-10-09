@@ -1,3 +1,6 @@
+Note: pandoc no longer parses particles out of names (see #11911).
+This test is left to confirm the new behavior.
+
 ```
 % pandoc --citeproc -t markdown-citations
 ---
@@ -41,7 +44,7 @@ references:
 
 :::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item4 .csl-entry}
-Bennett, Frank G., Jr., n.d.
+Bennett, Frank G.,! Jr., n.d.
 :::
 
 ::: {#ref-item1 .csl-entry}
@@ -52,16 +55,16 @@ Doe, John, III, n.d.
 Dumboldt, Ezekiel, III, n.d.
 :::
 
-::: {#ref-item2 .csl-entry}
-Gogh, Vincent van, n.d.
-:::
-
 ::: {#ref-item3 .csl-entry}
 Humboldt, Alexander von, n.d.
 :::
+
+::: {#ref-item2 .csl-entry}
+[van Gogh, Vincent]{.nocase}, n.d.
+:::
 ::::::::
 
-[^1]: John Doe III, n.d.; Vincent van Gogh, n.d.; Alexander von
-    Humboldt, n.d.; Frank G. Bennett, Jr., n.d.; Ezekiel Dumboldt III,
-    n.d.
+[^1]: John, III Doe, n.d.; [Vincent van Gogh]{.nocase}, n.d.; Alexander
+    von Humboldt, n.d.; Frank G.,! Jr. Bennett, n.d.; Ezekiel, III
+    Dumboldt, n.d.
 ```

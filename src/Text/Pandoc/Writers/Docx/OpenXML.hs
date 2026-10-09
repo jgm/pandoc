@@ -30,7 +30,7 @@ import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust, listToMaybe)
 import Control.Monad.State ( gets, modify, MonadTrans(lift) )
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
@@ -278,6 +278,12 @@ writeOpenXML :: PandocMonad m
              -> WS m (Text, [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
+  -- Cache the rStyle element for each highlighting token type, so that
+  -- it need not be recomputed for every Code inline.  It depends only
+  -- on the style maps, which don't change during writing.
+  tokTypesMap <- M.fromList <$>
+    mapM (\tt -> (tt,) <$> rStyleM (fromString $ show tt)) [KeywordTok ..]
+  modify $ \st -> st{ stTokTypesMap = tokTypesMap }
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
   let includeLOF = writerListOfFigures opts || lookupMetaBool "lof" meta
   let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
@@ -430,7 +436,18 @@ blockToOpenXML :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
 blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Content]
+-- A section's bookmark goes in its heading's paragraph, around the
+-- heading's text, as Word writes one: it then marks the heading rather
+-- than the whole section (#11845, #8825), and the docx reader, which
+-- reads bookmarks only inside paragraphs, finds it, so a link to the
+-- heading survives a round trip.
+blockToOpenXML' opts (Div (ident,classes,kvs) (Header lev ("",hcls,hkvs) ils : bs))
+  | "section" `elem` classes
+  , not (T.null ident)
+  = blockToOpenXML' opts
+      (Div ("",classes,kvs) (Header lev (ident,hcls,hkvs) ils : bs))
 blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
+  when ("math" `elem` classes) $ setFirstPara
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just (fromString . T.unpack -> sty) -> do
                       modify $ \s ->
@@ -823,6 +840,69 @@ formattedRun els = do
   props <- getTextProps
   return $ mknode "w:r" [] $ props ++ els
 
+-- | Inject a highlight into every run of a converted math element:
+-- glyph runs in a @w:rPr@ child, and a structure's non-glyph parts
+-- (bars, operator spacing) in the @m:ctrlPr@ of its property element
+-- (@m:sSupPr@ and the like), which Word pens when an equation is
+-- highlighted by hand and which the converters omit when empty.
+highlightMathRuns :: XML.Element -> XML.Element -> XML.Element
+highlightMathRuns hl = go
+ where
+  isTag pfx n e = XML.qName (XML.elName e) == n
+              && XML.qPrefix (XML.elName e) == Just pfx
+  go e
+    | isTag "m" "r" e || isTag "m" "ctrlPr" e =
+        e{ XML.elContent = insertHl (map walkContent (XML.elContent e)) }
+    | Just "m" <- XML.qPrefix (XML.elName e)
+    , XML.qName (XML.elName e) `elem` structures =
+        e{ XML.elContent =
+             ensureCtrlPr (XML.qName (XML.elName e) <> "Pr")
+                          (map walkContent (XML.elContent e)) }
+    | otherwise = e{ XML.elContent = map walkContent (XML.elContent e) }
+  walkContent (XML.Elem e) = XML.Elem (go e)
+  walkContent c            = c
+  -- OMML structures (ECMA-376 22.1.2); each takes an m:<name>Pr
+  -- property element as its first child
+  structures =
+    [ "sSup", "sSub", "sSubSup", "sPre"
+    , "f", "nary", "d", "rad", "func", "groupChr"
+    , "limLow", "limUpp", "m", "eqArr", "bar"
+    , "phant", "box", "borderBox", "acc" ]
+  pennedCtrlPr = XML.Elem (mknode "m:ctrlPr" [] (mknode "w:rPr" [] hl))
+  ensureCtrlPr prName cs = case cs of
+    (XML.Elem e : rest) | isTag "m" prName e ->
+      if any isCtrlPr (XML.elContent e)
+        then cs
+        else XML.Elem e{ XML.elContent = XML.elContent e ++ [pennedCtrlPr] } : rest
+    _ -> XML.Elem (mknode ("m:" <> prName) [] pennedCtrlPr) : cs
+  isCtrlPr (XML.Elem e) = isTag "m" "ctrlPr" e
+  isCtrlPr _            = False
+  -- merge into an existing w:rPr child if there is one, else insert a
+  -- fresh w:rPr after an optional m:rPr
+  insertHl cs =
+    case break isWrPr cs of
+      (before, XML.Elem e : rest) ->
+        before ++ XML.Elem e{ XML.elContent = insertInRPr (XML.elContent e) } : rest
+      _ ->
+        case cs of
+          (XML.Elem e : rest) | isTag "m" "rPr" e ->
+            XML.Elem e : wrPr : rest
+          _ -> wrPr : cs
+  -- w:rPr children come in a fixed order (rPrTagOrder): the
+  -- highlight goes before the first child that must follow it, and
+  -- after children not in the order
+  insertInRPr [] = [XML.Elem hl]
+  insertInRPr (c:rest)
+    | followsHl c = XML.Elem hl : c : rest
+    | otherwise = c : insertInRPr rest
+  followsHl (XML.Elem e) =
+    maybe False (> rPrTagOrder M.! "highlight") $
+      M.lookup (XML.qName (XML.elName e)) rPrTagOrder
+  followsHl _ = False
+  isWrPr (XML.Elem e) = isTag "w" "rPr" e
+  isWrPr _            = False
+  wrPr = XML.Elem (mknode "w:rPr" [] hl)
+
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
@@ -849,16 +929,13 @@ inlineToOpenXML' opts (Span ("",["csl-right-inline"],[]) ils) =
 inlineToOpenXML' opts (Span ("",["csl-indent"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
-      kvs' = filter (("id" /=) . fst) kvs
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
+      kvs' = filter ((\x -> x /= "comment-id" && x /= "id") . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
   return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
 inlineToOpenXML' opts (Span (ident,["comment-end"],kvs) content) = do
-  -- prefer the "id" in kvs, since that is the one produced by the docx
-  -- reader.
-  let ident' = fromMaybe ident (lookup "id" kvs)
+  -- now we use comment-id, but support id for legacy compat:
+  let ident' = fromMaybe ident (lookup "comment-id" kvs <|> lookup "id" kvs)
   -- process nested content: see #8189
   nestedContent <- inlinesToOpenXML opts content
   let thisCommentEnd =
@@ -959,19 +1036,25 @@ inlineToOpenXML' opts (Math mathType str) = do
   when (mathType == DisplayMath) setFirstPara
   res <- (lift . lift) (convertMath writeOMML mathType str)
   case res of
-       Right r -> return [Elem $ fromXLElement r]
+       Right r -> do
+         tprops <- asks envTextProperties
+         let r' = fromXLElement r
+             mbhl = listToMaybe
+               [ e | e <- otherElements tprops
+                    , XML.qName (XML.elName e) == "highlight"
+                    , XML.qPrefix (XML.elName e) == Just "w" ]
+         return [Elem (maybe r' (`highlightMathRuns` r') mbhl)]
        Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
-  let alltoktypes = [KeywordTok ..]
-  tokTypesMap <- mapM (\tt -> (,) tt <$> rStyleM (fromString $ show tt)) alltoktypes
+  tokTypesMap <- gets stTokTypesMap
   let unhighlighted = (map Elem . intercalate [br]) `fmap`
                        mapM formattedString (T.lines str)
       formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
       toHlTok (toktype,tok) =
         mknode "w:r" []
           [ mknode "w:rPr" [] $
-            maybeToList (lookup toktype tokTypesMap)
+            maybeToList (M.lookup toktype tokTypesMap)
             , mknode "w:t" [("xml:space","preserve")] tok ]
   let highlighted =
         case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
@@ -1008,12 +1091,13 @@ inlineToOpenXML' opts (Note bs) = do
            [ mknode "w:rPr" [] footnoteStyle
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
-inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),_)) = do
+inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),title)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   return
-    [ Elem $ mknode "w:hyperlink" [("w:anchor", toBookmarkName xs)] contents ]
+    [ Elem $ mknode "w:hyperlink"
+        (("w:anchor", toBookmarkName xs) : tooltipAttr title) contents ]
 -- external link:
-inlineToOpenXML' opts (Link _ txt (src,_)) = do
+inlineToOpenXML' opts (Link _ txt (src,title)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
@@ -1023,7 +1107,8 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
               modify $ \st -> st{ stExternalLinks =
                         M.insert src i extlinks }
               return i
-  return [ Elem $ mknode "w:hyperlink" [("r:id",id')] contents ]
+  return [ Elem $ mknode "w:hyperlink" (("r:id",id') : tooltipAttr title)
+             contents ]
 inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
@@ -1233,11 +1318,22 @@ toBookmarkName s
   | otherwise = "_" <> T.pack (drop 1 (show (hashWith SHA1 (fromText s))))
   -- we drop 1 because a SHA1 is 40 characters and we need room for the `_`
 
+-- A link's title is written as its ScreenTip (@w:tooltip@).
+tooltipAttr :: Text -> [(Text, Text)]
+tooltipAttr title = [("w:tooltip", title) | not (T.null title)]
+
 maxListLevel :: Int
 maxListLevel = 8
 
+-- Merge adjacent Strs, and any Space between two Strs, into a single
+-- Str.  Chunks are accumulated and concatenated all at once, to avoid
+-- quadratic copying when a long Str/Space sequence (e.g. an entire
+-- paragraph) collapses into one Str.
 convertSpace :: [Inline] -> [Inline]
-convertSpace (Str x : Space : Str y : xs) = convertSpace (Str (x <> " " <> y) : xs)
-convertSpace (Str x : Str y : xs)         = convertSpace (Str (x <> y) : xs)
-convertSpace (x:xs)                       = x : convertSpace xs
-convertSpace []                           = []
+convertSpace (Str x : xs) = go [x] xs
+  where
+    go acc (Str y : ys)         = go (y : acc) ys
+    go acc (Space : Str y : ys) = go (y : " " : acc) ys
+    go acc ys = Str (T.concat (reverse acc)) : convertSpace ys
+convertSpace (x:xs) = x : convertSpace xs
+convertSpace [] = []
