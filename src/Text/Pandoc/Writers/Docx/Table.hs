@@ -39,7 +39,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Writers.Docx.Types
     ( WS,
-      WriterState(stNextTableNum, stInTable),
+      WriterState(stNextTableNum, stInTable, stAfterTable),
       WriterEnv(..),
       setFirstPara,
       pStyleM,
@@ -262,6 +262,8 @@ ooxmlCellToOpenXML blocksToOpenXML = \case
       , mknode "w:p" [] [mknode "w:pPr" [] ()]]
   OOXMLCell _attr align rowspan (ColSpan colspan) contents -> do
     compactStyle <- pStyleM "Compact"
+    -- a nested table at a cell's end must not mark the next cell
+    modify $ \s -> s{ stAfterTable = False }
     es <- maybe id withParaProp (alignmentFor align) $ blocksToOpenXML contents
     -- Table cells require a <w:p> element, even an empty one!
     -- Not in the spec but in Word 2007, 2010. See #4953. And
