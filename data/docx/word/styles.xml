@@ -35,6 +35,15 @@
     <w:next w:val="BodyText" />
     <w:qFormat />
   </w:style>
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="FirstParagraphAfterTable">
+    <w:name w:val="First Paragraph After Table" />
+    <w:basedOn w:val="BodyText" />
+    <w:next w:val="BodyText" />
+    <w:pPr>
+      <w:spacing w:before="180" />
+    </w:pPr>
+    <w:qFormat />
+  </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Compact">
     <w:name w:val="Compact" />
     <w:basedOn w:val="BodyText" />

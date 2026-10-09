@@ -137,6 +137,10 @@ data WriterState = WriterState{
        , stCurId          :: Int
        , stNextFigureNum  :: Int
        , stNextTableNum   :: Int
+       , stAfterTable     :: Bool  -- ^ the last block emitted was a table;
+                                   --   the paragraph that follows takes
+                                   --   the First Paragraph After Table
+                                   --   style and consumes the mark
        }
 
 defaultWriterState :: WriterState
@@ -163,10 +167,11 @@ defaultWriterState = WriterState{
       , stCurId          = 20
       , stNextFigureNum  = 1
       , stNextTableNum   = 1
+      , stAfterTable     = False
       }
 
 setFirstPara :: PandocMonad m => WS m ()
-setFirstPara =  modify $ \s -> s { stFirstPara = True }
+setFirstPara =  modify $ \s -> s { stFirstPara = True, stAfterTable = False }
 
 type WS m = ReaderT WriterEnv (StateT WriterState m)
 
