@@ -33,6 +33,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Translations (Term(References), translateTerm)
 import Text.Pandoc.Shared (tshow, blocksToInlines, compactifyTable)
 import Text.Pandoc.Parsing (registerHeader, reportLogMessages)
+import Text.Printf (printf)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import Control.Monad.Trans (lift)
@@ -329,6 +330,30 @@ newtype InlineHandler = InlineHandler
     => Maybe SourcePos -> Maybe Text -> M.Map Identifier Val
     -> P m B.Inlines)
 
+-- | Attribute capturing the fill of a block or box. Only solid colors
+-- are captured, normalized to CSS hex so that no typst-specific
+-- notation leaks into the attribute; an alpha below one appends a
+-- fourth byte, and CMYK and Luma convert to sRGB first.
+fillAttr :: M.Map Identifier Val -> [(Text, Text)]
+fillAttr fields = case M.lookup "fill" fields of
+  Just (VColor c) -> [("background-color", colorToHex c)]
+  _               -> []
+
+colorToHex :: Color -> Text
+colorToHex color = case color of
+  RGB r g b a     -> hex r g b a
+  CMYK c m y k    -> hex ((1 - c) * (1 - k)) ((1 - m) * (1 - k))
+                          ((1 - y) * (1 - k)) 1
+  Luma g          -> hex g g g 1
+ where
+  hex :: Rational -> Rational -> Rational -> Rational -> Text
+  hex r g b a =
+    let byte :: Rational -> Integer
+        byte x = max 0 (min 255 (round (255 * x)))
+        hex2 n = T.pack (printf "%02x" (fromIntegral n :: Int))
+    in "#" <> hex2 (byte r) <> hex2 (byte g) <> hex2 (byte b)
+       <> (if a < 1 then hex2 (byte a) else "")
+
 blockHandlers :: M.Map Identifier BlockHandler
 blockHandlers = M.fromList
   [("text", BlockHandler $ \_ _ fields -> do
@@ -346,7 +371,7 @@ blockHandlers = M.fromList
         _ -> pure mempty)
   ,("box", BlockHandler $ \_ _ fields -> do
       body <- getField "body" fields
-      B.divWith ("", ["box"], []) <$> pWithContents pBlocks body)
+      B.divWith ("", ["box"], fillAttr fields) <$> pWithContents pBlocks body)
   ,("heading", BlockHandler $ \_ mbident fields -> do
       body <- getField "body" fields
       lev <- getField "level" fields <|> pure 1
@@ -418,9 +443,13 @@ blockHandlers = M.fromList
   ,("par", BlockHandler $ \_ mbident fields -> do
       maybe B.para (\ident -> B.divWith (ident, [], []) . B.para) mbident
         <$> (getField "body" fields >>= pWithContents pInlines))
-  ,("block", BlockHandler $ \_ mbident fields ->
-      maybe id (\ident -> B.divWith (ident, [], [])) mbident
-        <$> (getField "body" fields >>= pWithContents pBlocks))
+  ,("block", BlockHandler $ \_ mbident fields -> do
+      let fillattr = fillAttr fields
+          ident = fromMaybe "" mbident
+      if T.null ident && null fillattr
+        then getField "body" fields >>= pWithContents pBlocks
+        else B.divWith (ident, [], fillattr) <$>
+               (getField "body" fields >>= pWithContents pBlocks))
   ,("place", BlockHandler $ \_ _ fields -> do
       ignored "parameters of place"
       getField "body" fields >>= pWithContents pBlocks)
@@ -643,7 +672,7 @@ inlineHandlers = M.fromList
       pure $ B.imageWith attr path' "" alt)
   ,("box", InlineHandler $ \_ _ fields -> do
       body <- getField "body" fields
-      B.spanWith ("", ["box"], []) <$> pWithContents pInlines body)
+      B.spanWith ("", ["box"], fillAttr fields) <$> pWithContents pInlines body)
   ,("h", InlineHandler $ \_ _ fields -> do
       amount <- getField "amount" fields `mplus` pure (LExact 1 LEm)
       let em = case amount of
