@@ -262,8 +262,7 @@ ooxmlCellToOpenXML blocksToOpenXML = \case
       , mknode "w:p" [] [mknode "w:pPr" [] ()]]
   OOXMLCell _attr align rowspan (ColSpan colspan) contents -> do
     compactStyle <- pStyleM "Compact"
-    -- A mark left by a nested table at the end of one cell must not
-    -- reach the first paragraph of the next cell.
+    -- a nested table at a cell's end must not mark the next cell
     modify $ \s -> s{ stAfterTable = False }
     es <- maybe id withParaProp (alignmentFor align) $ blocksToOpenXML contents
     -- Table cells require a <w:p> element, even an empty one!
