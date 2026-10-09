@@ -1355,6 +1355,7 @@ header when requesting a document from a URL:
         - Normal
         - Body Text
         - First Paragraph
+        - First Paragraph After Table [for paragraphs directly after a table]
         - Compact
         - Title
         - Subtitle
