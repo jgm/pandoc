@@ -541,16 +541,9 @@ blockToOpenXML' opts (Para lst)
       let displayMathPara = case lst of
                                  [x] -> isDisplayMath x
                                  _   -> False
-      -- The paragraph directly after a table takes a dedicated style:
-      -- a table is not a paragraph, so Word gives that paragraph none
-      -- of the air paragraphs draw from their spacing (#11901), and no
-      -- ordinary paragraph style can know it sits at a table boundary.
-      -- Like stFirstPara, the mark is consumed here, passes through
-      -- container blocks to their first paragraph, and is absorbed by
-      -- the blocks that reset the paragraph context (setFirstPara).
-      -- Reference docs that predate the style get a definition
-      -- without the spacing injected (based on Body Text), so the
-      -- paragraph keeps its body styling.
+      -- Word gives the paragraph after a table none of the spacing its
+      -- style provides (#11901), so it takes a dedicated style; like
+      -- stFirstPara, the mark is consumed here.
       let afterTableStyle = fromString "First Paragraph After Table" :: ParaStyleName
       bodyTextStyle <- pStyleM $
         if afterTable then afterTableStyle
@@ -1104,8 +1097,7 @@ inlineToOpenXML' opts (Note bs) = do
                                 , envInNote = True })
               (withParaPropM (pStyleM "Footnote Text") $
                blocksToOpenXML opts $ insertNoteRef bs)
-  -- A table at the end of the note must not mark the paragraph that
-  -- follows the note's anchor in the enclosing text.
+  -- a table at the end of a note must not mark the enclosing text
   modify $ \s -> s{ stAfterTable = False }
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
   modify $ \s -> s{ stFootnotes = newnote : notes }

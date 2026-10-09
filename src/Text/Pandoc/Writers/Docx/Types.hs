@@ -137,10 +137,7 @@ data WriterState = WriterState{
        , stCurId          :: Int
        , stNextFigureNum  :: Int
        , stNextTableNum   :: Int
-       , stAfterTable     :: Bool  -- ^ the last block emitted was a table;
-                                   --   the paragraph that follows takes
-                                   --   the First Paragraph After Table
-                                   --   style and consumes the mark
+       , stAfterTable     :: Bool  -- ^ the previous block was a table (#11901)
        }
 
 defaultWriterState :: WriterState
