@@ -771,12 +771,12 @@ defListItemToLaTeX (term, defs) = do
     modify $ \s -> s{ stInItem = True }
     term' <- withExternalNotes $ inlineListToLaTeX term
     modify $ \s -> s{ stInItem = False }
-    -- put braces around term if it contains an internal link,
-    -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
-    let isInternalLink (Link _ _ (src,_))
+    -- put braces around term if it contains an internal link or an =:
+    let needsBraces (Link _ _ (src,_))
           | Just ('#', _) <- T.uncons src = True
-        isInternalLink _                  = False
-    let term'' = if any isInternalLink term
+        needsBraces (Str t) = T.any (=='=') t
+        needsBraces _ = False
+    let term'' = if any needsBraces term
                     then braces term'
                     else term'
     def'  <- case concat defs of
