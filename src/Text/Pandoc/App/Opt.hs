@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -67,11 +68,15 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..),
-                   genericToJSON, fromJSON, camelTo2, eitherDecodeStrict)
+import Text.Pandoc.Shared (extractYaml)
+import Data.Aeson (defaultOptions, Options(..), Result(..), FromJSON(..), ToJSON(..),
+                   Value(..), genericToJSON, fromJSON, camelTo2, eitherDecodeStrict)
+import Data.Aeson.Types (Parser, (.!=), (.:?), (.:), withObject)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
-import Data.Yaml
+import qualified Yamlet (decode, prettyError)
+import Yamlet.Aeson (ViaAeson(..))
+import qualified Data.List.NonEmpty as NonEmpty
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
@@ -938,11 +943,10 @@ applyDefaults opt file = do
          Left err' -> throwError $ PandocParseError $ T.pack $
             "Error parsing " <> file <> ":\n" <> err'
      else
-       case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
-           Right f -> f opt
-           Left err'  -> throwError $ PandocParseError $ T.pack $
-                  "Error parsing " <> file <> ":\n" <>
-                  Data.Yaml.prettyPrintParseException err'
+       case Yamlet.decode (extractYaml inp) of
+           Right (ViaAeson f) -> f opt
+           Left errs -> throwError $ PandocParseError $ T.pack $ unlines $ map
+                  (Yamlet.prettyError file) (NonEmpty.toList errs)
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath

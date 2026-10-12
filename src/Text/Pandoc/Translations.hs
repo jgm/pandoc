@@ -27,18 +27,18 @@ import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Logging (LogMessage(..))
 import Control.Monad.Except (catchError)
 import qualified Data.Text as T
-import qualified Data.Yaml as Yaml
-import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Yaml (prettyPrintParseException)
+import qualified Yamlet as Yamlet
+import Yamlet.Aeson (ViaAeson(..))
 import Text.Collate.Lang (Lang(..), renderLang)
+import qualified Data.List.NonEmpty as NonEmpty
 
 -- | Parse YAML translations.
 readTranslations :: T.Text -> Either T.Text Translations
 readTranslations s =
-  case Yaml.decodeAllEither' $ UTF8.fromText s of
-       Left err' -> Left $ T.pack $ prettyPrintParseException err'
-       Right (t:_)     -> Right t
-       Right []        -> Left "empty YAML document"
+  case Yamlet.decodeText s of
+       Left errs -> Left $ T.unlines $ map (T.pack . Yamlet.prettyError "")
+                         $ NonEmpty.toList errs
+       Right (ViaAeson t) -> Right t
 
 -- | Select the language to use with 'translateTerm'.
 -- Note that this does not read a translation file;

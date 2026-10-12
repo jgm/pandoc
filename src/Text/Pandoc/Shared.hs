@@ -36,6 +36,7 @@ module Text.Pandoc.Shared (
                      camelCaseStrToHyphenated,
                      toRomanNumeral,
                      tabFilter,
+                     extractYaml,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -90,6 +91,8 @@ import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
@@ -261,6 +264,20 @@ toRomanNumeral x
       | n == 4    = "IV"
       | n >= 1    = 'I'       : go (n - 1)
       | otherwise = []
+
+-- Extract a YAML document:
+-- read to next ... or ---, skipping initial --- if present.
+extractYaml :: B.ByteString -> B.ByteString
+extractYaml bstr =
+  B8.unlines $ case B8.lines bstr of
+                 l:ls | isStartLine l -> takeWhile (not . isStopLine) ls
+                 ls -> takeWhile (not . isStopLine) ls
+ where
+   isStartLine b =
+     "---" `B8.isPrefixOf` b && B8.all isSpace (B8.drop 3 b)
+   isStopLine b =
+     ("---" `B8.isPrefixOf` b || "..." `B8.isPrefixOf` b)
+       && B8.all isSpace (B8.drop 3 b)
 
 -- | Convert tabs to spaces. Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
