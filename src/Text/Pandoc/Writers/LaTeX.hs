@@ -773,10 +773,13 @@ defListItemToLaTeX (term, defs) = do
     modify $ \s -> s{ stInItem = False }
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
+    -- or if it contains '=', since the new LaTeX list code (active with
+    -- \DocumentMetadata) parses \item[key=value] as key-value options.
     let isInternalLink (Link _ _ (src,_))
           | Just ('#', _) <- T.uncons src = True
         isInternalLink _                  = False
-    let term'' = if any isInternalLink term
+    let hasEquals = T.any (== '=') (render Nothing term')
+    let term'' = if any isInternalLink term || hasEquals
                     then braces term'
                     else term'
     def'  <- case concat defs of

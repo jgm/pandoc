@@ -51,6 +51,9 @@ tests = [ testGroup "code blocks"
           [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
              [plain (text "hi there")])] =?>
             "\\begin{description}\n\\tightlist\n\\item[{\\hyperref[go]{testing}}]\nhi there\n\\end{description}"
+          , "with equals sign in term" =: definitionList [(str "key=value",
+             [plain (text "hi there")])] =?>
+            "\\begin{description}\n\\tightlist\n\\item[{key=value}]\nhi there\n\\end{description}"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
