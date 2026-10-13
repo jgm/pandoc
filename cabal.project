@@ -15,6 +15,11 @@ if impl(ghc >= 9.14)
                cborg:base,
                haddock-library:base
 
+-- Use the bundled C zlib, so the build doesn't require any
+-- C libraries to be installed.
+package zlib
+  flags: +bundled-c-zlib
+
 if arch(wasm32)
   tests: False
 
