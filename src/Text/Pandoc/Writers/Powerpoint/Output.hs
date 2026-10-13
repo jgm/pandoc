@@ -2295,6 +2295,7 @@ slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras) _) = do
           , sldNumShape
           ]
         ]
+      , mknode "p:clrMapOvr" [] $ mknode "a:masterClrMapping" [] ()
       ]
 
 -----------------------------------------------------------------------
