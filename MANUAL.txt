@@ -5622,11 +5622,12 @@ Txt2Tags output, and suppressed in other formats.
 For a more explicit way of including raw HTML in a Markdown
 document, see the [`raw_attribute` extension][Extension: `raw_attribute`].
 
-In the CommonMark format, if `raw_html` is enabled, superscripts,
+In commonmark output, if `raw_html` is enabled, superscripts,
 subscripts, strikeouts and small capitals will be represented as HTML.
-Otherwise, plain-text fallbacks will be used. Note that even if
-`raw_html` is disabled, tables will be rendered with HTML syntax if
-they cannot use pipe syntax.
+Otherwise, plain-text fallbacks will be used.
+
+Disabling the `raw_html` extension has no effect on `commonmark` (or
+`gfm` or `commonmark_x`) *input*.
 
 ### Extension: `markdown_in_html_blocks` ###
 
