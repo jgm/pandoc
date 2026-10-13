@@ -67,11 +67,14 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..),
-                   genericToJSON, fromJSON, camelTo2, eitherDecodeStrict)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
-import Data.Yaml
+import Data.Aeson
+import Data.Aeson.Types
+import qualified Data.List as L
+import qualified Data.List.NonEmpty as NE
+import qualified Yamlet as Y
+import Yamlet.Aeson
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
@@ -938,11 +941,11 @@ applyDefaults opt file = do
          Left err' -> throwError $ PandocParseError $ T.pack $
             "Error parsing " <> file <> ":\n" <> err'
      else
-       case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
-           Right f -> f opt
-           Left err'  -> throwError $ PandocParseError $ T.pack $
+       case Y.decode (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
+           Right (ViaAeson f) -> f opt
+           Left errs  -> throwError $ PandocParseError $ T.pack $
                   "Error parsing " <> file <> ":\n" <>
-                  Data.Yaml.prettyPrintParseException err'
+                  L.intercalate "\n" (map (Y.prettyError file) (NE.toList errs))
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath

@@ -41,6 +41,12 @@ extra-deps:
 - typst-0.12
 - texmath-0.13.3.1
 - citeproc-0.14.1
+- yamlet-1.0.0.1
+- yamlet-aeson-1.0.0.1
+# yamlet and yamlet-aeson need newer versions than the snapshot has:
+- aeson-2.2.5.1
+- scientific-0.3.9.0
+- text-iso8601-0.1.1.2
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:

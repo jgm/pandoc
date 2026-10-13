@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeApplications           #-}
 {- |
    Module      : Text.Pandoc.Translations
    Copyright   : Copyright (C) 2017-2024 John MacFarlane
@@ -27,18 +28,19 @@ import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Logging (LogMessage(..))
 import Control.Monad.Except (catchError)
 import qualified Data.Text as T
-import qualified Data.Yaml as Yaml
-import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Yaml (prettyPrintParseException)
+import qualified Data.List.NonEmpty as NE
+import qualified Yamlet as Y
+import Yamlet.Aeson
 import Text.Collate.Lang (Lang(..), renderLang)
 
--- | Parse YAML translations.
-readTranslations :: T.Text -> Either T.Text Translations
-readTranslations s =
-  case Yaml.decodeAllEither' $ UTF8.fromText s of
-       Left err' -> Left $ T.pack $ prettyPrintParseException err'
-       Right (t:_)     -> Right t
-       Right []        -> Left "empty YAML document"
+-- | Parse YAML translations. The file path is used in error messages.
+readTranslations :: FilePath -> T.Text -> Either T.Text Translations
+readTranslations fp s =
+  case Y.decodeAllText @(ViaAeson Translations) s of
+       Left errs -> Left $ T.intercalate "\n" $
+         map (T.pack . Y.prettyError fp) (NE.toList errs)
+       Right (ViaAeson t:_) -> Right t
+       Right []        -> Left $ T.pack fp <> ": empty YAML document"
 
 -- | Select the language to use with 'translateTerm'.
 -- Note that this does not read a translation file;
@@ -68,12 +70,11 @@ getTranslations = do
          let getTrans [] = return mempty
              getTrans (fp:fps) = do
                result <- catchError (Right <$> (readDataFile fp >>= toTextM fp))
-                             (\_ -> pure (Left ""))
-               case result >>= readTranslations of
+                             (\_ -> pure (Left (T.pack fp)))
+               case result >>= readTranslations fp of
                   Left e
                     | null fps -> do
-                      report $ CouldNotLoadTranslations (renderLang lang)
-                                  (T.pack fp <> ": " <> e)
+                      report $ CouldNotLoadTranslations (renderLang lang) e
                       -- make sure we don't try again...
                       modifyCommonState $ \st ->
                         st{ stTranslations = Nothing }
