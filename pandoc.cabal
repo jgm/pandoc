@@ -543,7 +543,7 @@ library
                  commonmark-extensions >= 0.2.7.3  && < 0.3,
                  commonmark-pandoc     >= 0.3.0.2  && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
-                 crypton               >= 0.30     && < 2.1,
+                 crypton               >= 0.30     && < 2.3,
                  data-default          >= 0.4      && < 0.9,
                  deepseq               >= 1.3      && < 1.6,
                  directory             >= 1.2.5    && < 1.4,
@@ -599,7 +599,7 @@ library
      cpp-options:   -DPANDOC_HTTP_SUPPORT
      build-depends:
                  crypton-connection    >= 0.3.1    && < 0.5,
-                 crypton-x509-system   >= 1.6.7    && < 1.10,
+                 crypton-x509-system   >= 1.6.7    && < 1.11,
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.5,
                  network               >= 2.6      && < 3.3,
@@ -944,7 +944,7 @@ benchmark benchmark-pandoc
   main-is:         benchmark-pandoc.hs
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
-                   tasty-bench >= 0.4     && <= 0.5,
+                   tasty-bench >= 0.4     && <= 0.6,
                    mtl         >= 2.2     && < 2.4,
                    text        >= 2.0     && < 2.2,
                    temporary,
