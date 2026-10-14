@@ -75,10 +75,6 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    # needed by memory
-    - name: Install numa
-      run: sudo apt-get update && sudo apt-get install libnuma-dev
-
     - name: Workaround runner image issue
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R $USER /usr/local/.ghcup
