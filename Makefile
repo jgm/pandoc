@@ -1,7 +1,8 @@
+SHELL:=bash
 VERSION?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 PANDOC_CLI_VERSION?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
-SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
-PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
+SOURCEFILES?=$(shell git ls-files src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
+PANDOCSOURCEFILES?=$(shell git ls-files src | grep "\.hs$$")
 DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.10
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
@@ -60,7 +61,7 @@ flake.lock: flake.nix stack.yaml
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
-	  --system-ghc --flag 'pandoc:embed_data_files' \
+	  --system-ghc \
 	  --fast \
 	  --test \
 	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
@@ -167,7 +168,7 @@ transitive-deps: ## print transitive dependencies
 debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
-		   --user $(id -u):$(id -g) \
+		   --user $$(id -u):$$(id -g) \
 		   -e REVISION=$(REVISION) \
        -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4 --ghc-option=-j4 --ghc-option=-split-sections --ghc-option=-optc-Os --ghc-option=-optl=-pthread" \
 		   -w /mnt \
@@ -178,7 +179,7 @@ debpkg: ## create linux package
 		   /mnt/linux/make_artifacts.sh
 .PHONY: debpkg
 
-pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pandoc.cabal
+pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pandoc.cabal | build
 	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
@@ -190,7 +191,7 @@ pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pando
 		--variable footer="pandoc $(VERSION)" \
 		-o $@
 
-pandoc-cli/man/%.1: doc/%.md pandoc.cabal
+pandoc-cli/man/%.1: doc/%.md pandoc.cabal | build
 	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--metadata author="" \
@@ -202,7 +203,7 @@ pandoc-cli/man/%.1: doc/%.md pandoc.cabal
 		-o $@
 
 
-README.md: README.template MANUAL.txt tools/update-readme.lua
+README.md: README.template MANUAL.txt tools/update-readme.lua | build
 	$(pandoc) --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
@@ -241,7 +242,7 @@ update-translations: ## update data/translations from Babel and Polyglossia
 .PHONY: update-translations
 
 validate-docx-golden-tests: ## validate docx golden tests against schema
-	which xmllint || ("xmllint is required" && exit 1)
+	which xmllint || (echo "xmllint is required" && exit 1)
 	test -d ./docx-validator || \
 		(git clone https://github.com/devoidfury/docx-validator && \
 		cd docx-validator && patch -p1 <../wml.xsd.patch)
@@ -249,8 +250,8 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 .PHONY: validate-docx-golden-tests
 
 validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
-	which dotnet || ("dotnet is required" && exit 1)
-	which jq || ("jq is required" && exit 1)
+	which dotnet || (echo "dotnet is required" && exit 1)
+	which jq || (echo "jq is required" && exit 1)
 	test -d ./OOXML-Validator || \
 		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
 		&& cd OOXML-Validator && dotnet build --configuration=Release)
@@ -260,7 +261,7 @@ validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
 node_modules/.bin/ace:
 	npm install @daisy/ace
 
-validate-epub: node_modules/.bin/ace ## generate an epub and validate it with epubcheck and ace
+validate-epub: node_modules/.bin/ace | build ## generate an epub and validate it with epubcheck and ace
 	which epubcheck || exit 1
 	tmp=$$(mktemp -d) && \
   for epubver in 2 3; do \
