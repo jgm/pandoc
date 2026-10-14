@@ -2295,6 +2295,8 @@ slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras) _) = do
           , sldNumShape
           ]
         ]
+      -- required by Keynote, see #11935
+      , mknode "p:clrMapOvr" [] $ mknode "a:masterClrMapping" [] ()
       ]
 
 -----------------------------------------------------------------------
