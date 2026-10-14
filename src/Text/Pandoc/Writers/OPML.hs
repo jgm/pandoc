@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP               #-}
 {- |
    Module      : Text.Pandoc.Writers.OPML
    Copyright   : Copyright (C) 2013-2024 John MacFarlane

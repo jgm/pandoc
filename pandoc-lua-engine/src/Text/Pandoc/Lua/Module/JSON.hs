@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 Module      : Text.Pandoc.Lua.Module.JSON
