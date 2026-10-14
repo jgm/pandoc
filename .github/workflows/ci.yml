@@ -40,6 +40,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   linux:
 
@@ -66,16 +70,14 @@ jobs:
             cabalopts: '--ghc-option=-Werror -f-embed_data_files'
           - ghc: '9.14'
             cabal: 'latest'
-            # -fhttp: on base 4.22 the solver otherwise prefers
-            # disabling the http flag to using allow-newer
-            cabalopts: '--ghc-option=-Werror -fhttp'
+            cabalopts: '--ghc-option=-Werror'
 
     steps:
     - uses: actions/checkout@v7
 
     # needed by memory
     - name: Install numa
-      run: sudo apt-get install libnuma-dev
+      run: sudo apt-get update && sudo apt-get install libnuma-dev
 
     - name: Workaround runner image issue
       # https://github.com/actions/runner-images/issues/7061
@@ -88,13 +90,19 @@ jobs:
 
     # declare/restore cached things
 
+    - name: Get cabal store path
+      id:   cabal-store
+      run: echo "dir=$(cabal path --store-dir)" >> "$GITHUB_OUTPUT"
+
     - name: Cache cabal global package db
       id:   cabal-global
       uses: actions/cache@v6
       with:
         path: |
-          ~/.local/state/cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
+          ${{ steps.cabal-store.outputs.dir }}
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
 
     - name: Cache cabal work
       id:   cabal-local
@@ -102,7 +110,9 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-${{ strategy.job-index }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ strategy.job-index }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}-
 
     - name: Update cabal
       run: |
@@ -123,7 +133,7 @@ jobs:
 
     # needed by memory
     - name: Install numa
-      run: sudo apt-get install libnuma-dev
+      run: sudo apt-get update && sudo apt-get install libnuma-dev
 
     # declare/restore cached things
     - name: Cache stack global package db
@@ -132,7 +142,9 @@ jobs:
       with:
         path: |
           ~/.stack
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-global-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-stack-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('stack.yaml', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-global-${{ secrets.CACHE_VERSION }}-
 
     - name: Cache stack work
       id:   stack-local
@@ -140,7 +152,9 @@ jobs:
       with:
         path: |
           .stack-work
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-local-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-stack-local-${{ secrets.CACHE_VERSION }}-${{ hashFiles('stack.yaml', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-local-${{ secrets.CACHE_VERSION }}-
 
     - name: Build and test
       run: |
@@ -160,13 +174,20 @@ jobs:
 
     # declare/restore cached things
 
+    - name: Get cabal store path
+      id:   cabal-store
+      shell: bash
+      run: echo "dir=$(cabal path --store-dir)" >> "$GITHUB_OUTPUT"
+
     - name: Cache cabal global package db
       id:   cabal-global
       uses: actions/cache@v6
       with:
         path: |
-          %LOCALAPPDATA%/cabal/store
-        key: ${{ runner.os }}-appdata-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+          ${{ steps.cabal-store.outputs.dir }}
+        key: ${{ runner.os }}-appdata-cabal-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-appdata-cabal-${{ secrets.CACHE_VERSION }}-
 
     - name: Cache cabal work
       id: cabal-local
@@ -174,10 +195,12 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: ${{ runner.os }}-cabal-work-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+        key: ${{ runner.os }}-cabal-work-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-cabal-work-${{ secrets.CACHE_VERSION }}-
 
     - name: Build and test
       run: |
           cabal update
-          cabal test --ghc-option=-Werror -fhttp --enable-tests --disable-optimization --ghc-options=-Werror all
+          cabal test --ghc-option=-Werror -fhttp --enable-tests --disable-optimization all
 
