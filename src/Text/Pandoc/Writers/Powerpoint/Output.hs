@@ -593,13 +593,29 @@ makeSpeakerNotesMap (Presentation _ slides) =
 presentationToArchive :: PandocMonad m
                       => WriterOptions -> Meta -> Presentation -> m Archive
 presentationToArchive opts meta pres = do
+  -- ensure that the default reference doc isn't built from
+  -- pptx/ files in the user data directory:
+  oldUserDataDir <- P.getUserDataDir
+  P.setUserDataDir Nothing
   distArchive <- toArchive . BL.fromStrict <$>
                         readDefaultDataFile "reference.pptx"
+  P.setUserDataDir oldUserDataDir
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive . BL.fromStrict . fst
-                                  <$> P.fetchItem (T.pack f)
-                     Nothing -> toArchive . BL.fromStrict <$>
-                        readDataFile "reference.pptx"
+                   Just f  -> do
+                     arch <- toArchiveOrFail . BL.fromStrict . fst
+                                 <$> P.fetchItem (T.pack f)
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference-doc " <>
+                           tshow f <> ": " <> T.pack err
+                       Right x -> pure x
+                   Nothing -> do
+                     arch <- toArchiveOrFail . BL.fromStrict <$>
+                                 readDataFile "reference.pptx"
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference.pptx: " <> T.pack err
+                       Right x -> pure x
 
   let (referenceLayouts, defaultReferenceLayouts) =
         (getLayoutsFromArchive refArchive, getLayoutsFromArchive distArchive)
