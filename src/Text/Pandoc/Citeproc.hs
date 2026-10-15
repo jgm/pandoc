@@ -7,6 +7,7 @@
 module Text.Pandoc.Citeproc
   ( processCitations,
     getReferences,
+    extractCiteAffixes
   )
 where
 
@@ -311,18 +312,56 @@ getCitations locale otherIdsMap (Pandoc meta blocks) =
   getCitation (Cite cs _fallback) = Seq.singleton $
     Citeproc.Citation { Citeproc.citationId = Nothing
                       , Citeproc.citationResetPosition = False
-                      , Citeproc.citationPrefix = Nothing
-                      , Citeproc.citationSuffix = Nothing
+                      , Citeproc.citationPrefix = pref
+                      , Citeproc.citationSuffix = suff
                       , Citeproc.citationNoteNumber =
                           case cs of
                             []    -> Nothing
                             (Pandoc.Citation{ Pandoc.citationNoteNum = n }:
                                _) | n > 0     -> Just n
                                   | otherwise -> Nothing
-                      , Citeproc.citationItems =
-                           fromPandocCitations locale otherIdsMap cs
+                      , Citeproc.citationItems = items
                       }
+   where (pref', suff', cs') = extractCiteAffixes cs
+         items = fromPandocCitations locale otherIdsMap cs'
+         pref = B.fromList <$> pref'
+         suff = B.fromList <$> suff'
   getCitation _ = mempty
+
+-- | Extract a global prefix from the first Citation prefix (up to `|`),
+-- and a global suffix from the last one (following `|`).
+extractCiteAffixes :: [Pandoc.Citation]
+                   -> (Maybe [Inline], Maybe [Inline], [Pandoc.Citation])
+extractCiteAffixes cs =
+  case cs of
+    [] -> (Nothing, Nothing, [])
+    (i:is) ->
+      let (pref', i') =
+            case splitInlinesOnPipe (Pandoc.citationPrefix i) of
+               Nothing -> (Nothing, i)
+               Just (as,bs) -> (Just as,
+                                 i{ Pandoc.citationPrefix = bs })
+          (suff', cs') =
+            case reverse (i':is) of
+               [] -> (Nothing, [])
+               (i'':is'') ->
+                 case splitInlinesOnPipe (Pandoc.citationSuffix i'') of
+                   Nothing -> (Nothing, i':is)
+                   Just (as,bs) -> (Just bs, reverse
+                                     (i''{ Pandoc.citationSuffix = as }:is''))
+       in (pref', suff', cs')
+  where
+     splitInlinesOnPipe [] = Nothing
+     splitInlinesOnPipe ils =
+       case break isStrWithPipe ils of
+         (xs,Str s : ys) ->
+           let (as,bs) = T.break (=='|') s
+               bs' = T.drop 1 bs
+           in  Just (xs ++ [Str as | not (T.null as)],
+                [Str bs' | not (T.null bs')] ++ ys)
+         _ -> Nothing
+     isStrWithPipe (Str s) = T.any (=='|') s
+     isStrWithPipe _ = False
 
 fromPandocCitations :: Locale
                     -> M.Map Text ItemId
