@@ -179,7 +179,7 @@ orderedListItemToHaddock :: PandocMonad m
                          -> StateT WriterState m (Doc Text)
 orderedListItemToHaddock opts marker items = do
   contents <- blockListToHaddock opts items
-  let sps = case T.length marker - writerTabStop opts of
+  let sps = case writerTabStop opts - T.length marker of
                    n | n > 0 -> text $ replicate n ' '
                    _ -> text " "
   let start = literal marker <> sps
