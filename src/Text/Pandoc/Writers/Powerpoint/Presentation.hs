@@ -188,6 +188,7 @@ data DocProps = DocProps { dcTitle :: Maybe T.Text
                          , dcKeywords :: Maybe [T.Text]
                          , dcDescription :: Maybe T.Text
                          , cpCategory :: Maybe T.Text
+                         , dcLanguage :: Maybe T.Text
                          , dcDate :: Maybe T.Text
                          , customProperties :: Maybe [(T.Text, T.Text)]
                          } deriving (Show, Eq)
@@ -1189,6 +1190,7 @@ metaToDocProps meta =
             , dcKeywords = keywords
             , dcDescription = description
             , cpCategory = Shared.stringify <$> lookupMeta "category" meta
+            , dcLanguage = Shared.stringify <$> lookupMeta "lang" meta
             , dcDate =
               let t = Shared.stringifyInlines (docDate meta)
               in if T.null t
