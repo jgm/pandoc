@@ -220,7 +220,7 @@ blockToTypst block =
     RawBlock fmt str ->
       case fmt of
         Format "typst" -> return $ literal str
-        _ -> return mempty
+        _ -> mempty <$ report (BlockNotRendered block)
     CodeBlock (ident,cls,kvs) code -> do
       let go :: Char -> (Int, Int) -> (Int, Int)
           go '`' (longest, current) =
@@ -522,7 +522,7 @@ inlineToTypst inline =
     RawInline fmt str ->
       case fmt of
         Format "typst" -> return $ literal str
-        _ -> return mempty
+        _ -> mempty <$ report (InlineNotRendered inline)
     Strikeout inlines -> textstyle "#strike" inlines
     Emph inlines -> textstyle "#emph" inlines
     Underline inlines -> textstyle "#underline" inlines
