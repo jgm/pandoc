@@ -305,10 +305,21 @@ pandocToODT opts doc@(Pandoc meta _) = do
   lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
-             Just f -> lift $ toArchive . B.fromStrict . fst <$>
+             Just f -> do
+               arch <- lift $ toArchiveOrFail . B.fromStrict . fst <$>
                                 (P.fetchItem (T.pack f))
-             Nothing -> lift $ toArchive . B.fromStrict <$>
+               case arch of
+                 Left err -> throwError $ PandocParseError $
+                   "Could not parse reference-doc " <>
+                     tshow f <> ": " <> T.pack err
+                 Right x -> pure x
+             Nothing -> do
+               arch <- lift $ toArchiveOrFail . B.fromStrict <$>
                                 readDataFile "reference.odt"
+               case arch of
+                 Left err -> throwError $ PandocParseError $
+                   "Could not parse reference.odt: " <> T.pack err
+                 Right x -> pure x
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   let refTextWidth = referenceTextWidthPt opts refArchive
