@@ -295,13 +295,22 @@ keyToMarkdown opts (label', (src, tit), attr) = do
             (literal (linkDestination src) <> tit')
             <+> linkAttributes opts attr
 
--- | Return markdown representation of notes.
-notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m (Doc Text)
-notesToMarkdown opts notes = do
-  n <- gets stNoteNum
-  notes' <- zipWithM (noteToMarkdown opts) [n..] notes
-  modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
-  return $ vsep notes'
+-- | Return markdown representation of the collected notes, clearing
+-- them from the state. Rendering a note may add further notes to the
+-- state (notes nested inside notes); keep going until all of them
+-- have been rendered.
+notesToMarkdown :: PandocMonad m => WriterOptions -> MD m (Doc Text)
+notesToMarkdown opts = vsep <$> go
+  where
+    go = do
+      notes <- gets (reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          n <- gets stNoteNum
+          modify $ \st -> st { stNotes = [], stNoteNum = n + length notes }
+          docs <- zipWithM (noteToMarkdown opts) [n..] notes
+          (docs ++) <$> go
 
 -- | Return markdown representation of a note.
 noteToMarkdown :: PandocMonad m => WriterOptions -> Int -> [Block] -> MD m (Doc Text)
@@ -347,8 +356,7 @@ beginsWithOrderedListMarker str =
 
 notesAndRefs :: PandocMonad m => WriterOptions -> MD m (Doc Text)
 notesAndRefs opts = do
-  notes' <- gets stNotes >>= notesToMarkdown opts . reverse
-  modify $ \s -> s { stNotes = [] }
+  notes' <- notesToMarkdown opts
   refs' <- gets stRefs >>= refsToMarkdown opts . reverse
   modify $ \s -> s { stPrevRefs = stPrevRefs s ++ stRefs s
                    , stRefs = []}

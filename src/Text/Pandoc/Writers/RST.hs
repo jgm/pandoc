@@ -80,7 +80,7 @@ pandocToRST (Pandoc meta blocks) = do
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
-  notes <- gets (reverse . stNotes) >>= notesToRST
+  notes <- notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- gets (reverse . stLinks) >>= refsToRST
   pics <- gets (reverse . stImages) >>= pictRefsToRST
@@ -126,10 +126,19 @@ keyToRST (label, (src, _)) = do
                    else label'
   return $ nowrap $ ".. _" <> label'' <> ": " <> literal src
 
--- | Return RST representation of notes.
-notesToRST :: PandocMonad m => [[Block]] -> RST m (Doc Text)
-notesToRST notes =
-   vsep <$> zipWithM noteToRST [1..] notes
+-- | Return RST representation of the collected notes. Rendering a
+-- note may add further notes to the state (notes nested inside
+-- notes); keep going until all of them have been rendered.
+notesToRST :: PandocMonad m => RST m (Doc Text)
+notesToRST = vsep <$> go 0
+  where
+    go done = do
+      notes <- gets (drop done . reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          docs <- zipWithM noteToRST [done + 1 ..] notes
+          (docs ++) <$> go (done + length notes)
 
 -- | Return RST representation of a note.
 noteToRST :: PandocMonad m => Int -> [Block] -> RST m (Doc Text)
