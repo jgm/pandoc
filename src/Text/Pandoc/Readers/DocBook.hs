@@ -1224,7 +1224,10 @@ strContentRecursive = strContent .
   (\e' -> e'{ elContent = map elementToStr $ elContent e' })
 
 elementToStr :: Content -> Content
-elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
+elementToStr (Elem e') =
+  case qName (elName e') of
+        n | n == "xref" || n == "co" -> Text $ CData CDataText (showElement e') Nothing
+        _ -> Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
 childElTextAsAttr :: Text -> Element -> Maybe (Text, Text)
