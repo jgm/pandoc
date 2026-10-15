@@ -2770,6 +2770,7 @@ docPropsElement docProps = do
     : ( [mknode "dc:subject" [] $ fromMaybe "" $ dcSubject docProps | isJust (dcSubject docProps)])
     <> ( [mknode "dc:description" [] $ fromMaybe "" $ dcDescription docProps | isJust (dcDescription docProps)])
     <> ( [mknode "cp:category" [] $ fromMaybe "" $ cpCategory docProps | isJust (cpCategory docProps)])
+    <> ( [mknode "dc:language" [] $ fromMaybe "" $ dcLanguage docProps | isJust (dcLanguage docProps)])
     <> (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
               , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
               ]) (T.pack $ formatTime defaultTimeLocale "%FT%XZ" utctime)
