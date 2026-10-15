@@ -16,7 +16,7 @@ Haddock:  <http://www.haskell.org/haddock/doc/html/>
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
-    ( StateT, MonadState(get), modify, evalStateT )
+    ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isAlphaNum)
 import Data.Default
 import Data.Text (Text)
@@ -50,8 +50,7 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   body <- blockListToHaddock opts blocks
-  st <- get
-  notes' <- notesToHaddock opts (reverse $ stNotes st)
+  notes' <- notesToHaddock opts
   let main = body <> (if isEmpty notes' then empty else blankline <> notes')
   metadata <- metaToContext opts
                (blockListToHaddock opts)
@@ -63,15 +62,25 @@ pandocToHaddock opts (Pandoc meta blocks) = do
           Nothing  -> main
           Just tpl -> renderTemplate tpl context
 
--- | Return haddock representation of notes.
+-- | Return haddock representation of the collected notes. Rendering a
+-- note may add further notes to the state (notes nested inside
+-- notes); keep going until all of them have been rendered.
 notesToHaddock :: PandocMonad m
-               => WriterOptions -> [[Block]] -> StateT WriterState m (Doc Text)
-notesToHaddock opts notes =
-  if null notes
-     then return empty
-     else do
-       contents <- blockToHaddock opts $ OrderedList (1,DefaultStyle,DefaultDelim) notes
-       return $ text "#notes#" <> blankline <> contents
+               => WriterOptions -> StateT WriterState m (Doc Text)
+notesToHaddock opts = do
+  contents <- go 0
+  return $ if null contents
+              then empty
+              else text "#notes#" <> blankline <> vcat contents
+  where
+    go done = do
+      notes <- gets (drop done . reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          contents <- blockToHaddock opts $
+                        OrderedList (done + 1, DefaultStyle, DefaultDelim) notes
+          (contents :) <$> go (done + length notes)
 
 -- | Escape special characters for Haddock.
 escapeString :: Text -> Text
