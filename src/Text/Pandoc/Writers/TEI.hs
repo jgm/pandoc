@@ -275,8 +275,12 @@ inlineToTEI opts (Link attr txt (src, _))
               linktext <- inlinesToTEI opts txt
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
-      inTags False "ref" (("target", src) : idFromAttr opts attr)
+      inTags False "ref" (("target", src') : idFromAttr opts attr)
                  <$> inlinesToTEI opts txt
+  where
+    src' = case T.stripPrefix "#" src of
+             Just ident -> "#" <> writerIdentifierPrefix opts <> ident
+             Nothing    -> src
 inlineToTEI opts (Image attr description (src, tit)) = do
   let titleDoc = if T.null tit
                    then empty
