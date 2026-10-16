@@ -135,13 +135,22 @@ jobs:
       - store_artifacts:
           path: linux-arm64.tar.gz
 
-  wasm:
+  # The wasm build is split over three jobs, each with its own time limit:
+  # wasm_deps builds the dependencies into the cabal store, which is passed
+  # to wasm through the cache; wasm builds pandoc; wasm_package optimizes
+  # and packages the result.
+  #
+  # These jobs don't use `nix develop`: that shell includes a native Haskell
+  # environment that may need to be built from source.  The wasm build only
+  # needs the prebuilt ghc-wasm-meta toolchain, so we use `nix shell` with
+  # the versions pinned in flake.lock (--inputs-from also makes `nixpkgs`
+  # refer to the pinned nixpkgs).
+  wasm_deps:
     docker:
       - image: nixos/nix:2.32.8
     resource_class: arm.large   # 4 vCPU / 16 GB
     environment:
-      NIX_PATH: nixpkgs=channel:nixos-unstable
-      # `nix develop` is a flakes command, so enable flakes. The sandbox must be
+      # `nix shell` is a flakes command, so enable flakes. The sandbox must be
       # off because CircleCI's container isn't privileged enough to set it up.
       NIX_CONFIG: |
         experimental-features = nix-command flakes
@@ -151,6 +160,47 @@ jobs:
           name: Checkout code
           command: |
             git clone https://github.com/jgm/pandoc .
+            mkdir -p /tmp/workspace
+            git rev-parse HEAD > /tmp/workspace/wasm-commit
+      - make_cache_key
+      - restore_cache:
+          keys:
+            - cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
+      # gnupatch is for the post-checkout-commands in cabal.project.
+      - run:
+          name: Build dependencies
+          no_output_timeout: 60m
+          command: |
+            nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnupatch --command \
+              bash -c "wasm32-wasi-cabal update &&
+                       wasm32-wasi-cabal build --dependencies-only pandoc-cli"
+      # wasm32-wasi-cabal uses $HOME/.ghc-wasm/.cabal as its CABAL_DIR.
+      - save_cache:
+          key: cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
+          paths:
+            - ~/.ghc-wasm/.cabal/store
+      # So that wasm builds the same commit, even if main has moved on.
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - wasm-commit
+
+  wasm:
+    docker:
+      - image: nixos/nix:2.32.8
+    resource_class: arm.large   # 4 vCPU / 16 GB
+    environment:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        sandbox = false
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Checkout code
+          command: |
+            git clone https://github.com/jgm/pandoc .
+            git checkout "$(cat /tmp/workspace/wasm-commit)"
       - make_cache_key
       - restore_cache:
           keys:
@@ -161,11 +211,8 @@ jobs:
           name: Build pandoc.wasm (unoptimized)
           no_output_timeout: 60m
           command: |
-            nix develop --command bash -c "make pandoc.wasm OPTIMIZE_WASM=0"
-      - save_cache:
-          key: cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
-          paths:
-            - ~/.ghc-wasm/.cabal/store
+            nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnumake nixpkgs#gnupatch \
+              --command bash -c "make pandoc.wasm OPTIMIZE_WASM=0"
       # flake.nix and flake.lock let wasm_package use the same pinned
       # wasm toolchain as this build.
       - persist_to_workspace:
@@ -212,7 +259,10 @@ workflows:
       - macos_arm64
       - linux_amd64
       - linux_arm64
-      - wasm
+      - wasm_deps
+      - wasm:
+          requires:
+            - wasm_deps
       - wasm_package:
           requires:
             - wasm
