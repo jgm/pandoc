@@ -32,7 +32,7 @@ import Control.Monad (unless, when)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
-                                    setupTranslations )
+                                    setupTranslations, getLang )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow,
                            stringifyInlines)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
@@ -113,9 +113,9 @@ pandocToTypst options (Pandoc meta blocks) = do
                        . defField "nocite-ids" (filter (/= "*") nociteIds)
                        . defField "full-bibliography" ("*" `elem` nociteIds)
                     else id)
-              $ (case lookupMetaString "lang" meta of
-                    "" -> id
-                    lang ->
+              $ (case getLang options meta of
+                    Nothing -> id
+                    Just lang ->
                       case parseLang lang of
                         Left _ -> id
                         Right l ->
