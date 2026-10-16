@@ -210,9 +210,21 @@ jobs:
       - run:
           name: Build pandoc.wasm (unoptimized)
           no_output_timeout: 60m
+          # Equivalent to `make pandoc.wasm OPTIMIZE_WASM=0`, but with -v2 so
+          # the log shows the GHC commands, including the link flags.
           command: |
-            nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnumake nixpkgs#gnupatch \
-              --command bash -c "make pandoc.wasm OPTIMIZE_WASM=0"
+            nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnupatch \
+              --command bash -c '
+                set -eo pipefail
+                wasm32-wasi-cabal update
+                wasm32-wasi-cabal build -v2 pandoc-cli 2>&1 | tee /tmp/wasm-build.log
+                cp "$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" pandoc.wasm'
+      - run:
+          name: Show link flags passed to GHC for pandoc-cli
+          when: always
+          command: |
+            grep -o -E -- "-optl[^ ]*|-l(setjmp|wasi-emulated-[a-z-]+)" /tmp/wasm-build.log \
+              | sort | uniq -c || echo "No link flags found in the build log."
       # flake.nix and flake.lock let wasm_package use the same pinned
       # wasm toolchain as this build.
       - persist_to_workspace:
