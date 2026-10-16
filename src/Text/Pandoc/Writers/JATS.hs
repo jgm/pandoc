@@ -238,11 +238,6 @@ wrappedBlocksToJATS needsWrap opts =
            then inTags True "p" [("specific-use","wrapper")] inner
            else inner
 
--- | Auxiliary function to convert Plain block to Para.
-plainToPara :: Block -> Block
-plainToPara (Plain x) = Para x
-plainToPara x         = x
-
 -- | Convert a list of pairs of terms and definitions into a list of
 -- JATS varlistentrys.
 deflistItemsToJATS :: PandocMonad m

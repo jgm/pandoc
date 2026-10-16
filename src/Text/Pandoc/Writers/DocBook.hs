@@ -122,11 +122,6 @@ writeDocBook opts doc = do
 blocksToDocBook :: PandocMonad m => WriterOptions -> [Block] -> DB m (Doc Text)
 blocksToDocBook opts = fmap vcat . mapM (blockToDocBook opts)
 
--- | Auxiliary function to convert Plain block to Para.
-plainToPara :: Block -> Block
-plainToPara (Plain x) = Para x
-plainToPara x         = x
-
 -- | Convert a list of pairs of terms and definitions into a list of
 -- DocBook varlistentrys.
 deflistItemsToDocBook :: PandocMonad m

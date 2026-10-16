@@ -66,7 +66,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
     addMetaField, extractSpaces, htmlSpanLikeElements, renderTags',
-    safeRead, tshow, formatCode)
+    safeRead, tshow, formatCode, plainToPara)
 import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
 import Text.TeXMath (readMathML, writeTeX)
@@ -485,8 +485,6 @@ fixPlains inList bs = if any isParaish bs'
         isParaish OrderedList{}    = not inList
         isParaish DefinitionList{} = not inList
         isParaish _                = False
-        plainToPara (Plain xs) = Para xs
-        plainToPara x          = x
         bs' = B.toList bs
 
 pRawTag :: PandocMonad m => TagParser m Text

@@ -51,11 +51,6 @@ writeTEI opts doc = do
 blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 blocksToTEI opts bs = vcat <$> mapM (blockToTEI opts) bs
 
--- | Auxiliary function to convert Plain block to Para.
-plainToPara :: Block -> Block
-plainToPara (Plain x) = Para x
-plainToPara x         = x
-
 -- | Convert a list of pairs of terms and definitions into a TEI
 -- list with labels and items.
 deflistItemsToTEI :: PandocMonad m

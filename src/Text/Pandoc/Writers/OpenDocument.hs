@@ -32,7 +32,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout hiding (link)
-import Text.Pandoc.Shared (linesToPara, tshow, blocksToInlines)
+import Text.Pandoc.Shared (linesToPara, plainToPara, tshow, blocksToInlines)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
@@ -42,11 +42,6 @@ import Text.Pandoc.XML
 import Text.Printf (printf)
 import Text.Pandoc.Highlighting (highlight)
 import Skylighting (FormatOptions(..), SourceLine, Token)
-
--- | Auxiliary function to convert Plain block to Para.
-plainToPara :: Block -> Block
-plainToPara (Plain x) = Para x
-plainToPara x         = x
 
 -- Names of predefined styles in the reference.odt; see data/odt/styles.xml.
 defaultBulletListStyleName, defaultNumberedListStyleName :: Text
