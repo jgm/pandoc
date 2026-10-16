@@ -46,7 +46,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (safeRead, addPandocAttributes)
+import Text.Pandoc.Shared (safeRead, addPandocAttributes, paraToPlain)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.Transforms (headerShift)
 import Text.TeXMath (readMathML, writeTeX)
@@ -1481,10 +1481,6 @@ showVerbatimCData c = showContent c
 -- | Set the prefix of a name to 'Nothing'
 removePrefix :: QName -> QName
 removePrefix elname = elname { qPrefix = Nothing }
-
-paraToPlain :: Block -> Block
-paraToPlain (Para ils) = Plain ils
-paraToPlain x = x
 
 docbookEntityMap :: M.Map Text Text
 docbookEntityMap = M.fromList

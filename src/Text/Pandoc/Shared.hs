@@ -49,6 +49,8 @@ module Text.Pandoc.Shared (
                      compactify,
                      compactifyDL,
                      compactifyTable,
+                     plainToPara,
+                     paraToPlain,
                      linesToPara,
                      figureDiv,
                      makeSections,
@@ -456,10 +458,15 @@ compactify items =
              -> items
            _ -> map (fmap plainToPara) items
 
+-- | Convert a @Plain@ block to a @Para@; leave other blocks unchanged.
 plainToPara :: Block -> Block
 plainToPara (Plain ils) = Para ils
 plainToPara x = x
 
+-- | Convert a @Para@ block to a @Plain@; leave other blocks unchanged.
+paraToPlain :: Block -> Block
+paraToPlain (Para ils) = Plain ils
+paraToPlain x = x
 
 -- | Like @compactify@, but acts on items of definition lists.
 compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
@@ -489,8 +496,6 @@ compactifyTable x = if isSimpleTable x
   isSimpleCell [Plain _] = All True
   isSimpleCell _ = All False
   isSimpleTable = getAll . query isSimpleCell
-  paraToPlain (Para ils) = Plain ils
-  paraToPlain b = b
   -- walk descends into the notes, so we need to fix them back up:
   fixNotes (Note [Plain ils]) = Note [Para ils]
   fixNotes i = i

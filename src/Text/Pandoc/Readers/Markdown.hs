@@ -1039,10 +1039,6 @@ definitionListItem = try $ do
                    then fmap (fmap (fmap paraToPlain))
                    else id) (sequence contents))
 
-paraToPlain :: Block -> Block
-paraToPlain (Para ils) = Plain ils
-paraToPlain x = x
-
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 definitionList = try $ do
   guardEnabled Ext_definition_lists

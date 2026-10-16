@@ -25,7 +25,8 @@ import Text.Pandoc.Sources
 import Text.Parsec.Pos (newPos)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (addPandocAttributes, tshow, compactifyTable)
+import Text.Pandoc.Shared (addPandocAttributes, tshow, compactifyTable,
+                           paraToPlain)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Djot (ParseOptions(..), SourcePosOption(..), parseDoc, Pos(..))
 import qualified Djot.AST as D
@@ -259,9 +260,6 @@ internalAttribute _ = False
 
 toTight :: Blocks -> Blocks
 toTight (Many bls) = Many $ paraToPlain <$> bls
- where
-   paraToPlain (Para ils) = Plain ils
-   paraToPlain x = x
 
 toTaskListItem :: PandocMonad m
                => (D.TaskStatus, D.Blocks) -> ReaderT Env m Blocks
