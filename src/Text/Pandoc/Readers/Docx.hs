@@ -848,11 +848,10 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
       -- Horizontal column alignment is taken from the first row's cells.
       numcols = length widths
       getAlignment (Docx.Cell al colspan _ _) =
-        take numcols $ replicate (fromIntegral colspan) (convertAlign al) ++
-                       repeat Pandoc.AlignDefault
+        replicate (fromIntegral colspan) (convertAlign al)
       getAlignments (Docx.Row _ cs) = concatMap getAlignment cs
       alignments = take numcols $
-                   case hdr ++ rows of
+                   case rows ++ hdr of
                      [] -> repeat Pandoc.AlignDefault
                      r : _ -> getAlignments r
 
