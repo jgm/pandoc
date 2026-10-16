@@ -189,6 +189,11 @@ tests = [ testGroup "inlines"
             "docx/tables-default-widths.native"
             "docx/golden/tables-default-widths.docx"
           , docxTest
+            "paragraph after a table takes the after-table style"
+            def
+            "docx/table_then_para.native"
+            "docx/golden/table_then_para.docx"
+          , docxTest
             "tables with lists in cells"
             def
             "docx/table_with_list_cell.native"
