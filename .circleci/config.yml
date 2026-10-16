@@ -155,15 +155,47 @@ jobs:
       - restore_cache:
           keys:
             - cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
+      # Optimization is done in the wasm_package job, so that this job has
+      # its whole time limit for the build.
       - run:
-          name: Build pandoc.wasm
+          name: Build pandoc.wasm (unoptimized)
           no_output_timeout: 60m
           command: |
-            nix develop --command bash -c "make pandoc.wasm"
+            nix develop --command bash -c "make pandoc.wasm OPTIMIZE_WASM=0"
       - save_cache:
           key: cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
           paths:
             - ~/.ghc-wasm/.cabal/store
+      # flake.nix and flake.lock let wasm_package use the same pinned
+      # wasm toolchain as this build.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - pandoc.wasm
+            - COPYING.md
+            - COPYRIGHT
+            - flake.nix
+            - flake.lock
+
+  wasm_package:
+    docker:
+      - image: nixos/nix:2.32.8
+    resource_class: arm.large   # 4 vCPU / 16 GB; wasm-opt needs the memory
+    environment:
+      NIX_PATH: nixpkgs=channel:nixos-unstable
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        sandbox = false
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Optimize pandoc.wasm
+          no_output_timeout: 60m
+          command: |
+            nix shell --inputs-from . ghc-wasm-meta#binaryen \
+              --command wasm-opt -Oz pandoc.wasm -o pandoc.opt.wasm
+            mv pandoc.opt.wasm pandoc.wasm
       - run:
           name: Compress artifacts
           command: |
@@ -181,3 +213,6 @@ workflows:
       - linux_amd64
       - linux_arm64
       - wasm
+      - wasm_package:
+          requires:
+            - wasm
