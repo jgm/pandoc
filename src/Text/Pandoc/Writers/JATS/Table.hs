@@ -21,7 +21,7 @@ import Data.Text (Text)
 import Text.DocLayout (Doc, empty, vcat, ($$))
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Options (WriterOptions)
+import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.JATS.Types
 import Text.Pandoc.XML (escapeNCName, inTags, inTagsIndented, selfClosingTag)
@@ -65,7 +65,7 @@ captionlessTable opts attr colspecs thead tbodies tfoot = do
                      , "frame", "rules", "specific-use", "style", "summary"
                      , "width"
                      ]
-  let attribs = toAttribs attr validAttribs
+  let attribs = toAttribs opts attr validAttribs
   return $ inTags True "table" attribs $ vcat
     [ colSpecListToJATS colspecs
     , head'
@@ -82,7 +82,7 @@ tableBodyToJats :: PandocMonad m
                 -> Ann.TableBody
                 -> JATS m (Doc Text)
 tableBodyToJats opts (Ann.TableBody attr _rowHeadCols inthead rows) = do
-  let attribs = toAttribs attr validTablePartAttribs
+  let attribs = toAttribs opts attr validTablePartAttribs
   intermediateHead <- if null inthead
                       then return mempty
                       else headerRowsToJats opts Thead inthead
@@ -117,7 +117,7 @@ tablePartToJats opts tblpart attr rows =
                  Thead -> "thead"
                  Tfoot -> "tfoot"
                  Tbody -> "tbody" -- this would be unexpected
-    let attribs = toAttribs attr validTablePartAttribs
+    let attribs = toAttribs opts attr validTablePartAttribs
     inTags True tag' attribs <$> headerRowsToJats opts tblpart rows
   where
     isEmptyRow (Ann.HeaderRow _attr _rownum cells) = all isEmptyCell cells
@@ -183,7 +183,7 @@ tableRowToJats opts (TableRow tblpart attr _rownum rowhead rowbody) = do
   let validAttribs = [ "align", "char", "charoff", "content-type"
                      , "style", "valign"
                      ]
-  let attr' = toAttribs attr validAttribs
+  let attr' = toAttribs opts attr validAttribs
   let celltype = case tblpart of
                    Thead -> HeaderCell
                    _     -> BodyCell
@@ -220,9 +220,11 @@ cellToJats opts celltype (Ann.Cell (colspec :| _) _colNum cell) =
   let align = fst colspec
   in tableCellToJats opts celltype align cell
 
-toAttribs :: Attr -> [Text] -> [(Text, Text)]
-toAttribs (ident, _classes, kvs) knownAttribs =
-  (if T.null ident then id else (("id", escapeNCName ident) :)) $
+toAttribs :: WriterOptions -> Attr -> [Text] -> [(Text, Text)]
+toAttribs opts (ident, _classes, kvs) knownAttribs =
+  (if T.null ident
+      then id
+      else (("id", writerIdentifierPrefix opts <> escapeNCName ident) :)) $
   filter ((`elem` knownAttribs) . fst) kvs
 
 tableCellToJats :: PandocMonad m
@@ -255,7 +257,7 @@ tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
   let attribs = maybeCons (alignmentAttrib align')
               . maybeCons (rowspanAttrib rowspan)
               . maybeCons (colspanAttrib colspan)
-              $ toAttribs attr validAttribs
+              $ toAttribs opts attr validAttribs
   inTags False tag' attribs <$> cellContents item
 
 -- | Whether the JATS produced from this block should be wrapped in a

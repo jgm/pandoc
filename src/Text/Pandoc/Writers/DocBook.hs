@@ -162,8 +162,8 @@ listItemToDocBook opts item =
   inTagsIndented "listitem" <$> blocksToDocBook opts (map plainToPara item)
 
 imageToDocBook :: WriterOptions -> Attr -> Text -> Doc Text
-imageToDocBook _ attr src = selfClosingTag "imagedata" $
-  ("fileref", src) : idAndRole attr <> dims
+imageToDocBook opts attr src = selfClosingTag "imagedata" $
+  ("fileref", src) : idAndRole opts attr <> dims
   where
     dims = go Width "width" <> go Height "depth"
     go dir dstr = case dimension dir attr of
@@ -206,7 +206,8 @@ blockToDocBook opts (Div (id',"section":_classes,divattrs)
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
 blockToDocBook opts (Div (ident,classes,_) bs) = do
   version <- ask
-  let identAttribs = [(idName version, ident) | not (T.null ident)]
+  let identAttribs = [(idName version, writerIdentifierPrefix opts <> ident)
+                     | not (T.null ident)]
       admonitions = ["caution","danger","important","note","tip","warning"]
   case classes of
     (l:_) | l `elem` admonitions -> do
@@ -396,7 +397,8 @@ inlineToDocBook opts (Span (ident,_,_) ils) = do
   version <- ask
   ((if T.null ident
        then mempty
-       else selfClosingTag "anchor" [(idName version, ident)]) <>) <$>
+       else selfClosingTag "anchor"
+              [(idName version, writerIdentifierPrefix opts <> ident)]) <>) <$>
     inlinesToDocBook opts ils
 inlineToDocBook _ (Code _ str) =
   return $ inTagsSimple "literal" $ literal (escapeStringForXML str)
@@ -444,10 +446,10 @@ inlineToDocBook opts (Link attr txt (src, _))
             then let tag = if null txt then "xref" else "link"
                  in  inTags False tag $
                      ("linkend", writerIdentifierPrefix opts <> T.drop 1 src) :
-                     idAndRole attr
+                     idAndRole opts attr
             else if version == DocBook5
-                    then inTags False "link" $ ("xlink:href", src) : idAndRole attr
-                    else inTags False "ulink" $ ("url", src) : idAndRole attr )
+                    then inTags False "link" $ ("xlink:href", src) : idAndRole opts attr
+                    else inTags False "ulink" $ ("url", src) : idAndRole opts attr )
         <$> inlinesToDocBook opts txt
 inlineToDocBook opts (Image attr ils (src, tit)) = return $
   let titleDoc = if T.null tit
@@ -469,10 +471,10 @@ isMathML :: MathMethod -> Bool
 isMathML MathML = True
 isMathML _      = False
 
-idAndRole :: Attr -> [(Text, Text)]
-idAndRole (id',cls,_) = ident <> role
+idAndRole :: WriterOptions -> Attr -> [(Text, Text)]
+idAndRole opts (id',cls,_) = ident <> role
   where
-    ident = [("id", id') | not (T.null id')]
+    ident = [("id", writerIdentifierPrefix opts <> id') | not (T.null id')]
     role  = [("role", T.unwords cls) | not (null cls)]
 
 -- Used in blockToDocBook for Header (section) to create or extend

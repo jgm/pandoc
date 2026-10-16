@@ -26,7 +26,7 @@ import Data.Text (Text)
 import Text.DocLayout (Doc, empty, isEmpty, literal, vcat)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Builder (Inlines)
-import Text.Pandoc.Options (WriterOptions)
+import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.JATS.Types
 import Text.Pandoc.XML (escapeNCName, escapeStringForXML, inTags)
@@ -43,11 +43,11 @@ referenceToJATS :: PandocMonad m
                 => WriterOptions
                 -> Reference Inlines
                 -> JATS m (Doc Text)
-referenceToJATS _opts ref = do
+referenceToJATS opts ref = do
   let refType = referenceType ref
   let pubType = [("publication-type", refType) | not (T.null refType)]
   let ident = escapeNCName $ "ref-" <> unItemId (referenceId ref)
-  let wrap = inTags True "ref" [("id", ident)]
+  let wrap = inTags True "ref" [("id", writerIdentifierPrefix opts <> ident)]
            . inTags True "element-citation" pubType
   return . wrap . vcat $
     [ authors
