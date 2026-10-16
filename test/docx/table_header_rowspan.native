@@ -3,7 +3,7 @@ Pandoc
   [ Table
       ( "" , [] , [] )
       (Caption Nothing [])
-      [ ( AlignDefault , ColWidth 0.30701754385964913 )
+      [ ( AlignLeft , ColWidth 0.30701754385964913 )
       , ( AlignDefault , ColWidth 0.13645224171539963 )
       , ( AlignDefault , ColWidth 0.10009746588693959 )
       , ( AlignDefault , ColWidth 9.707602339181289e-2 )
