@@ -173,7 +173,7 @@ jobs:
           command: |
             nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnupatch --command \
               bash -c "wasm32-wasi-cabal update &&
-                       wasm32-wasi-cabal build --dependencies-only pandoc-cli"
+                       wasm32-wasi-cabal build --dependencies-only pandoc"
       # wasm32-wasi-cabal uses $HOME/.ghc-wasm/.cabal as its CABAL_DIR.
       - save_cache:
           key: cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
