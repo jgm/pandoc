@@ -33,7 +33,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout hiding (link)
 import Text.Pandoc.Shared (linesToPara, tshow, blocksToInlines)
-import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
@@ -302,9 +301,6 @@ handleSpaces s = case T.uncons s of
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
   setupTranslations meta
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   -- The abstract is the one template field that takes block-level
   -- content, so it is rendered separately; everything else in the
   -- metadata goes in a context where only inlines are allowed.
@@ -358,10 +354,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                     then id
                     else defField "abstract" abstract)
               $ metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> body
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context body
 
 withParagraphStyle :: PandocMonad m
                    => WriterOptions -> Text -> [Block] -> OD m (Doc Text)

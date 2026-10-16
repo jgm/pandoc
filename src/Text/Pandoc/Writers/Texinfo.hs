@@ -36,7 +36,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 
@@ -105,9 +104,6 @@ pandocToTexinfo options (Pandoc meta blocks') = do
   blocks <- walkM addNodeText blocks'
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
-  let colwidth = if writerWrapText options == WrapAuto
-                    then Just $ writerColumns options
-                    else Nothing
   metadata <- metaToContext options
               blockListToTexinfo
               (fmap chomp .inlineListToTexinfo)
@@ -118,10 +114,7 @@ pandocToTexinfo options (Pandoc meta blocks') = do
               $ defField "toc" (writerTableOfContents options)
               $ defField "titlepage" titlePage
               $ defField "strikeout" (stStrikeout st) metadata
-  return $ render colwidth $
-    case writerTemplate options of
-       Nothing  -> body
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate options context body
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: PandocMonad m => Text -> TI m Text

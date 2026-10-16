@@ -44,7 +44,6 @@ import Text.Pandoc.Options
 import Text.DocLayout hiding (Color)
 import Text.DocTemplates (lookupContext)
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
@@ -62,9 +61,6 @@ writeMs opts document =
 -- | Return roff ms representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m Text
 pandocToMs opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   title <- chomp <$> inlineListToMs' opts (lookupMetaInlines "title" meta)
   metadata <- metaToContext opts
               (blockListToMs opts)
@@ -91,10 +87,7 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "author-meta" (T.intercalate "; " authorsMeta)
               $ defField "highlighting-macros" highlightingMacros
               $ resetField "title" title metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 escapeStr :: WriterOptions -> Text -> Text
 escapeStr opts =

@@ -79,9 +79,7 @@ pandocToANSI opts (Pandoc meta blocks) = do
   metadata <- metaToContext opts
                  (blockListToANSI opts)
                  (inlineListToANSI opts) meta
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
+  let colwidth = wrapColumns opts
   let title = titleBlock colwidth metadata
   let blocks' = makeSections (writerNumberSections opts) Nothing blocks
   body <- blockListToANSI opts blocks'

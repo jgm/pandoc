@@ -28,7 +28,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
@@ -46,9 +45,6 @@ writeHaddock opts document =
 pandocToHaddock :: PandocMonad m
                 => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToHaddock opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   body <- blockListToHaddock opts blocks
   notes' <- notesToHaddock opts
   let main = body <> (if isEmpty notes' then empty else blankline <> notes')
@@ -57,10 +53,7 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                (fmap chomp . inlineListToHaddock opts)
                meta
   let context  = defField "body" main metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-          Nothing  -> main
-          Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Return haddock representation of the collected notes. Rendering a
 -- note may add further notes to the state (notes nested inside

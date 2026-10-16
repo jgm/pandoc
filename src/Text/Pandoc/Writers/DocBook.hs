@@ -66,9 +66,7 @@ idName DocBook4 = "id"
 authorToDocBook :: PandocMonad m => WriterOptions -> [Inline] -> DB m B.Inlines
 authorToDocBook opts name' = do
   name <- render Nothing <$> inlinesToDocBook opts name'
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
+  let colwidth = wrapColumns opts
   return $ B.rawInline "docbook" $
     render colwidth $ inTags True "personname" [] $
       if T.any (== ',') name
@@ -99,9 +97,7 @@ writeDocBook5 opts d =
 writeDocBook :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
 writeDocBook opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
+  let colwidth = wrapColumns opts
   let startLvl = getStartLvl opts
   let fromBlocks = blocksToDocBook opts .
                    makeSections False (Just startLvl)

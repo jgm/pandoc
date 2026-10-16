@@ -138,9 +138,7 @@ citeName          = "Cite"
 writeICML :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeICML opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
+  let colwidth = wrapColumns opts
       renderBlockMeta f s = fst <$> runStateT (f opts [] s) defaultWriterState
       renderInlineMeta f s = fst <$> runStateT (f opts [] "" s) defaultWriterState
   metadata <- metaToContext opts

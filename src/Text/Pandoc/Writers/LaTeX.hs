@@ -40,7 +40,7 @@ import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.DocTemplates (Context(..), FromContext(lookupContext), Val(..), renderTemplate)
+import Text.DocTemplates (Context(..), FromContext(lookupContext), Val(..))
 import qualified Data.Map as M
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
@@ -128,9 +128,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let blocks' = if method == Biblatex || method == Natbib
                    then filter (not . isRefsDiv) blocks
                    else blocks
-  let colwidth = if writerWrapText options == WrapAuto
-                    then Just $ writerColumns options
-                    else Nothing
   docLangs <- catMaybes <$>
       mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
   mblang <- toLang $ case getLang options meta of
@@ -326,10 +323,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
-  return $ render colwidth $
-    case writerTemplate options of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context'
+  return $ renderWithTemplate options context' main
 
 -- Commas in title-meta need to be put in braces; see #10501
 escapeCommas :: Text -> Text

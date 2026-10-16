@@ -35,7 +35,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Safe (lastMay, headMay)
@@ -68,9 +67,6 @@ writeRST opts document = do
 pandocToRST :: PandocMonad m => Pandoc -> RST m Text
 pandocToRST (Pandoc meta blocks) = do
   opts <- gets stOptions
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let subtit = lookupMetaInlines "subtitle" meta
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToContext opts
@@ -95,10 +91,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "titleblock" (render Nothing title :: Text)
               $ defField "math" hasMath
               $ defField "rawtex" rawTeX metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'

@@ -22,18 +22,17 @@ import Data.Text (Text)
 import Data.String (IsString (fromString))
 import HsLua
 import HsLua.Module.DocLayout (peekDoc, pushDoc)
-import Text.DocLayout (Doc, blankline, render)
+import Text.DocLayout (Doc, blankline)
 import Text.DocTemplates (Context)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.Options (WriterOptions (..), WrapOption(..))
+import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.Lua.PandocLua ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Context (peekContext)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
-import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Writers.Shared (metaToContext, setField)
+import Text.Pandoc.Writers.Shared (metaToContext, renderWithTemplate, setField)
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -161,14 +160,7 @@ runWriter writer doc@(Pandoc meta _blks) mopts = do
   let context = setField "body" body
               $ fromMaybe defaultContext mcontext
 
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
-
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> body
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context body
 
 -- | Keep exactly one traceback and clean it up. This wouldn't be
 -- necessary if the @pcallTrace@ function would do nothing whenever the

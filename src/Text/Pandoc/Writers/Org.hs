@@ -33,7 +33,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..), LocatorInfo(..))
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
@@ -60,9 +59,6 @@ writeOrg opts document = do
 pandocToOrg :: PandocMonad m => Pandoc -> Org m Text
 pandocToOrg (Pandoc meta blocks) = do
   opts <- gets stOptions
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   metadata <- metaToContext opts
                blockListToOrg
                (fmap chomp . inlineListToOrg)
@@ -85,10 +81,7 @@ pandocToOrg (Pandoc meta blocks) = do
               . defField "option-special-strings"
                          (isEnabled Ext_special_strings opts)
               $ metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Return Org representation of the collected notes. Rendering a
 -- note may add further notes to the state (notes nested inside
