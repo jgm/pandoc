@@ -43,7 +43,6 @@ import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -222,9 +221,6 @@ valToYaml _ = empty
 -- | Return markdown representation of document.
 pandocToMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> MD m Text
 pandocToMarkdown opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   variant <- asks envVariant
   metadata <- metaToContext'
                (blockListToMarkdown opts)
@@ -272,10 +268,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                      then id
                      else defField "titleblock" titleblock)
                $ addVariablesToContext opts metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Return markdown representation of reference key table.
 refsToMarkdown :: PandocMonad m => WriterOptions -> Refs -> MD m (Doc Text)

@@ -32,7 +32,8 @@ import Control.Monad (unless, when)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
-                                    setupTranslations, getLang )
+                                    setupTranslations, getLang,
+                                    renderWithTemplate )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow,
                            stringifyInlines)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
@@ -43,7 +44,6 @@ import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
-import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Pandoc.Logging (LogMessage(..))
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -85,9 +85,6 @@ type TW m = StateT WriterState m
 pandocToTypst :: PandocMonad m
               => WriterOptions -> Pandoc -> TW m Text
 pandocToTypst options (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText options == WrapAuto
-                    then Just $ writerColumns options
-                    else Nothing
   setupTranslations meta
   metadata <- metaToContext options
               blocksToTypst
@@ -144,10 +141,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                     then defField "section-numbering" ("1.1.1.1.1" :: Text)
                     else id)
               metadata
-  return $ render colwidth $
-    case writerTemplate options of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate options context main
 
 pickTypstAttrs :: [(Text, Text)] -> ([(Text, Text)],[(Text, Text)])
 pickTypstAttrs = foldr go ([],[])

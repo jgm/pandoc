@@ -170,9 +170,7 @@ docToJATS opts (Pandoc meta blocks') = do
                              (Header lev (ident,hcls,hkvs) hils : rs) : bs)
       splitBackBlocks b (fs, bs) = (b:fs, bs)
   let (bodyblocks, backblocks) = foldr splitBackBlocks ([],[]) blocks
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
+  let colwidth = wrapColumns opts
   metadata <- metaToContext opts
                  (blocksToJATS opts . makeSections False (Just startLvl))
                  (fmap chomp . inlinesToJATS opts)

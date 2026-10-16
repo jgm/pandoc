@@ -27,11 +27,11 @@ import Data.List (intersperse)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Writers.Shared ( metaToContext, defField, toLegacyTable )
+import Text.Pandoc.Writers.Shared ( metaToContext, defField, toLegacyTable,
+                                    renderWithTemplate )
 import Text.Pandoc.Shared (isTightList, tshow, stringifyInlines,
                            onlySimpleTableCells, makeSections)
 import Text.DocLayout
-import Text.DocTemplates (renderTemplate)
 
 import Control.Monad.State (StateT(..), gets, modify)
 import Control.Monad (zipWithM, when)
@@ -43,9 +43,6 @@ import Text.Pandoc.UTF8 (fromText)
 -- | Convert Pandoc to Djot.
 writeDjot :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeDjot opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let ropts = RenderOptions{ preserveSoftBreaks =
                                writerWrapText opts == WrapPreserve }
   metadata <- metaToContext opts
@@ -56,10 +53,7 @@ writeDjot opts (Pandoc meta blocks) = do
   main <- renderDjot ropts <$>
             bodyToDjot opts (makeSections False Nothing blocks)
   let context  = defField "body" main metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 data DjotState =
   DjotState

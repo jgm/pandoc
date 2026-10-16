@@ -55,6 +55,8 @@ module Text.Pandoc.Writers.Shared (
                      , insertCurrentSpansAtColumn
                      , takePreviousSpansAtColumn
                      , decrementTrailingRowSpans
+                     , wrapColumns
+                     , renderWithTemplate
                      )
 where
 import Safe (lastMay, maximumMay)
@@ -83,7 +85,7 @@ import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML, rdfaAttributes, html5Attributes)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
-                          ToContext(..), FromContext(..))
+                          ToContext(..), FromContext(..), renderTemplate)
 import Text.Pandoc.Chunks (tocToList, toTOCTree)
 import Text.Collate.Lang (Lang (..))
 import Text.Pandoc.Class (PandocMonad, toLang)
@@ -110,6 +112,24 @@ metaToContext opts blockWriter inlineWriter meta =
     Nothing -> return mempty
     Just _  -> addVariablesToContext opts <$>
                 metaToContext' blockWriter inlineWriter meta
+
+-- | The line length to use in rendering: 'writerColumns' if
+-- 'writerWrapText' is 'WrapAuto', otherwise 'Nothing' (no wrapping).
+wrapColumns :: WriterOptions -> Maybe Int
+wrapColumns opts =
+  if writerWrapText opts == WrapAuto
+     then Just $ writerColumns opts
+     else Nothing
+
+-- | Render a document body, inserting it into 'writerTemplate'
+-- (with the given context) if there is a template, and wrapping
+-- lines according to 'wrapColumns'.
+renderWithTemplate :: WriterOptions -> Context Text -> Doc Text -> Text
+renderWithTemplate opts context main =
+  render (wrapColumns opts) $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Like 'metaToContext, but does not include variables and is
 -- not sensitive to 'writerTemplate'.

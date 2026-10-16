@@ -53,7 +53,6 @@ import Text.DocLayout
 import Text.Pandoc.Builder (emptyCell)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk (walk)
 
@@ -111,9 +110,6 @@ pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m Text
 pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
                          null (docDate meta)
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   metadata <- metaToContext opts
               (blockListToAsciiDoc opts)
               (fmap chomp . inlineListToAsciiDoc opts)
@@ -126,10 +122,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                    isJust (writerTemplate opts))
                $ defField "math" (hasMath st && not (legacy st))
                $ defField "titleblock" titleblock metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 data EscContext = Normal | InTable
   deriving (Show, Eq)

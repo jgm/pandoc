@@ -23,7 +23,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 
@@ -31,9 +30,6 @@ import Text.Pandoc.XML
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
@@ -49,10 +45,7 @@ writeTEI opts doc = do
               $ defField "mathml" (case writerMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Convert a list of Pandoc blocks to TEI.
 blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)

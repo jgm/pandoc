@@ -47,7 +47,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 
@@ -108,9 +107,6 @@ pandocToMuse :: PandocMonad m
              -> Muse m Text
 pandocToMuse (Pandoc meta blocks) = do
   opts <- asks envOptions
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   metadata <- metaToContext opts
                blockListToMuse
                (fmap chomp . inlineListToMuse)
@@ -119,10 +115,7 @@ pandocToMuse (Pandoc meta blocks) = do
   notes <- currentNotesToMuse
   let main = body $+$ notes
   let context = defField "body" main metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Helper function for flatBlockListToMuse
 -- | Render all blocks and insert blank lines between the first two
