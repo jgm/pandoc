@@ -16,7 +16,7 @@
 -- Conversion of 'Pandoc' documents to (pandoc specific) xml markup.
 module Text.Pandoc.Writers.XML (writeXML) where
 
-import Data.Map (Map, toList)
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Version (versionBranch)
@@ -140,10 +140,10 @@ isInlineTag t =
         || t == tgNameCitationSuffix
         || t == tgNameShortCaption
 
-metaMapToXML :: Map T.Text MetaValue -> T.Text -> [Content]
+metaMapToXML :: OM.OMap T.Text MetaValue -> T.Text -> [Content]
 metaMapToXML mmap tag = asContents $ elementWithContents tag entries
   where
-    entries = concatMap to_entry $ toList mmap
+    entries = concatMap to_entry $ OM.assocs mmap
     to_entry :: (T.Text, MetaValue) -> [Content]
     to_entry (text, metavalue) = asContents with_key
       where

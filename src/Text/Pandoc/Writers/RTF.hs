@@ -19,7 +19,7 @@ import Control.Monad.Reader (ReaderT, runReaderT, asks)
 import Control.Monad.State.Strict (State, runState, get, put)
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord, isAlphaNum)
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -104,9 +104,9 @@ writeRTF options doc = do
   let toPlain (MetaBlocks [Para ils]) = MetaInlines ils
       toPlain x                       = x
   -- adjust title, author, date so we don't get para inside para
-  let meta'  = Meta $ M.adjust toPlain "title"
-                    . M.adjust toPlain "author"
-                    . M.adjust toPlain "date"
+  let meta'  = Meta $ OM.alter (fmap toPlain) "title"
+                    . OM.alter (fmap toPlain) "author"
+                    . OM.alter (fmap toPlain) "date"
                     $ metamap
   metadata <- metaToContext options
               (fmap (literal . T.concat) .

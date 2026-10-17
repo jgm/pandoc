@@ -23,14 +23,15 @@ import Control.Monad.Except (throwError)
 import qualified Data.ByteString as B
 import qualified Data.List as L
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Vector as V
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.List.NonEmpty as NE
 import qualified Yamlet as Y
+import qualified Yamlet.Syntax as YS
 import Yamlet.Aeson ()
-import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject)
-import Data.Aeson.Types (parse)
+import Data.Aeson (Value(..), Object, Result(..), fromJSON)
 import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
@@ -44,11 +45,11 @@ yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
              -> ParsecT Sources st m (Future st Meta)
 yamlBsToMeta pMetaValue bstr = do
   pos <- getPosition
-  case Y.decodeAll @Value bstr of
+  case Y.decodeAll @OrderedYaml bstr of
        Right xs ->
          case xs of
-           (Object o : _) -> fmap Meta <$> yamlMap pMetaValue o
-           [Null] -> return . return $ mempty
+           (OYMapping kvs : _) -> fmap Meta <$> orderedYamlMap pMetaValue kvs
+           [OYScalar Null] -> return . return $ mempty
            [] -> return . return $ mempty
            _  -> Prelude.fail "expected YAML object"
        Left errs -> throwError $ PandocParseError $ T.pack $
@@ -75,26 +76,52 @@ yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
              -> ParsecT Sources st m (Future st [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr = do
   pos <- getPosition
-  case Y.decodeAll @Value bstr of
-       Right (Object m : _) -> do
-         case parse (withObject "metadata" (.:? "references")) (Object m) of
-           Success (Just refs) -> sequence <$>
+  case Y.decodeAll @OrderedYaml bstr of
+       Right (OYMapping kvs : _) ->
+         case lookup "references" kvs of
+           Just (OYSequence refs) -> sequence <$>
                  mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
            _ -> return $ return []
-       Right (Array v : _) -> do
-         let refs = filter hasSelectedId $ V.toList v
+       Right (OYSequence refs : _) ->
          sequence <$> mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
        Right _ -> return . return $ []
        Left errs -> throwError $ PandocParseError
                                $ T.pack $ renderYamlErrors pos errs
  where
-   isSelected (String t) = idpred t
-   isSelected _ = False
-   hasSelectedId (Object o) =
-     case parse (withObject "ref" (.:? "id")) (Object o) of
-       Success (Just id') -> isSelected id'
+   hasSelectedId (OYMapping kvs) =
+     case lookup "id" kvs of
+       Just (OYScalar (String t)) -> idpred t
        _ -> False
    hasSelectedId _ = False
+
+-- | A YAML value whose mappings keep their entries in the order of the
+-- input.  Keys are the text of scalar keys, and scalars are converted
+-- to aeson 'Value's, both as in the 'Y.FromYaml' instance of 'Value'.
+data OrderedYaml = OYMapping [(Text, OrderedYaml)]
+                 | OYSequence [OrderedYaml]
+                 | OYScalar Value
+
+instance Y.FromYaml OrderedYaml where
+  parseYaml = Y.parseNode $ \n -> case n of
+    YS.Node{YS.content = YS.MappingContent _ kvs} -> OYMapping <$> traverse entry kvs
+    YS.Node{YS.content = YS.SequenceContent _ xs} ->
+      OYSequence <$> Y.parseItems Y.parseYaml xs
+    _ -> OYScalar <$> Y.parseYaml n
+   where
+    entry (k, v) = (,) <$> Y.parseNode keyText k <*> Y.parseNode Y.parseYaml v
+    keyText k = case k of
+      YS.Node{YS.content = YS.ScalarContent _ t} -> pure t
+      _ -> Y.typeMismatch "a scalar key" k
+
+-- | Convert an aeson 'Value'. The keys of an object come out sorted,
+-- because an aeson 'Object' does not record their order.
+aesonToOrderedYaml :: Value -> OrderedYaml
+aesonToOrderedYaml v =
+  case v of
+    Object _ | Success (m :: M.Map Text Value) <- fromJSON v ->
+      OYMapping [(k, aesonToOrderedYaml x) | (k, x) <- M.toList m]
+    Array xs -> OYSequence (map aesonToOrderedYaml (V.toList xs))
+    _ -> OYScalar v
 
 normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
                    => ParsecT Sources st m (Future st MetaValue)
@@ -122,34 +149,32 @@ normalizeMetaValue pMetaValue x =
 
 yamlToMetaValue :: (PandocMonad m, HasLastStrPosition st)
                 => ParsecT Sources st m (Future st MetaValue)
-                -> Value
+                -> OrderedYaml
                 -> ParsecT Sources st m (Future st MetaValue)
-yamlToMetaValue pMetaValue v =
-  case v of
-       String t -> normalizeMetaValue pMetaValue t
-       Bool b -> return $ return $ MetaBool b
-       Number d -> normalizeMetaValue pMetaValue $
-         case fromJSON v of
-           Success (x :: Int) -> tshow x
-           _ -> tshow d
-       Null -> return $ return $ MetaString ""
-       Array{} -> do
-         case fromJSON v of
-           Error err' -> throwError $ PandocParseError $ T.pack err'
-           Success xs -> fmap MetaList . sequence <$>
+yamlToMetaValue pMetaValue ov =
+  case ov of
+       OYMapping kvs -> fmap MetaMap <$> orderedYamlMap pMetaValue kvs
+       OYSequence xs -> fmap MetaList . sequence <$>
                           mapM (yamlToMetaValue pMetaValue) xs
-       Object o -> fmap MetaMap <$> yamlMap pMetaValue o
+       OYScalar v ->
+         case v of
+           String t -> normalizeMetaValue pMetaValue t
+           Bool b -> return $ return $ MetaBool b
+           Number d -> normalizeMetaValue pMetaValue $
+             case fromJSON v of
+               Success (x :: Int) -> tshow x
+               _ -> tshow d
+           Null -> return $ return $ MetaString ""
+           _ -> yamlToMetaValue pMetaValue (aesonToOrderedYaml v)
 
-yamlMap :: (PandocMonad m, HasLastStrPosition st)
-        => ParsecT Sources st m (Future st MetaValue)
-        -> Object
-        -> ParsecT Sources st m (Future st (M.Map Text MetaValue))
-yamlMap pMetaValue o = do
-    case fromJSON (Object o) of
-      Error err' -> throwError $ PandocParseError $ T.pack err'
-      Success (m' :: M.Map Text Value) -> do
-        let kvs = filter (not . ignorable . fst) $ M.toList m'
-        fmap M.fromList . sequence <$> mapM toMeta kvs
+-- | Convert the entries of a YAML mapping, keeping their order.
+orderedYamlMap :: (PandocMonad m, HasLastStrPosition st)
+               => ParsecT Sources st m (Future st MetaValue)
+               -> [(Text, OrderedYaml)]
+               -> ParsecT Sources st m (Future st (OM.OMap Text MetaValue))
+orderedYamlMap pMetaValue kvs =
+  fmap OM.fromList . sequence <$>
+    mapM toMeta (filter (not . ignorable . fst) kvs)
   where
     ignorable t = "_" `T.isSuffixOf` t
     toMeta (k, v) = do
@@ -157,6 +182,17 @@ yamlMap pMetaValue o = do
       return $ do
         v' <- fv
         return (k, v')
+
+-- | Convert an aeson 'Object' (e.g. from a defaults file). Its keys come
+-- out sorted, because an aeson 'Object' does not record their order.
+yamlMap :: (PandocMonad m, HasLastStrPosition st)
+        => ParsecT Sources st m (Future st MetaValue)
+        -> Object
+        -> ParsecT Sources st m (Future st (OM.OMap Text MetaValue))
+yamlMap pMetaValue o =
+  case aesonToOrderedYaml (Object o) of
+    OYMapping kvs -> orderedYamlMap pMetaValue kvs
+    _ -> return $ return OM.empty
 
 -- | Parse a YAML metadata block using the supplied 'MetaValue' parser.
 yamlMetaBlock :: (HasLastStrPosition st, PandocMonad m)

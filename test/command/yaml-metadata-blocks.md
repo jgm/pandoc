@@ -38,25 +38,25 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "bool" , MetaBool True )
-          , ( "empty" , MetaList [] )
+          [ ( "int" , MetaInlines [ Str "7" ] )
           , ( "float" , MetaInlines [ Str "1.5" ] )
-          , ( "int" , MetaInlines [ Str "7" ] )
+          , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
+          , ( "bool" , MetaBool True )
           , ( "more" , MetaBool False )
+          , ( "nothing" , MetaString "" )
+          , ( "empty" , MetaList [] )
           , ( "nested"
             , MetaMap
                 (fromList
-                   [ ( "bool" , MetaBool True )
-                   , ( "empty" , MetaList [] )
+                   [ ( "int" , MetaInlines [ Str "8" ] )
                    , ( "float" , MetaInlines [ Str "2.5" ] )
-                   , ( "int" , MetaInlines [ Str "8" ] )
+                   , ( "bool" , MetaBool True )
                    , ( "more" , MetaBool False )
                    , ( "nothing" , MetaString "" )
+                   , ( "empty" , MetaList [] )
                    , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
                    ])
             )
-          , ( "nothing" , MetaString "" )
-          , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
           ]
     }
   []
@@ -94,11 +94,11 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "other"
+          [ ( "title" , MetaInlines [ Str "document" ] )
+          , ( "other"
             , MetaInlines
                 [ Emph [ Str "markdown" ] , Space , Str "value" ]
             )
-          , ( "title" , MetaInlines [ Str "document" ] )
           ]
     }
   []
@@ -110,11 +110,11 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "other"
+          [ ( "title" , MetaString "cmdline" )
+          , ( "other"
             , MetaInlines
                 [ Emph [ Str "markdown" ] , Space , Str "value" ]
             )
-          , ( "title" , MetaString "cmdline" )
           ]
     }
   []

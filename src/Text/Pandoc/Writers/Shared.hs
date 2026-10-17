@@ -70,6 +70,7 @@ import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as Builder
@@ -139,7 +140,7 @@ metaToContext' :: (Monad m, TemplateTarget a)
            -> Meta
            -> m (Context a)
 metaToContext' blockWriter inlineWriter (Meta metamap) =
-  Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
+  Context . OM.toMap <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 
 -- | Add variables to a template Context, using monoidal append.
 -- Also add `meta-json`.  Note that metadata values are used
@@ -162,7 +163,8 @@ metaValueToVal :: (Monad m, TemplateTarget a)
                -> MetaValue
                -> m (Val a)
 metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
-  MapVal . Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
+  MapVal . Context . OM.toMap <$>
+    mapM (metaValueToVal blockWriter inlineWriter) metamap
 metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
   mapM (metaValueToVal blockWriter inlineWriter) xs
 metaValueToVal _ _ (MetaBool b) = return $ BoolVal b

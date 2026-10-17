@@ -2,6 +2,13 @@ packages: .
           pandoc-lua-engine
           pandoc-server
           pandoc-cli
+          -- Local checkouts of pandoc-types and the dependencies that
+          -- use it, for experimenting with changes to pandoc-types.
+          deps/pandoc-types
+          deps/citeproc
+          deps/texmath
+          deps/commonmark-hs/commonmark-pandoc
+          deps/pandoc-lua-marshal
 constraints: skylighting-format-blaze-html >= 0.1.2.2,
              skylighting-format-context >= 0.1.0.2,
              auto-update >= 0.2.6,

@@ -36,6 +36,7 @@ import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Map as Map
+import qualified Data.Map.Ordered as OM
 import qualified Data.Set as Set
 import qualified Data.Text as T
 
@@ -52,7 +53,7 @@ metaExport = do
 removeMeta :: Text -> Meta -> Meta
 removeMeta key meta' =
   let metaMap = unMeta meta'
-  in Meta $ Map.delete key metaMap
+  in Meta $ OM.delete key metaMap
 
 -- | Parse and handle a single line containing meta information
 -- The order, in which blocks are tried, makes sure that we're not looking at

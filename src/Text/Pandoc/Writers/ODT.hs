@@ -22,6 +22,7 @@ import Data.Maybe (catMaybes, fromMaybe, listToMaybe, mapMaybe, maybeToList)
 import Data.Generics (everywhere', mkT)
 import Data.List (isPrefixOf, partition)
 import qualified Data.Map as Map
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time
@@ -360,7 +361,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
               )
   let archive' = addEntryToArchive manifestEntry archive
   -- create meta.xml
-  let userDefinedMetaFields = [k | k <- Map.keys (unMeta meta)
+  let userDefinedMetaFields = [k | k <- map fst (OM.assocs (unMeta meta))
                               , k `notElem` ["title", "lang", "author"
                                            , "description", "subject", "keywords"]]
   let escapedText = text . T.unpack . escapeStringForXML

@@ -14,7 +14,7 @@ module Text.Pandoc.Filter.JSON (apply) where
 
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (liftIO))
-import Data.Aeson (eitherDecode', encode)
+import Data.Aeson (encode)
 import Data.Char (toLower)
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
@@ -23,7 +23,7 @@ import System.Directory (executable, doesFileExist, findExecutable,
 import System.Environment (getEnvironment)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), takeExtension)
-import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Definition (Pandoc, decodePandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Process (pipeProcess)
@@ -73,7 +73,7 @@ externalFilter fenv f args' d = liftIO $ do
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
        ExitSuccess    -> either (E.throwIO . PandocFilterError fText . T.pack)
-                                   return $ eitherDecode' outbs
+                                   return $ decodePandoc outbs
        ExitFailure ec -> E.throwIO $ PandocFilterError fText
                            ("Filter returned error status " <> tshow ec)
  where fText = T.pack f

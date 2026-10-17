@@ -24,6 +24,7 @@ import Data.Char (isDigit, isHexDigit, isSpace, toUpper, isAlphaNum,
                                   DashPunctuation, OtherSymbol))
 import Data.List (elemIndex, partition, sort, transpose)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
 import qualified Data.Set as Set
@@ -153,11 +154,10 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
                                 MetaInlines ils
            _ -> setMeta (T.toLower (stringifyInlines k)) $
                   mconcat $ map fromList v
-       adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
-                                           $ M.mapKeys (\k ->
-                                                 if k == "authors"
-                                                    then "author"
-                                                    else k) metamap
+       adjustAuthors (Meta metamap) = Meta $ OM.alter (fmap splitAuthors) "author"
+                                           $ OM.fromList
+                                           [ (if k == "authors" then "author" else k, v)
+                                           | (k, v) <- OM.assocs metamap ]
        splitAuthors (MetaInlines xs)  = MetaList $ map MetaInlines
                                                  $ splitAuthors' xs
        splitAuthors x                 = x

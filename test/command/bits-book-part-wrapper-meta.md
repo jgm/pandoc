@@ -34,22 +34,7 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "abstract"
-            , MetaBlocks
-                [ Para
-                    [ Str "Balisage"
-                    , Space
-                    , Str "is"
-                    , Space
-                    , Str "a"
-                    , Space
-                    , Str "peer-reviewed"
-                    , Space
-                    , Str "conference..."
-                    ]
-                ]
-            )
-          , ( "title"
+          [ ( "title"
             , MetaInlines
                 [ Str "Proceedings"
                 , Space
@@ -64,6 +49,21 @@ Pandoc
                 , Str "Conference"
                 , SoftBreak
                 , Str "2013"
+                ]
+            )
+          , ( "abstract"
+            , MetaBlocks
+                [ Para
+                    [ Str "Balisage"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "peer-reviewed"
+                    , Space
+                    , Str "conference..."
+                    ]
                 ]
             )
           ]

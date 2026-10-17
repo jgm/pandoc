@@ -97,7 +97,7 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.List (find, groupBy, intercalate, intersperse, union)
 import qualified Data.List as L
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (mapMaybe)
 import Data.Monoid (Any (..), All (..) )
 import Data.Semigroup (Min (..))
@@ -774,9 +774,10 @@ addMetaField :: ToMetaValue a
              -> Meta
              -> Meta
 addMetaField key val (Meta meta) =
-  Meta $ M.insertWith combine key (toMetaValue val) meta
-  where combine newval (MetaList xs) = MetaList (xs ++ tolist newval)
-        combine newval x             = MetaList [x, newval]
+  Meta $ OM.alter (Just . maybe newval (combine newval)) key meta
+  where newval = toMetaValue val
+        combine newval' (MetaList xs) = MetaList (xs ++ tolist newval')
+        combine newval' x            = MetaList [x, newval']
         tolist (MetaList ys) = ys
         tolist y             = [y]
 

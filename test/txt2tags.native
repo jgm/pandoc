@@ -2,10 +2,7 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author" , MetaList [ MetaInlines [ Str "author" ] ] )
-          , ( "date" , MetaInlines [ Str "date" ] )
-          , ( "includeconf" , MetaString "rules.conf" )
-          , ( "title"
+          [ ( "title"
             , MetaInlines
                 [ Str "Txt2tags"
                 , Space
@@ -14,6 +11,9 @@ Pandoc
                 , Str "Rules"
                 ]
             )
+          , ( "author" , MetaList [ MetaInlines [ Str "author" ] ] )
+          , ( "date" , MetaInlines [ Str "date" ] )
+          , ( "includeconf" , MetaString "rules.conf" )
           ]
     }
   [ Para

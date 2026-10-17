@@ -27,6 +27,7 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit)
 import Data.List (isPrefixOf)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust, catMaybes)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -300,42 +301,42 @@ getIdentifier :: Meta -> [Identifier]
 getIdentifier meta = getList "identifier" meta handleMetaValue
   where handleMetaValue (MetaMap m) =
            Identifier{ identifierText = maybe "" metaValueToString
-                                        $ M.lookup "text" m
+                                        $ OM.lookup "text" m
                      , identifierScheme = metaValueToString <$>
-                                          M.lookup "scheme" m }
+                                          OM.lookup "scheme" m }
         handleMetaValue mv = Identifier (metaValueToString mv) Nothing
 
 getTitle :: Meta -> [Title]
 getTitle meta = getList "title" meta handleMetaValue
   where handleMetaValue (MetaMap m) =
-           Title{ titleText = maybe "" metaValueToString $ M.lookup "text" m
-                , titleFileAs = metaValueToString <$> M.lookup "file-as" m
-                , titleType = metaValueToString <$> M.lookup "type" m }
+           Title{ titleText = maybe "" metaValueToString $ OM.lookup "text" m
+                , titleFileAs = metaValueToString <$> OM.lookup "file-as" m
+                , titleType = metaValueToString <$> OM.lookup "type" m }
         handleMetaValue mv = Title (metaValueToString mv) Nothing Nothing
 
 getCreator :: T.Text -> Meta -> [Creator]
 getCreator s meta = getList s meta handleMetaValue
   where handleMetaValue (MetaMap m) =
-           Creator{ creatorText = maybe "" metaValueToString $ M.lookup "text" m
-                  , creatorFileAs = metaValueToString <$> M.lookup "file-as" m
-                  , creatorRole = metaValueToString <$> M.lookup "role" m }
+           Creator{ creatorText = maybe "" metaValueToString $ OM.lookup "text" m
+                  , creatorFileAs = metaValueToString <$> OM.lookup "file-as" m
+                  , creatorRole = metaValueToString <$> OM.lookup "role" m }
         handleMetaValue mv = Creator (metaValueToString mv) Nothing Nothing
 
 getDate :: T.Text -> Meta -> [Date]
 getDate s meta = getList s meta handleMetaValue
   where handleMetaValue (MetaMap m) =
            Date{ dateText = fromMaybe "" $
-                   M.lookup "text" m >>= normalizeDate' . metaValueToString
-               , dateEvent = metaValueToString <$> M.lookup "event" m }
+                   OM.lookup "text" m >>= normalizeDate' . metaValueToString
+               , dateEvent = metaValueToString <$> OM.lookup "event" m }
         handleMetaValue mv = Date { dateText = fromMaybe "" $ normalizeDate' $ metaValueToString mv
                                   , dateEvent = Nothing }
 
 getSubject :: T.Text -> Meta -> [Subject]
 getSubject s meta = getList s meta handleMetaValue
   where handleMetaValue (MetaMap m) =
-           Subject{ subjectText = maybe "" metaValueToString $ M.lookup "text" m
-                  , subjectAuthority = metaValueToString <$> M.lookup "authority" m
-                  , subjectTerm = metaValueToString <$> M.lookup "term" m }
+           Subject{ subjectText = maybe "" metaValueToString $ OM.lookup "text" m
+                  , subjectAuthority = metaValueToString <$> OM.lookup "authority" m
+                  , subjectTerm = metaValueToString <$> OM.lookup "term" m }
         handleMetaValue mv = Subject (metaValueToString mv) Nothing Nothing
 
 metadataFromMeta :: WriterOptions -> Meta -> EPUBMetadata
@@ -404,11 +405,11 @@ metadataFromMeta opts meta = EPUBMetadata{
                               _          -> Nothing
         ibooksFields = case lookupMeta "ibooks" meta of
                             Just (MetaMap mp)
-                               -> M.toList $ M.map metaValueToString mp
+                               -> OM.assocs $ fmap metaValueToString mp
                             _  -> []
         calibreFields = case lookupMeta "calibre" meta of
                             Just (MetaMap mp)
-                               -> M.toList $ M.map metaValueToString mp
+                               -> OM.assocs $ fmap metaValueToString mp
                             _  -> []
         accessModes = case lookupMeta "accessModes" meta of
                          Just (MetaList xs) -> map metaValueToString xs
@@ -1560,9 +1561,9 @@ docTitle' meta = maybe [] go $ lookupMeta "title" meta
         go (MetaBlocks [Para xs]) = xs
         go (MetaBlocks [Plain xs]) = xs
         go (MetaMap m) =
-              case M.lookup "type" m of
+              case OM.lookup "type" m of
                    Just x | stringify x == "main" ->
-                              maybe [] go $ M.lookup "text" m
+                              maybe [] go $ OM.lookup "text" m
                    _ -> []
         go (MetaList xs) = concatMap go xs
         go _ = []

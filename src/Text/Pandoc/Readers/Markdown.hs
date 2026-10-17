@@ -27,6 +27,7 @@ import Data.Char (isAlphaNum, isDigit, isLetter, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.List as L
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Attoparsec.Text as A
@@ -325,7 +326,7 @@ mmdTitleBlock = do
     let kvPairs = firstPair : restPairs
     blanklines
     updateState $ \st -> st{ stateMeta' = stateMeta' st <>
-                               return (Meta $ M.fromList kvPairs) }
+                               return (Meta $ OM.fromList kvPairs) }
 
 kvPair :: PandocMonad m => Bool -> MarkdownParser m (Text, MetaValue)
 kvPair allowEmpty = try $ do

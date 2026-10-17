@@ -19,7 +19,7 @@ import Control.Monad.State.Strict (StateT (runStateT), modify)
 import Data.Char (isSpace)
 import Data.Default (Default (..))
 import qualified Data.List as L
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe)
 import qualified Data.Set as S (Set, fromList, member)
 import Data.Text (Text)
@@ -556,6 +556,6 @@ parseMeta (Elem e) = do
                   then
                     -- TODO: report empty MetaMap
                     return Nothing
-                  else return $ Just $ MetaMap $ M.fromList entries
+                  else return $ Just $ MetaMap $ OM.fromList entries
         _ -> do
           throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in metadata")

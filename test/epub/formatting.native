@@ -2,7 +2,8 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author"
+          [ ( "language" , MetaInlines [ Str "en" ] )
+          , ( "author"
             , MetaList
                 [ MetaInlines [ Str "Ori Idan" ]
                 , MetaInlines [ Str "Matt Garrish" ]
@@ -12,6 +13,9 @@ Pandoc
                 , MetaInlines [ Str "Markus Gylling" ]
                 ]
             )
+          , ( "title"
+            , MetaInlines [ Str "EPUBTEST 0101 - Styling Tests" ]
+            )
           , ( "description"
             , MetaInlines
                 [ Str "Tests for Styling [UNDER CONSTRUCTION]" ]
@@ -19,10 +23,6 @@ Pandoc
           , ( "identifier"
             , MetaInlines
                 [ Str "com.github.epub-testsuite.epub30-test-0101" ]
-            )
-          , ( "language" , MetaInlines [ Str "en" ] )
-          , ( "title"
-            , MetaInlines [ Str "EPUBTEST 0101 - Styling Tests" ]
             )
           ]
     }

@@ -33,6 +33,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Error
 import Data.Text (Text)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
@@ -63,13 +64,14 @@ notebookToPandoc opts notebook = do
           jsonMetaToMeta (notebookMetadata notebook)
   let lang = case M.lookup "kernelspec" m of
                    Just (MetaMap ks) ->
-                      case M.lookup "language" ks of
+                      case OM.lookup "language" ks of
                          Just (MetaString l) -> l
                          _ -> "python"
                    _ -> "python"
   bs <- mconcat <$> mapM (cellToBlocks opts lang) cells
   let Pandoc _ blocks = B.doc bs
-  return $ Pandoc (Meta $ M.insert "jupyter" (MetaMap m) mempty) blocks
+  return $ Pandoc (Meta $ OM.singleton ("jupyter", MetaMap (OM.fromList (M.toList m))))
+                  blocks
 
 cellToBlocks :: PandocMonad m
              => ReaderOptions -> Text -> Ipynb.Cell a -> m B.Blocks
@@ -222,7 +224,7 @@ jsonMetaToMeta (JSONMeta m) = M.map valueToMetaValue m
     valueToMetaValue x@Object{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s
-        Success jm' -> MetaMap $ jsonMetaToMeta jm'
+        Success jm' -> MetaMap $ OM.fromList $ M.toList $ jsonMetaToMeta jm'
     valueToMetaValue x@Array{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s

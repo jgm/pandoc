@@ -27,7 +27,6 @@ module Tests.Helpers ( test
 
 import System.FilePath
 import Data.Algorithm.Diff
-import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
@@ -160,8 +159,8 @@ instance ToString Pandoc where
   toString d = unpack $
      purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
-                  (Pandoc (Meta m) _)
-                    | M.null m  -> Nothing
+                  (Pandoc m _)
+                    | isNullMeta m -> Nothing
                     | otherwise -> Just mempty -- need this to get meta output
 
 instance ToString Blocks where

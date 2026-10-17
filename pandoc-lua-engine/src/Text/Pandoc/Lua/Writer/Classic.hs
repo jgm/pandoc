@@ -17,6 +17,7 @@ Conversion of Pandoc documents using a \"classic\" custom Lua writer.
 module Text.Pandoc.Lua.Writer.Classic
   ( runCustom
   ) where
+import qualified Data.Map.Ordered as OM
 import Control.Applicative (optional)
 import Control.Arrow ((***))
 import Data.List (intersperse)
@@ -57,7 +58,7 @@ instance Pushable (Stringify [Block]) where
   push (Stringify blks) = Lua.push =<< blockListToCustom blks
 
 instance Pushable (Stringify MetaValue) where
-  push (Stringify (MetaMap m))       = Lua.push (fmap Stringify m)
+  push (Stringify (MetaMap m))       = Lua.push (OM.toMap $ fmap Stringify m)
   push (Stringify (MetaList xs))     = Lua.push (map Stringify xs)
   push (Stringify (MetaBool x))      = Lua.push x
   push (Stringify (MetaString s))    = Lua.push s
@@ -114,7 +115,7 @@ docToCustom opts (Pandoc (Meta metamap) blocks) = do
   -- `Doc` manually.
   Lua.getglobal "Doc"                 -- function
   push body                           -- argument 1
-  push (fmap Stringify  metamap)      -- argument 2
+  push (OM.toMap $ fmap Stringify metamap) -- argument 2
   push (writerVariables opts)         -- argument 3
   call 3 2
   rendered  <- peek (nth 2)       -- first return value

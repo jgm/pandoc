@@ -2,20 +2,20 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author" , MetaInlines [ Str "T.S. Eliot" ] )
-          , ( "date" , MetaInlines [ Str "2011-09-01" ] )
-          , ( "identifier"
-            , MetaInlines
-                [ Str "code.google.com.epub-samples.wasteland-basic" ]
-            )
-          , ( "language" , MetaInlines [ Str "en-US" ] )
-          , ( "rights"
+          [ ( "rights"
             , MetaInlines
                 [ Str
                     "This work is shared with the public using the Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) license."
                 ]
             )
+          , ( "date" , MetaInlines [ Str "2011-09-01" ] )
+          , ( "language" , MetaInlines [ Str "en-US" ] )
+          , ( "author" , MetaInlines [ Str "T.S. Eliot" ] )
           , ( "title" , MetaInlines [ Str "The Waste Land" ] )
+          , ( "identifier"
+            , MetaInlines
+                [ Str "code.google.com.epub-samples.wasteland-basic" ]
+            )
           ]
     }
   [ Para

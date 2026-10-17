@@ -2,13 +2,13 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "date"
-            , MetaInlines
-                [ Str "Oct" , Space , Str "17," , Space , Str "2018" ]
+          [ ( "header"
+            , MetaInlines [ Str "Pandoc" , Space , Str "Tests" ]
             )
           , ( "footer" , MetaInlines [ Str "v1.0.1" ] )
-          , ( "header"
-            , MetaInlines [ Str "Pandoc" , Space , Str "Tests" ]
+          , ( "date"
+            , MetaInlines
+                [ Str "Oct" , Space , Str "17," , Space , Str "2018" ]
             )
           , ( "section" , MetaInlines [ Str "1" ] )
           , ( "title" , MetaInlines [ Str "PANDOC-MAN-TESTS" ] )

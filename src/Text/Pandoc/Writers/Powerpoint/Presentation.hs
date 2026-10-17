@@ -61,6 +61,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , lookupMetaString, toTableOfContents
                                  , toLegacyTable)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, isNothing)
 import Data.Monoid (Any(..))
@@ -1178,7 +1179,7 @@ metaToDocProps meta =
                   [] -> Nothing
                   ss -> Just $ T.intercalate "_x000d_\n" ss
 
-      customProperties' = case [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
+      customProperties' = case [(k, lookupMetaString k meta) | k <- map fst (OM.assocs (unMeta meta))
                                , k `notElem` ["title", "author", "keywords", "description"
                                              , "subject","lang","category"]] of
                   [] -> Nothing

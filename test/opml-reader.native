@@ -2,11 +2,7 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author"
-            , MetaList
-                [ MetaInlines [ Str "Dave" , Space , Str "Winer" ] ]
-            )
-          , ( "date"
+          [ ( "date"
             , MetaInlines
                 [ Str "Thu,"
                 , Space
@@ -20,6 +16,10 @@ Pandoc
                 , Space
                 , Str "GMT"
                 ]
+            )
+          , ( "author"
+            , MetaList
+                [ MetaInlines [ Str "Dave" , Space , Str "Winer" ] ]
             )
           , ( "title" , MetaInlines [ Str "States" ] )
           ]

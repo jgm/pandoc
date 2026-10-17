@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 module Text.Pandoc.Citeproc.MetaValue
   ( referenceToMetaValue
   , metaValueToReference
@@ -14,6 +15,7 @@ import Data.Maybe
 import Safe
 import qualified Data.Set as Set
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Printf (printf)
@@ -38,7 +40,8 @@ referenceToMetaValue :: Reference Inlines -> MetaValue
 referenceToMetaValue ref =
   let ItemId id' = referenceId ref
       type' = referenceType ref
-   in MetaMap $ M.insert "id" (MetaString id')
+   in MetaMap $ OM.fromList $ M.toList
+              $ M.insert "id" (MetaString id')
               $ M.insert "type" (MetaString type')
               $ M.map valToMetaValue
               $ M.mapKeys fromVariable
@@ -55,7 +58,7 @@ valToMetaValue _ = MetaString mempty
 
 nameToMetaValue :: Name -> MetaValue
 nameToMetaValue name =
-  MetaMap $
+  MetaMap $ OM.fromList $ M.toList $
     (maybe id (M.insert "family" . MetaString) (nameFamily name)) .
     (maybe id (M.insert "given" . MetaString) (nameGiven name)) .
     (maybe id (M.insert "dropping-particle" . MetaString)
@@ -100,7 +103,7 @@ dateToMetaValue date =
 
 metaValueToReference :: MetaValue
                      -> Maybe (Reference Inlines)
-metaValueToReference (MetaMap m) = do
+metaValueToReference (MetaMap (OM.toMap -> m)) = do
   let m' = M.mapKeys normalizeKey m
   id' <- M.lookup "id" m' >>= metaValueToText
   type' <- (M.lookup "type" m' >>= metaValueToText) <|> pure ""
@@ -131,7 +134,7 @@ metaValueToVal k v
       MetaMap  _   -> TextVal mempty
 
 metaValueToDate :: MetaValue -> Date
-metaValueToDate (MetaMap m) = fromMaybe
+metaValueToDate (MetaMap (OM.toMap -> m)) = fromMaybe
   (Date
    { dateParts = dateparts
    , dateCirca = circa
@@ -144,7 +147,7 @@ metaValueToDate (MetaMap m) = fromMaybe
                   mapMaybe metaValueToDateParts xs
                 Just _ -> []
                 Nothing ->
-                  maybeToList $ metaValueToDateParts (MetaMap m)
+                  maybeToList $ metaValueToDateParts (MetaMap (OM.fromList (M.toList m)))
   circa = fromMaybe False $
             M.lookup "circa" m >>= metaValueToBool
   season = M.lookup "season" m >>= metaValueToInt
@@ -165,7 +168,7 @@ metaValueToInt x = metaValueToText x >>= readMay . T.unpack
 metaValueToDateParts :: MetaValue -> Maybe DateParts
 metaValueToDateParts (MetaList xs) =
   Just $ DateParts $ map (fromMaybe 0 . metaValueToInt) xs
-metaValueToDateParts (MetaMap m) =
+metaValueToDateParts (MetaMap (OM.toMap -> m)) =
   case (M.lookup "year" m >>= metaValueToInt,
         ((M.lookup "month" m >>= metaValueToInt)
           <|>
@@ -188,7 +191,7 @@ metaValueToNames (MetaList xs) = mapMaybe metaValueToName xs
 metaValueToNames x = maybeToList $ metaValueToName x
 
 metaValueToName :: MetaValue -> Maybe Name
-metaValueToName (MetaMap m) =
+metaValueToName (MetaMap (OM.toMap -> m)) =
   Just Name
     { nameFamily = family
     , nameGiven = given

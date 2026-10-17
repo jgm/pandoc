@@ -37,6 +37,7 @@ import Data.Char (isSpace)
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -800,7 +801,7 @@ mkCorePropsEntry epochtime utctime meta =
           $ mktnode "dc:title" [] (stringifyInlines $ docTitle meta)
           : mktnode "dc:creator" [] (T.intercalate "; " (map stringifyInlines $ docAuthors meta))
           : [ mktnode (M.findWithDefault "" k extraCorePropsMap) [] (lookupMetaString' k meta)
-            | k <- M.keys (unMeta meta), k `elem` extraCoreProps]
+            | k <- map fst (OM.assocs (unMeta meta)), k `elem` extraCoreProps]
           ++ mknode "cp:keywords" [] (T.intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
@@ -813,7 +814,7 @@ mkCustomPropsEntry epochtime meta =
   let extraCoreProps = ["subject","lang","category","description"]
       customProperties :: [(Text, Text)]
       customProperties = [ (k, lookupMetaString k meta)
-                         | k <- M.keys (unMeta meta)
+                         | k <- map fst (OM.assocs (unMeta meta))
                          , k `notElem` (["title", "author", "keywords"]
                                        ++ extraCoreProps)]
       mkCustomProp (k, v) pid = mknode "property"

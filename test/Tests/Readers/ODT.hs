@@ -16,7 +16,6 @@ module Tests.Readers.ODT (tests) where
 import Control.Monad (liftM)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import qualified Data.Map as M
 import Data.Text (unpack)
 import System.IO.Unsafe (unsafePerformIO)
 import Test.Tasty
@@ -127,8 +126,8 @@ instance ToString NoNormPandoc where
   toString d = unpack $
                purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
-                  NoNormPandoc (Pandoc (Meta m) _)
-                    | M.null m  -> Nothing
+                  NoNormPandoc (Pandoc m _)
+                    | isNullMeta m -> Nothing
                     | otherwise -> Just mempty -- need this for Meta output
 
 instance ToPandoc NoNormPandoc where

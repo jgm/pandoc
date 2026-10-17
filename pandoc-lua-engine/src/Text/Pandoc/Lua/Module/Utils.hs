@@ -41,7 +41,7 @@ import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 import Text.Pandoc.Options (WriterOptions (writerExtensions))
 import Text.Pandoc.Writers (Writer (..), getWriter)
 
-import qualified Data.Map as Map
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Shared as Shared
@@ -369,7 +369,7 @@ stringify = defun "stringify"
     MetaBool b   -> T.toLower $ T.pack (show b)
     MetaString s -> s
     MetaList xs  -> mconcat $ map stringifyMetaValue xs
-    MetaMap m    -> mconcat $ map (stringifyMetaValue . snd) (Map.toList m)
+    MetaMap m    -> mconcat $ map (stringifyMetaValue . snd) (OM.assocs m)
     _            -> Shared.stringify mv
 
 

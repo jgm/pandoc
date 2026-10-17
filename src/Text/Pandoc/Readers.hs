@@ -76,7 +76,6 @@ module Text.Pandoc.Readers
   ) where
 
 import Control.Monad.Except (throwError)
-import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -205,7 +204,7 @@ readJSON :: (PandocMonad m, ToSources a)
          -> a
          -> m Pandoc
 readJSON _ s =
-  case eitherDecode' . BL.fromStrict . UTF8.fromText
+  case decodePandoc . BL.fromStrict . UTF8.fromText
                      . sourcesToText . toSources $ s of
        Right doc -> return doc
        Left e    -> throwError $ PandocParseError ("JSON parse error: "

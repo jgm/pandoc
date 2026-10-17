@@ -19,7 +19,7 @@ old implementation (with @ribbonsPerLine = 1.2@).
 module Text.Pandoc.Writers.Native ( writeNative )
 where
 import Data.List (intersperse)
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -120,9 +120,9 @@ showV x = V (not ("-" `T.isPrefixOf` t)) (dtext t)
 enumV :: Show a => a -> V
 enumV = V True . dtext . T.pack . show
 
-mapV :: (a -> V) -> M.Map Text a -> V
-mapV f m = con "fromList"
-  [listV (\(k, v) -> tupleV [showV k, f v]) (M.toAscList m)]
+omapV :: (a -> V) -> OM.OMap Text a -> V
+omapV f m = con "fromList"
+  [listV (\(k, v) -> tupleV [showV k, f v]) (OM.assocs m)]
 
 --
 -- Conversion of the Pandoc AST
@@ -132,10 +132,10 @@ pandocV :: Pandoc -> V
 pandocV (Pandoc meta blocks) = con "Pandoc" [metaV meta, blocksV blocks]
 
 metaV :: Meta -> V
-metaV (Meta m) = recV "Meta" [("unMeta", mapV metaValueV m)]
+metaV (Meta m) = recV "Meta" [("unMeta", omapV metaValueV m)]
 
 metaValueV :: MetaValue -> V
-metaValueV (MetaMap m)       = con "MetaMap" [mapV metaValueV m]
+metaValueV (MetaMap m)       = con "MetaMap" [omapV metaValueV m]
 metaValueV (MetaList xs)     = con "MetaList" [listV metaValueV xs]
 metaValueV (MetaBool b)      = con "MetaBool" [enumV b]
 metaValueV (MetaString t)    = con "MetaString" [showV t]

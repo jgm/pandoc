@@ -77,6 +77,7 @@ import Data.List (delete, intersect)
 import qualified Data.List as L
 import Data.Char (isSpace)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import qualified Data.Sequence as Seq
@@ -215,7 +216,7 @@ bodyPartsToMeta bps = do
         case M.lookup "author" mp of
           Just mv -> M.insert "author" (fixAuthors mv) mp
           Nothing -> mp
-  return $ Meta mp'
+  return $ Meta $ OM.fromList $ M.toList mp'
 
 fixAuthors :: MetaValue -> MetaValue
 fixAuthors (MetaBlocks blks) = MetaList [MetaInlines ils | Para ils <- blks]

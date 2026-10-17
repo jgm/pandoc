@@ -2,7 +2,11 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author"
+          [ ( "custom" , MetaString "Foo bar baz" )
+          , ( "flag" , MetaBool True )
+          , ( "date" , MetaString "2025-11-24" )
+          , ( "version" , MetaString "1.0" )
+          , ( "author"
             , MetaList
                 [ MetaInlines
                     [ Str "John"
@@ -30,9 +34,6 @@ Pandoc
                     ]
                 ]
             )
-          , ( "custom" , MetaString "Foo bar baz" )
-          , ( "date" , MetaString "2025-11-24" )
-          , ( "flag" , MetaBool True )
           , ( "title"
             , MetaInlines
                 [ Str "AsciiDoc"
@@ -42,7 +43,6 @@ Pandoc
                 , Str "test"
                 ]
             )
-          , ( "version" , MetaString "1.0" )
           ]
     }
   [ Header

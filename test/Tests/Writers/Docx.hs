@@ -4,7 +4,7 @@ module Tests.Writers.Docx (tests) where
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry, toArchive)
 import qualified Data.ByteString.Lazy as BL
 import Data.List (isInfixOf, isPrefixOf)
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as T
@@ -352,7 +352,7 @@ tests = [ testGroup "inlines"
               bs <- runIOorExplode $ do
                 setVerbosity ERROR
                 -- Create a document with French language metadata
-                let doc = Pandoc (Meta $ M.fromList [("lang", MetaString "fr-FR")])
+                let doc = Pandoc (Meta $ OM.fromList [("lang", MetaString "fr-FR")])
                                  [Para [Str "Test"]]
                 writeDocx opts doc
               stylesXml <- show <$> entryBytes "word/styles.xml" (toArchive bs)
