@@ -135,10 +135,9 @@ jobs:
       - store_artifacts:
           path: linux-arm64.tar.gz
 
-  # The wasm build is split over three jobs, each with its own time limit:
+  # The wasm build is split over two jobs, each with its own time limit:
   # wasm_deps builds the dependencies into the cabal store, which is passed
-  # to wasm through the cache; wasm builds pandoc; wasm_package optimizes
-  # and packages the result.
+  # to wasm through the cache; wasm builds, optimizes, and packages pandoc.
   #
   # These jobs don't use `nix develop`: that shell includes a native Haskell
   # environment that may need to be built from source.  The wasm build only
@@ -205,51 +204,20 @@ jobs:
       - restore_cache:
           keys:
             - cabal-store-linux-wasm-v4-{{ checksum "/tmp/cabal-cache-key" }}
-      # Optimization is done in the wasm_package job, so that this job has
-      # its whole time limit for the build.
+      # make also optimizes the result with wasm-opt, from ghc-wasm-meta.
       - run:
-          name: Build pandoc.wasm (unoptimized)
+          name: Build pandoc.wasm
           no_output_timeout: 60m
           command: |
             nix shell --inputs-from . ghc-wasm-meta nixpkgs#gnumake nixpkgs#gnupatch \
-              --command bash -c "make pandoc.wasm OPTIMIZE_WASM=0"
-      # flake.nix and flake.lock let wasm_package use the same pinned
-      # wasm toolchain as this build.
-      - persist_to_workspace:
-          root: .
-          paths:
-            - pandoc.wasm
-            - COPYING.md
-            - COPYRIGHT
-            - flake.nix
-            - flake.lock
-
-  wasm_package:
-    docker:
-      - image: nixos/nix:2.32.8
-    resource_class: arm.large   # 4 vCPU / 16 GB; wasm-opt needs the memory
-    environment:
-      NIX_PATH: nixpkgs=channel:nixos-unstable
-      NIX_CONFIG: |
-        experimental-features = nix-command flakes
-        sandbox = false
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Optimize pandoc.wasm
-          no_output_timeout: 60m
-          command: |
-            nix shell --inputs-from . ghc-wasm-meta#binaryen \
-              --command wasm-opt -Oz pandoc.wasm -o pandoc.opt.wasm
-            mv pandoc.opt.wasm pandoc.wasm
+              --command bash -c "make pandoc.wasm"
       - run:
           name: Compress artifacts
           command: |
-            nix-env -iA nixpkgs.zip
             mkdir pandoc-wasm
             mv pandoc.wasm COPYING.md COPYRIGHT pandoc-wasm/
-            zip -r pandoc.wasm.zip pandoc-wasm
+            nix shell --inputs-from . nixpkgs#zip \
+              --command zip -r pandoc.wasm.zip pandoc-wasm
       - store_artifacts:
           path: pandoc.wasm.zip
 
@@ -263,6 +231,3 @@ workflows:
       - wasm:
           requires:
             - wasm_deps
-      - wasm_package:
-          requires:
-            - wasm
