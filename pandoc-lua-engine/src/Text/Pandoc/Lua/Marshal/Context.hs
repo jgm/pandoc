@@ -19,11 +19,10 @@ module Text.Pandoc.Lua.Marshal.Context
   ) where
 
 import Control.Monad (when, (<$!>))
-import qualified Data.Map as M
-import qualified Data.Map.Ordered as OM
 import Data.Text (Text)
 import HsLua as Lua
 import HsLua.Module.DocLayout (peekDoc, pushDoc)
+import Text.Pandoc.Lua.Marshal.OrderedMap (peekOrderedMap, pushOrderedMap)
 import Text.DocTemplates (Context(..), Val(..))
 
 instance Pushable (Context Text) where
@@ -34,13 +33,12 @@ instance Pushable (Val Text) where
 
 -- | Retrieves a template context from the Lua stack.
 peekContext :: LuaError e => Peeker e (Context Text)
-peekContext idx =
-  Context . OM.fromList . M.toList <$!> peekMap peekText peekVal idx
+peekContext idx = Context <$!> peekOrderedMap peekVal idx
 
 -- | Pushes a template context to the Lua stack.
 pushContext :: LuaError e => Pusher e (Context Text)
 pushContext ctx = do
-  pushMap pushText pushVal $ OM.toMap $ unContext ctx
+  pushOrderedMap pushVal $ unContext ctx
   created <- Lua.newmetatable "pandoc Context"
   when created $ do
     pushName "__concat"

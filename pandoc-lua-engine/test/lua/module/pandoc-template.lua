@@ -105,6 +105,19 @@ return {
         template.apply('Song $number$', context):render(),
         'Song 2'
       )
+    end),
+    test('preserves the order of context fields', function ()
+      local meta = pandoc.read(
+        '---\nmap:\n  zeta: 1\n  alpha: 2\n  mid: 3\n---\n'
+      ).meta
+      local stringify = function (x)
+        return pandoc.utils.stringify(x)
+      end
+      local context = template.meta_to_context(meta, stringify, stringify)
+      assert.are_equal(
+        template.apply('$for(map/pairs)$$it.key$ $endfor$', context):render(),
+        'zeta alpha mid '
+      )
     end)
   },
 }
