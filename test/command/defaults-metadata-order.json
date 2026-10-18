@@ -1,0 +1,5 @@
+{ "to": "native",
+  "standalone": true,
+  "metadata": { "zeta": { "y": 1, "b": 2 },
+                "title": "T",
+                "author": "A" } }

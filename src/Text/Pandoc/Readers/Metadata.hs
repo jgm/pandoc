@@ -16,7 +16,9 @@ module Text.Pandoc.Readers.Metadata (
   yamlBsToMeta,
   yamlBsToRefs,
   yamlMetaBlock,
-  yamlMap ) where
+  yamlMap,
+  OrderedYaml(..),
+  orderedYamlMap ) where
 
 
 import Control.Monad.Except (throwError)

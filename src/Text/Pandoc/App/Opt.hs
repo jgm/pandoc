@@ -38,7 +38,7 @@ import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( (<.>), (</>), takeDirectory )
 import System.Directory ( canonicalizePath )
-import Data.Char (toLower, isSpace)
+import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
@@ -57,13 +57,14 @@ import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
 import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Data (defaultUserDataDir)
 import qualified Text.Pandoc.Parsing as P
-import Text.Pandoc.Readers.Metadata (yamlMap)
+import Text.Pandoc.Readers.Metadata (yamlMap, OrderedYaml(..), orderedYamlMap)
 import Text.Pandoc.Class.PandocPure
 import Text.DocTemplates (Context(..))
 import Data.Text (Text, unpack)
 import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
 import Data.Aeson.TH (deriveJSON)
@@ -74,6 +75,7 @@ import qualified Data.Aeson.Key as K
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
 import qualified Yamlet as Y
+import qualified Yamlet.Syntax as YS
 import Yamlet.Aeson
 
 -- | The type of line-endings to be used when writing plain-text.
@@ -354,20 +356,61 @@ data DefaultsState = DefaultsState
 
 instance (PandocMonad m, MonadIO m)
       => FromJSON (Opt -> StateT DefaultsState m Opt) where
-  parseJSON (Object o) =
+  parseJSON (Object o) = ($ id) <$> parseDefaultsObject doOpt' o
+  parseJSON _ = fail "Expected a mapping"
+
+-- | The options of a YAML defaults file, except @metadata@, which
+-- 'YamlDefaults' reads separately.
+newtype DefaultsWithoutMetadata m =
+  DefaultsWithoutMetadata ((Opt -> Opt) -> Opt -> StateT DefaultsState m Opt)
+
+instance (PandocMonad m, MonadIO m)
+      => FromJSON (DefaultsWithoutMetadata m) where
+  parseJSON (Object o) = DefaultsWithoutMetadata <$> parseDefaultsObject opt o
+    where opt (k, v) | k == "metadata" = return id
+                     | otherwise       = doOpt' (k, v)
+  parseJSON _ = fail "Expected a mapping"
+
+-- | A YAML defaults file. Its @metadata@ is read with 'OrderedYaml', so
+-- that the order of the fields is preserved; aeson's 'Object' does not
+-- record the order of its keys.  The other options are read with their
+-- 'FromJSON' instances.
+data YamlDefaults m = YamlDefaults (DefaultsWithoutMetadata m) (Maybe OrderedYaml)
+
+instance (PandocMonad m, MonadIO m) => Y.FromYaml (YamlDefaults m) where
+  parseYaml n =
+    YamlDefaults <$> ((\(ViaAeson d) -> d) <$> Y.parseYaml n)
+                 <*> Y.parseNode metadataField n
+   where
+    metadataField node = case node of
+      YS.Node{YS.content = YS.MappingContent _ kvs}
+        | (v:_) <- [v | (k, v) <- kvs, isMetadataKey k] ->
+            Just <$> Y.parseNode Y.parseYaml v
+      _ -> pure Nothing
+    isMetadataKey k = case k of
+      YS.Node{YS.content = YS.ScalarContent _ "metadata"} -> True
+      _ -> False
+
+-- | Parse the options of a defaults file with the given function for each
+-- option. The result takes a function to apply after the options of the
+-- file (before variables are resolved).
+parseDefaultsObject :: (PandocMonad m, MonadIO m)
+                    => ((Text, Value) -> Parser (Opt -> Opt))
+                    -> Object
+                    -> Parser ((Opt -> Opt) -> Opt -> StateT DefaultsState m Opt)
+parseDefaultsObject doOption o =
     case fromJSON (Object o) of
       Error err' -> fail err'
       Success (opts :: M.Map Text Value) -> do
         dataDir <- case M.lookup "data-dir" opts of
           Nothing -> return Nothing
           Just v -> Just . unpack <$> parseJSON v <?> Key "data-dir"
-        f <- parseOptions (M.toList opts)
+        f <- parseOptionsWith doOption (M.toList opts)
         case M.lookup "defaults" opts of
           Just v -> do
             g <- parseDefaults v dataDir <?> Key "defaults"
-            return  $ g >=> f >=> resolveVarsInOpt
-          Nothing -> return $ f >=> resolveVarsInOpt
-  parseJSON _ = fail "Expected a mapping"
+            return $ \extra -> g >=> f >=> return . extra >=> resolveVarsInOpt
+          Nothing -> return $ \extra -> f >=> return . extra >=> resolveVarsInOpt
 
 resolveVarsInOpt :: forall m. (PandocMonad m, MonadIO m)
                  => Opt -> StateT DefaultsState m Opt
@@ -526,11 +569,12 @@ parseDefaults n dataDir = parseDefsNames n >>= \ds -> return $ \o -> do
   where parseDefsNames x = (parseJSON x >>= \xs -> return $ map unpack xs)
                        <|> (parseJSON x >>= \x' -> return [unpack x'])
 
-parseOptions :: Monad m
-             => [(Text, Value)]
-             -> Parser (Opt -> StateT DefaultsState m Opt)
-parseOptions ns = do
-  f <- chain doOpt' ns
+parseOptionsWith :: Monad m
+                 => ((Text, Value) -> Parser (Opt -> Opt))
+                 -> [(Text, Value)]
+                 -> Parser (Opt -> StateT DefaultsState m Opt)
+parseOptionsWith doOption ns = do
+  f <- chain doOption ns
   return $ return . f
 
 chain :: Monad m => (a -> m (b -> b)) -> [a] -> m (b -> b)
@@ -916,13 +960,26 @@ defaultOpts = Opt
 
 yamlToMeta :: Value -> Parser Meta
 yamlToMeta (Object o) =
-  either (fail . show) return $ runEverything (yamlMap pMetaString o)
- where
-  pMetaString = pure . MetaString <$> P.manyChar P.anyChar
-  runEverything p =
-      runPure (P.readWithM p (def :: P.ParserState) ("" :: Text))
-      >>= fmap (Meta . flip P.runF def)
+  either (fail . show) return $ runMetaParser (yamlMap pMetaString o)
 yamlToMeta _ = return mempty
+
+-- | Convert the @metadata@ of a YAML defaults file, keeping the order
+-- of its fields.
+orderedYamlToMeta :: OrderedYaml -> Either PandocError Meta
+orderedYamlToMeta (OYMapping kvs) = runMetaParser (orderedYamlMap pMetaString kvs)
+orderedYamlToMeta _ = Right mempty
+
+-- | In defaults files, metadata values are strings, not Markdown.
+pMetaString :: P.ParsecT P.Sources P.ParserState PandocPure
+                 (P.Future P.ParserState MetaValue)
+pMetaString = pure . MetaString <$> P.manyChar P.anyChar
+
+runMetaParser :: P.ParsecT P.Sources P.ParserState PandocPure
+                   (P.Future P.ParserState (OM.OMap Text MetaValue))
+              -> Either PandocError Meta
+runMetaParser p =
+    runPure (P.readWithM p (def :: P.ParserState) ("" :: Text))
+    >>= fmap (Meta . flip P.runF def)
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: (PandocMonad m, MonadIO m)
@@ -933,19 +990,16 @@ applyDefaults opt file = do
   setVerbosity $ optVerbosity opt
   modify $ \defsState -> defsState{ curDefaults = Just file }
   inp <- readFileStrict file
-  let isJSON = B8.take 1 (B8.dropWhile isSpace inp) == "{"
-  if isJSON
-     then
-       case eitherDecodeStrict inp of
-         Right f -> f opt
-         Left err' -> throwError $ PandocParseError $ T.pack $
-            "Error parsing " <> file <> ":\n" <> err'
-     else
-       case Y.decode (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
-           Right (ViaAeson f) -> f opt
-           Left errs  -> throwError $ PandocParseError $ T.pack $
-                  "Error parsing " <> file <> ":\n" <>
-                  L.intercalate "\n" (map (Y.prettyError file) (NE.toList errs))
+  -- A JSON defaults file is also valid YAML (1.2), so both go through
+  -- yamlet, which also lets us keep the order of metadata fields.
+  case Y.decode (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
+      Right (YamlDefaults (DefaultsWithoutMetadata f) mbMeta) -> do
+        meta <- either throwError return $
+                  maybe (Right mempty) orderedYamlToMeta mbMeta
+        f (\o -> o{ optMetadata = optMetadata o <> meta }) opt
+      Left errs  -> throwError $ PandocParseError $ T.pack $
+             "Error parsing " <> file <> ":\n" <>
+             L.intercalate "\n" (map (Y.prettyError file) (NE.toList errs))
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath

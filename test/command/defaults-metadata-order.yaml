@@ -1,0 +1,9 @@
+defaults: command/defaults-metadata-order-parent.yaml
+to: native
+standalone: true
+metadata:
+  zeta:
+    y: 1
+    b: 2
+  title: Child title
+  author: A
