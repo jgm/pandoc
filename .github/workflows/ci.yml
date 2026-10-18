@@ -87,12 +87,14 @@ jobs:
     # declare/restore cached things
 
     # cabal update also writes a default config file if there is none;
-    # without one, cabal path prints a notice on stdout.
+    # without one, cabal path prints a notice on stdout.  -z (ignore the
+    # project) keeps cabal path from checking out source-repository-packages,
+    # which prints git output on stdout too.
     - name: Update cabal and get store path
       id:   cabal-store
       run: |
           cabal update
-          echo "dir=$(cabal path --store-dir)" >> "$GITHUB_OUTPUT"
+          echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
 
     - name: Cache cabal global package db
       id:   cabal-global
@@ -172,13 +174,15 @@ jobs:
     # declare/restore cached things
 
     # cabal update also writes a default config file if there is none;
-    # without one, cabal path prints a notice on stdout.
+    # without one, cabal path prints a notice on stdout.  -z (ignore the
+    # project) keeps cabal path from checking out source-repository-packages,
+    # which prints git output on stdout too.
     - name: Update cabal and get store path
       id:   cabal-store
       shell: bash
       run: |
           cabal update
-          echo "dir=$(cabal path --store-dir)" >> "$GITHUB_OUTPUT"
+          echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
 
     - name: Cache cabal global package db
       id:   cabal-global
