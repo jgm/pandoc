@@ -4,6 +4,7 @@ on: workflow_dispatch
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   windows:
@@ -81,32 +82,15 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
     - name: Upload unsigned artifact
-      id: upload-unsigned-artifact
       uses: actions/upload-artifact@v7
       with:
         name: windows-release-candidate-unsigned
         path: windows-release-candidate
 
-    - name: Sign artifact
-      id: sign-artifact
-      uses: signpath/github-action-submit-signing-request@v3
-      with:
-        api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
-        project-slug: 'pandoc'
-        signing-policy-slug: 'release-signing'
-        artifact-configuration-slug: 'pandoc-msi-and-zip'
-        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
-        wait-for-completion: true
-        output-artifact-directory: 'windows-release-candidate'
-      timeout-minutes: 120
-
-    - name: upload-signed-artifact
-      id: upload-signed-artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: windows-release-candidate-signed
-        path: windows-release-candidate
+  windows-sign:
+    needs: windows
+    uses: ./.github/workflows/sign-windows.yml
+    secrets: inherit
 
   macos:
 
