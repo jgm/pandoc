@@ -1,6 +1,6 @@
 #!/bin/sh
 # Trigger the CircleCI release pipeline on main and download all artifacts.
-# Needs CIRCLE_TOKEN (personal API token), curl, and jq.
+# Needs CIRCLECI_API_TOKEN (personal API token), curl, and jq.
 set -eu
 api=https://circleci.com/api/v2
 slug=gh/jgm/pandoc
