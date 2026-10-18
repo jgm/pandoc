@@ -27,6 +27,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, listToMaybe, isNothing)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
@@ -193,7 +194,7 @@ docToJATS opts (Pandoc meta blocks') = do
                Nothing  -> NullVal
                Just day ->
                  let (y,m,d) = toGregorian day
-                 in  MapVal . Context $ M.fromList
+                 in  MapVal . Context $ OM.fromList
                       [("year" :: Text, SimpleVal $ text $ show y)
                       ,("month", SimpleVal $ text $ show m)
                       ,("day", SimpleVal $ text $ show d)

@@ -9,6 +9,7 @@ packages: .
           deps/texmath
           deps/commonmark-hs/commonmark-pandoc
           deps/pandoc-lua-marshal
+          deps/doctemplates
 constraints: skylighting-format-blaze-html >= 0.1.2.2,
              skylighting-format-context >= 0.1.0.2,
              auto-update >= 0.2.6,

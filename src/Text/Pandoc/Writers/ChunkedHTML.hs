@@ -31,7 +31,7 @@ import qualified Data.Text.Encoding as TE
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Codec.Archive.Zip (Entry, addEntryToArchive, emptyArchive, toEntry,
                           fromArchive)
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Text.DocTemplates (Context(..), Val(..))
 import Text.DocLayout (literal)
 import Text.Pandoc.Writers.Shared (defField)
@@ -139,14 +139,14 @@ chunkToEntry opts meta topChunk chunk = do
 
 tocTreeToContext :: Tree SecInfo -> Context Text
 tocTreeToContext (Node secinfo subs) =
-  Context $ M.fromList
+  Context $ OM.fromList
   [ ("section", MapVal $ secInfoToContext secinfo)
   , ("subsections", ListVal $ map (MapVal . tocTreeToContext) subs)
   ]
 
 secInfoToContext :: SecInfo -> Context Text
 secInfoToContext sec =
-  Context $ M.fromList
+  Context $ OM.fromList
   [ ("title", SimpleVal $ literal $ stringifyInlines $ secTitle sec)
   , ("number", maybe NullVal (SimpleVal . literal) (secNumber sec))
   , ("id", SimpleVal $ literal $ secId sec)
@@ -167,7 +167,7 @@ addContextVars opts topChunk chunk context =
     $ context
  where
   navlinks ch = toMapVal [("url", formatPath ch), ("title", formatHeading ch)]
-  toMapVal = MapVal . Context . M.fromList
+  toMapVal = MapVal . Context . OM.fromList
   formatPath = SimpleVal . literal . T.pack . chunkPath
   formatHeading ch = SimpleVal . literal . either (const "") id . runPure $
     writeHtml5String opts{ writerTemplate = Nothing }

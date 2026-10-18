@@ -9,11 +9,11 @@ Lang: en-GB
 body
 ^D
 ---
+title: Blah blah blah
 author: Doo de Doo
 baseheaderlevel: 1
 bibliography: Pubs.bib
 lang: en-GB
-title: Blah blah blah
 ---
 
 body

@@ -6,7 +6,7 @@ import Text.Pandoc
 import Test.Tasty
 import System.FilePath
 import Text.DocTemplates (ToContext(toVal), Context(..))
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Text (pack)
 
 -- templating is important enough, and can break enough things, that
@@ -155,7 +155,7 @@ tests = let
       "pptx/code/input.native"
       "pptx/code/output.pptx"
     , pptxTests "inline code and code blocks, custom formatting"
-      def { writerVariables = Context $ M.fromList
+      def { writerVariables = Context $ OM.fromList
               [(pack "monofont", toVal $ pack "Consolas")] }
       "pptx/code/input.native"
       "pptx/code-custom/output.pptx"

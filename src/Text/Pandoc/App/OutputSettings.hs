@@ -21,6 +21,7 @@ module Text.Pandoc.App.OutputSettings
   , sandbox'
   ) where
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
@@ -179,12 +180,12 @@ optToOutputSettings scriptingEngine opts = do
       setListVariableM k vs ctx = do
         let ctxMap = unContext ctx
         return $ Context $
-          case M.lookup k ctxMap of
-              Just (ListVal xs) -> M.insert k
-                                  (ListVal $ xs ++ map toVal vs) ctxMap
-              Just v -> M.insert k
-                         (ListVal $ v : map toVal vs) ctxMap
-              Nothing -> M.insert k (toVal vs) ctxMap
+          case OM.lookup k ctxMap of
+              Just (ListVal xs) -> ctxMap OM.|>
+                                  (k, ListVal $ xs ++ map toVal vs)
+              Just v -> ctxMap OM.|>
+                         (k, ListVal $ v : map toVal vs)
+              Nothing -> ctxMap OM.|> (k, toVal vs)
 
   let getTextContents fp = (fst <$> fetchItem (T.pack fp)) >>= toTextM fp
 
@@ -286,7 +287,7 @@ optToOutputSettings scriptingEngine opts = do
 -- | Set text value in text context unless it is already set.
 setVariableM :: Monad m
              => T.Text -> T.Text -> Context T.Text -> m (Context T.Text)
-setVariableM key val (Context ctx) = return $ Context $ M.alter go key ctx
+setVariableM key val (Context ctx) = return $ Context $ OM.alter go key ctx
   where go Nothing             = Just $ toVal val
         go (Just x)            = Just x
 

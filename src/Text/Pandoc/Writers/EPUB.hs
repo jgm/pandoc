@@ -26,7 +26,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit)
 import Data.List (isPrefixOf)
-import qualified Data.Map as M
 import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust, catMaybes)
 import qualified Data.Set as Set
@@ -497,22 +496,21 @@ pandocToEPUB version opts doc = do
   -- writer variables
   let vars :: Context Text
       vars = Context $
-               M.delete "css" .
-               M.insert "epub3"
-                 (toVal' $ if epub3 then "true" else "false") .
-               M.insert "lang" (toVal' $ epubLanguage metadata)
+               OM.delete "css" .
+               (OM.|> ("epub3",
+                 toVal' $ if epub3 then "true" else "false")) .
+               (OM.|> ("lang", toVal' $ epubLanguage metadata))
              $ unContext $ writerVariables opts
 
   -- If True create paths relative to parent folder
   let cssvars :: Bool -> Context Text
-      cssvars useprefix = Context $ M.insert "css"
-                           (ListVal $ map
+      cssvars useprefix = Context $ OM.singleton ("css",
+                           ListVal $ map
                              (\e -> toVal' $
                                 (if useprefix then "../" else "") <>
                                 T.pack
                                  (makeRelative epubSubdir (eRelativePath e)))
                              stylesheetEntries)
-                             mempty
 
   -- Add additional options for the writer
   let opts' :: WriterOptions
@@ -528,7 +526,7 @@ pandocToEPUB version opts doc = do
   -- title page
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables =
-                                      Context (M.fromList [
+                                      Context (OM.fromList [
                                         ("titlepage", toVal' "true"),
                                         ("body-type",  toVal' "frontmatter"),
                                         ("pagetitle", toVal $
@@ -767,7 +765,7 @@ createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle =
           -- write the HTML. Use the cssvars, vars and additional writer options.
           cpContent <- lift $ writeHtml
                 opts'{ writerVariables =
-                      Context (M.fromList [
+                      Context (OM.fromList [
                         ("coverpage", toVal' "true"),
                         ("pagetitle", toVal $
                           escapeStringForXML plainTitle),
@@ -802,7 +800,7 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
         mkEntry ("text/" ++ chunkPath chunk) =<<
         -- Combine all provided options
         writeHtml opts'{ writerVariables =
-                            Context (M.fromList
+                            Context (OM.fromList
                                      [("body-type", toVal' bodyType),
                                       ("pagetitle", toVal' $
                                            showChapter num)])
@@ -981,7 +979,7 @@ createNavEntry opts meta metadata
                     [ unode "ol" landmarkItems ]
                   | not (null landmarkItems)]
   navData <- lift $ writeHtml opts{ writerVariables =
-                     Context (M.fromList [("navpage", toVal' "true")
+                     Context (OM.fromList [("navpage", toVal' "true")
                                          ,("body-type",  toVal' "frontmatter")
                                          ])
                      <> cssvars False <> vars }

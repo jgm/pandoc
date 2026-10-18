@@ -65,6 +65,7 @@ import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -387,7 +388,7 @@ options =
                        Right (val :: Val Text) ->
                          return opt{ optVariables =
                                       let Context m = optVariables opt
-                                       in Context $ M.insert (T.pack key) val m }
+                                       in Context $ m OM.|> (T.pack key, val) }
                            -- note that this replaces any existing value, which
                            -- is different from what --variable does
                        Left err'  -> optError $ PandocOptionError $
@@ -1401,7 +1402,7 @@ deprecatedOption o msg = do
 -- | Set text value in text context.  Create list if it has a value already,
 -- or add to a list value.
 setVariable :: Text -> Text -> Context Text -> Context Text
-setVariable key val (Context ctx) = Context $ M.alter go key ctx
+setVariable key val (Context ctx) = Context $ OM.alter go key ctx
   where go Nothing             = Just $ toVal val
         go (Just (ListVal xs)) = Just $ ListVal $ xs ++ [toVal val]
         go (Just x)            = Just $ ListVal [x, toVal val]

@@ -42,6 +42,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (Context(..), FromContext(lookupContext), Val(..))
 import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
                                       report, toLang)
@@ -295,7 +296,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       _   -> id) .
                   maybe id (defField "pdf-trailer-id") trailerID $
                   (if not (null (pdfStandards pdfStd)) || isJust (pdfVersion pdfStd)
-                    then resetField "pdfstandard" $ MapVal $ Context $ M.fromList
+                    then resetField "pdfstandard" $ MapVal $ Context $ OM.fromList
                            [ ("standards", ListVal $ map (SimpleVal . literal) (pdfStandards pdfStd))
                            , ("version", maybe NullVal (SimpleVal . literal) (pdfVersion pdfStd))
                            , ("tagging", BoolVal (pdfTagging pdfStd))

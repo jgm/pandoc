@@ -25,9 +25,9 @@ import Control.Monad (foldM, zipWithM, MonadPlus(..), when, liftM)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
-import Data.List (intersperse, sortOn, union, find)
+import Data.List (intersperse, union, find)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
-import qualified Data.Map as M
+import qualified Data.Map.Ordered as OM
 import Data.Maybe (fromMaybe, mapMaybe, isNothing, isJust)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -123,7 +123,7 @@ pandocTitleBlock tit auths dat =
 
 mmdTitleBlock :: Context Text -> Doc Text
 mmdTitleBlock (Context hashmap) =
-  vcat $ map go $ sortOn (T.toCaseFold . fst) $ M.toList hashmap
+  vcat $ map go $ OM.assocs hashmap
   where go (k,v) =
           case (text (T.unpack k), v) of
                (k', ListVal xs)
@@ -152,7 +152,7 @@ yamlMetadataBlock v = "---" $$ contextToYaml v $$ "---"
 
 contextToYaml :: Context Text -> Doc Text
 contextToYaml (Context o) =
-  vcat $ map keyvalToYaml $ sortOn (T.toCaseFold . fst) $ M.toList o
+  vcat $ map keyvalToYaml $ OM.assocs o
  where
   keyvalToYaml (k,v) =
           case (text (T.unpack k), v) of
@@ -160,7 +160,7 @@ contextToYaml (Context o) =
                  | null vs        -> empty
                  | otherwise      -> (k' <> ":") $$ valToYaml v
                (k', MapVal (Context m))
-                 | M.null m       -> k' <> ": {}"
+                 | OM.null m      -> k' <> ": {}"
                  | otherwise      -> (k' <> ":") $$ nest 2 (valToYaml v)
                (_, SimpleVal x)
                      | isEmpty x  -> empty

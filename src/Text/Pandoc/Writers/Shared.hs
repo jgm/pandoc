@@ -63,7 +63,7 @@ import Safe (lastMay, maximumMay)
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (MonadPlus, mzero)
 import Data.Either (isRight)
-import Data.Aeson (ToJSON (..), encode)
+import Data.Aeson (encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
 import Data.List (groupBy, intersperse, transpose, zipWith4)
 import qualified Data.List as L
@@ -140,7 +140,7 @@ metaToContext' :: (Monad m, TemplateTarget a)
            -> Meta
            -> m (Context a)
 metaToContext' blockWriter inlineWriter (Meta metamap) =
-  Context . OM.toMap <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
+  Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 
 -- | Add variables to a template Context, using monoidal append.
 -- Also add `meta-json`.  Note that metadata values are used
@@ -151,9 +151,8 @@ addVariablesToContext opts c1 =
   c2 <> (fromText <$> writerVariables opts) <> c1
  where
    c2 = Context $
-          M.insert "meta-json" (SimpleVal $ literal $ fromText jsonrep)
-                               mempty
-   jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON c1
+          OM.singleton ("meta-json", SimpleVal $ literal $ fromText jsonrep)
+   jsonrep = UTF8.toText $ BL.toStrict $ encode c1
 
 -- | Converts a 'MetaValue' into a doctemplate 'Val', using the given
 -- converter functions.
@@ -163,7 +162,7 @@ metaValueToVal :: (Monad m, TemplateTarget a)
                -> MetaValue
                -> m (Val a)
 metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
-  MapVal . Context . OM.toMap <$>
+  MapVal . Context <$>
     mapM (metaValueToVal blockWriter inlineWriter) metamap
 metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
   mapM (metaValueToVal blockWriter inlineWriter) xs
@@ -176,14 +175,14 @@ metaValueToVal _ inlineWriter (MetaInlines is) = SimpleVal <$> inlineWriter is
 
 -- | Retrieve a field value from a template context.
 getField   :: FromContext a b => Text -> Context a -> Maybe b
-getField field (Context m) = M.lookup field m >>= fromVal
+getField field (Context m) = OM.lookup field m >>= fromVal
 
 -- | Set a field of a template context.  If the field already has a value,
 -- convert it into a list with the new value appended to the old value(s).
 -- This is a utility function to be used in preparing template contexts.
 setField   :: ToContext a b => Text -> b -> Context a -> Context a
 setField field val (Context m) =
-  Context $ M.insertWith combine field (toVal val) m
+  Context $ OM.alter (Just . maybe (toVal val) (combine (toVal val))) field m
  where
   combine newval (ListVal xs)   = ListVal (xs ++ [newval])
   combine newval x              = ListVal [x, newval]
@@ -193,16 +192,14 @@ setField field val (Context m) =
 -- This is a utility function to be used in preparing template contexts.
 resetField :: ToContext a b => Text -> b -> Context a -> Context a
 resetField field val (Context m) =
-  Context (M.insert field (toVal val) m)
+  Context (m OM.|> (field, toVal val))
 
 -- | Set a field of a template context if it currently has no value.
 -- If it has a value, do nothing.
 -- This is a utility function to be used in preparing template contexts.
 defField   :: ToContext a b => Text -> b -> Context a -> Context a
 defField field val (Context m) =
-  Context (M.insertWith f field (toVal val) m)
-  where
-    f _newval oldval = oldval
+  Context (OM.alter (Just . fromMaybe (toVal val)) field m)
 
 -- | Get the contents of the `lang` metadata field or variable.
 getLang :: WriterOptions -> Meta -> Maybe Text
