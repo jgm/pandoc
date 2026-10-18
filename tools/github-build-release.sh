@@ -25,6 +25,11 @@ gh run watch "$run" -R "$repo" -i 60 --exit-status >/dev/null || status=$?
 gh run view "$run" -R "$repo" --json jobs \
   --jq '.jobs[] | "\(.name): \(.conclusion)"'
 
+# Skip the intermediate Windows artifacts; only the signed one is wanted.
 mkdir -p artifacts
-gh run download "$run" -R "$repo" -D artifacts || status=$?
+for name in $(gh api "repos/$repo/actions/runs/$run/artifacts" --paginate \
+                --jq '.artifacts[].name |
+                      select(test("^windows-release-candidate-(unsigned|to-sign)$") | not)'); do
+  gh run download "$run" -R "$repo" -n "$name" -D "artifacts/$name" || status=$?
+done
 exit "$status"
