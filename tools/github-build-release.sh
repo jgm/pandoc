@@ -30,6 +30,6 @@ mkdir -p artifacts
 for name in $(gh api "repos/$repo/actions/runs/$run/artifacts" --paginate \
                 --jq '.artifacts[].name |
                       select(test("^windows-release-candidate-(unsigned|to-sign)$") | not)'); do
-  gh run download "$run" -R "$repo" -n "$name" -D "artifacts/$name" || status=$?
+  gh run download "$run" -R "$repo" -n "$name" -D artifacts || status=$?
 done
 exit "$status"
