@@ -89,11 +89,13 @@ jobs:
     # cabal update also writes a default config file if there is none;
     # without one, cabal path prints a notice on stdout.  -z (ignore the
     # project) keeps cabal path from checking out source-repository-packages,
-    # which prints git output on stdout too.
+    # which prints git output on stdout too.  cabal update needs -z as well:
+    # otherwise it clones source-repository-packages into dist-newstyle,
+    # and restoring the dist-newstyle cache on top of that clone corrupts it.
     - name: Update cabal and get store path
       id:   cabal-store
       run: |
-          cabal update
+          cabal update -z
           echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
 
     - name: Cache cabal global package db
@@ -176,12 +178,14 @@ jobs:
     # cabal update also writes a default config file if there is none;
     # without one, cabal path prints a notice on stdout.  -z (ignore the
     # project) keeps cabal path from checking out source-repository-packages,
-    # which prints git output on stdout too.
+    # which prints git output on stdout too.  cabal update needs -z as well:
+    # otherwise it clones source-repository-packages into dist-newstyle,
+    # and restoring the dist-newstyle cache on top of that clone corrupts it.
     - name: Update cabal and get store path
       id:   cabal-store
       shell: bash
       run: |
-          cabal update
+          cabal update -z
           echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
 
     - name: Cache cabal global package db
