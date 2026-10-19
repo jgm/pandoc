@@ -12,6 +12,7 @@ jobs:
   linux:
 
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v7
 
@@ -43,10 +44,12 @@ jobs:
       run: |
           ghc --version
           cabal --version
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
           cabal build --dependencies-only -fembed_data_files -fnightly pandoc-cli
     - name: Build and install artifact
       run: |
           export ARTIFACTS=nightly-linux/pandoc-nightly-linux-$(date +%Y-%m-%d)
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
           mkdir -p ${ARTIFACTS}
           cabal install --installdir="${ARTIFACTS}" --install-method=copy -fembed_data_files -fnightly pandoc-cli
           strip "${ARTIFACTS}/pandoc"
