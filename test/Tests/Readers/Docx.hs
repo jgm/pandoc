@@ -472,6 +472,14 @@ tests = [ testGroup "document"
             "docx/track_changes_edge_spaces.docx"
             "docx/track_changes_edge_spaces_reject.native"
           , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "paragraph marks in notes stay in their notes (accept)"
+            "docx/track_changes_paragraph_mark_in_note.docx"
+            "docx/track_changes_paragraph_mark_in_note_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "paragraph marks in notes stay in their notes (reject)"
+            "docx/track_changes_paragraph_mark_in_note.docx"
+            "docx/track_changes_paragraph_mark_in_note_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
             "comments (accept -- no comments)"
             "docx/comments.docx"
             "docx/comments_no_comments.native"

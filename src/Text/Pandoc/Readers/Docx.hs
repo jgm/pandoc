@@ -344,8 +344,8 @@ runToInlines (Run rs runElems)
       let ils = smushInlines (map runElemToInlines runElems)
       transform <- runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
-runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Footnote bps) = note <$> notePartsToBlocks bps
+runToInlines (Endnote bps) = note <$> notePartsToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
@@ -358,6 +358,19 @@ extentToAttr (Just (w, h)) =
   where
     showDim d = tshow (d / 914400) <> "in"
 extentToAttr _ = nullAttr
+
+-- A note is read in the middle of the paragraph that references it.
+-- Text held back from a paragraph whose mark is a tracked change
+-- (docxPrevPara) must therefore neither flow into the note from the
+-- body, nor out of the note into the referencing paragraph.
+notePartsToBlocks :: PandocMonad m => [BodyPart] -> DocxContext m Blocks
+notePartsToBlocks bps = do
+  outerPrevPara <- gets docxPrevPara
+  modify $ \s -> s { docxPrevPara = mempty }
+  blks <- smushBlocks <$> mapM bodyPartToBlocks bps
+  leftover <- gets docxPrevPara
+  modify $ \s -> s { docxPrevPara = outerPrevPara }
+  return $ if null leftover then blks else blks <> para leftover
 
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
