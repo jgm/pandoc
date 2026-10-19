@@ -79,6 +79,10 @@ parseBlocks contents = concatMany <$> mapM parseBlock contents
 getBlocks :: (PandocMonad m) => Element -> XMLReader m Blocks
 getBlocks e = parseBlocks (elContent e)
 
+isWhitespace :: Content -> Bool
+isWhitespace (Text (CData _ s _)) = T.all isSpace s
+isWhitespace _ = False
+
 elementName :: Element -> Text
 elementName e = qName $ elName e
 
@@ -337,15 +341,71 @@ getColspecs (Just cs) = do
   where
     elementToColSpec e = (alignmentFromText $ attrValue atNameAlignment e, getColWidth $ attrValue atNameColWidth e)
 
-getTableBody :: (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
+getTableBody :: forall m. (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
 getTableBody body_el = do
   let attr = attrFromElementExcept [atNameRowHeadColumns] body_el
-      bh = childrenNamed tgNameBodyHeader body_el
-      bb = childrenNamed tgNameBodyBody body_el
       headcols = textToInt (attrValue atNameRowHeadColumns body_el) 0
-  hrows <- mconcat <$> mapM getRows bh
-  brows <- mconcat <$> mapM getRows bb
-  return $ Just $ TableBody attr (RowHeadColumns headcols) hrows brows
+      contents = filter (not . isWhitespace) (elContent body_el)
+      parseContents =
+        case contents of
+          [] -> Right (Nothing, Nothing)
+          [Elem e]
+            | elementName e == tgNameBodyHeader ->
+                do
+                  bodyHeader <- rowsIn tgNameBodyHeader (Elem e)
+                  Right (Just bodyHeader, Nothing)
+            | elementName e == tgNameBodyBody ->
+                do
+                  bodyBody <- rowsIn tgNameBodyBody (Elem e)
+                  Right (Nothing, Just bodyBody)
+          Elem e : rest
+            | elementName e == tgNameBodyHeader,
+              [Elem bodyBody] <- rest,
+              elementName bodyBody == tgNameBodyBody ->
+                do
+                  bodyHeader <- rowsIn tgNameBodyHeader (Elem e)
+                  bodyBody' <- rowsIn tgNameBodyBody (Elem bodyBody)
+                  Right (Just bodyHeader, Just bodyBody')
+            | elementName e == tgNameBodyHeader ->
+                do
+                  bodyHeader <- rowsIn tgNameBodyHeader (Elem e)
+                  _ <- rowsOnly rest $ "A TableBody <" <> tgNameBodyHeader <>
+                                       "> can be followed only by either a single <" <>
+                                       tgNameBodyBody <> "> or <Row> elements"
+                  Right (Just bodyHeader, Nothing)
+            | elementName e == tgNameBodyBody ->
+                Left "A TableBody body element cannot be followed by free rows."
+            | otherwise ->
+                case L.unsnoc contents of
+                  Just (prefix, Elem bodyBody)
+                    | elementName bodyBody == tgNameBodyBody,
+                      all isRow prefix -> do
+                        bodyBody' <- rowsIn tgNameBodyBody (Elem bodyBody)
+                        Right (Nothing, Just bodyBody')
+                  _ -> do
+                    _ <- rowsOnly contents $ "A TableBody <" <> tgNameBodyBody <>
+                                             "> can be preceded only by either a single <" <>
+                                             tgNameBodyHeader <> "> or <Row> elements"
+                    Right (Nothing, Nothing)
+          _ -> Left "Invalid content in TableBody."
+  parsed <- either throwXMLError return parseContents
+  case parsed of
+    (Nothing, Nothing) -> do
+      brows <- getRows body_el
+      return $ Just $ TableBody attr (RowHeadColumns headcols) [] brows
+    (Just bodyHeader, Nothing) -> do
+      hrows <- getRows bodyHeader
+      free <- getRows body_el
+      return $ Just $ TableBody attr (RowHeadColumns headcols) hrows free
+    (Nothing, Just bodyBody) -> do
+      free <- getRows body_el
+      brows <- getRows bodyBody
+      return $ Just $ TableBody attr (RowHeadColumns headcols) free brows
+    (Just bodyHeader, Just bodyBody) -> do
+      hrows <- getRows bodyHeader
+      brows <- getRows bodyBody
+      return $ Just $ TableBody attr (RowHeadColumns headcols) hrows brows
+--    _ -> throwXMLError "Invalid sequence in TableBody."
 
 getTableBodies :: (PandocMonad m) => [Element] -> XMLReader m [TableBody]
 getTableBodies body_elements = do
@@ -367,6 +427,30 @@ getTableFoot maybe_e = case maybe_e of
     return $ TableFoot attr rows
   Nothing -> return $ TableFoot nullAttr []
 
+isRow :: Content -> Bool
+isRow (Elem e) = elementName e == "Row"
+isRow _ = False
+
+rowsOnly :: [Content] -> Text -> Either Text [Content]
+rowsOnly xs msg = if all isRow xs
+          then Right xs
+          else Left msg
+
+rowsIn :: Text -> Content -> Either Text Element
+rowsIn name (Elem e)
+        | all isRow (filter (not . isWhitespace) (elContent e)) =
+            Right e
+        | otherwise =
+            Left $ "<" <> name <> "> elements may contain only Row elements."
+rowsIn _ _ = Left "TableBody contains invalid content."
+
+getRows :: (PandocMonad m) => Element -> XMLReader m [Row]
+getRows e = mapM getRow $ childrenNamed "Row" e
+  where
+    getRow r = do
+      cells <- mapM getCell (childrenNamed "Cell" r)
+      return $ Row (attrFromElement r) cells
+
 getCell :: (PandocMonad m) => Element -> XMLReader m Cell
 getCell c = do
   let alignment = alignmentFromText $ attrValue atNameAlignment c
@@ -375,13 +459,6 @@ getCell c = do
       attr = attrFromElementExcept [atNameAlignment, atNameRowspan, atNameColspan] c
   blocks <- getBlocks c
   return $ Cell attr alignment rowspan colspan (toList blocks)
-
-getRows :: (PandocMonad m) => Element -> XMLReader m [Row]
-getRows e = mapM getRow $ childrenNamed "Row" e
-  where
-    getRow r = do
-      cells <- mapM getCell (childrenNamed "Cell" r)
-      return $ Row (attrFromElement r) cells
 
 parseCitations :: (PandocMonad m) => [Content] -> XMLReader m [Citation]
 parseCitations contents = do
