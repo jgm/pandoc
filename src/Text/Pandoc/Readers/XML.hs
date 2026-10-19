@@ -57,6 +57,9 @@ instance Default XMLReaderState where
         xmlPath = ["root"]
       }
 
+throwXMLError :: (PandocMonad m) => Text -> XMLReader m a
+throwXMLError msg = throwError $ PandocXMLError "" msg
+
 readXML :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
 readXML _ inp = do
   let sources = toSources inp
@@ -93,9 +96,9 @@ parseBlock (Text (CData _ s _)) =
   if T.all isSpace s
     then return mempty
     else do
-      throwError $ PandocXMLError "" "non-space characters out of inline context"
+     throwXMLError "non-space characters out of inline context"
 parseBlock (CRef x) = do
-  throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
+  throwXMLError $ "reference \"" <> x <> "\" out of inline context"
 parseBlock (Elem e) = do
   let name = elementName e
    in case (name) of
@@ -165,7 +168,7 @@ parseBlock (Elem e) = do
             Nothing -> return mempty
             Just cs -> return $ fromList [Table attr capt cs th tbs tf]
         _ -> do
-          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in blocks context")
+          throwXMLError $ "unexpected element \"" <> name <> "\" in blocks context"
   where
     parsePandoc = do
       let version = maybeAttrValue atNameApiVersion e
@@ -277,7 +280,7 @@ parseInline (Elem e) =
                   (innerInlines' contents) $ cite citations
                 Nothing -> getInlines contents
         _ -> do
-          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in inline context")
+          throwXMLError $ "unexpected element \"" <> name <> "\" in inline context"
   where
     innerInlines' contents f =
       f . concatMany
@@ -527,9 +530,9 @@ parseMeta (Text (CData _ s _)) =
   if T.all isSpace s
     then return Nothing
     else do
-      throwError $ PandocXMLError "" "non-space characters out of inline context in metadata"
+      throwXMLError "non-space characters out of inline context in metadata"
 parseMeta (CRef x) =
-  throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
+  throwXMLError $ "reference \"" <> x <> "\" out of inline context"
 parseMeta (Elem e) = do
   let name = elementName e
    in case (name) of
@@ -558,4 +561,4 @@ parseMeta (Elem e) = do
                     return Nothing
                   else return $ Just $ MetaMap $ M.fromList entries
         _ -> do
-          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in metadata")
+          throwXMLError $ "unexpected element \"" <> name <> "\" in metadata"
