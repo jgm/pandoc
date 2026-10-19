@@ -10,7 +10,7 @@ constraints: skylighting-format-blaze-html >= 0.1.2.2,
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
-  tag: 8ea434f9ae542c2c1d8f601ee6e4244803905c70
+  tag: 9ea211d20b3a1f8f6335b8de3a75a27b0388def7
 
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
