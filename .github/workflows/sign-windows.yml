@@ -1,0 +1,68 @@
+name: Sign Windows release candidate
+
+# Signs the unsigned Windows artifact produced by the "Release
+# candidate" workflow.  Called from that workflow after the Windows
+# build, or run by hand with the id of an earlier run, to sign the
+# artifact that run built.
+
+on:
+  workflow_call:
+    inputs:
+      run-id:
+        description: 'Id of the run that built the unsigned artifact (default: this run)'
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: 'Id of the "Release candidate" run whose Windows artifact to sign'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sign:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    steps:
+    - name: Download unsigned artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-release-candidate-unsigned
+        path: windows-release-candidate
+        run-id: ${{ inputs.run-id || github.run_id }}
+        github-token: ${{ github.token }}
+
+    # SignPath fetches the artifact to sign from the current run, so
+    # upload a copy here (the original may belong to another run).
+    - name: Upload artifact to sign
+      id: upload-to-sign
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-release-candidate-to-sign
+        path: windows-release-candidate
+
+    - name: Sign artifact
+      uses: signpath/github-action-submit-signing-request@v3
+      with:
+        api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+        organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
+        project-slug: 'pandoc'
+        signing-policy-slug: 'release-signing'
+        artifact-configuration-slug: 'pandoc-msi-and-zip'
+        github-artifact-id: '${{ steps.upload-to-sign.outputs.artifact-id }}'
+        wait-for-completion: true
+        output-artifact-directory: 'windows-release-candidate-signed'
+      timeout-minutes: 120
+
+    - name: Upload signed artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-release-candidate-signed
+        path: windows-release-candidate-signed
