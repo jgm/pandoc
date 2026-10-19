@@ -38,25 +38,10 @@ make prerelease
 #+begin_src sh :results output list org
 make authors
 #+end_src
-*** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] on GitHub
-windows, macos x86
-    #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
-curl -L \
-  -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $ghtoken"\
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/dispatches \
-  -d '{"ref":"main"}'
-    #+end_src
-*** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on app.circleci.com
-linux arm64, linux amd64, macos arm64, wasm
+*** TODO Build and download release candidates
 #+begin_src sh
-brew install circleci-public/circleci/circleci@next
-circleci auth login
-circleci run trigger
+make -j2 release
 #+end_src
-*** TODO If it builds successfully, download artifacts
 from GitHub: Windows and intel mac
 from circleci.com: linux amd64 and arm64 and arm64 mac and pandoc.wasm (rename as pandoc-VERSION.wasm)
 *** TODO Use 'make' in macos artifact to sign code
