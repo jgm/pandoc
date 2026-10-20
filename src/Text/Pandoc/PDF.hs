@@ -112,7 +112,7 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
               >>= writer opts'
 
   verbosity <- getVerbosity
-  let compileHTML mkOutArgs = do
+  let compileHTML defaultOpts mkOutArgs = do
         -- check to see if there is anything in mediabag, and if so,
         -- make the HTML self contained
         mediabag <- getMediaBag
@@ -120,12 +120,12 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
                       [] -> pure source
                       _ -> makeSelfContained source
         liftIO $
-          toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source'
+          toPdfViaTempFile verbosity program (defaultOpts ++ pdfargs) mkOutArgs ".html" source'
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts' doc
-    "pagedjs-cli" -> compileHTML (\f -> ["-o", f])
-    "prince"      -> compileHTML (\f -> ["-o", f])
-    "weasyprint"  -> compileHTML (:[])
+    "pagedjs-cli" -> compileHTML [] (\f -> ["-o", f])
+    "prince"      -> compileHTML [] (\f -> ["-o", f])
+    "weasyprint"  -> compileHTML ["--presentational-hints"] (\f -> [f])
     "typst" -> liftIO $
         toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) ".typ" source
     "pdfroff" -> do
