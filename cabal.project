@@ -12,6 +12,11 @@ source-repository-package
   location: https://github.com/jgm/citeproc.git
   tag: 9ea211d20b3a1f8f6335b8de3a75a27b0388def7
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: ddc2530c82dbf985c34fcbc28b2d174d7806ad3b
+
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
 if impl(ghc >= 9.14)
