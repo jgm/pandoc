@@ -1,0 +1,59 @@
+[ Para
+    [ Str "A"
+    , Space
+    , Str "note"
+    , Space
+    , Str "whose"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "mark"
+    , Space
+    , Str "is"
+    , Space
+    , Str "deleted"
+    , Note [ Para [ Str "First" , Space , Str "note." ] ]
+    , Str "."
+    ]
+, Para
+    [ Str "A"
+    , Space
+    , Str "note"
+    , Space
+    , Str "whose"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "mark"
+    , Space
+    , Str "is"
+    , Space
+    , Str "inserted"
+    , Note [ Para [ Str "Second" , Space , Str "note." ] ]
+    , Str "."
+    ]
+, Para
+    [ Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "whose"
+    , Space
+    , Str "mark"
+    , Space
+    , Str "is"
+    , Space
+    , Str "deleted."
+    ]
+, Para
+    [ Str "The"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "it"
+    , Space
+    , Str "joins"
+    , Note [ Para [ Str "Third" , Space , Str "note." ] ]
+    , Str "."
+    ]
+]
