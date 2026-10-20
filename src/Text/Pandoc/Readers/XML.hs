@@ -346,6 +346,9 @@ getTableBody body_el = do
   let attr = attrFromElementExcept [atNameRowHeadColumns] body_el
       headcols = textToInt (attrValue atNameRowHeadColumns body_el) 0
       contents = filter (not . isWhitespace) (elContent body_el)
+      -- unsnoc definition from Data.List to pass Linux 9.6 CI tests
+      unsnoc :: [a] -> Maybe ([a], a)
+      unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
       parseContents =
         case contents of
           [] -> Right (Nothing, Nothing)
@@ -376,7 +379,7 @@ getTableBody body_el = do
             | elementName e == tgNameBodyBody ->
                 Left "A TableBody body element cannot be followed by free rows."
             | otherwise ->
-                case L.unsnoc contents of
+                case unsnoc contents of
                   Just (prefix, Elem bodyBody)
                     | elementName bodyBody == tgNameBodyBody,
                       all isRow prefix -> do
