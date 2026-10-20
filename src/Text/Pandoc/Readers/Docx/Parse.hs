@@ -703,7 +703,23 @@ archiveToNumbering' zf =
           numElems = findChildrenByName namespaces "w" "num" numberingElem
           absNumElems = findChildrenByName namespaces "w" "abstractNum" numberingElem
           nums = mapMaybe (numElemToNum namespaces) numElems
-          absNums = mapMaybe (absNumElemToAbsNum namespaces) absNumElems
+          parsed = mapMaybe (\el -> (,) el <$> absNumElemToAbsNum namespaces el)
+                     absNumElems
+          linkVal name el = findChildByName namespaces "w" name el
+                            >>= findAttrByName namespaces "w" "val"
+          -- An abstractNum with w:numStyleLink has no levels of its own: they
+          -- are in the abstractNum whose w:styleLink names the same numbering
+          -- style (#9222).
+          levelsByStyle = M.fromList
+            [ (s, lvls) | (el, AbstractNumb _ lvls) <- parsed
+                        , Just s <- [linkVal "styleLink" el] ]
+          resolve (el, absNum@(AbstractNumb absNumId lvls))
+            | null lvls
+            , Just lvls' <- linkVal "numStyleLink" el
+                            >>= (`M.lookup` levelsByStyle)
+            = AbstractNumb absNumId lvls'
+            | otherwise = absNum
+          absNums = map resolve parsed
       return $ Numbering namespaces nums absNums
 
 archiveToNumbering :: Archive -> Numbering
