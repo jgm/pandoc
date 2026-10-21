@@ -77,11 +77,6 @@ done
 *** TODO make pandoc-templates
 #+begin_src sh
 make pandoc-templates
-pushd ~/src/pandoc-templates
-git tag RELEASE_VERSION
-git push
-git push --tags
-popd
 #+end_src
 *** TODO Copy binary to server, install it
 #+begin_src

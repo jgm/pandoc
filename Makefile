@@ -234,11 +234,14 @@ download_stats: ## print download stats from GitHub releases
 .PHONY: download_stats
 
 pandoc-templates: ## update pandoc-templates repo
-	rm ../pandoc-templates/default.* ; \
-	cp data/templates/* ../pandoc-templates/ ; \
-	pushd ../pandoc-templates/ && \
+	repo=$$(mktemp -d)/pandoc-templates && \
+	git clone git@github.com:jgm/pandoc-templates $$repo && \
+	git archive HEAD:data/templates | tar -x -C $$repo && \
+	pushd $$repo && \
 	git add * && \
-	git commit -m "Updated templates for pandoc $(VERSION)" && \
+	git commit --allow-empty -m "Updated templates for pandoc $(VERSION)" && \
+	git tag $(VERSION) && \
+	git push && \
 	popd
 .PHONY: pandoc-templates
 
