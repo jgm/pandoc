@@ -34,7 +34,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Logging (LogMessage(UnsupportedCodePage))
 import Text.Pandoc.Shared (tshow)
-import Data.Char (isAlphaNum, chr, isAscii, isLetter, isSpace, ord)
+import Data.Char (chr, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe, fromMaybe)
 import Safe (lastMay, initSafe, headDef)
@@ -261,7 +261,8 @@ tok = do
      <|> (ControlSymbol <$> anyChar) )
   controlWord = do
     name <- letterSequence
-    param <- parameter <* optional delimChar
+    param <- parameter
+    optional (char ' ')
     case name of
       "bin" -> do
         let n = fromMaybe 0 param
@@ -318,9 +319,6 @@ isSpecial '}' = True
 isSpecial '\\' = True
 isSpecial '\n' = True
 isSpecial _ = False
-
-delimChar :: PandocMonad m => RTFParser m Char
-delimChar = satisfy (\c -> not (isAlphaNum c || isSpecial c))
 
 modifyGroup :: PandocMonad m
             => (Properties -> Properties)
