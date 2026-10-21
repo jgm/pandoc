@@ -653,6 +653,8 @@ escapeTypst smart context t =
     go (lastc, t') c
       | needsEscape c = (c, t' <> escapeChar c)
       | c == '-', lastc == '-', smart = (c, t' <> T.pack ['\\',c])
+      | c == '?', lastc == '-', smart = (c, t' <> T.pack ['\\',c])
+      | c == '.', lastc == '.', smart = (c, t' <> T.pack ['\\',c])
       | c == '/', lastc == '/' = (c, t' <> T.pack ['\\',c])
       | otherwise = (c, T.snoc t' c)
     escapeChar c
