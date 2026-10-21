@@ -78,14 +78,10 @@ done
 #+begin_src sh
 make pandoc-templates
 #+end_src
-*** TODO Copy binary to server, install it
-#+begin_src
-# example:
-cd RELEASE_VERSION
-tar xvzf pandoc-RELEASE_VERSION-linux-amd64.tar.gz
-scp pandoc-RELEASE_VERSION/bin/pandoc website:cgi-bin/pandoc-server.cgi
+*** TODO Install binary on server (for pandoc.org/try)
+#+begin_src sh
+tar -xOf RELEASE_VERSION/pandoc-RELEASE_VERSION-linux-amd64.tar.gz pandoc-RELEASE_VERSION/bin/pandoc | ssh website  'cat > cgi-bin/pandoc-server.cgi'
 #+end_src
-
 *** TODO Upload pandoc.wasm
 #+begin_src sh
 make pandoc.wasm
