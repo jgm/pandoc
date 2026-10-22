@@ -74,18 +74,21 @@ data ReaderState
                  , styleTrace       :: [Style]
                    -- | Keeps track of the current depth in nested lists
                  , currentListLevel :: ListLevel
-                   -- | Keeps track of the previous list start counters,
-                   -- so whenever a new list continues numbering,
-                   -- we know what number to start from.
-                   -- If  list does not continue numbering, the counter
-                   -- is being reset.
-                 , listContinuationStartCounters :: M.Map ListLevel Int
+                   -- | Keeps track of the previous list start counters
+                   -- for each list style and level, so whenever a new
+                   -- list continues numbering, we know what number to
+                   -- start from. The counters for deeper levels are
+                   -- reset whenever a new list item starts.
+                 , listContinuationStartCounters
+                     :: M.Map (Maybe StyleName, ListLevel) Int
                    -- | Lists may provide their own style, but they don't have
                    -- to. If they do not, the style of a parent list may be used
                    -- or even a default list style from the paragraph style.
                    -- This value keeps track of the closest list style there
                    -- currently is.
                  , currentListStyle :: Maybe ListStyle
+                   -- | The name of 'currentListStyle', if known.
+                 , currentListStyleName :: Maybe StyleName
                    -- | A map from internal anchor names to "pretty" ones.
                    -- The mapping is a purely cosmetic one.
                  , bookmarkAnchors  :: M.Map Anchor Anchor
@@ -103,7 +106,7 @@ data ReaderState
 
 readerState :: Styles -> [(FilePath, B.ByteString)] -> ReaderState
 readerState styles media =
-  ReaderState styles [] 0 M.empty Nothing M.empty Set.empty
+  ReaderState styles [] 0 M.empty Nothing Nothing M.empty Set.empty
               (M.fromList media) mempty
 
 --
@@ -120,9 +123,20 @@ modifyListLevel :: (ListLevel -> ListLevel) -> (ReaderState -> ReaderState)
 modifyListLevel f state = state { currentListLevel = f (currentListLevel state) }
 
 --
-modifyListContinuationStartCounter :: ListLevel -> Int -> (ReaderState -> ReaderState)
-modifyListContinuationStartCounter listLevel count state =
-    state { listContinuationStartCounters = M.insert listLevel count (listContinuationStartCounters state) }
+modifyListContinuationStartCounter :: Maybe StyleName -> ListLevel -> Int
+                                   -> (ReaderState -> ReaderState)
+modifyListContinuationStartCounter mStyleName listLevel count state =
+    state { listContinuationStartCounters =
+              M.insert (mStyleName, listLevel) count
+                (listContinuationStartCounters state) }
+
+-- | Reset the counters of all list levels deeper than the given one.
+resetDeeperListContinuationStartCounters :: ListLevel
+                                         -> (ReaderState -> ReaderState)
+resetDeeperListContinuationStartCounters listLevel state =
+    state { listContinuationStartCounters =
+              M.filterWithKey (\(_, lvl) _ -> lvl <= listLevel)
+                (listContinuationStartCounters state) }
 
 --
 shiftListLevel :: ListLevel -> (ReaderState -> ReaderState)
@@ -169,11 +183,13 @@ lookupListStyle :: StyleName -> ODTReader ListStyle
 lookupListStyle name = getStyles >>= fromMaybeF . lookupListStyleByName name
 
 --
-switchCurrentListStyle :: Maybe ListStyle -> ODTReader (Maybe ListStyle)
+switchCurrentListStyle :: Maybe (StyleName, ListStyle)
+                       -> ODTReader (Maybe (StyleName, ListStyle))
 switchCurrentListStyle mListStyle = do
   state <- getExtraState
-  setExtraState $ state { currentListStyle = mListStyle }
-  return $ currentListStyle state
+  setExtraState $ state { currentListStyle = snd <$> mListStyle
+                        , currentListStyleName = fst <$> mListStyle }
+  return $ (,) <$> currentListStyleName state <*> currentListStyle state
 
 --
 pushStyle :: Style -> ODTReader ()
@@ -188,9 +204,10 @@ getCurrentListLevel :: ODTReader ListLevel
 getCurrentListLevel = currentListLevel <$> getExtraState
 
 --
-getPreviousListStartCounter :: ListLevel -> ODTReader Int
-getPreviousListStartCounter listLevel =
-  M.findWithDefault 0 listLevel . listContinuationStartCounters
+getPreviousListStartCounter :: Maybe StyleName -> ListLevel
+                            -> ODTReader (Maybe Int)
+getPreviousListStartCounter mStyleName listLevel =
+  M.lookup (mStyleName, listLevel) . listContinuationStartCounters
     <$> getExtraState
 
 --
@@ -415,22 +432,28 @@ constructList :: ODTReader [Blocks] -> ODTReader Blocks
 constructList reader = do
   modifyExtraState (shiftListLevel 1)
   listLevel                    <- getCurrentListLevel
-  listContinuationStartCounter <- getPreviousListStartCounter listLevel
   fStyleName                   <- tryC (findAttr NsText "style-name")
   fContNumbering               <- tryC (findAttr NsText "continue-numbering")
+  inheritedStyleName           <- currentListStyleName <$> getExtraState
+
+  -- Numbering is continued from the previous list with the same
+  -- list style (and level), if there is one:
+  let mStyleName = either (const inheritedStyleName) Just fStyleName
+  listContinuationStartCounter <- getPreviousListStartCounter mStyleName
+                                    listLevel
 
   let continueNumbering = fContNumbering == Right "true"
 
       startNumForListLevelStyle mListLevelStyle
-        | continueNumbering      = listContinuationStartCounter
-        | isJust mListLevelStyle = listItemStart (fromJust mListLevelStyle)
-        | otherwise              = 1
+        | continueNumbering
+        , Just n <- listContinuationStartCounter = n
+        | otherwise = maybe 1 listItemStart mListLevelStyle
 
       constructWith startNum constructor = do
         items <- reader
         modifyExtraState (shiftListLevel (-1))
-        modifyExtraState (modifyListContinuationStartCounter listLevel
-                           (startNum + length items))
+        modifyExtraState (modifyListContinuationStartCounter mStyleName
+                           listLevel (startNum + length items))
         return $ constructor items
 
       constructOrderedList =
@@ -449,7 +472,8 @@ constructList reader = do
         Right listStyle ->
           case getListLevelStyle listLevel listStyle of
             Just listLevelStyle -> do
-              oldListStyle <- switchCurrentListStyle (Just listStyle)
+              oldListStyle <- switchCurrentListStyle
+                                (Just (styleName, listStyle))
               blocks       <- constructListWith listLevelStyle
               _            <- switchCurrentListStyle oldListStyle
               return blocks
@@ -681,8 +705,14 @@ read_list_header  = read_list_element "list-header"
 
 read_list_element               :: ElementName -> Matcher [Blocks]
 read_list_element listElement   = matchingElement NsText listElement
-                                  $ compactify . (:[])
-                                  <$> matchBlockContent
+                                  $ do
+                                    -- a new item restarts the numbering
+                                    -- of nested lists:
+                                    listLevel <- getCurrentListLevel
+                                    modifyExtraState
+                                      (resetDeeperListContinuationStartCounters
+                                        listLevel)
+                                    compactify . (:[]) <$> matchBlockContent
 
 ----------------------
 -- Sections

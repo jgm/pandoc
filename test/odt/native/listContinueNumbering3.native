@@ -1,0 +1,814 @@
+[ Para
+    [ Str "An" , Space , Str "example" , Space , Str "list" ]
+, Para []
+, OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Plain
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "list,"
+          ]
+      ]
+    , [ Para [ Str "With" , Space , Str "numbers" ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Plain
+                [ Str "A"
+                , Space
+                , Str "sublist"
+                , Space
+                , Str "from"
+                , Space
+                , Str "word,"
+                , Space
+                , Str "starts"
+                , Space
+                , Str "with"
+                ]
+            ]
+          , [ Para [ Str "Alphabetic" , Space , Str "characters" ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Plain
+                      [ Str "A"
+                      , Space
+                      , Str "sub-sub-list"
+                      , Space
+                      , Str "will"
+                      , Space
+                      , Str "be"
+                      ]
+                  ]
+                , [ Para
+                      [ Str "With"
+                      , Space
+                      , Str "lowercase"
+                      , Space
+                      , Str "roman"
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain
+                            [ Str "And"
+                            , Space
+                            , Str "here"
+                            , Space
+                            , Str "we"
+                            , Space
+                            , Str "are"
+                            , Space
+                            , Str "back"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "numbers"
+                            ]
+                        ]
+                      , [ Para
+                            [ Str "And"
+                            , Space
+                            , Str "another"
+                            , Space
+                            , Str "number"
+                            ]
+                        , OrderedList
+                            ( 1 , LowerAlpha , Period )
+                            [ [ Plain
+                                  [ Str "And"
+                                  , Space
+                                  , Str "back"
+                                  , Space
+                                  , Str "to"
+                                  , Space
+                                  , Str "lowercase"
+                                  , Space
+                                  , Str "alphabetical"
+                                  ]
+                              ]
+                            ]
+                        ]
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "ORIGINAL"
+          , Space
+          , Str "LEVEL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "Wow"
+    , Space
+    , Str "that"
+    , Space
+    , Str "was"
+    , Space
+    , Str "cool!"
+    , Space
+    , Str "AMAZING"
+    ]
+, Para []
+, OrderedList
+    ( 1 , UpperAlpha , Period )
+    [ [ Plain
+          [ Str "But"
+          , Space
+          , Str "we"
+          , Space
+          , Str "also"
+          , Space
+          , Str "have"
+          , Space
+          , Str "lists"
+          ]
+      ]
+    , [ Para
+          [ Str "With"
+          , Space
+          , Str "uppercase"
+          , Space
+          , Str "alphabet"
+          ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Plain
+                [ Str "And"
+                , Space
+                , Str "the"
+                , Space
+                , Str "sublist"
+                , Space
+                , Str "here"
+                , Space
+                , Str "again"
+                ]
+            ]
+          , [ Para
+                [ Str "Is"
+                , Space
+                , Str "lowercase"
+                , Space
+                , Str "alphabet"
+                ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Plain
+                      [ Str "And"
+                      , Space
+                      , Str "lowercase"
+                      , Space
+                      , Str "roman"
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "ORIGINAL"
+          , Space
+          , Str "LEVEL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "And"
+    , Space
+    , Str "foremost,"
+    , Space
+    , Str "we"
+    , Space
+    , Str "have"
+    , Space
+    , Str "lists"
+    , Space
+    , Str "starting"
+    , Space
+    , Str "with"
+    , Space
+    , Str "uppercase"
+    , Space
+    , Str "roman."
+    ]
+, Para []
+, OrderedList
+    ( 1 , UpperRoman , Period )
+    [ [ Plain [ Str "Like" , Space , Str "this" ] ]
+    , [ Plain
+          [ Str "This"
+          , Space
+          , Str "list"
+          , Space
+          , Str "has"
+          , Space
+          , Str "uppercase"
+          , Space
+          , Str "roman"
+          ]
+      ]
+    , [ Para
+          [ Str "And"
+          , Space
+          , Str "that"
+          , Space
+          , Str "is"
+          , Space
+          , Str "very"
+          , Space
+          , Str "OK"
+          ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Para
+                [ Str "And"
+                , Space
+                , Str "again,"
+                , Space
+                , Str "the"
+                , Space
+                , Str "sublist"
+                , Space
+                , Str "starts"
+                , Space
+                , Str "with"
+                , Space
+                , Str "lowercase"
+                , Space
+                , Str "alphabet"
+                ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Para
+                      [ Str "And"
+                      , Space
+                      , Str "a"
+                      , Space
+                      , Str "sub-sub-list"
+                      , Space
+                      , Str "with"
+                      , Space
+                      , Str "lowercase"
+                      , Space
+                      , Str "roman"
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain
+                            [ Str "But"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "sub-sub-sub-list"
+                            , Space
+                            , Str "starts"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "numbers"
+                            , Space
+                            , Str "here"
+                            ]
+                        ]
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "ORIGINAL"
+          , Space
+          , Str "LEVEL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "And"
+    , Space
+    , Str "a"
+    , Space
+    , Str "list"
+    , Space
+    , Str "in"
+    , Space
+    , Str "lowercase"
+    , Space
+    , Str "roman"
+    ]
+, Para []
+, OrderedList
+    ( 1 , LowerRoman , Period )
+    [ [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "an"
+          , Space
+          , Str "example"
+          , Space
+          , Str "of"
+          , Space
+          , Str "that"
+          ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Para
+                [ Str "And"
+                , Space
+                , Str "this"
+                , Space
+                , Str "will"
+                , Space
+                , Str "be"
+                , Space
+                , Str "lowercase"
+                , Space
+                , Str "alphabetic"
+                ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Para
+                      [ Str "And"
+                      , Space
+                      , Str "lowercase"
+                      , Space
+                      , Str "roman??"
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain [ Str "And" , Space , Str "numeric" ] ]
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "ORIGINAL"
+          , Space
+          , Str "LEVEL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "And"
+    , Space
+    , Str "an"
+    , Space
+    , Str "odd"
+    , Space
+    , Str "list,"
+    , Space
+    , Str "using"
+    , Space
+    , Str "1),"
+    , Space
+    , Str "2),"
+    , Space
+    , Str "etc:"
+    ]
+, Para []
+, OrderedList
+    ( 1 , Decimal , OneParen )
+    [ [ Para [ Str "Hello" , Space , Str "there" ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Para
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "a"
+                , Space
+                , Str "sublist"
+                , Space
+                , Str "(lowercase"
+                , Space
+                , Str "alphabetic)"
+                ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Para
+                      [ Str "Sub-sub-list"
+                      , Space
+                      , Str "(lowercase"
+                      , Space
+                      , Str "roman)"
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain
+                            [ Str "Numeric,"
+                            , Space
+                            , Str "but"
+                            , Space
+                            , Str "without"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str ")"
+                            , Space
+                            , Str "but"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "."
+                            ]
+                        ]
+                      ]
+                  ]
+                , [ Plain [ Str "Lower" , Space , Str "level" ] ]
+                ]
+            ]
+          , [ Plain [ Str "Lower" , Space , Str "level" ] ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "ORIGINAL"
+          , Space
+          , Str "LEVEL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "list"
+    , Space
+    , Str "do"
+    , Space
+    , Str "the"
+    , Space
+    , Str "same"
+    , Space
+    , Str "but"
+    , Space
+    , Str "with"
+    , Space
+    , Str "alphabetic:"
+    , Space
+    , Str "a),"
+    , Space
+    , Str "b),"
+    , Space
+    , Str "etc."
+    ]
+, Para []
+, OrderedList
+    ( 1 , LowerAlpha , OneParen )
+    [ [ Para [ Str "Hello" , Space , Str "there" ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ Para
+                [ Str "Sub-list,"
+                , Space
+                , Str "normal"
+                , Space
+                , Str "alphabetic"
+                , Space
+                , Str "with"
+                , Space
+                , Str "dot"
+                ]
+            , OrderedList
+                ( 1 , LowerRoman , Period )
+                [ [ Plain
+                      [ Str "Sub-sub-list,"
+                      , Space
+                      , Str "lowercase"
+                      , Space
+                      , Str "roman"
+                      , Space
+                      , Str "again!"
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "BACK"
+          , Space
+          , Str "TO"
+          , Space
+          , Str "THE"
+          , Space
+          , Str "ORIGINAL"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "We"
+    , Space
+    , Str "also"
+    , Space
+    , Str "can"
+    , Space
+    , Str "have"
+    , Space
+    , Str "list"
+    , Space
+    , Str "functioning"
+    , Space
+    , Str "with"
+    , Space
+    , Str "1.,"
+    , Space
+    , Str "1.1.,"
+    , Space
+    , Str "1.1.1,"
+    , Space
+    , Str "etc."
+    ]
+, Para []
+, OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "an"
+          , Space
+          , Str "example"
+          , Space
+          , Str "of"
+          , Space
+          , Str "that"
+          ]
+      , OrderedList
+          ( 1 , Decimal , Period )
+          [ [ Plain
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "the"
+                , Space
+                , Str "1.1"
+                ]
+            ]
+          , [ Para
+                [ Str "And"
+                , Space
+                , Str "this"
+                , Space
+                , Str "is"
+                , Space
+                , Str "the"
+                , Space
+                , Str "1.2."
+                ]
+            , OrderedList
+                ( 1 , Decimal , Period )
+                [ [ Para
+                      [ Str "And"
+                      , Space
+                      , Str "this"
+                      , Space
+                      , Str "is"
+                      , Space
+                      , Str "a"
+                      , Space
+                      , Str "1.2.1."
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain
+                            [ Str "And"
+                            , Space
+                            , Str "so"
+                            , Space
+                            , Str "forth,"
+                            , Space
+                            , Str "this"
+                            , Space
+                            , Str "will"
+                            , Space
+                            , Str "be"
+                            , Space
+                            , Str "a"
+                            , Space
+                            , Str "1.2.1.1"
+                            ]
+                        ]
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    , [ Plain
+          [ Str "Back"
+          , Space
+          , Str "to"
+          , Space
+          , Str "the"
+          , Space
+          , Str "original"
+          , Space
+          , Str "leven"
+          , Space
+          , Str "(2.)"
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "other"
+    , Space
+    , Str "interesting"
+    , Space
+    , Str "list"
+    , Space
+    , Str "as"
+    , Space
+    , Str "follows,"
+    , Space
+    , Str "these"
+    , Space
+    , Str "are"
+    , Space
+    , Str "headings,"
+    , Space
+    , Str "but"
+    , Space
+    , Str "not"
+    , Space
+    , Str "really"
+    , Space
+    , Str "lists,"
+    , Space
+    , Str "but"
+    , Space
+    , Str "Microsoft"
+    , Space
+    , Str "Word"
+    , Space
+    , Str "pretends"
+    , Space
+    , Str "they"
+    , Space
+    , Str "are.."
+    ]
+, Para []
+, Header
+    1
+    ( "it-seems-like-this-list-has-headings-1." , [] , [] )
+    [ Str "It"
+    , Space
+    , Str "seems"
+    , Space
+    , Str "like"
+    , Space
+    , Str "this"
+    , Space
+    , Str "list"
+    , Space
+    , Str "has"
+    , Space
+    , Str "headings??"
+    , Space
+    , Str "(1.)"
+    ]
+, Para []
+, Header
+    2
+    ( "i-wonder-how-this-is-converted-1.1" , [] , [] )
+    [ Str "I"
+    , Space
+    , Str "wonder"
+    , Space
+    , Str "how"
+    , Space
+    , Str "this"
+    , Space
+    , Str "is"
+    , Space
+    , Str "converted"
+    , Space
+    , Str "(1.1)"
+    ]
+, Para []
+, Para []
+, Para [ Strong [ Str "And" , Space , Str "finally:" ] ]
+, Para []
+, Para
+    [ Str "We"
+    , Space
+    , Str "can"
+    , Space
+    , Str "also"
+    , Space
+    , Str "have"
+    , Space
+    , Str "lists"
+    , Space
+    , Str "with"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    , Space
+    ]
+, Para []
+, Para
+    [ Str "Things"
+    , Space
+    , Str "in"
+    , Space
+    , Str "life"
+    , Space
+    , Str "I"
+    , Space
+    , Str "like:"
+    ]
+, Para []
+, OrderedList
+    ( 1 , Decimal , Period ) [ [ Plain [ Str "Cookies" ] ] ]
+, Para []
+, Para
+    [ Str "Cookies"
+    , Space
+    , Str "are"
+    , Space
+    , Str "just"
+    , Space
+    , Str "delicious"
+    ]
+, Para []
+, OrderedList
+    ( 2 , Decimal , Period ) [ [ Plain [ Str "Alcohol" ] ] ]
+, Para []
+, Para
+    [ Str "It\8217s"
+    , Space
+    , Str "really"
+    , Space
+    , Str "nice."
+    ]
+, Para []
+, OrderedList
+    ( 3 , Decimal , Period ) [ [ Plain [ Str "CENSORED" ] ] ]
+, Para []
+, Para
+    [ Str "Yeah"
+    , Space
+    , Str "we"
+    , Space
+    , Str "all"
+    , Space
+    , Str "know"
+    , Space
+    , Str "what"
+    , Space
+    , Str "I"
+    , Space
+    , Str "mean"
+    , Space
+    , Str "by"
+    , Space
+    , Str "that."
+    ]
+]
