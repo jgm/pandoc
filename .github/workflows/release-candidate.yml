@@ -39,6 +39,9 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
+          cabal freeze
+          # Show the package versions used:
+          cat cabal.project.freeze
           cabal build ${{ matrix.versions.cabal_opts }} --dependencies-only pandoc-cli
 
     - name: Create windows package
@@ -117,6 +120,12 @@ jobs:
           ~/.local/state/cabal/store
           ~/.cabal/store
         key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+
+    - name: Create freeze file
+      run: |
+        cabal freeze
+        # Show the package versions used:
+        cat cabal.project.freeze
 
     - name: Create release
       run: |
