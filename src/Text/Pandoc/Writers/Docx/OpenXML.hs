@@ -790,13 +790,19 @@ getParaProps displayMathPara = do
   listLevel <- asks envListLevel
   numid <- asks envListNumId
   numIdUsed <- gets stNumIdUsed
-  -- clear numId after first use to support multiple paragraphs in the same bullet
-  -- baseListId is the code for no list marker
-  let numid' = if numIdUsed then baseListId else numid
   modify $ \st -> st{ stNumIdUsed = True }
-  let listPr = [mknode "w:numPr" []
-                [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
-                , mknode "w:numId" [("w:val",tshow numid')] () ] | listLevel >= 0 && not displayMathPara]
+  -- Only the first paragraph of a list item gets numbering.  Subsequent
+  -- paragraphs in the same item are not numbered, but indented to line
+  -- up with the item's text (see the w:ind in mkLvl), so that they are
+  -- not mistaken for items of another list (#9197):
+  let listPr
+        | listLevel < 0 || displayMathPara = []
+        | numIdUsed = [mknode "w:ind"
+                        [ ("w:left", tshow (listLevel * 720 + 720))
+                        , ("w:firstLine", "0") ] ()]
+        | otherwise = [mknode "w:numPr" []
+                        [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
+                        , mknode "w:numId" [("w:val",tshow numid)] () ]]
   return $ case squashProps pPrTagOrder (EnvProps Nothing listPr <> props) of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]

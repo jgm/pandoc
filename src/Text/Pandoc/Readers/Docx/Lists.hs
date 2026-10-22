@@ -32,6 +32,11 @@ isListItem :: Block -> Bool
 isListItem (Div (_, classes, _) _) | "list-item" `elem` classes = True
 isListItem _                       = False
 
+-- | An unnumbered paragraph continuing a list item.
+isListContinuation :: Block -> Bool
+isListContinuation (Div (_, classes, _) _) = "list-continuation" `elem` classes
+isListContinuation _                       = False
+
 getLevel :: Block -> Maybe Integer
 getLevel (Div (_, _, kvs) _) =  lookup "level" kvs >>= safeRead
 getLevel _                   = Nothing
@@ -115,6 +120,8 @@ separateBlocks' b@(BulletList _) acc = init acc ++ [last acc ++ [b]]
 separateBlocks' b@(OrderedList _ _) acc = init acc ++ [last acc ++ [b]]
 -- The following is for the invisible bullet lists. This is how
 -- pandoc-generated ooxml does multiparagraph item lists.
+separateBlocks' b acc | isListContinuation b =
+  init acc ++ [last acc ++ [b]]
 separateBlocks' b acc | fmap trim (getText b) == Just "" =
   init acc ++ [last acc ++ [b]]
 separateBlocks' b acc = acc ++ [[b]]
@@ -219,6 +226,8 @@ removeListDivs' (Div (ident, classes, kvs) blks)
     case delete "list-item" classes of
       []       -> blks
       classes' -> [Div (ident, classes', kvs) blks]
+removeListDivs' b@(Div _ blks)
+  | isListContinuation b = blks
 removeListDivs' (Div (ident, classes, kvs) blks)
   | not $ null $ listParagraphDivs `intersect` classes =
     case classes \\ listParagraphDivs of

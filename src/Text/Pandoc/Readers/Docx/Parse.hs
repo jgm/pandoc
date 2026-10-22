@@ -249,8 +249,8 @@ data LevelOverride = LevelOverride T.Text (Maybe Integer) (Maybe Level)
 data AbstractNumb = AbstractNumb T.Text [Level]
                     deriving Show
 
---                 ilvl   format string  start
-data Level = Level T.Text T.Text T.Text (Maybe Integer)
+--                 ilvl   format string  start          left indent
+data Level = Level T.Text T.Text T.Text (Maybe Integer) (Maybe Integer)
   deriving Show
 
 data DocumentLocation = InDocument | InFootnote | InEndnote
@@ -620,9 +620,9 @@ lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   case lvlOverride of
     Just (LevelOverride _ _ (Just lvl')) -> Just lvl'
     Just (LevelOverride _ (Just strt) _) ->
-      lookup ilvl $ map (\(Level i fmt s _) -> (i, Level i fmt s (Just strt))) lvls
+      lookup ilvl $ map (\(Level i fmt s _ ind) -> (i, Level i fmt s (Just strt) ind)) lvls
     _ ->
-      lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
+      lookup ilvl $ map (\l@(Level i _ _ _ _) -> (i, l)) lvls
 
 -- | Given a @numId@ and level, return the abstract numbering id (the stable
 -- identifier shared by all numbering instances based on the same abstract
@@ -690,7 +690,8 @@ levelElemToLevel ns element
       let start = findChildByName ns "w" "start" element
                   >>= findAttrByName ns "w" "val"
                   >>= stringToInteger
-      return (Level ilvl fmt txt start)
+      let ind = getIndentation ns element >>= leftParIndent
+      return (Level ilvl fmt txt start ind)
 levelElemToLevel _ _ = Nothing
 
 archiveToNumbering' :: Archive -> Maybe Numbering
