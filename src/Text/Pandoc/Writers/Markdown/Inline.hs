@@ -22,7 +22,7 @@ import Control.Monad.Reader
     ( asks, MonadReader(local) )
 import Control.Monad.State.Strict
     ( MonadState(get), gets, modify )
-import Data.Char (isAlphaNum, isDigit, isSpace)
+import Data.Char (isAlphaNum, isDigit, isPunctuation, isSpace, isSymbol)
 import Data.List (find, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as M
@@ -269,7 +269,11 @@ getReference attr label target = do
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts ils = do
     inlist <- asks envInList
-    avoidBadWraps inlist <$> go ils
+    variant <- asks envVariant
+    let ils' = if variant == PlainText
+                  then ils
+                  else moveUnflankableEdgesOut ils
+    avoidBadWraps inlist <$> go ils'
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
@@ -318,6 +322,76 @@ inlineListToMarkdown opts ils = do
         isLinkOrSpan Link{} = True
         isLinkOrSpan Span{} = True
         isLinkOrSpan _ = False
+
+-- | In CommonMark a @*@ opens emphasis only if the text after it does not
+-- start with whitespace, nor with punctuation right after a word; it
+-- closes emphasis only if the text before it does not end with
+-- whitespace, nor with punctuation right before a word (the flanking
+-- rules). Pandoc's markdown reader is more lenient, so @word*. x*@
+-- round-trips there but is read as literal asterisks by every CommonMark
+-- reader, pandoc's own included. The characters that break the rule are
+-- moved outside the delimiters instead, one at a time until the delimiter
+-- flanks: the text is the same, and every reader sees the same emphasis.
+moveUnflankableEdgesOut :: [Inline] -> [Inline]
+moveUnflankableEdgesOut = go False
+  where
+    go _ [] = []
+    go afterWord (x:xs) =
+      case emphasized x of
+        Just (rewrap, contents)
+          | not (null inner) ->
+              leading ++ [rewrap inner] ++ trailing ++
+                go (not (null trailing) && endsWithWord trailing) xs
+          where
+            (leading, rest) = leadingEdge afterWord contents
+            (inner, trailing) = trailingEdge (startsWithWord xs) rest
+        _ -> x : go (endsWithWord [x]) xs
+    emphasized (Emph ils) = Just (Emph, ils)
+    emphasized (Strong ils) = Just (Strong, ils)
+    emphasized _ = Nothing
+    endsWithWord is = case reverse is of
+                        Str t : _ -> maybe False (isWordChar . snd) (T.unsnoc t)
+                        _ -> False
+    startsWithWord (Str t : _) = maybe False (isWordChar . fst) (T.uncons t)
+    startsWithWord _ = False
+
+-- | The characters at the start of the emphasized text that keep an
+-- opening delimiter from flanking, given whether a word precedes it.
+leadingEdge :: Bool -> [Inline] -> ([Inline], [Inline])
+leadingEdge afterWord (Str t : is) =
+  case T.uncons t of
+    Nothing -> leadingEdge afterWord is
+    Just (c, t')
+      | isSpace c || (afterWord && isEdgePunctuation c) ->
+          prepend (Str (T.singleton c)) (leadingEdge False (Str t' : is))
+    Just _ -> ([], Str t : is)
+leadingEdge _ (Space : is) = prepend Space (leadingEdge False is)
+leadingEdge _ is = ([], is)
+
+-- | The mirror of 'leadingEdge' for a closing delimiter, given whether a
+-- word follows it.
+trailingEdge :: Bool -> [Inline] -> ([Inline], [Inline])
+trailingEdge beforeWord is =
+  let (e, r) = go beforeWord (reverse is) in (reverse r, reverse e)
+  where
+    go word (Str t : xs) =
+      case T.unsnoc t of
+        Nothing -> go word xs
+        Just (t', c)
+          | isSpace c || (word && isEdgePunctuation c) ->
+              prepend (Str (T.singleton c)) (go False (Str t' : xs))
+        Just _ -> ([], Str t : xs)
+    go _ (Space : xs) = prepend Space (go False xs)
+    go _ xs = ([], xs)
+
+prepend :: Inline -> ([Inline], [Inline]) -> ([Inline], [Inline])
+prepend i (edge, rest) = (i : edge, rest)
+
+isEdgePunctuation :: Char -> Bool
+isEdgePunctuation c = isPunctuation c || isSymbol c
+
+isWordChar :: Char -> Bool
+isWordChar c = not (isSpace c || isEdgePunctuation c)
 
 -- Remove breaking spaces that might cause bad wraps.
 avoidBadWraps :: Bool -> Doc Text -> Doc Text
