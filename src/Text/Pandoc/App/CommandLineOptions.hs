@@ -545,18 +545,16 @@ options =
 
     , option "" ["no-highlight"]
                 (NoArg
-                 (\opt -> do
-                     deprecatedOption "--no-highlight"
-                       "Use --syntax-highlighting=none instead."
+                 (\opt -> withDeprecation "--no-highlight"
+                       "Use --syntax-highlighting=none instead." $ do
                      return opt { optSyntaxHighlighting = NoHighlightingString }))
                  OptFlag
                  (T.pack "Disable syntax highlighting")
 
     , option "" ["highlight-style"]
                 (ReqArg
-                 (\arg opt -> do
-                     deprecatedOption "--highlight-style"
-                       "Use --syntax-highlighting instead."
+                 (\arg opt -> withDeprecation "--highlight-style"
+                       "Use --syntax-highlighting instead." $ do
                      return opt{ optSyntaxHighlighting =
                                  T.pack $ normalizePath arg })
                  "STYLE|FILE")
@@ -670,9 +668,8 @@ options =
 
     , option "" ["self-contained"]
                  (OptArg
-                  (\arg opt -> do
-                        deprecatedOption "--self-contained"
-                          "Use --embed-resources --standalone instead."
+                  (\arg opt -> withDeprecation "--self-contained"
+                          "Use --embed-resources --standalone instead." $ do
                         boolValue <- readBoolFromOptArg "--self-contained" arg
                         return opt { optSelfContained = boolValue })
                     "true|false")
@@ -779,9 +776,8 @@ options =
 
     , option "" ["base-header-level"]
                  (ReqArg
-                  (\arg opt -> do
-                      deprecatedOption "--base-header-level"
-                        "Use --shift-heading-level-by instead."
+                  (\arg opt -> withDeprecation "--base-header-level"
+                        "Use --shift-heading-level-by instead." $ do
                       case safeStrRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optShiftHeadingLevelBy = t - 1 }
@@ -888,9 +884,8 @@ options =
 
     , option "" ["listings"]
                  (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--listings"
-                        "Use --syntax-highlighting=idiomatic instead."
+                  (\arg opt -> withDeprecation "--listings"
+                        "Use --syntax-highlighting=idiomatic instead." $ do
                       boolValue <- readBoolFromOptArg "--listings" arg
                       return $
                         if boolValue
@@ -1048,9 +1043,8 @@ options =
 
     , option "" ["epub-chapter-level"]
                  (ReqArg
-                  (\arg opt -> do
-                      deprecatedOption "--epub-chapter-level"
-                                       "Use --split-level instead."
+                  (\arg opt -> withDeprecation "--epub-chapter-level"
+                                       "Use --split-level instead." $ do
                       case safeStrRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
@@ -1141,18 +1135,16 @@ options =
 
     , option "" ["mathml"]
                  (NoArg
-                  (\opt -> do
-                      deprecatedOption "--mathml"
-                        "Use --math-method=mathml instead."
+                  (\opt -> withDeprecation "--mathml"
+                        "Use --math-method=mathml instead." $ do
                       return opt { optMathMethod = MathML }))
                  OptFlag
                  (T.pack "Use MathML for HTML math")
 
     , option "" ["webtex"]
                  (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--webtex"
-                        "Use --math-method=webtex[:URL] instead."
+                  (\arg opt -> withDeprecation "--webtex"
+                        "Use --math-method=webtex[:URL] instead." $ do
                       let url' = maybe defaultWebTeXURL T.pack arg
                       return opt { optMathMethod = WebTeX url' })
                   "URL")
@@ -1161,9 +1153,8 @@ options =
 
     , option "" ["mathjax"]
                  (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--mathjax"
-                        "Use --math-method=mathjax[:URL] instead."
+                  (\arg opt -> withDeprecation "--mathjax"
+                        "Use --math-method=mathjax[:URL] instead." $ do
                       let url' = maybe defaultMathJaxURL T.pack arg
                       return opt { optMathMethod = MathJax url'})
                   "URL")
@@ -1172,9 +1163,8 @@ options =
 
     , option "" ["katex"]
                  (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--katex"
-                        "Use --math-method=katex[:URL] instead."
+                  (\arg opt -> withDeprecation "--katex"
+                        "Use --math-method=katex[:URL] instead." $ do
                       return opt
                         { optMathMethod = KaTeX $
                            maybe defaultKaTeXURL T.pack arg })
@@ -1184,9 +1174,8 @@ options =
 
     , option "" ["gladtex"]
                  (NoArg
-                  (\opt -> do
-                      deprecatedOption "--gladtex"
-                        "Use --math-method=gladtex[:URL] instead."
+                  (\opt -> withDeprecation "--gladtex"
+                        "Use --math-method=gladtex[:URL] instead." $ do
                       return opt { optMathMethod = GladTeX }))
                  OptFlag
                  (T.pack "Use gladTeX for HTML math")
@@ -1391,6 +1380,18 @@ writersNames = sort
 splitField :: String -> (String, String)
 splitField = second (tailDef "true") . break (\c -> c == ':' || c == '=')
 
+-- | Run an option action and record that the option is deprecated.
+-- The warning is reported by 'convertWithOpts', so that it ends up in
+-- the log (@--log@), counts for @--fail-if-warnings@, and respects
+-- @--quiet@, like any other warning.
+withDeprecation :: String -> String
+                -> ExceptT OptInfo IO Opt -> ExceptT OptInfo IO Opt
+withDeprecation o msg = fmap $ \opt ->
+  opt{ optDeprecatedOptions =
+         optDeprecatedOptions opt ++ [(T.pack o, T.pack msg)] }
+
+-- | Report a deprecated option right away, for options that print
+-- information and exit, so that the conversion never runs.
 deprecatedOption :: String -> String -> ExceptT OptInfo IO ()
 deprecatedOption o msg = do
   res <- liftIO $ runIO (report $ Deprecated (T.pack o) (T.pack msg))

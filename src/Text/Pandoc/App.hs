@@ -143,6 +143,10 @@ convertWithOpts' :: (PandocMonad m, MonadIO m, MonadMask m)
                  -> m (PandocOutput, [LogMessage])
 convertWithOpts' scriptingEngine istty datadir opts = do
   configureCommonState datadir opts
+  -- Deprecated options are noted while parsing the command line, but are
+  -- reported here, so that they are logged like all other warnings.
+  forM_ (optDeprecatedOptions opts) $ \(o, msg) ->
+    report $ Deprecated o msg
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let sources = case optInputFiles opts of

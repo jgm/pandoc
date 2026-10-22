@@ -243,6 +243,7 @@ data Opt = Opt
     , optCitationAbbreviations :: Maybe FilePath -- ^ Citation abbreviations
     , optSandbox               :: Bool
     , optTypstInputs           :: [(Text, Text)] -- ^ List of parameter values for typst
+    , optDeprecatedOptions     :: [(Text, Text)] -- ^ Deprecated command-line options used, with advice
     } deriving (Generic, Show)
 
 instance FromJSON Opt where
@@ -332,6 +333,7 @@ instance FromJSON Opt where
        <*> o .:? "citation-abbreviations"
        <*> o .:? "sandbox" .!= optSandbox defaultOpts
        <*> o .:? "typst-inputs" .!= optTypstInputs defaultOpts
+       <*> pure (optDeprecatedOptions defaultOpts)
 
 instance ToJSON Opt where
  toJSON = genericToJSON defaultOptions{
@@ -912,6 +914,7 @@ defaultOpts = Opt
     , optCitationAbbreviations = Nothing
     , optSandbox               = False
     , optTypstInputs           = []
+    , optDeprecatedOptions     = []
     }
 
 yamlToMeta :: Value -> Parser Meta
