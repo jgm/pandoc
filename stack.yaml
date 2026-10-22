@@ -49,6 +49,8 @@ extra-deps:
   commit: ddc2530c82dbf985c34fcbc28b2d174d7806ad3b
 - git: https://github.com/jgm/citeproc.git
   commit: 9ea211d20b3a1f8f6335b8de3a75a27b0388def7
+- git: https://github.com/quarto-dev/gridtables.git
+  commit: 7c9d6df1d8144cf1daaf247ffc0dff6926fa5a67
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
