@@ -214,9 +214,9 @@ jobs:
           command: |
             export VERSION=$(grep '^version:' pandoc.cabal | nix shell --inputs-from . nixpkgs#gnused --command sed -e 's/version: *//')
             mkdir pandoc-$VERSION-wasm
-            mv pandoc-$VERSION.wasm COPYING.md COPYRIGHT pandoc-$VERSION-wasm/
+            mv pandoc.wasm COPYING.md COPYRIGHT pandoc-$VERSION-wasm/
             nix shell --inputs-from . nixpkgs#zip \
-              --command zip -r pandoc-$VERSION.wasm.zip pandoc-$VERSION-wasm
+              --command zip -r pandoc-$VERSION-wasm.zip pandoc-$VERSION-wasm
       - store_artifacts:
           path: pandoc-*.wasm.zip
 
