@@ -84,7 +84,7 @@ tar -xOf RELEASE_VERSION/pandoc-RELEASE_VERSION-linux-amd64.tar.gz pandoc-RELEAS
 #+end_src
 *** TODO Upload pandoc.wasm
 #+begin_src sh
-unzip -p RELEASE_VERSION/pandoc-RELEASE_VERSION.wasm.zip pandoc-wasm/pandoc.wasm > wasm/pandoc.wasm
+unzip -p RELEASE_VERSION/pandoc-RELEASE_VERSION.wasm.zip pandoc-RELEASE_VERSION-wasm/pandoc.wasm > wasm/pandoc.wasm
 make -C wasm upload
 #+end_src
 *** TODO create release announcement and add to GH release announcement

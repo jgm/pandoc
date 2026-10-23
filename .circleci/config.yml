@@ -212,12 +212,13 @@ jobs:
       - run:
           name: Compress artifacts
           command: |
-            mkdir pandoc-wasm
-            mv pandoc.wasm COPYING.md COPYRIGHT pandoc-wasm/
+            export VERSION=$(grep '^version:' pandoc.cabal | sed -e 's/version: *//')
+            mkdir pandoc-$VERSION-wasm
+            mv pandoc-$VERSION.wasm COPYING.md COPYRIGHT pandoc-wasm/
             nix shell --inputs-from . nixpkgs#zip \
-              --command zip -r pandoc.wasm.zip pandoc-wasm
+              --command zip -r pandoc-$VERSION.wasm.zip pandoc-$VERSION-wasm
       - store_artifacts:
-          path: pandoc.wasm.zip
+          path: pandoc-*.wasm.zip
 
 workflows:
   release:
