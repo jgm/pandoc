@@ -339,19 +339,21 @@ moveUnflankableEdgesOut = go False
     go afterWord (x:xs) =
       case emphasized x of
         Just (rewrap, contents)
-          | not (null inner) ->
+          | opensUnflanked afterWord contents ||
+            closesUnflanked beforeWord contents
+          , not (null inner) ->
               leading ++ [rewrap inner] ++ trailing ++
-                go (not (null trailing) && endsWithWord trailing) xs
+                go (not (null trailing) && endsWithWord (last trailing)) xs
           where
+            beforeWord = startsWithWord xs
             (leading, rest) = leadingEdge afterWord contents
-            (inner, trailing) = trailingEdge (startsWithWord xs) rest
-        _ -> x : go (endsWithWord [x]) xs
+            (inner, trailing) = trailingEdge beforeWord rest
+        _ -> x : go (endsWithWord x) xs
     emphasized (Emph ils) = Just (Emph, ils)
     emphasized (Strong ils) = Just (Strong, ils)
     emphasized _ = Nothing
-    endsWithWord is = case reverse is of
-                        Str t : _ -> maybe False (isWordChar . snd) (T.unsnoc t)
-                        _ -> False
+    endsWithWord (Str t) = maybe False (isWordChar . snd) (T.unsnoc t)
+    endsWithWord _ = False
     startsWithWord (Str t : _) = maybe False (isWordChar . fst) (T.uncons t)
     startsWithWord _ = False
 
@@ -362,7 +364,7 @@ leadingEdge afterWord (Str t : is) =
   case T.uncons t of
     Nothing -> leadingEdge afterWord is
     Just (c, t')
-      | isSpace c || (afterWord && isEdgePunctuation c) ->
+      | breaksFlanking afterWord c ->
           prepend (Str (T.singleton c)) (leadingEdge False (Str t' : is))
     Just _ -> ([], Str t : is)
 leadingEdge _ (Space : is) = prepend Space (leadingEdge False is)
@@ -378,11 +380,35 @@ trailingEdge beforeWord is =
       case T.unsnoc t of
         Nothing -> go word xs
         Just (t', c)
-          | isSpace c || (word && isEdgePunctuation c) ->
+          | breaksFlanking word c ->
               prepend (Str (T.singleton c)) (go False (Str t' : xs))
         Just _ -> ([], Str t : xs)
     go _ (Space : xs) = prepend Space (go False xs)
     go _ xs = ([], xs)
+
+-- | Whether 'leadingEdge' would move anything. Checked first, so that
+-- emphasis that already flanks is left alone without being rebuilt.
+opensUnflanked :: Bool -> [Inline] -> Bool
+opensUnflanked afterWord (Str t : is) =
+  case T.uncons t of
+    Nothing -> opensUnflanked afterWord is
+    Just (c, _) -> breaksFlanking afterWord c
+opensUnflanked _ (Space : _) = True
+opensUnflanked _ _ = False
+
+-- | Whether 'trailingEdge' would move anything, without reversing the list.
+closesUnflanked :: Bool -> [Inline] -> Bool
+closesUnflanked beforeWord = go Nothing
+  where
+    go lastInline (Str t : is) | T.null t = go lastInline is
+    go _ (i : is) = go (Just i) is
+    go (Just (Str t)) [] = maybe False (breaksFlanking beforeWord . snd)
+                                 (T.unsnoc t)
+    go (Just Space) [] = True
+    go _ [] = False
+
+breaksFlanking :: Bool -> Char -> Bool
+breaksFlanking nextToWord c = isSpace c || (nextToWord && isEdgePunctuation c)
 
 prepend :: Inline -> ([Inline], [Inline]) -> ([Inline], [Inline])
 prepend i (edge, rest) = (i : edge, rest)
