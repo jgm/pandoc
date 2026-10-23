@@ -310,6 +310,28 @@ Here's an example from the `xml` version of `test/tables/planets.native`:
 </Table>
 ```
 
+#### TableBody elements
+
+There's an asymmetry between `TableBody` and `TableHead`/`TableFoot`: the children
+of the latter are `Row` elements, while the former has the two `header` and `body`
+containers, which contain `Row` elements.
+
+To simplify the generation of tables by external tools, the XML reader supports
+`TableBody` elements that have direct `Row` children, but only a few cases are allowed:
+
+- a `TableBody` with only `Row` children and *no `header` or `body` children* is read
+  as if all the rows were inside a single `body` element;
+  *this is the most common and useful case*;
+
+- a `TableBody`, whose children are a `header` element followed by only `Row` elements,
+  will be read as if all the trailing "free" rows were inside a `body` element;
+
+- a `TableBody`, whose children are some "free" `Row` elements and a `body` element,
+  will be read as if all the starting "free" rows were inside a `header` element.
+
+All the other combinations, apart from the standard `header`+`body` sequence, will
+raise an error.
+
 ### Metadata and MetaMap entries
 
 Metadata entries are meta values (`MetaBool`, `MetaString`, `MetaInlines`, `MetaBlocks`,
