@@ -217,8 +217,10 @@ jobs:
             mv pandoc.wasm COPYING.md COPYRIGHT pandoc-$VERSION-wasm/
             nix shell --inputs-from . nixpkgs#zip \
               --command zip -r pandoc-$VERSION-wasm.zip pandoc-$VERSION-wasm
+            nix shell --inputs-from . nixpkgs#zip \
+              --command zip -r pandoc-wasm.zip pandoc-$VERSION-wasm.zip
       - store_artifacts:
-          path: pandoc-*.wasm.zip
+          path: pandoc-wasm.zip
 
 workflows:
   release:
