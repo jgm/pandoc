@@ -45,7 +45,7 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          cabal freeze
+          cabal freeze ${{ mactrix.versions.cabal_opts }}
           type cabal.project.freeze
           cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
           for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal_opts }} pandoc-cli') do set BINPATH=%%a
@@ -122,7 +122,6 @@ jobs:
 
     - name: Create release
       run: |
-        cabal freeze && cat cabal.project.freeze
         sh macos/make_macos_release.sh
         tar cvzf macos-x86_64.tar.gz macos-x86_64
 

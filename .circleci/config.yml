@@ -87,7 +87,6 @@ jobs:
           name: Package
           no_output_timeout: 90m
           command: |
-            cabal freeze && cat cabal.project.freeze
             bash linux/make_artifacts.sh
       - run:
           name: Compress artifacts
@@ -127,7 +126,6 @@ jobs:
           no_output_timeout: 90m
           command: |
             bash linux/make_artifacts.sh
-            cabal freeze && cat cabal.project.freeze
       - run:
           name: Compress artifacts
           command: |
