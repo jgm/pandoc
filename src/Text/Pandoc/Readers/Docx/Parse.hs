@@ -764,9 +764,13 @@ elemToTblGrid ns element | isElem ns "w" "tblGrid" element = do
         case sum xs of
           tot | tot > 1.0 -> map (/ tot) xs
           _ -> xs
-  normalizeFractions <$>
-    mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>=
-                          fmap toFraction . safeRead)) cols
+  -- w:w is optional. If a column has no width, we keep it but leave
+  -- every column's width unspecified (0), since writers don't handle
+  -- a mix of specified and unspecified widths well.
+  return $
+    case mapM (findAttrByName ns "w" "w" >=> safeRead) cols of
+      Just widths -> normalizeFractions (map toFraction widths)
+      Nothing -> replicate (length cols) 0
 elemToTblGrid _ _ = throwError WrongElem
 
 elemToTblLook :: NameSpaces -> Element -> D TblLook
