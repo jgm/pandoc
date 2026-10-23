@@ -1256,9 +1256,9 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "w" "commentRangeStart" element
   , Just cmtId <- findAttrByName ns "w" "id" element = do
-      (Comments _ commentMap) <- asks envComments
+      (Comments cmtNs commentMap) <- asks envComments
       case M.lookup cmtId commentMap of
-        Just cmtElem -> elemToCommentStart ns cmtElem
+        Just cmtElem -> elemToCommentStart cmtNs cmtElem
         Nothing      -> throwError WrongElem
 elemToParPart' ns element
   | isElem ns "w" "commentRangeEnd" element
@@ -1327,17 +1327,17 @@ childElemToRun ns element
 childElemToRun ns element
   | isElem ns "w" "footnoteReference" element
   , Just fnId <- findAttrByName ns "w" "id" element = do
-    notes <- asks envNotes
+    notes@(Notes notesNs _ _) <- asks envNotes
     case lookupFootnote fnId notes of
-      Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
+      Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart notesNs) (elChildren e)
                    return [Footnote bps]
       Nothing  -> return [Footnote []]
 childElemToRun ns element
   | isElem ns "w" "endnoteReference" element
   , Just enId <- findAttrByName ns "w" "id" element = do
-    notes <- asks envNotes
+    notes@(Notes notesNs _ _) <- asks envNotes
     case lookupEndnote enId notes of
-      Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
+      Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart notesNs) (elChildren e)
                    return [Endnote bps]
       Nothing  -> return [Endnote []]
 childElemToRun _ _ = throwError WrongElem
