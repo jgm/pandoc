@@ -39,15 +39,14 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
-          cabal freeze
-          # Show the package versions used:
-          cat cabal.project.freeze
           cabal build ${{ matrix.versions.cabal_opts }} --dependencies-only pandoc-cli
 
     - name: Create windows package
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
+          cabal freeze
+          type cabal.project.freeze
           cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
           for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal_opts }} pandoc-cli') do set BINPATH=%%a
           echo BINPATH is %BINPATH%
@@ -121,14 +120,9 @@ jobs:
           ~/.cabal/store
         key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
-    - name: Create freeze file
-      run: |
-        cabal freeze
-        # Show the package versions used:
-        cat cabal.project.freeze
-
     - name: Create release
       run: |
+        cabal freeze && cat cabal.project.freeze
         sh macos/make_macos_release.sh
         tar cvzf macos-x86_64.tar.gz macos-x86_64
 
