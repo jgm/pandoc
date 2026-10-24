@@ -88,12 +88,8 @@ jobs:
           no_output_timeout: 90m
           command: |
             bash linux/make_artifacts.sh
-      - run:
-          name: Compress artifacts
-          command: |
-            tar cvzf linux-amd64.tar.gz linux-amd64
       - store_artifacts:
-          path: linux-amd64.tar.gz
+          path: linux-amd64
 
   linux_arm64:
     docker:
@@ -126,12 +122,8 @@ jobs:
           no_output_timeout: 90m
           command: |
             bash linux/make_artifacts.sh
-      - run:
-          name: Compress artifacts
-          command: |
-            tar cvzf linux-arm64.tar.gz linux-arm64
       - store_artifacts:
-          path: linux-arm64.tar.gz
+          path: linux-arm64
 
   # The wasm build is split over two jobs, each with its own time limit:
   # wasm_deps builds the dependencies into the cabal store, which is passed
