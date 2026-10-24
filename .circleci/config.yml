@@ -205,9 +205,9 @@ jobs:
           name: Compress artifacts
           command: |
             export VERSION=$(grep '^version:' pandoc.cabal | nix shell --inputs-from . nixpkgs#gnused --command sed -e 's/version: *//')
-            mkdir pandoc-wasm
             mkdir pandoc-$VERSION-wasm
             mv pandoc.wasm COPYING.md COPYRIGHT pandoc-$VERSION-wasm/
+            mkdir pandoc-wasm
             nix shell --inputs-from . nixpkgs#zip \
               --command zip -r pandoc-wasm/pandoc-$VERSION-wasm.zip pandoc-$VERSION-wasm
       - store_artifacts:

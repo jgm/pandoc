@@ -9,6 +9,14 @@ workflow=release-candidate.yml
 ref=main
 artifacts="${1:-artifacts}"
 
+# Cancel any release candidate runs that are still queued or in progress.
+for r in $(gh run list -R "$repo" --workflow "$workflow" -L 50 \
+             --json databaseId,status \
+             --jq '.[] | select(.status != "completed") | .databaseId'); do
+  echo "Canceling run $r"
+  gh run cancel "$r" -R "$repo" || true
+done
+
 start=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 gh workflow run "$workflow" -R "$repo" --ref "$ref"
 
@@ -22,9 +30,31 @@ while :; do
 done
 echo "Run $run started: https://github.com/$repo/actions/runs/$run"
 
+# Once the unsigned Windows artifact appears, signing is waiting on
+# approval in SignPath; send a macOS notification.
+(
+  while :; do
+    sleep 60
+    if gh api "repos/$repo/actions/runs/$run/artifacts" --paginate \
+         --jq '.artifacts[].name' 2>/dev/null |
+         grep -qx 'windows-release-candidate-unsigned'; then
+      osascript -e 'display notification "SignPath is awaiting approval of the Windows package signing." with title "pandoc release candidate"'
+      break
+    fi
+  done
+) &
+notifier=$!
+# Make sure the notifier is killed however the script exits.  Background
+# jobs in a non-interactive shell ignore SIGINT, so Ctrl-C won't reach it.
+trap 'kill "$notifier" 2>/dev/null || true' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+
 # Wait for the run to finish; download artifacts even if a job failed.
 status=0
 gh run watch "$run" -R "$repo" -i 60 --exit-status >/dev/null || status=$?
+kill "$notifier" 2>/dev/null || true
 gh run view "$run" -R "$repo" --json jobs \
   --jq '.jobs[] | "\(.name): \(.conclusion)"'
 

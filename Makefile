@@ -19,6 +19,7 @@ REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
 OPTIMIZE_WASM?=1
+ARTIFACTS?=artifacts
 
 all: build test binpath ## build executable and run tests
 .PHONY: all
@@ -71,16 +72,33 @@ prerelease: validate-epub README.md fix_spacing check-cabal check-stack checkdoc
 .PHONY: prerelease
 
 release: ## build and download release binaries
+	rm -rf $(ARTIFACTS)
+	mkdir -p $(ARTIFACTS)
 	make -j2 -C . github-build-release circleci-build-release
+	make -j2 -C . sign-macos-arm64 sign-macos-x86_64
 .PHONY: release
 
 github-build-release: ## build Windows and intel mac release candidates on github
-	sh tools/github-build-release.sh
+	sh tools/github-build-release.sh $(ARTIFACTS)
 .PHONY: github-build-release
 
 circleci-build-release: ## build linux, arm64 mac, and wasm release candidates on circleci
-	sh tools/circleci-build-release.sh
+	sh tools/circleci-build-release.sh $(ARTIFACTS)
 .PHONY: circleci-build-release
+
+sign-macos-arm64: ## notarize macos arm64 and copy packages to ARTIFACTS
+	unzip -d $(ARTIFACTS) $(ARTIFACTS)/macos-arm64.zip
+	make -C $(ARTIFACTS)/macos-arm64 && \
+		cp $(ARTIFACTS)/macos-arm64/pandoc-*.{pkg,zip} $(ARTIFACTS)/ && \
+		rm -rf $(ARTIFACTS)/macos-arm64 $(ARTIFACTS)/macos-arm64.zip
+.PHONY: sign-macos-arm64
+
+sign-macos-x86_64: ## notarize macos x86 and copy packages to ARTIFACTS
+	unzip -d $(ARTIFACTS) $(ARTIFACTS)/macos-x86_64.zip
+	make -C $(ARTIFACTS)/macos-x86_64 && \
+		cp $(ARTIFACTS)/macos-x86_64/pandoc-*.{pkg,zip} $(ARTIFACTS)/ && \
+		rm -rf $(ARTIFACTS)/macos-x86_64 $(ARTIFACTS)/macos-x86_64.zip
+.PHONY: sign-macos-x86_64
 
 uncommitted_changes:
 	! git diff | grep '.'

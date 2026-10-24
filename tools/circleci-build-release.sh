@@ -9,6 +9,17 @@ slug=gh/jgm/pandoc
 auth="Circle-Token: $CIRCLECI_API_TOKEN"
 artifacts="${1:-artifacts}"
 
+# Cancel any release workflows still active from earlier pipelines.
+for p in $(curl -sf -H "$auth" "$api/project/$slug/pipeline?branch=main" |
+             jq -r '.items[].id'); do
+  for w in $(curl -sf -H "$auth" "$api/pipeline/$p/workflow" |
+               jq -r '.items[] | select(.name == "release" and
+                   (.status | IN("running","failing","on_hold"))) | .id'); do
+    echo "Canceling workflow $w (pipeline $p)"
+    curl -sf -X POST -H "$auth" "$api/workflow/$w/cancel" >/dev/null
+  done
+done
+
 pid=$(curl -sf -X POST -H "$auth" -H 'Content-Type: application/json' \
         -d '{"branch":"main"}' "$api/project/$slug/pipeline" | jq -r .id)
 echo "Pipeline $pid started"
