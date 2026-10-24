@@ -622,7 +622,10 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
                    let (_,cls,_) = attribs
                     in case getLangFromClasses opts cls of
                               Just l -> " " <> literal l
-                              Nothing -> empty
+                              Nothing -> -- see #11987
+                                case cls of
+                                  l:_ -> literal l
+                                  [] -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
   variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
