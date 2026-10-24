@@ -70,7 +70,8 @@ quick-stack: ## unoptimized build and tests with stack
 prerelease: validate-epub README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
 .PHONY: prerelease
 
-release: github-build-release circleci-build-release  ## build and download release binaries
+release: ## build and download release binaries
+	make -j2 -C . github-build-release circleci-build-release
 .PHONY: release
 
 github-build-release: ## build Windows and intel mac release candidates on github
