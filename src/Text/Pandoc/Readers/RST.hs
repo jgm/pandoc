@@ -1599,16 +1599,33 @@ escapedChar = do c <- escaped anyChar
                       unless (canPrecedeOpener c) updateLastStrPos
                       return $ B.str $ T.singleton c
 
+-- Characters that may precede an inline markup start-string: the ASCII
+-- characters - : / ' " < ( [ { and similar non-ASCII punctuation.
 canPrecedeOpener :: Char -> Bool
 canPrecedeOpener c =
+  c `elem` [':', '/', '\'', '"', '<'] ||
   generalCategory c `elem`
    [OpenPunctuation, InitialQuote, FinalQuote, DashPunctuation, OtherSymbol]
 
 symbol :: Monad m => RSTParser m Inlines
 symbol = do
   c <- satisfy isSpecialChar
-  unless (canPrecedeOpener c) updateLastStrPos
+  quoted <- quotedStartString c
+  unless (canPrecedeOpener c && not quoted) updateLastStrPos
   return $ B.str $ T.singleton c
+
+-- A start-string between an opening character and the matching closing
+-- character, as in (*) or "*", is not inline markup.
+quotedStartString :: Monad m => Char -> RSTParser m Bool
+quotedStartString c =
+  case lookup c openersClosers of
+    Nothing -> return False
+    Just closer -> option False $ True <$
+      lookAhead (try (skipMany1 (oneOf "*`|") *> char closer))
+ where
+  openersClosers = [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>'),
+                    ('"', '"'), ('\'', '\''),
+                    ('\8216', '\8217'), ('\8220', '\8221')]
 
 -- parses inline code, between codeStart and codeEnd
 code :: Monad m => RSTParser m Inlines
