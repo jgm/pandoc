@@ -40,17 +40,13 @@ make authors
 #+end_src
 *** TODO Build and download release candidates
 #+begin_src sh
-make -j2 release
+mkdir -p RELEASE_VERSION
+ARTIFACTS=RELEASE_VERSION make release
 #+end_src
-from GitHub: Windows and intel mac
-from circleci.com: linux amd64 and arm64 and arm64 mac and pandoc.wasm (rename as pandoc-VERSION.wasm)
-*** TODO Use 'make' in macos artifact to sign code
+By default these get put in the [[./artifacts]] subdirectory, but this can
+be overridden using the ARTIFACTS environment variable.
 *** TODO Install pandoc from package
 So website will have the correct executable.
-*** TODO Update website
-#+begin_src sh
-make update-website
-#+end_src
 *** TODO Tag release in git:
     - use X.Y for pandoc
     - pandoc-cli-X.Y
@@ -74,6 +70,10 @@ done
     and if changed:
     - pandoc-server
     - pandoc-lua-engine
+*** TODO Update website
+#+begin_src sh
+make update-website
+#+end_src
 *** TODO make pandoc-templates
 #+begin_src sh
 make pandoc-templates
