@@ -556,7 +556,7 @@ library
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.6,
-                 gridtables            >= 0.1      && < 0.2,
+                 gridtables            >= 0.1.1.1  && < 0.2,
                  haddock-library       >= 1.10     && < 1.12,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,

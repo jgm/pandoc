@@ -17,11 +17,6 @@ source-repository-package
   location: https://github.com/jgm/texmath.git
   tag: ddc2530c82dbf985c34fcbc28b2d174d7806ad3b
 
-source-repository-package
-  type: git
-  location: https://github.com/quarto-dev/gridtables.git
-  tag: 7c9d6df1d8144cf1daaf247ffc0dff6926fa5a67
-
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
 if impl(ghc >= 9.14)
