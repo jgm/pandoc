@@ -47,8 +47,7 @@ extra-deps:
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
 - citeproc-0.14.1.1
-- git: https://github.com/jgm/texmath.git
-  commit: ddc2530c82dbf985c34fcbc28b2d174d7806ad3b
+- texmath-0.13.3.2
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
