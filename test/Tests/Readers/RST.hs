@@ -217,6 +217,19 @@ tests = [ "line block with blank line" =:
           , "bare URI parsing disabled inside emphasis (#4561)" =:
             "*http://location*" =?>
             para (emph (text "http://location"))
+          , "bare URI and email address in angle brackets" =:
+            "See <https://example.com> or <jane-doe@example.com>." =?>
+            para ("See <" <> link "https://example.com" "" "https://example.com" <>
+                  "> or <" <>
+                  link "mailto:jane-doe@example.com" "" "jane-doe@example.com" <>
+                  ">.")
+          , "inline markup after a colon, a slash or a quote" =:
+            "key:*a* path/*b* \"*c*\"" =?>
+            para ("key:" <> emph "a" <> " path/" <> emph "b" <> " \"" <>
+                  emph "c" <> "\"")
+          , "quoted start-strings are not inline markup" =:
+            "(*) and (*), [*] and [*], \"*\" or \"x*\"" =?>
+            para (text "(*) and (*), [*] and [*], \"*\" or \"x*\"")
           , "include newlines" =:
             "**before\nafter**" =?>
             para (strong (text "before\nafter"))
