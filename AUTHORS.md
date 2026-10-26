@@ -29,6 +29,7 @@
 - Andreas Deininger
 - Andreas Lööw
 - Andreas Scherer
+- Andrzej Rybczak
 - Andres Freund
 - Andrew Dunning
 - Andy Morris
@@ -345,6 +346,7 @@
 - Owen McGrath
 - Pablo Rodríguez
 - Pascal Wagler
+- Patrick Creighton
 - Pau RE
 - Paul Rivier
 - Paul Tilley
@@ -466,6 +468,7 @@
 - William Lupton
 - William Rusnack
 - Winnie Hellmann
+- Wleeaf
 - Wout Gevaert
 - Wrong-Code
 - Xavier Olive
@@ -496,6 +499,7 @@
 - dbecher-ito
 - ebiim
 - ech0
+- enieuwy
 - etclub
 - favonia
 - gemmaro
