@@ -203,13 +203,14 @@ getEPUBMetadata opts meta = do
                        return m{ epubLanguage = localeLang }
           else return m
   let fixDate m =
-       if null (epubDate m)
-          then do
+       -- drop dates we could not normalize (dc:date must not be empty)
+       case filter (not . T.null . dateText) (epubDate m) of
+         [] -> do
             currentTime <- lift P.getTimestamp
             return $ m{ epubDate = [ Date{
                              dateText = showDateTimeISO8601 currentTime
                            , dateEvent = Nothing } ] }
-          else return m
+         ds -> return m{ epubDate = ds }
   let addAuthor m =
        if any (\c -> creatorRole c == Just "aut") $ epubCreator m
           then return m
