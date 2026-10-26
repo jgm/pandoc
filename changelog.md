@@ -1,5 +1,195 @@
 # Revision history for pandoc
 
+## pandoc 3.13 (2026-10-26)
+
+  * Report the location of errors in defaults files (#8759, Andrzej Rybczak).
+    An invalid value in a defaults file gave an error at the start of the
+    file, with no indication of the field. The error now names the option and
+    points at its value.
+
+  * Use yamlet for YAML parsing. Pandoc parsed YAML with the yaml
+    package, which depends on the C library libyaml. It now uses
+    yamlet, a pure Haskell YAML 1.2 parser. Values still go
+    through the existing aeson instances. Note these behavior changes:
+
+    + `yes`, `no`, `on`, `off`, `y` and `n` are strings,
+      not booleans, as in YAML 1.2.
+    + YAML errors now show the file, the line and the column, with the
+      offending line. In metadata blocks the line is the line in the
+      document.
+    + Duplicate keys in a mapping are an error. They were a warning.
+    + `.5`, `.inf` and `.nan` are numbers.
+
+  * Docx reader:
+
+    + Read `w:fldSimple` fields (#11944, Aslak Hellesøy).
+    + Keep grid columns that have no width (#11989, Patrick Creighton).
+      `w:w` is optional on `w:gridCol`, but `elemToTblGrid` skipped the grid
+      columns that had none. The table then had fewer columns than its rows had
+      cells, and the extra cells were dropped. Every grid column is now kept.
+      If any of them has no (readable) width, all columns get the default
+      width.
+    + Fix namespaces in notes and comments (#11991, Patrick Creighton).
+      The contents of footnotes, endnotes and comments were read with the
+      namespace prefixes declared in word/document.xml rather than in their own
+      parts.
+    + Records the indentation of each list level and track the open
+      list levels; an unnumbered paragraph whose left indentation
+      matches the text indentation of an open level is treated as a continuation
+      of that level's current item, rather than as a block quote (cf. #9197).
+    + Recover from fields with a missing instruction (#11943, enieuwy).
+      This fixes a bug that could lead to content being omitted.
+    + Fix regression (from 3.11) in parsing column widths (#11969).
+      The regression caused only the first column to get
+      assigned its alignment; every other column received default alignment.
+      In addition, in 3.11 alignment was taken from the header row if present;
+      this changed behavior from earlier versions, which took it from the first
+      body row. We revert to the earlier behavior, using the header row only if
+      there are no body rows. It's common for the header to have different
+      alignment than the rest.
+    + Keep tracked paragraph marks inside notes (#11971, Aslak Hellesøy).
+
+  * RST reader:
+
+    + Allow inline markup and bare links after `:`, `/`, `'`, `"`, `<`
+      (Wleeaf). Fixes a regression since 3.2.1; these characters could no
+      longer precede an inline markup start-string or a bare URI or email
+      address, although the reStructuredText spec allows them.
+      Also implement the rule that a start-character between an opening
+      character and its closing counterpart, as in `(*)` or `"*"`,
+      does not trigger inline markup.
+
+  * RTF reader:
+
+    + Fix tokenization bug (#11981). We were consuming certain
+      symbols after `\uNNNN` during tokenization. This led to an
+      *extra* character being consumed as the "fallback," so
+      letters went missing after encoded unicode characters.
+
+  * LaTeX reader:
+
+    + Detect macro expansion loops across `doMacros` calls (#11088).
+
+  * ODT reader:
+
+    + Fix start numbers with `text:continue-numbering` (#9595).
+
+  * Markdown writer:
+
+    + Write wide tables as grid tables instead of falling back to HTML
+      (#11945, Aslak Hellesøy).
+    + Don't drop notes in notes.
+    + Fix regression with code block language (#11987). We try to
+      identify which class is a language name and emit that as the gfm
+      style info string. If none of the classes match a
+      recognized language, before 3.10.1 we emitted the first
+      class; fater 3.10.1, we emit nothing. This commit reverts to
+      the pre-3.10.1 behavior.
+
+  * RST writer:
+
+    + Don't drop notes in notes.
+
+  * Haddock writer:
+
+    + Don't drop notes in notes.
+
+  * Docx writer:
+
+    + Fix multi-paragraph list items (#9197). Previously the docx
+      writer gave the second and subsequent paragraphs of a list
+      item numbering from a separate list with an invisible bullet.
+      This looked right, but semantically these paragraphs were
+      items of another list, which is what Word, screen readers,
+      and pandoc's own docx reader saw; the list was also split in
+      three. The writer now gives these paragraphs no numbering,
+      just an indentation that lines them up with the text of the
+      list item (as Word's "List Continue" styles do).
+
+  * LaTeX writer:
+
+    + Use braces around term containing `=` (#11954). This is needed for
+      the new LaTeX list code, which is triggered by using `pdfstandard`.
+
+  * PowerPoint writer:
+
+    + Add `clrMapOvr` to notes slides (#11935, Gaurav Vijay Jadhav).
+      This makes them importable by Keynote.
+    + Include `lang` in core document properties.
+
+  * DocBook, JATS, TEI writers:
+
+    + Apply `writerIdentifierPrefix` prefix consistently.
+
+  * Typst writer:
+
+    + Escape `...` and `-?` ligatures (#11979).
+    + Use `getLang` to determine lang and region.
+      Previously only the `lang` metadata field was consulted, so
+      `lang` could not be set properly using a variable.
+
+  * Text.Pandoc.Translations:
+
+    + `readTranslations` now takes the path of the file, for error
+       messages [API change].
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Add `wrapColumns`, `renderWithTemplate` [API change].
+      These factor out code that was repeated in about 20 writers: computing the
+      line length from writerWrapText/writerColumns, and rendering the body with
+      or without the template.
+
+  * Text.Pandoc.Shared:
+
+    + Export `plainToPara` and `paraToPlain`. [API change]
+
+  * Text.Pandoc.PDF:
+
+    + Make `--presentational-hints` default for weasyprint.
+      This is necessary to get list attributes (start, ordered
+      list type, etc.) working properly (#11976).
+
+  * cabal.project:
+
+    + Use bundle C option for zlib by default.
+      This allows pandoc to be built without first installing the C library
+      zlib. Those who want to use the system zlib can still compile pandoc
+      that way by overriding this setting in cabal.project.local, or
+      just installing directly from Hackage.
+    + Default to `+http` on GHC >= 9.14 (previously done only in
+      CI), so local builds behave the same; `-f-http` still overrides it.
+    + Pass wasm link flags for `pandoc-cli` as `ghc-options`.
+      cabal only passes ld-options along when it finds an `ld` program on the
+      PATH.  In an environment without one (e.g. `nix shell` with just the
+      ghc-wasm-meta toolchain), the flags were silently dropped and linking
+      pandoc.wasm failed with undefined `setjmp` and clock symbols.
+      Use `-optl- ghc-options` instead, which GHC passes to its
+      linker regardless.
+
+  * Makefile:
+
+    + Add `release` target.
+    + Improve `make pandoc-templates` so it does the whole job.
+    + Use bash as `SHELL` (`check-cabal` uses `pushd`, `check-version-sync`
+      uses `==`).
+    + Fix `$(id -u)` in `debpkg`, which make expanded to empty.
+    - Fix missing `echo` in `validate-docx-golden-tests{,2}`.
+    - Ensure pandoc is built before rules that run it to produce files.
+    - Use `git ls-files` for `SOURCEFILES`, not the main branch's tree.
+    - Drop redundant `embed_data_files` flag in `quick-stack`.
+
+  * Use released citeproc 0.14.1.1, texmath 0.13.3.2,
+    gridtables 0.1.1.1 (#9085).
+
+  * MANUAL.txt:
+
+    + Clarify the effect of `raw_html` in commonmark formats (#8305).
+
+  * Bump bounds on crypton, crypton-x509-system, tasty-bench.
+
+  * Add `tools/circleci-build-release.sh`, `tools/github-build-release.sh`.
+
 ## pandoc 3.12.1 (2026-10-07)
 
   * New input and output format: `fodt` (#4010). This is ODF's
