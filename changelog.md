@@ -179,7 +179,7 @@
     - Use `git ls-files` for `SOURCEFILES`, not the main branch's tree.
     - Drop redundant `embed_data_files` flag in `quick-stack`.
 
-  * Use released citeproc 0.14.1.1, texmath 0.13.3.2,
+  * Use released citeproc 0.14.1.1, texmath 0.13.3.3,
     gridtables 0.1.1.1 (#9085).
 
   * MANUAL.txt:
