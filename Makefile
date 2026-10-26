@@ -261,6 +261,7 @@ pandoc-templates: ## update pandoc-templates repo
 	git commit --allow-empty -m "Updated templates for pandoc $(VERSION)" && \
 	git tag $(VERSION) && \
 	git push && \
+	git push --tags && \
 	popd
 .PHONY: pandoc-templates
 
