@@ -54,7 +54,7 @@ import Text.Pandoc.Shared (normalizeDate, renderTags',
                            stringify, stringifyInlines, uniqueIdent, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.UUID (getRandomUUID)
-import Text.Pandoc.Walk (walk, walkM)
+import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
 import Text.Pandoc.XML.Light
@@ -1257,8 +1257,10 @@ showChapter = T.pack . printf "ch%03d.xhtml"
 
 -- Add identifiers to any headers without them.
 addIdentifiers :: WriterOptions -> [Block] -> [Block]
-addIdentifiers opts bs = evalState (mapM go bs) Set.empty
- where go (Header n (ident,classes,kvs) ils) = do
+addIdentifiers opts bs = evalState (mapM go bs) (Set.fromList (query getId bs))
+ where getId (Header _ (ident,_,_) _) = [ident]
+       getId _ = []
+       go (Header n (ident,classes,kvs) ils) = do
          ids <- get
          let ident' = if T.null ident
                          then uniqueIdent (writerExtensions opts) ils ids
