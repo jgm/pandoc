@@ -47,7 +47,7 @@ extra-deps:
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
 - citeproc-0.14.1.1
-- texmath-0.13.3.2
+- texmath-0.13.3.3
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
