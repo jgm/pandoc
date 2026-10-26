@@ -110,20 +110,8 @@ jobs:
 
     runs-on: macos-26
 
-    # The runner's Command Line Tools ship the macOS 27 SDK, whose .tbd
-    # files the default Xcode's (26.x) linker can't parse.  Use the
-    # default Xcode's toolchain and SDK consistently.
-    env:
-      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-
     steps:
     - uses: actions/checkout@v7
-    - name: Select SDK
-      run: |
-        echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
-        xcrun --sdk macosx --show-sdk-path
-        xcrun --find ld
-        ld -v
     - name: Install ghcup
       run: |
         brew install ghcup
