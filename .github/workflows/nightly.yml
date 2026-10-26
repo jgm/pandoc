@@ -35,9 +35,9 @@ jobs:
       with:
         path: |
           ${{ steps.cabal-store.outputs.dir }}
-        key: ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
         restore-keys: |
-          ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
 
     - name: Install dependencies
       run: |
@@ -83,9 +83,9 @@ jobs:
       with:
         path: |
           ${{ steps.cabal-store.outputs.dir }}
-        key: ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
         restore-keys: |
-          ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
 
     - name: Install dependencies
       run: |
@@ -147,9 +147,10 @@ jobs:
       with:
         path: |
           ${{ steps.cabal-store.outputs.dir }}
-        key: ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
         restore-keys: |
-          ${{ runner.os }}-nightly-9.10-3.14-cabal-global-${{ secrets.CACHE_VERSION }}-
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
+
 
     - name: Install dependencies
       run: |
