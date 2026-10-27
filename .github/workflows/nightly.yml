@@ -108,7 +108,7 @@ jobs:
 
   macos:
 
-    runs-on: macos-26
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v7
