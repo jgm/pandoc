@@ -42,7 +42,7 @@ import Data.Text (Text)
 import Safe (tailDef)
 import Skylighting (Syntax (..), defaultSyntaxMap)
 import System.Console.GetOpt
-import System.Environment (getArgs, getProgName)
+import System.Environment (getArgs, getProgName, lookupEnv)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
@@ -1457,10 +1457,12 @@ versionInfo features mbScriptingEngineName suffix = do
   let scriptingLine = case mbScriptingEngineName of
                         Nothing -> []
                         Just name -> ["Scripting engine: " ++ name]
+  mbPandocDirs <- System.Environment.lookupEnv "PANDOC_DATA_DIRS"
   UTF8.putStr $ T.unlines $ map T.pack $
     ["pandoc " ++ showVersion pandocVersion ++ suffix] ++
     featuresLine ++
     scriptingLine ++
-    ["User data directory: " ++ defaultDatadir,
-     copyrightMessage]
+    ["User data directory: " ++ defaultDatadir] ++
+    maybe [] (\d -> ["PANDOC_DATA_DIRS: " ++ d]) mbPandocDirs ++
+    [copyrightMessage]
   exitSuccess

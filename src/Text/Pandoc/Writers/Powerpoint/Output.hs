@@ -593,13 +593,8 @@ makeSpeakerNotesMap (Presentation _ slides) =
 presentationToArchive :: PandocMonad m
                       => WriterOptions -> Meta -> Presentation -> m Archive
 presentationToArchive opts meta pres = do
-  -- ensure that the default reference doc isn't built from
-  -- pptx/ files in the user data directory:
-  oldUserDataDir <- P.getUserDataDir
-  P.setUserDataDir Nothing
   distArchive <- toArchive . BL.fromStrict <$>
                         readDefaultDataFile "reference.pptx"
-  P.setUserDataDir oldUserDataDir
   refArchive <- case writerReferenceDoc opts of
                    Just f  -> do
                      arch <- toArchiveOrFail . BL.fromStrict . fst
