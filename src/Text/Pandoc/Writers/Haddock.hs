@@ -16,7 +16,7 @@ Haddock:  <http://www.haskell.org/haddock/doc/html/>
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
-    ( StateT, MonadState(get), modify, evalStateT )
+    ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isAlphaNum)
 import Data.Default
 import Data.Text (Text)
@@ -28,7 +28,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
@@ -46,32 +45,35 @@ writeHaddock opts document =
 pandocToHaddock :: PandocMonad m
                 => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToHaddock opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   body <- blockListToHaddock opts blocks
-  st <- get
-  notes' <- notesToHaddock opts (reverse $ stNotes st)
+  notes' <- notesToHaddock opts
   let main = body <> (if isEmpty notes' then empty else blankline <> notes')
   metadata <- metaToContext opts
                (blockListToHaddock opts)
                (fmap chomp . inlineListToHaddock opts)
                meta
   let context  = defField "body" main metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-          Nothing  -> main
-          Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
--- | Return haddock representation of notes.
+-- | Return haddock representation of the collected notes. Rendering a
+-- note may add further notes to the state (notes nested inside
+-- notes); keep going until all of them have been rendered.
 notesToHaddock :: PandocMonad m
-               => WriterOptions -> [[Block]] -> StateT WriterState m (Doc Text)
-notesToHaddock opts notes =
-  if null notes
-     then return empty
-     else do
-       contents <- blockToHaddock opts $ OrderedList (1,DefaultStyle,DefaultDelim) notes
-       return $ text "#notes#" <> blankline <> contents
+               => WriterOptions -> StateT WriterState m (Doc Text)
+notesToHaddock opts = do
+  contents <- go 0
+  return $ if null contents
+              then empty
+              else text "#notes#" <> blankline <> vcat contents
+  where
+    go done = do
+      notes <- gets (drop done . reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          contents <- blockToHaddock opts $
+                        OrderedList (done + 1, DefaultStyle, DefaultDelim) notes
+          (contents :) <$> go (done + length notes)
 
 -- | Escape special characters for Haddock.
 escapeString :: Text -> Text
@@ -170,7 +172,7 @@ orderedListItemToHaddock :: PandocMonad m
                          -> StateT WriterState m (Doc Text)
 orderedListItemToHaddock opts marker items = do
   contents <- blockListToHaddock opts items
-  let sps = case T.length marker - writerTabStop opts of
+  let sps = case writerTabStop opts - T.length marker of
                    n | n > 0 -> text $ replicate n ' '
                    _ -> text " "
   let start = literal marker <> sps

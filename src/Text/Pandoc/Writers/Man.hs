@@ -31,7 +31,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
@@ -48,9 +47,6 @@ writeMan opts document =
 -- | Return roff man representation of document.
 pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToMan opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   titleText <- inlineListToMan opts $ docTitle meta
   let title' = render Nothing titleText
   let setFieldsFromTitle =
@@ -80,10 +76,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
                 metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 escString :: WriterOptions -> Text -> Text
 escString opts = escapeString True (if writerPreferAscii opts

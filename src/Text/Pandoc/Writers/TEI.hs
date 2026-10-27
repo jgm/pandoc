@@ -23,7 +23,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 
@@ -31,9 +30,6 @@ import Text.Pandoc.XML
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
@@ -49,19 +45,11 @@ writeTEI opts doc = do
               $ defField "mathml" (case writerMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
 
 -- | Convert a list of Pandoc blocks to TEI.
 blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 blocksToTEI opts bs = vcat <$> mapM (blockToTEI opts) bs
-
--- | Auxiliary function to convert Plain block to Para.
-plainToPara :: Block -> Block
-plainToPara (Plain x) = Para x
-plainToPara x         = x
 
 -- | Convert a list of pairs of terms and definitions into a TEI
 -- list with labels and items.
@@ -275,8 +263,12 @@ inlineToTEI opts (Link attr txt (src, _))
               linktext <- inlinesToTEI opts txt
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
-      inTags False "ref" (("target", src) : idFromAttr opts attr)
+      inTags False "ref" (("target", src') : idFromAttr opts attr)
                  <$> inlinesToTEI opts txt
+  where
+    src' = case T.stripPrefix "#" src of
+             Just ident -> "#" <> writerIdentifierPrefix opts <> ident
+             Nothing    -> src
 inlineToTEI opts (Image attr description (src, tit)) = do
   let titleDoc = if T.null tit
                    then empty

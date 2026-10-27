@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.Readers.Vimwiki
    Copyright   : Copyright (C) 2017-2020 Yuchen Pei

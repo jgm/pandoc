@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                   #-}
 {- |
    Module      : Text.Pandoc.Version
    Copyright   : Copyright (C) 2022-2024 John MacFarlane

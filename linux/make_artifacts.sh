@@ -3,6 +3,8 @@ set -e
 
 cabal update
 cabal clean
+cabal freeze $CABALOPTS
+cat cabal.project.freeze
 cabal build $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
 BINPATH=$(cabal list-bin $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli)
 echo "Built executable: $BINPATH"

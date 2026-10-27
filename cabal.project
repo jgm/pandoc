@@ -15,6 +15,17 @@ if impl(ghc >= 9.14)
                cborg:base,
                haddock-library:base
 
+-- Otherwise the solver prefers disabling the http flag to using
+-- allow-newer.  (Can still be overridden with -f-http.)
+if impl(ghc >= 9.14) && !arch(wasm32)
+  package pandoc
+    flags: +http
+
+-- Use the bundled C zlib, so the build doesn't require any
+-- C libraries to be installed.
+package zlib
+  flags: +bundled-c-zlib
+
 if arch(wasm32)
   tests: False
 
@@ -47,7 +58,11 @@ if arch(wasm32)
 
   package pandoc-cli
     flags: +lua -repl -server
-    ld-options: -lwasi-emulated-process-clocks -lwasi-emulated-signal -lsetjmp
+    -- ghc-options rather than ld-options: cabal only passes ld-options
+    -- along when it finds an `ld` program on the PATH.
+    ghc-options: -optl-lwasi-emulated-process-clocks
+                 -optl-lwasi-emulated-signal
+                 -optl-lsetjmp
 
   package pandoc-lua-engine
     flags: -repl

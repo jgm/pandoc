@@ -593,13 +593,29 @@ makeSpeakerNotesMap (Presentation _ slides) =
 presentationToArchive :: PandocMonad m
                       => WriterOptions -> Meta -> Presentation -> m Archive
 presentationToArchive opts meta pres = do
+  -- ensure that the default reference doc isn't built from
+  -- pptx/ files in the user data directory:
+  oldUserDataDir <- P.getUserDataDir
+  P.setUserDataDir Nothing
   distArchive <- toArchive . BL.fromStrict <$>
                         readDefaultDataFile "reference.pptx"
+  P.setUserDataDir oldUserDataDir
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive . BL.fromStrict . fst
-                                  <$> P.fetchItem (T.pack f)
-                     Nothing -> toArchive . BL.fromStrict <$>
-                        readDataFile "reference.pptx"
+                   Just f  -> do
+                     arch <- toArchiveOrFail . BL.fromStrict . fst
+                                 <$> P.fetchItem (T.pack f)
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference-doc " <>
+                           tshow f <> ": " <> T.pack err
+                       Right x -> pure x
+                   Nothing -> do
+                     arch <- toArchiveOrFail . BL.fromStrict <$>
+                                 readDataFile "reference.pptx"
+                     case arch of
+                       Left err -> throwError $ PandocParseError $
+                         "Could not parse reference.pptx: " <> T.pack err
+                       Right x -> pure x
 
   let (referenceLayouts, defaultReferenceLayouts) =
         (getLayoutsFromArchive refArchive, getLayoutsFromArchive distArchive)
@@ -2295,6 +2311,8 @@ slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras) _) = do
           , sldNumShape
           ]
         ]
+      -- required by Keynote, see #11935
+      , mknode "p:clrMapOvr" [] $ mknode "a:masterClrMapping" [] ()
       ]
 
 -----------------------------------------------------------------------
@@ -2768,6 +2786,7 @@ docPropsElement docProps = do
     : ( [mknode "dc:subject" [] $ fromMaybe "" $ dcSubject docProps | isJust (dcSubject docProps)])
     <> ( [mknode "dc:description" [] $ fromMaybe "" $ dcDescription docProps | isJust (dcDescription docProps)])
     <> ( [mknode "cp:category" [] $ fromMaybe "" $ cpCategory docProps | isJust (cpCategory docProps)])
+    <> ( [mknode "dc:language" [] $ fromMaybe "" $ dcLanguage docProps | isJust (dcLanguage docProps)])
     <> (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
               , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
               ]) (T.pack $ formatTime defaultTimeLocale "%FT%XZ" utctime)

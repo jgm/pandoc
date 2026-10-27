@@ -26,10 +26,10 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.BibTeX as BibTeX
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference)
 import Text.Pandoc.Writers.Shared (lookupMetaString, defField,
-                                    addVariablesToContext)
-import Text.DocLayout (render, vcat)
+                                    addVariablesToContext,
+                                    renderWithTemplate)
+import Text.DocLayout (vcat)
 import Text.DocTemplates (Context(..))
-import Text.Pandoc.Templates (renderTemplate)
 
 -- | Write BibTeX based on the references metadata from a Pandoc document.
 writeBibTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -50,10 +50,4 @@ writeBibTeX' variant opts (Pandoc meta _) = do
   let main = vcat $ map (BibTeX.writeBibtexString opts variant mblang) refs
   let context  = defField "body" main
                  $ addVariablesToContext opts (mempty :: Context Text)
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
-  return $ render colwidth $
-    case writerTemplate opts of
-      Nothing  -> main
-      Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main

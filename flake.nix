@@ -220,6 +220,7 @@
                 zlib.dev
                 git
                 gnumake
+                gnused
                 bashInteractive
                 ripgrep
                 unzip

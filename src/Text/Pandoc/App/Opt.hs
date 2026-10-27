@@ -1,6 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE PatternSynonyms     #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -67,11 +66,15 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..),
-                   genericToJSON, fromJSON, camelTo2, eitherDecodeStrict)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
-import Data.Yaml
+import Data.Aeson
+import Data.Aeson.Types
+import qualified Data.Aeson.Key as K
+import qualified Data.List as L
+import qualified Data.List.NonEmpty as NE
+import qualified Yamlet as Y
+import Yamlet.Aeson
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
@@ -357,11 +360,11 @@ instance (PandocMonad m, MonadIO m)
       Success (opts :: M.Map Text Value) -> do
         dataDir <- case M.lookup "data-dir" opts of
           Nothing -> return Nothing
-          Just v -> Just . unpack <$> parseJSON v
+          Just v -> Just . unpack <$> parseJSON v <?> Key "data-dir"
         f <- parseOptions (M.toList opts)
         case M.lookup "defaults" opts of
           Just v -> do
-            g <- parseDefaults v dataDir
+            g <- parseDefaults v dataDir <?> Key "defaults"
             return  $ g >=> f >=> resolveVarsInOpt
           Nothing -> return $ f >=> resolveVarsInOpt
   parseJSON _ = fail "Expected a mapping"
@@ -541,7 +544,7 @@ doOpt' (k,v) = do
     _ -> doOpt (k,v)
 
 doOpt :: (Text, Value) -> Parser (Opt -> Opt)
-doOpt (k,v) = do
+doOpt (k,v) = (<?> Key (K.fromText k)) $ do
   case k of
     "tab-stop" ->
       parseJSON v >>= \x -> return (\o -> o{ optTabStop = x })
@@ -938,11 +941,11 @@ applyDefaults opt file = do
          Left err' -> throwError $ PandocParseError $ T.pack $
             "Error parsing " <> file <> ":\n" <> err'
      else
-       case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
-           Right f -> f opt
-           Left err'  -> throwError $ PandocParseError $ T.pack $
+       case Y.decode (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
+           Right (ViaAeson f) -> f opt
+           Left errs  -> throwError $ PandocParseError $ T.pack $
                   "Error parsing " <> file <> ":\n" <>
-                  Data.Yaml.prettyPrintParseException err'
+                  L.intercalate "\n" (map (Y.prettyError file) (NE.toList errs))
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath

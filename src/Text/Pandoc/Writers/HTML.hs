@@ -960,8 +960,6 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
       classes' = case slideVariant of
         NoSlides -> classes
         _ -> filter (\k -> k /= "incremental" && k /= "nonincremental") classes
-  let paraToPlain (Para ils) = Plain ils
-      paraToPlain x          = x
   let bs' = if "csl-entry" `elem` classes'
                then walk paraToPlain bs
                else bs

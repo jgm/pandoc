@@ -20,11 +20,29 @@ jobs:
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
 
+    # cabal update also writes a default config file if there is none;
+    # without one, cabal path prints a notice on stdout.  -z (ignore the
+    # project) keeps cabal path from checking out source-repository-packages,
+    # which prints git output on stdout too.
+    - name: Update cabal and get store path
+      id:   cabal-store
+      run: |
+          cabal update
+          echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache cabal global package db
+      uses: actions/cache@v6
+      with:
+        path: |
+          ${{ steps.cabal-store.outputs.dir }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
+
     - name: Install dependencies
       run: |
           ghc --version
           cabal --version
-          cabal update
           cabal build --dependencies-only -fembed_data_files -fnightly pandoc-cli
     - name: Build and install artifact
       run: |
@@ -49,9 +67,28 @@ jobs:
       run: |
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
-    - name: Install dependencies
+    # cabal update also writes a default config file if there is none;
+    # without one, cabal path prints a notice on stdout.  -z (ignore the
+    # project) keeps cabal path from checking out source-repository-packages,
+    # which prints git output on stdout too.
+    - name: Update cabal and get store path
+      id:   cabal-store
+      shell: bash
       run: |
           cabal update
+          echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache cabal global package db
+      uses: actions/cache@v6
+      with:
+        path: |
+          ${{ steps.cabal-store.outputs.dir }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
+
+    - name: Install dependencies
+      run: |
           cabal build --dependencies-only -fembed_data_files -fnightly pandoc-cli
     - name: Build artifacts
       shell: cmd
@@ -71,7 +108,7 @@ jobs:
 
   macos:
 
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
     - uses: actions/checkout@v7
@@ -83,9 +120,28 @@ jobs:
         ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
-    - name: Install dependencies
+    # cabal update also writes a default config file if there is none;
+    # without one, cabal path prints a notice on stdout.  -z (ignore the
+    # project) keeps cabal path from checking out source-repository-packages,
+    # which prints git output on stdout too.
+    - name: Update cabal and get store path
+      id:   cabal-store
       run: |
           cabal update
+          echo "dir=$(cabal path -z --store-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache cabal global package db
+      uses: actions/cache@v6
+      with:
+        path: |
+          ${{ steps.cabal-store.outputs.dir }}
+        key: ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-nightly-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}-
+
+
+    - name: Install dependencies
+      run: |
           cabal build --dependencies-only -fnightly -fembed_data_files -fhttp pandoc-cli
     - name: Build artifacts
       run: |
@@ -108,7 +164,7 @@ jobs:
 #      fail-fast: true
 #    steps:
 #    - uses: actions/checkout@v7
-#    - uses: wimpysworld/nothing-but-nix@v9
+#    - uses: wimpysworld/nothing-but-nix@v10
 #      with:
 #       hatchet-protocol: 'rampage'
 #    - uses: cachix/install-nix-action@v31
@@ -116,7 +172,7 @@ jobs:
 #        nix_path: nixpkgs=channel:nixos-unstable
 #    - name: Cache cabal work
 #      id:   cabal-local
-#      uses: actions/cache@v5
+#      uses: actions/cache@v6
 #      with:
 #        path: |
 #          dist-newstyle

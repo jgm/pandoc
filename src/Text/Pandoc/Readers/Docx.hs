@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -60,6 +59,7 @@ module Text.Pandoc.Readers.Docx
        ) where
 
 import Codec.Archive.Zip
+import Control.Applicative ((<|>))
 import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
     ( asks,
@@ -132,6 +132,11 @@ data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      , docxListState :: M.Map (T.Text, T.Text) Integer
                      , docxPrevPara  :: Inlines
                      , docxReferences :: M.Map ItemId (Reference Inlines)
+                     -- the open list levels, innermost first, as
+                     -- (text indentation, level, numId); used to
+                     -- recognize unnumbered paragraphs continuing
+                     -- a list item
+                     , docxOpenListLevels :: [(Integer, T.Text, T.Text)]
                      }
 
 instance Default DState where
@@ -144,6 +149,7 @@ instance Default DState where
                , docxListState = M.empty
                , docxPrevPara  = mempty
                , docxReferences = mempty
+               , docxOpenListLevels = []
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
@@ -270,6 +276,8 @@ parPartToText (InternalHyperLink _ _ children) =
   T.concat $ map parPartToText children
 parPartToText (ExternalHyperLink _ _ children) =
   T.concat $ map parPartToText children
+parPartToText (Field _ children) =
+  T.concat $ map parPartToText children
 parPartToText _                          = ""
 
 blacklistedCharStyles :: [CharStyleName]
@@ -343,8 +351,8 @@ runToInlines (Run rs runElems)
       let ils = smushInlines (map runElemToInlines runElems)
       transform <- runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
-runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Footnote bps) = note <$> notePartsToBlocks bps
+runToInlines (Endnote bps) = note <$> notePartsToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
@@ -357,6 +365,19 @@ extentToAttr (Just (w, h)) =
   where
     showDim d = tshow (d / 914400) <> "in"
 extentToAttr _ = nullAttr
+
+-- A note is read in the middle of the paragraph that references it.
+-- Text held back from a paragraph whose mark is a tracked change
+-- (docxPrevPara) must therefore neither flow into the note from the
+-- body, nor out of the note into the referencing paragraph.
+notePartsToBlocks :: PandocMonad m => [BodyPart] -> DocxContext m Blocks
+notePartsToBlocks bps = do
+  outerPrevPara <- gets docxPrevPara
+  modify $ \s -> s { docxPrevPara = mempty }
+  blks <- smushBlocks <$> mapM bodyPartToBlocks bps
+  leftover <- gets docxPrevPara
+  modify $ \s -> s { docxPrevPara = outerPrevPara }
+  return $ if null leftover then blks else blks <> para leftover
 
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
@@ -694,7 +715,17 @@ normalizeToClassName = T.map go . fromStyleName
              | otherwise = c
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
-bodyPartToBlocks (Heading n style pPr numId lvl mblvlInfo parparts) = do
+bodyPartToBlocks bp =
+  case bp of
+    Paragraph{} -> bodyPartToBlocks' bp
+    ListItem{}  -> bodyPartToBlocks' bp
+    -- anything else ends the open lists:
+    _ -> closeListLevels *> bodyPartToBlocks' bp <* closeListLevels
+ where
+  closeListLevels = modify $ \s -> s{ docxOpenListLevels = [] }
+
+bodyPartToBlocks' :: PandocMonad m => BodyPart -> DocxContext m Blocks
+bodyPartToBlocks' (Heading n style pPr numId lvl mblvlInfo parparts) = do
     ils <- local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
     let classes = map normalizeToClassName . delete style
@@ -712,7 +743,7 @@ bodyPartToBlocks (Heading n style pPr numId lvl mblvlInfo parparts) = do
          let start = case M.lookup (numId, lvl) listState of
                        Nothing -> case mblvlInfo of
                          Nothing -> 1
-                         Just (Level _ _ _ z) -> fromMaybe 1 z
+                         Just (Level _ _ _ z _) -> fromMaybe 1 z
                        Just z -> z + 1
          modify $ \st -> st{ docxListState =
              -- expire all the continuation data for lists of level > this one:
@@ -722,12 +753,117 @@ bodyPartToBlocks (Heading n style pPr numId lvl mblvlInfo parparts) = do
              in M.insert (numId, lvl) start
                   (M.filterWithKey notExpired listState) }
     makeHeaderAnchor $ headerWith ("", addNum classes, []) n ils
-bodyPartToBlocks (Paragraph pPr parparts) = do
+bodyPartToBlocks' (Paragraph pPr parparts) = do
+  openLevels <- gets docxOpenListLevels
+  let leftIndent = (indentation pPr >>= leftParIndent) <|>
+                   (pStyleIndentation pPr >>= leftParIndent)
+  -- An unnumbered paragraph indented like the text of an open list
+  -- item continues that item (this is how pandoc's docx writer and
+  -- Word's "List Continue" styles do multi-paragraph list items):
+  case break (\(ind, _, _) -> Just ind == leftIndent) openLevels of
+    (_, levels@((_, lvl, numId) : _)) | not (numbered pPr) -> do
+      modify $ \s -> s{ docxOpenListLevels = levels }
+      divWith ("", ["list-continuation"], [("level", lvl), ("num-id", numId)])
+        <$> paragraphToBlocks pPr{ indentation = Nothing } parparts
+    _ -> do
+      modify $ \s -> s{ docxOpenListLevels = [] }
+      paragraphToBlocks pPr parparts
+bodyPartToBlocks' (ListItem pPr numId lvl isRestart (Just levelInfo) parparts) = do
+  -- We check whether this current abstract numbering id has previously been
+  -- used, since Docx expects us to pick up where we left off -- unless this
+  -- item explicitly restarts numbering (see #8367).
+  listState <- gets docxListState
+  let startFromState = M.lookup (numId, lvl) listState
+      Level _ fmt txt startFromLevelInfo lvlIndent = levelInfo
+      start = case startFromState of
+        Just n | not isRestart -> n + 1
+        _ -> fromMaybe 1 startFromLevelInfo
+      kvs = [ ("level", lvl)
+            , ("num-id", numId)
+            , ("format", fmt)
+            , ("text", txt)
+            , ("start", tshow start)
+            ]
+  modify $ \st -> st{ docxListState =
+    -- expire all the continuation data for lists of level > this one:
+    -- a new level 1 list item resets continuation for level 2+
+    let notExpired (_, lvl') _ = lvl' <= lvl
+    in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
+  -- record the indentation of the item's text, so that we can recognize
+  -- unnumbered paragraphs continuing this item:
+  let textIndent = (indentation pPr >>= leftParIndent) <|> lvlIndent <|>
+                   (pStyleIndentation pPr >>= leftParIndent)
+  modify $ \st -> st{ docxOpenListLevels =
+    maybe id (\ind -> ((ind, lvl, numId) :)) textIndent
+      (filter (\(_, lvl', _) -> lvl' < lvl) (docxOpenListLevels st)) }
+  blks <- paragraphToBlocks pPr parparts
+  return $ divWith ("", ["list-item"], kvs) blks
+bodyPartToBlocks' (ListItem pPr _ _ _ _ parparts) =
+  let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
+  in
+    bodyPartToBlocks $ Paragraph pPr' parparts
+bodyPartToBlocks' (Captioned parstyle parparts bpart) = do
+  bs <- bodyPartToBlocks bpart
+  captContents <- bodyPartToBlocks (Paragraph parstyle parparts)
+  let capt = Caption Nothing (toList captContents)
+  let toCaptioned attr' bls = case bls of
+        [Table attr _cap colspecs thead tbodies tfoot]
+          -> singleton $ Table (attr <> attr') capt colspecs thead tbodies tfoot
+        [Figure attr _cap blks]
+          -> singleton $ Figure (attr <> attr') capt blks
+        [Para im@[Image{}]]
+          -> singleton $ Figure attr' capt [Plain im]
+        [Div attr bls']
+          -> toCaptioned (attr <> attr') bls'
+        [BlockQuote bls']
+          -> toCaptioned attr' bls'
+        _ -> captContents
+  pure $ toCaptioned nullAttr (toList bs)
+bodyPartToBlocks' (Tbl _ _ _ _ []) =
+  return mempty
+bodyPartToBlocks' (Tbl mbsty cap grid look parts) = do
+  let fullCaption = if T.null cap then mempty else plain (text cap)
+  let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
+      cap' = caption shortCaption fullCaption
+      (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
+
+  headerCells <- rowsToRows hdr
+  bodyCells <- rowsToRows rows
+
+  let widths = map (\n -> if n == 0
+                             then ColWidthDefault
+                             else ColWidth n) grid
+      -- Horizontal column alignment is taken from the first row's cells.
+      numcols = length widths
+      getAlignment (Docx.Cell al colspan _ _) =
+        replicate (fromIntegral colspan) (convertAlign al)
+      getAlignments (Docx.Row _ cs) = concatMap getAlignment cs
+      alignments = take numcols $
+                   case rows ++ hdr of
+                     [] -> repeat Pandoc.AlignDefault
+                     r : _ -> getAlignments r
+
+  extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
+  let attr = case mbsty of
+                Just sty | extStylesEnabled -> ("", [], [("custom-style", sty)])
+                _ -> nullAttr
+  return $ compactifyTable
+         $ tableWith attr cap'
+                 (zip alignments widths)
+                 (TableHead nullAttr headerCells)
+                 [TableBody nullAttr 0 [] bodyCells]
+                 (TableFoot nullAttr [])
+bodyPartToBlocks' HRule = pure Pandoc.horizontalRule
+
+-- | Convert a paragraph (also used for the text of list items).
+paragraphToBlocks :: PandocMonad m
+                  => ParagraphStyle -> [ParPart] -> DocxContext m Blocks
+paragraphToBlocks pPr parparts = do
   let getMainPar
         | Just True <- pBidi pPr = do
             let pPr' = pPr { pBidi = Nothing }
             local (\s -> s{ docxInBidi = True })
-              (bodyPartToBlocks (Paragraph pPr' parparts))
+              (paragraphToBlocks pPr' parparts)
         | isCodeDiv pPr = do
             transform <- paragraphStyleToTransform pPr
             return $
@@ -786,86 +922,6 @@ bodyPartToBlocks (Paragraph pPr parparts) = do
       then (<> horizontalRule)
       else id)
     <$> getMainPar
-bodyPartToBlocks (ListItem pPr numId lvl isRestart (Just levelInfo) parparts) = do
-  -- We check whether this current abstract numbering id has previously been
-  -- used, since Docx expects us to pick up where we left off -- unless this
-  -- item explicitly restarts numbering (see #8367).
-  listState <- gets docxListState
-  let startFromState = M.lookup (numId, lvl) listState
-      Level _ fmt txt startFromLevelInfo = levelInfo
-      start = case startFromState of
-        Just n | not isRestart -> n + 1
-        _ -> fromMaybe 1 startFromLevelInfo
-      kvs = [ ("level", lvl)
-            , ("num-id", numId)
-            , ("format", fmt)
-            , ("text", txt)
-            , ("start", tshow start)
-            ]
-  modify $ \st -> st{ docxListState =
-    -- expire all the continuation data for lists of level > this one:
-    -- a new level 1 list item resets continuation for level 2+
-    let notExpired (_, lvl') _ = lvl' <= lvl
-    in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
-  blks <- bodyPartToBlocks (Paragraph pPr parparts)
-  return $ divWith ("", ["list-item"], kvs) blks
-bodyPartToBlocks (ListItem pPr _ _ _ _ parparts) =
-  let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
-  in
-    bodyPartToBlocks $ Paragraph pPr' parparts
-bodyPartToBlocks (Captioned parstyle parparts bpart) = do
-  bs <- bodyPartToBlocks bpart
-  captContents <- bodyPartToBlocks (Paragraph parstyle parparts)
-  let capt = Caption Nothing (toList captContents)
-  let toCaptioned attr' bls = case bls of
-        [Table attr _cap colspecs thead tbodies tfoot]
-          -> singleton $ Table (attr <> attr') capt colspecs thead tbodies tfoot
-        [Figure attr _cap blks]
-          -> singleton $ Figure (attr <> attr') capt blks
-        [Para im@[Image{}]]
-          -> singleton $ Figure attr' capt [Plain im]
-        [Div attr bls']
-          -> toCaptioned (attr <> attr') bls'
-        [BlockQuote bls']
-          -> toCaptioned attr' bls'
-        _ -> captContents
-  pure $ toCaptioned nullAttr (toList bs)
-bodyPartToBlocks (Tbl _ _ _ _ []) =
-  return mempty
-bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
-  let fullCaption = if T.null cap then mempty else plain (text cap)
-  let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
-      cap' = caption shortCaption fullCaption
-      (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
-
-  headerCells <- rowsToRows hdr
-  bodyCells <- rowsToRows rows
-
-  let widths = map (\n -> if n == 0
-                             then ColWidthDefault
-                             else ColWidth n) grid
-      -- Horizontal column alignment is taken from the first row's cells.
-      numcols = length widths
-      getAlignment (Docx.Cell al colspan _ _) =
-        take numcols $ replicate (fromIntegral colspan) (convertAlign al) ++
-                       repeat Pandoc.AlignDefault
-      getAlignments (Docx.Row _ cs) = concatMap getAlignment cs
-      alignments = take numcols $
-                   case hdr ++ rows of
-                     [] -> repeat Pandoc.AlignDefault
-                     r : _ -> getAlignments r
-
-  extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
-  let attr = case mbsty of
-                Just sty | extStylesEnabled -> ("", [], [("custom-style", sty)])
-                _ -> nullAttr
-  return $ compactifyTable
-         $ tableWith attr cap'
-                 (zip alignments widths)
-                 (TableHead nullAttr headerCells)
-                 [TableBody nullAttr 0 [] bodyCells]
-                 (TableFoot nullAttr [])
-bodyPartToBlocks HRule = pure Pandoc.horizontalRule
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline

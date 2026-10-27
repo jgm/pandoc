@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.12.1
+version:         3.13
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -17,18 +17,19 @@ description:     Pandoc is a Haskell library for converting from one markup
                  .
                  - light markup formats (many variants of Markdown,
                    reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
-                   txt2tags, djot)
-                 - HTML formats (HTML 4 and 5)
+                   txt2tags, djot, bbcode)
+                 - HTML formats (HTML 4 and 5, chunked HTML)
                  - Ebook formats (EPUB v2 and v3, FB2)
                  - Documentation formats (GNU TexInfo, Haddock, Vimdoc)
-                 - Roff formats (man, ms)
+                 - Roff formats (man, ms, mdoc)
                  - TeX formats (LaTeX, ConTeXt)
                  - Typst
+                 - ANSI-formatted text
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
                  - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
                    RIS)
-                 - Word processor formats (Docx, RTF, ODT)
+                 - Word processor formats (Docx, RTF, ODT, FODT)
                  - Interactive notebook formats (Jupyter notebook ipynb)
                  - Page layout formats (InDesign ICML)
                  - Wiki markup formats (MediaWiki, DokuWiki, TikiWiki, TWiki,
@@ -36,6 +37,8 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Slide show formats (LaTeX Beamer, PowerPoint, Slidy,
                    reveal.js, Slideous, S5, DZSlides)
                  - Data formats (CSV and TSV tables, Excel spreadsheets)
+                 - Serialization formats (Haskell, JSON, or XML representation
+                   of the AST)
                  - PDF (via external programs such as pdflatex or wkhtmltopdf)
                  .
                  Pandoc can convert mathematical content in documents
@@ -227,6 +230,9 @@ extra-source-files:
                  test/command/11113.docx
                  test/command/11689.docx
                  test/command/11833.docx
+                 test/command/11944.docx
+                 test/command/11989.docx
+                 test/command/11991.docx
                  test/command/11942.js
                  test/command/biblio.bib
                  test/command/averroes.bib
@@ -538,12 +544,12 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.13,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.14.1   && < 0.15,
+                 citeproc              >= 0.14.1.1 && < 0.15,
                  commonmark            >= 0.3.1    && < 0.4,
                  commonmark-extensions >= 0.2.7.3  && < 0.3,
                  commonmark-pandoc     >= 0.3.0.2  && < 0.4,
                  containers            >= 0.6.0.1  && < 0.9,
-                 crypton               >= 0.30     && < 2.1,
+                 crypton               >= 0.30     && < 2.3,
                  data-default          >= 0.4      && < 0.9,
                  deepseq               >= 1.3      && < 1.6,
                  directory             >= 1.2.5    && < 1.4,
@@ -553,7 +559,7 @@ library
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.6,
-                 gridtables            >= 0.1      && < 0.2,
+                 gridtables            >= 0.1.1.1  && < 0.2,
                  haddock-library       >= 1.10     && < 1.12,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
@@ -573,15 +579,15 @@ library
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.13.3.1 && < 0.14,
+                 texmath               >= 0.13.3.3 && < 0.14,
                  text                  >= 2.0      && < 2.2,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.17,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  unicode-data          >= 0.6      && < 0.10,
                  unicode-transforms    >= 0.3      && < 0.5,
-                 yaml                  >= 0.11     && < 0.12,
-                 libyaml               >= 0.1.4    && < 0.2,
+                 yamlet                >= 1.0.0.1  && < 1.1,
+                 yamlet-aeson          >= 1.0.0.1  && < 1.1,
                  zip-archive           >= 0.5      && < 0.6,
                  zlib                  >= 0.6      && < 0.8,
                  xml                   >= 1.3.12   && < 1.4,
@@ -599,7 +605,7 @@ library
      cpp-options:   -DPANDOC_HTTP_SUPPORT
      build-depends:
                  crypton-connection    >= 0.3.1    && < 0.5,
-                 crypton-x509-system   >= 1.6.7    && < 1.10,
+                 crypton-x509-system   >= 1.6.7    && < 1.11,
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.5,
                  network               >= 2.6      && < 3.3,
@@ -944,7 +950,7 @@ benchmark benchmark-pandoc
   main-is:         benchmark-pandoc.hs
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
-                   tasty-bench >= 0.4     && <= 0.5,
+                   tasty-bench >= 0.4     && <= 0.6,
                    mtl         >= 2.2     && < 2.4,
                    text        >= 2.0     && < 2.2,
                    temporary,

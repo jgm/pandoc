@@ -191,6 +191,11 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sCaseExclusions :: M.Map Text (Set.Set Text)
                               -- ^ words excluded from case changing
                               -- (keys: @upper@, @lower@, @title@)
+                            , sLastExpansion :: Maybe (Text, SourcePos, Int)
+                              -- ^ name and position of the last macro
+                              -- expanded, and the number of consecutive
+                              -- times it has been expanded there
+                              -- (used to detect expansion loops)
                             }
      deriving Show
 
@@ -225,6 +230,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sRawScopes     = 0
                               , sLigatures     = True
                               , sCaseExclusions = M.empty
+                              , sLastExpansion = Nothing
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -752,6 +758,18 @@ doMacros' n inp =
            -- macro call, so we continue expanding:
            Nothing -> trySpecialMacro name ts >>= doMacros' (n' + 1)
            Just (Macro _scope expansionPoint argspecs optarg newtoks) -> do
+             -- A macro whose expansion contains itself after an
+             -- unknown command (e.g. \def\small{\@setfontsize\small..})
+             -- would be expanded again and again at the same position,
+             -- each time in a fresh call to doMacros (#11088):
+             lastExp <- sLastExpansion <$> getState
+             let expCount = case lastExp of
+                              Just (name', spos', i)
+                                | name' == name, spos' == spos -> i + 1
+                              _ -> 1 :: Int
+             when (expCount > 1000) $ throwError $ PandocMacroLoop name
+             updateState $ \st -> st{ sLastExpansion =
+                                        Just (name, spos, expCount) }
              let getargs' = do
                    args <-
                      (case expansionPoint of

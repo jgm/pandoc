@@ -1570,6 +1570,7 @@ table = compactifyTable <$>
 inline :: PandocMonad m => RSTParser m Inlines
 inline =
   (note          -- can start with whitespace, so try before ws
+    <|> quotedSymbol
     <|> do notAfterString >>= guard
            (link <|> inlineAnchor <|> strong <|> emph)
     <|> code
@@ -1599,8 +1600,11 @@ escapedChar = do c <- escaped anyChar
                       unless (canPrecedeOpener c) updateLastStrPos
                       return $ B.str $ T.singleton c
 
+-- Characters that may precede an inline markup start-string: the ASCII
+-- characters - : / ' " < ( [ { and similar non-ASCII punctuation.
 canPrecedeOpener :: Char -> Bool
 canPrecedeOpener c =
+  c == ':' || c == '/' || c == '\'' || c == '"' || c == '<' ||
   generalCategory c `elem`
    [OpenPunctuation, InitialQuote, FinalQuote, DashPunctuation, OtherSymbol]
 
@@ -1609,6 +1613,21 @@ symbol = do
   c <- satisfy isSpecialChar
   unless (canPrecedeOpener c) updateLastStrPos
   return $ B.str $ T.singleton c
+
+-- A start-string between an opening character and the matching closing
+-- character, as in (*) or "*", is not inline markup.
+quotedSymbol :: Monad m => RSTParser m Inlines
+quotedSymbol = try $ do
+  opener <- oneOf "([{<\"'\8216\8220"
+  case lookup opener openersClosers of
+    Nothing -> mzero
+    Just closer ->
+      B.text . (\c -> T.pack [opener, c, closer])
+         <$> try (oneOf "*`|" <* char closer)
+ where
+  openersClosers = [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>'),
+                    ('"', '"'), ('\'', '\''),
+                    ('\8216', '\8217'), ('\8220', '\8221')]
 
 -- parses inline code, between codeStart and codeEnd
 code :: Monad m => RSTParser m Inlines

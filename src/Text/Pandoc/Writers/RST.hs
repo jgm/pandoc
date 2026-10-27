@@ -35,7 +35,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Safe (lastMay, headMay)
@@ -68,9 +67,6 @@ writeRST opts document = do
 pandocToRST :: PandocMonad m => Pandoc -> RST m Text
 pandocToRST (Pandoc meta blocks) = do
   opts <- gets stOptions
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let subtit = lookupMetaInlines "subtitle" meta
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToContext opts
@@ -80,7 +76,7 @@ pandocToRST (Pandoc meta blocks) = do
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
-  notes <- gets (reverse . stNotes) >>= notesToRST
+  notes <- notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- gets (reverse . stLinks) >>= refsToRST
   pics <- gets (reverse . stImages) >>= pictRefsToRST
@@ -95,10 +91,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "titleblock" (render Nothing title :: Text)
               $ defField "math" hasMath
               $ defField "rawtex" rawTeX metadata
-  return $ render colwidth $
-    case writerTemplate opts of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+  return $ renderWithTemplate opts context main
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
@@ -126,10 +119,19 @@ keyToRST (label, (src, _)) = do
                    else label'
   return $ nowrap $ ".. _" <> label'' <> ": " <> literal src
 
--- | Return RST representation of notes.
-notesToRST :: PandocMonad m => [[Block]] -> RST m (Doc Text)
-notesToRST notes =
-   vsep <$> zipWithM noteToRST [1..] notes
+-- | Return RST representation of the collected notes. Rendering a
+-- note may add further notes to the state (notes nested inside
+-- notes); keep going until all of them have been rendered.
+notesToRST :: PandocMonad m => RST m (Doc Text)
+notesToRST = vsep <$> go 0
+  where
+    go done = do
+      notes <- gets (drop done . reverse . stNotes)
+      if null notes
+        then return []
+        else do
+          docs <- zipWithM noteToRST [done + 1 ..] notes
+          (docs ++) <$> go (done + length notes)
 
 -- | Return RST representation of a note.
 noteToRST :: PandocMonad m => Int -> [Block] -> RST m (Doc Text)

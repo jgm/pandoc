@@ -12,6 +12,8 @@ ME=$(whoami)
 CABALOPTS="-fembed_data_files -fserver -flua -fhttp"
 # Build the pandoc binary and put it in .
 cabal update
+cabal freeze $CABALOPTS
+cat cabal.project.freeze
 cabal build all $CABALOPTS
 BINPATH=$(cabal list-bin $CABALOPTS pandoc-cli)
 echo "Built executable..."

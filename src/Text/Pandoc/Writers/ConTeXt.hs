@@ -37,7 +37,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI (isURI)
-import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
@@ -86,9 +85,6 @@ type WM = StateT WriterState
 
 pandocToConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> WM m Text
 pandocToConTeXt options (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText options == WrapAuto
-                    then Just $ writerColumns options
-                    else Nothing
   metadata <- metaToContext options
               blockListToConTeXt
               (fmap chomp . inlineListToConTeXt)
@@ -144,10 +140,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         _                     -> id) metadata
   let context' = defField "context-dir" (maybe mempty toContextDir
                                          $ getField "dir" context) context
-  return $ render colwidth $
-    case writerTemplate options of
-       Nothing  -> main
-       Just tpl -> renderTemplate tpl context'
+  return $ renderWithTemplate options context' main
 
 -- change rtl to r2l, ltr to l2r
 toContextDir :: Doc Text -> Doc Text

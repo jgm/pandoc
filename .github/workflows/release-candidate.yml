@@ -4,6 +4,7 @@ on: workflow_dispatch
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   windows:
@@ -44,6 +45,8 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
+          cabal freeze ${{ matrix.versions.cabal_opts }}
+          type cabal.project.freeze
           cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
           for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal_opts }} pandoc-cli') do set BINPATH=%%a
           echo BINPATH is %BINPATH%
@@ -81,32 +84,15 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
     - name: Upload unsigned artifact
-      id: upload-unsigned-artifact
       uses: actions/upload-artifact@v7
       with:
         name: windows-release-candidate-unsigned
         path: windows-release-candidate
 
-    - name: Sign artifact
-      id: sign-artifact
-      uses: signpath/github-action-submit-signing-request@v3
-      with:
-        api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
-        project-slug: 'pandoc'
-        signing-policy-slug: 'release-signing'
-        artifact-configuration-slug: 'pandoc-msi-and-zip'
-        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
-        wait-for-completion: true
-        output-artifact-directory: 'windows-release-candidate'
-      timeout-minutes: 120
-
-    - name: upload-signed-artifact
-      id: upload-signed-artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: windows-release-candidate-signed
-        path: windows-release-candidate
+  windows-sign:
+    needs: windows
+    uses: ./.github/workflows/sign-windows.yml
+    secrets: inherit
 
   macos:
 
@@ -137,10 +123,10 @@ jobs:
     - name: Create release
       run: |
         sh macos/make_macos_release.sh
-        tar cvzf macos-x86_64.tar.gz macos-x86_64
+        zip -r macos-x86_64.zip macos-x86_64
 
     - uses: actions/upload-artifact@v7
       with:
-        name: macos-x86_64.tar.gz
-        path: macos-x86_64.tar.gz
+        name: macos-x86_64.zip
+        path: macos-x86_64.zip
 

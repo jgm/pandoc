@@ -136,6 +136,18 @@ tests = [ testGroup "document"
             "docx/empty_field.docx"
             "docx/empty_field.native"
           , testCompare
+            "field without <w:instrText> does not corrupt later lists"
+            "docx/field_no_instrText.docx"
+            "docx/field_no_instrText.native"
+          , testCompare
+            "field with <w:instrText> in tracked change does not corrupt later lists"
+            "docx/field_tracked_instrText.docx"
+            "docx/field_tracked_instrText.native"
+          , testCompare
+            "field without <w:instrText> in a code block keeps its text"
+            "docx/field_no_instrText_codeblock.docx"
+            "docx/field_no_instrText_codeblock.native"
+          , testCompare
             "pageref hyperlinks in <w:instrText> tag"
             "docx/pageref.docx"
             "docx/pageref.native"
@@ -459,6 +471,14 @@ tests = [ testGroup "document"
             "spaces at the edges of changes (reject)"
             "docx/track_changes_edge_spaces.docx"
             "docx/track_changes_edge_spaces_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "paragraph marks in notes stay in their notes (accept)"
+            "docx/track_changes_paragraph_mark_in_note.docx"
+            "docx/track_changes_paragraph_mark_in_note_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "paragraph marks in notes stay in their notes (reject)"
+            "docx/track_changes_paragraph_mark_in_note.docx"
+            "docx/track_changes_paragraph_mark_in_note_reject.native"
           , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
             "comments (accept -- no comments)"
             "docx/comments.docx"
