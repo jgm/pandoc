@@ -134,9 +134,10 @@ gridTableWith' :: (Monad m, Monad mf,
                -> ParsecT Sources st m (mf Blocks) -- ^ Block list parser
                -> ParsecT Sources st m (mf TableComponents)
 gridTableWith' normalization blocks = do
+  pos <- getPosition
   tbl <- GT.gridTable <* optional blanklines
   let blkTbl = GT.mapCells
-               (\lns -> parseFromString' blocks
+               (\lns -> parseFromString' (setPosition pos >> blocks)
                         . flip T.snoc '\n'  -- ensure proper block parsing
                         . T.unlines
                         . removeOneLeadingSpace

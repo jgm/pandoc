@@ -466,7 +466,10 @@ noteBlock = do
      rest <- many $ try $ blanklines >> indentSpaces >> rawLines
      let raw = T.unlines (first:rest) <> "\n"
      optional blanklines
-     parsed <- parseFromString' parseBlocks raw
+     -- restore the position, so that paths are rebased against the
+     -- file the note comes from, even if the note ends the file
+     -- (#12001; cf. #11888):
+     parsed <- parseFromString' (setPosition pos >> parseBlocks) raw
      oldnotes <- stateNotes' <$> getState
      case M.lookup ref oldnotes of
        Just _  -> logMessage $ DuplicateNoteReference ref pos
