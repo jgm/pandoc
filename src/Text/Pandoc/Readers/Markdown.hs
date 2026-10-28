@@ -466,7 +466,7 @@ noteBlock = do
      rest <- many $ try $ blanklines >> indentSpaces >> rawLines
      let raw = T.unlines (first:rest) <> "\n"
      optional blanklines
-     parsed <- parseFromString' parseBlocks raw
+     parsed <- parseFromString' (setPosition pos >> parseBlocks) raw
      oldnotes <- stateNotes' <$> getState
      case M.lookup ref oldnotes of
        Just _  -> logMessage $ DuplicateNoteReference ref pos

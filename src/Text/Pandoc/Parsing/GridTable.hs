@@ -38,7 +38,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.General
 import Text.Pandoc.Sources
-import Text.Parsec (Stream (..), ParsecT, optional, sepEndBy1, try)
+import Text.Parsec (Stream (..), ParsecT, getPosition, optional, sepEndBy1,
+                    setPosition, try)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Text.GridTable as GT
@@ -134,9 +135,10 @@ gridTableWith' :: (Monad m, Monad mf,
                -> ParsecT Sources st m (mf Blocks) -- ^ Block list parser
                -> ParsecT Sources st m (mf TableComponents)
 gridTableWith' normalization blocks = do
+  pos <- getPosition
   tbl <- GT.gridTable <* optional blanklines
   let blkTbl = GT.mapCells
-               (\lns -> parseFromString' blocks
+               (\lns -> parseFromString' (setPosition pos >> blocks)
                         . flip T.snoc '\n'  -- ensure proper block parsing
                         . T.unlines
                         . removeOneLeadingSpace
