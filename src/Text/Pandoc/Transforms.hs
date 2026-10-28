@@ -127,11 +127,13 @@ filterIpynbOutput mode = walk go
                   removeANSI (CodeBlock attr code) =
                     CodeBlock attr (removeANSIEscapes code)
                   removeANSI x = x
-                  removeANSIEscapes t
-                    | Just cs <- T.stripPrefix "\x1b[" t =
-                        removeANSIEscapes $ T.drop 1 $ T.dropWhile (/='m') cs
-                    | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
-                    | otherwise = ""
+                  removeANSIEscapes = T.concat . stripEscapes
+                  stripEscapes t =
+                    case T.breakOn "\x1b[" t of
+                      (before, rest)
+                        | T.null rest -> [before]
+                        | otherwise -> before :
+                            stripEscapes (T.drop 1 $ T.dropWhile (/= 'm') rest)
         go x = x
 
 -- | Remove soft breaks between East Asian characters.
