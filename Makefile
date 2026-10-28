@@ -13,7 +13,6 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-CABALOPTS?=--disable-optimization -f-export-dynamic -fhttp --ghc-option=-fwrite-ide-info --ghc-option=-fdiagnostics-color=always --ghc-option=-j
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
