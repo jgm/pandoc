@@ -41,6 +41,9 @@ data FieldInfo = HyperlinkField URL
                | CslBibliography
                | EndNoteCite T.Text
                | EndNoteRefList
+                 -- A legacy check box form field (FORMCHECKBOX); the
+                 -- boolean indicates whether the box is checked.
+               | CheckBoxField Bool
                | UnknownField
                deriving (Show)
 
