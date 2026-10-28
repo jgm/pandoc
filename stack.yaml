@@ -49,6 +49,7 @@ extra-deps:
 - texmath-0.13.3.3
 - git: https://github.com/jgm/commonmark-hs.git
   commit: 89b2686bbc77aba333a79790e39cb08b90c1d75d
+  subdirs: [commonmark]
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
