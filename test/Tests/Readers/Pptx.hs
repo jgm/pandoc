@@ -71,4 +71,10 @@ tests = [ testGroup "basic"
             "pptx-reader/equations.pptx"
             "pptx-reader/equations.native"
           ]
+        , testGroup "notes"
+          [ testCompare
+            "speaker notes"
+            "pptx-reader/notes.pptx"
+            "pptx-reader/notes.native"
+          ]
         ]
