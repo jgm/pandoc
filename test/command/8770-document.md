@@ -52,15 +52,16 @@ role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1"><p>doc footnote<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 1">↩︎</a></p></li>
 <li id="fn2"><p>caption footnote<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 2">↩︎</a></p></li>
 <li id="fn3"><p>header footnote<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 3">↩︎</a></p></li>
 <li id="fn4"><p>table cell footnote<a href="#fnref4"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+class="footnote-back" role="doc-backlink"
+aria-label="Back to reference 4">↩︎</a></p></li>
 <li id="fn5"><p>doc footnote<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 5">↩︎</a></p></li>
 </ol>
 </section>
 ```
