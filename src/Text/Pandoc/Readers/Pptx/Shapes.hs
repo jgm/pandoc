@@ -36,6 +36,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Pptx.SmartArt
 import Text.Pandoc.XML.Light
+import Text.TeXMath (writeTeX)
+import Text.TeXMath.Readers.OMML (readOMML)
 
 -- | Paragraph with bullet/numbering information
 data PptxParagraph = PptxParagraph
@@ -273,10 +275,30 @@ hasWingdingsSymbol ns pElem =
                      Nothing -> False
    in any checkRun runs
 
--- | Inlines of a paragraph, with its line breaks
+-- | Inlines of a paragraph: its text, with its line breaks, and its
+-- equations (@a14:m@) as math
 paragraphInlines :: Element -> [Inline]
-paragraphInlines = B.toList . mconcat . intersperse B.linebreak .
-                   map B.text . drawingMLParagraphLines
+paragraphInlines pElem =
+  B.toList $ mconcat $ map toInlines $ groupBy bothText $ elChildren pElem
+  where
+    isMath el = qName (elName el) == "m"
+    bothText a b = not (isMath a || isMath b)
+    toInlines els@(el:_)
+      | isMath el = foldMap mathInlines (elChildren el)
+      | otherwise = mconcat $ intersperse B.linebreak $ map B.text $
+          drawingMLParagraphLines pElem{ elContent = map Elem els }
+    toInlines [] = mempty
+
+-- | An equation (@m:oMathPara@ or @m:oMath@) as math. If texmath can't
+-- read it, its text is kept.
+mathInlines :: Element -> B.Inlines
+mathInlines el =
+  case readOMML (showElement el) of
+    Right exps
+      | qName (elName el) == "oMathPara" -> B.displayMath (writeTeX exps)
+      | otherwise -> B.math (writeTeX exps)
+    Left _ -> B.text $ T.concat $ map strContent $
+                filterElementsName ((== "t") . qName) el
 
 -- | Extract text from DrawingML element (all its paragraphs)
 extractDrawingMLText :: Element -> Text

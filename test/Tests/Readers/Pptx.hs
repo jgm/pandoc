@@ -59,4 +59,10 @@ tests = [ testGroup "basic"
             "pptx-reader/hidden.pptx"
             "pptx-reader/hidden.native"
           ]
+        , testGroup "markup compatibility"
+          [ testCompare
+            "equations and alternate content"
+            "pptx-reader/equations.pptx"
+            "pptx-reader/equations.native"
+          ]
         ]
