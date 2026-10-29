@@ -18,6 +18,7 @@ module Text.Pandoc.Readers.Pptx.Shapes
   , parseShapes
   , parseShape
   , shapeToBlocks
+  , paragraphsToBlocks
   , isTitlePlaceholder
   , extractDrawingMLText
   ) where

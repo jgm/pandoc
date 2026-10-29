@@ -7133,6 +7133,10 @@ in handouts and presenter view.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+When reading pptx, the speaker notes of each slide are read into a
+`notes` div at the end of the slide's content, so a pptx file
+converted to Markdown and back keeps its notes.
+
 ### Speaker notes on the title slide (PowerPoint)
 
 For PowerPoint output, the title slide is generated from the document's
