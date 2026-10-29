@@ -30,8 +30,10 @@ import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
 import qualified Data.Vector as V
 import System.FilePath (splitFileName)
+import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Xlsx.Cells
+import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
 
@@ -88,21 +90,20 @@ archiveToXlsx archive = do
   -- Parse shared strings (look for sharedStrings relationship)
   sharedStrings <- case findRelWithTarget workbookRels "sharedStrings" of
     Just (_, target) -> do
-      let path = "xl/" ++ T.unpack target
-      el <- loadXMLFromArchive archive path
+      el <- loadXMLFromArchive archive (resolveTarget workbookPath target)
       parseSharedStrings el
     Nothing -> Right V.empty
 
   -- Parse styles
   styles <- case findRelWithTarget workbookRels "styles" of
     Just (_, target) -> do
-      let path = "xl/" ++ T.unpack target
-      el <- loadXMLFromArchive archive path
+      el <- loadXMLFromArchive archive (resolveTarget workbookPath target)
       parseStyles el
     Nothing -> Right $ Styles V.empty
 
   -- Parse worksheets
-  sheets <- mapM (\sheetInfo -> parseSheet archive workbookRels sharedStrings styles sheetInfo)
+  sheets <- mapM (parseSheet archive workbookPath workbookRels sharedStrings
+                    styles)
                  (workbookSheetNames workbook)
 
   return $ Xlsx workbook sheets sharedStrings styles
@@ -119,7 +120,8 @@ getWorkbookXmlPath archive = do
     Nothing -> Left "No workbook.xml relationship found"
     Just rel -> do
       target <- maybeToEither "Missing Target" $ findAttr (unqual "Target") rel
-      return $ T.unpack target
+      -- The root relationships belong to the package itself.
+      return $ resolveTarget "" target
   where
     isOfficeDocRel el =
       case (findAttr (unqual "Type") el, findAttr (unqual "Target") el) of
@@ -180,13 +182,13 @@ parseFont _ns fontElem =
     }
 
 -- | Parse individual worksheet
-parseSheet :: Archive -> [(Text, Text)] -> SharedStrings -> Styles -> (SheetId, Text, Text) -> Either Text XlsxSheet
-parseSheet archive rels sharedStrings styles (sid, name, relId) = do
+parseSheet :: Archive -> FilePath -> [(Text, Text)] -> SharedStrings -> Styles
+           -> (SheetId, Text, Text) -> Either Text XlsxSheet
+parseSheet archive wbPath rels sharedStrings styles (sid, name, relId) = do
   target <- maybeToEither ("Sheet relationship not found: " <> relId) $
             lookup relId rels
 
-  let sheetPath = "xl/" ++ T.unpack target
-  sheetElem <- loadXMLFromArchive archive sheetPath
+  sheetElem <- loadXMLFromArchive archive (resolveTarget wbPath target)
 
   cells <- parseSheetCells sheetElem sharedStrings styles
 
@@ -274,6 +276,15 @@ relsPathFor :: FilePath -> FilePath
 relsPathFor path =
   let (dir, file) = splitFileName path
    in dir ++ "/_rels/" ++ file ++ ".rels"
+
+-- | Resolve a relationship target to an archive path. A target starting
+-- with @/@ is relative to the package root; any other target is relative
+-- to the folder of the part that holds the relationship.
+resolveTarget :: FilePath -> Text -> FilePath
+resolveTarget source target =
+  case T.unpack target of
+    '/':path -> path
+    path -> collapseFilePath (Posix.takeDirectory source Posix.</> path)
 
 findRelWithTarget :: [(Text, Text)] -> Text -> Maybe (Text, Text)
 findRelWithTarget rels targetName =
