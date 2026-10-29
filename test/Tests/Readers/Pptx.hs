@@ -53,4 +53,10 @@ tests = [ testGroup "basic"
             "pptx-reader/runs.pptx"
             "pptx-reader/runs.native"
           ]
+        , testGroup "markup compatibility"
+          [ testCompare
+            "equations and alternate content"
+            "pptx-reader/equations.pptx"
+            "pptx-reader/equations.native"
+          ]
         ]
