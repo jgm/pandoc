@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {- |
@@ -13,8 +14,11 @@ Tests for data file lookup, including lookup in @PANDOC_DATA_DIRS@.
 -}
 module Tests.Data (tests) where
 
-import Codec.Archive.Zip (Archive, filesInArchive, findEntryByPath,
-                          fromEntry, toArchive)
+import Codec.Archive.Zip (Archive, filesInArchive,
+#ifdef EMBED_DATA_FILES
+                          findEntryByPath, fromEntry,
+#endif
+                          toArchive)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -75,9 +79,11 @@ getDefaultFiles = runIOorExplode $ do
                      [("docx" </> p, bs) | (p, bs) <- parts])
   return (tree, abbrevs, refdocx)
 
+#ifdef EMBED_DATA_FILES
 -- | Contents of a file in a docx archive.
 docxPart :: FilePath -> B.ByteString -> Maybe BL.ByteString
 docxPart p = fmap fromEntry . findEntryByPath p . toArchive . BL.fromStrict
+#endif
 
 tests :: [TestTree]
 tests =
@@ -129,6 +135,7 @@ tests =
           [ (dirB </> "abbreviations", "dirB") ]
           (readDataFile "abbreviations")
           @?= Right "dirB"
+#ifdef EMBED_DATA_FILES
     , testCase "falls back to default data files" $ do
         (defs, abbrevs, _) <- getDefaults
         runWith (Just userDir) (Just (pandocDataDirs [dirA])) defs []
@@ -163,6 +170,7 @@ tests =
           , (dirA </> "docx" </> styles, "dirA") ]
           (docxPart styles <$> readDefaultDataFile "reference.docx")
           @?= Right expected
+#endif
     ]
   , testGroup "findFileWithDataFallback"
     [ testCase "file in working directory takes precedence" $
