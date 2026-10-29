@@ -153,13 +153,21 @@ parseSheetRef ns (idx, sheetElem) = do
 parseSharedStrings :: Element -> Either Text SharedStrings
 parseSharedStrings sstElem = do
   let siElems = filter (\e -> qName (elName e) == "si") (onlyElems $ elContent sstElem)
-      strings = map extractString siElems
+      strings = map stringItemText siElems
   return $ V.fromList strings
-  where
-    extractString siElem =
-      case find (\e -> qName (elName e) == "t") (onlyElems $ elContent siElem) of
-        Just tElem -> strContent tElem
-        Nothing -> getAllText siElem
+
+-- | Text of a string item (@si@ in the shared strings, @is@ in an inline
+-- string cell): its @t@, or the @t@ of its rich-text runs (@r@)
+-- concatenated as written. Phonetic runs (@rPh@) are skipped.
+stringItemText :: Element -> Text
+stringItemText el = T.concat
+  [ strContent t
+  | child <- elChildren el
+  , t <- case qName (elName child) of
+           "t" -> [child]
+           "r" -> filter (\e -> qName (elName e) == "t") (elChildren child)
+           _   -> []
+  ]
 
 -- | Parse styles (fonts only for MVP)
 parseStyles :: Element -> Either Text Styles
@@ -227,6 +235,11 @@ parseCell sharedStrings styles cElem = do
                   Just idx | idx >= 0 && idx < V.length sharedStrings ->
                     TextValue (sharedStrings V.! idx)
                   _ -> EmptyValue
+              else if cellType == "inlineStr"
+                then
+                  -- Inline string, held in the cell itself rather than in <v>
+                  maybe EmptyValue (TextValue . stringItemText) $
+                    find (\e -> qName (elName e) == "is") (elChildren cElem)
               else if T.null vText
                 then EmptyValue
                 else
@@ -282,14 +295,6 @@ findRelWithTarget rels targetName =
 maybeToEither :: Text -> Maybe a -> Either Text a
 maybeToEither err Nothing = Left err
 maybeToEither _ (Just x) = Right x
-
-getAllText :: Element -> Text
-getAllText el =
-  let textFromContent (Text cdata) = cdData cdata
-      textFromContent (Elem e) = getAllText e
-      textFromContent _ = ""
-      texts = map textFromContent (elContent el)
-   in T.unwords $ filter (not . T.null) texts
 
 addContext :: Either Text a -> Text -> Either Text a
 addContext (Right x) _ = Right x
