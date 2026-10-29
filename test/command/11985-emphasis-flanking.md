@@ -65,3 +65,37 @@ included.
 ^D
 *a end.* next
 ```
+
+A line break at the edge is whitespace too. Written between the
+delimiters, the break's backslash escapes the closing delimiter, so the
+break is lost and the delimiters are read as literal text.
+
+```
+% pandoc -f native -t markdown
+[ Para [ Str "a", Strong [ Str "b", LineBreak ], Str "c" ] ]
+^D
+a**b**\
+c
+```
+
+Strikeout follows the same rule, and formatting left with no text of its
+own is dropped rather than written as an empty pair of delimiters around
+the break.
+
+```
+% pandoc -f native -t markdown
+[ Para [ Str "word", Strikeout [ Str ".", Space, Str "x" ], Space, Str "after" ] ]
+^D
+word. ~~x~~ after
+```
+
+```
+% pandoc -f native -t markdown
+[ Para [ Str "a" ], Para [ Strikeout [ LineBreak ] ], Para [ Str "b" ] ]
+^D
+a
+
+\
+
+b
+```

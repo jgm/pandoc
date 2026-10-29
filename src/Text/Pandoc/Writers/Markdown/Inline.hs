@@ -341,8 +341,8 @@ moveUnflankableEdgesOut = go False
         Just (rewrap, contents)
           | opensUnflanked afterWord contents ||
             closesUnflanked beforeWord contents
-          , not (null inner) ->
-              leading ++ [rewrap inner] ++ trailing ++
+          , not (null inner) || all isBreakingSpace (leading ++ trailing) ->
+              leading ++ [rewrap inner | not (null inner)] ++ trailing ++
                 go (not (null trailing) && endsWithWord (last trailing)) xs
           where
             beforeWord = startsWithWord xs
@@ -351,6 +351,7 @@ moveUnflankableEdgesOut = go False
         _ -> x : go (endsWithWord x) xs
     emphasized (Emph ils) = Just (Emph, ils)
     emphasized (Strong ils) = Just (Strong, ils)
+    emphasized (Strikeout ils) = Just (Strikeout, ils)
     emphasized _ = Nothing
     endsWithWord (Str t) = maybe False (isWordChar . snd) (T.unsnoc t)
     endsWithWord _ = False
@@ -367,7 +368,8 @@ leadingEdge afterWord (Str t : is) =
       | breaksFlanking afterWord c ->
           prepend (Str (T.singleton c)) (leadingEdge False (Str t' : is))
     Just _ -> ([], Str t : is)
-leadingEdge _ (Space : is) = prepend Space (leadingEdge False is)
+leadingEdge _ (i : is)
+  | isBreakingSpace i = prepend i (leadingEdge False is)
 leadingEdge _ is = ([], is)
 
 -- | The mirror of 'leadingEdge' for a closing delimiter, given whether a
@@ -383,7 +385,8 @@ trailingEdge beforeWord is =
           | breaksFlanking word c ->
               prepend (Str (T.singleton c)) (go False (Str t' : xs))
         Just _ -> ([], Str t : xs)
-    go _ (Space : xs) = prepend Space (go False xs)
+    go _ (i : xs)
+      | isBreakingSpace i = prepend i (go False xs)
     go _ xs = ([], xs)
 
 -- | Whether 'leadingEdge' would move anything. Checked first, so that
@@ -393,8 +396,8 @@ opensUnflanked afterWord (Str t : is) =
   case T.uncons t of
     Nothing -> opensUnflanked afterWord is
     Just (c, _) -> breaksFlanking afterWord c
-opensUnflanked _ (Space : _) = True
-opensUnflanked _ _ = False
+opensUnflanked _ (i : _) = isBreakingSpace i
+opensUnflanked _ [] = False
 
 -- | Whether 'trailingEdge' would move anything, without reversing the list.
 closesUnflanked :: Bool -> [Inline] -> Bool
@@ -404,8 +407,18 @@ closesUnflanked beforeWord = go Nothing
     go _ (i : is) = go (Just i) is
     go (Just (Str t)) [] = maybe False (breaksFlanking beforeWord . snd)
                                  (T.unsnoc t)
-    go (Just Space) [] = True
-    go _ [] = False
+    go (Just i) [] = isBreakingSpace i
+    go Nothing [] = False
+
+-- | Whitespace that is an inline of its own rather than a character in a
+-- 'Str'. A line break at the edge of emphasis would otherwise be written
+-- as a backslash between the delimiters, @~~\\~~@, which no reader reads
+-- back as a line break.
+isBreakingSpace :: Inline -> Bool
+isBreakingSpace Space = True
+isBreakingSpace SoftBreak = True
+isBreakingSpace LineBreak = True
+isBreakingSpace _ = False
 
 breaksFlanking :: Bool -> Char -> Bool
 breaksFlanking nextToWord c = isSpace c || (nextToWord && isEdgePunctuation c)
