@@ -50,7 +50,9 @@ import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown,
                                             linkAttributes,
                                             attrsToMarkdown,
                                             attrsToMarkua,
-                                            linkDestination)
+                                            linkDestination,
+                                            escapeText,
+                                            escapeLinkTitle)
 import Text.Pandoc.Writers.Markdown.Table (pipeTable, pandocTable)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
@@ -282,7 +284,7 @@ keyToMarkdown :: PandocMonad m
 keyToMarkdown opts (label', (src, tit), attr) = do
   let tit' = if T.null tit
                 then empty
-                else space <> "\"" <> literal tit <> "\""
+                else space <> "\"" <> literal (escapeLinkTitle tit) <> "\""
   return $ nest 2 $ hang 2
             ("[" <> literal label' <> "]:" <> space)
             (literal (linkDestination src) <> tit')
@@ -444,6 +446,8 @@ blockToMarkdown' opts (Plain inlines) = do
       startsWithSpace (SoftBreak:_) = True
       startsWithSpace (LineBreak:_) = True
       startsWithSpace _             = False
+  let isDashOrEqualsRun t =
+        not (T.null t) && (T.all (== '-') t || T.all (== '=') t)
   let escapeLineStart ils =
         case ils of
           (Str t:ys)
@@ -454,6 +458,15 @@ blockToMarkdown' opts (Plain inlines) = do
             | t == "+" || t == "-" ||
               (t == "%" && isEnabled Ext_pandoc_title_block opts &&
                            isEnabled Ext_all_symbols_escapable opts)
+            -> RawInline (Format "markdown") "\\" : ils
+          (Str t:ys)
+            | isDashOrEqualsRun t
+            , escapeText opts t == t
+            , null ys || startsWithSpace ys
+            -- a line of only dashes or equals would be read back as a
+            -- thematic break or setext heading underline (#11992);
+            -- if escapeText escapes anything, the rendered line is
+            -- already safe
             -> RawInline (Format "markdown") "\\" : ils
           _ -> ils
   -- apply escapeLineStart to the head of the list, then after each LineBreak
