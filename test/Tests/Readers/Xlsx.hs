@@ -45,4 +45,10 @@ tests = [ testGroup "basic"
             "xlsx-reader/basic.xlsx"
             "xlsx-reader/basic.native"
           ]
+        , testGroup "sheet size"
+          [ testCompare
+            "empty rows and columns and a far-away cell"
+            "xlsx-reader/sparse.xlsx"
+            "xlsx-reader/sparse.native"
+          ]
         ]

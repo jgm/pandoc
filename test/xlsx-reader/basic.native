@@ -85,48 +85,6 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
                   [ Plain
                       [ Str "Just"
                       , Space

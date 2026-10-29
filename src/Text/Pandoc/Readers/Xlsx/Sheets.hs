@@ -15,8 +15,8 @@ module Text.Pandoc.Readers.Xlsx.Sheets
   ) where
 
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import qualified Data.Text as T
-import Data.List (sort, dropWhileEnd)
 import Data.Char (isSpace)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
@@ -45,33 +45,24 @@ sheetToBlocks sheet =
         Nothing -> []  -- Empty sheet
    in header : tableBlock
 
--- | Convert cells to Pandoc Table
+-- | Convert cells to Pandoc Table. Only the rows and columns that hold a
+-- non-blank cell are kept, so the size of the table follows the content
+-- of the sheet rather than the distance between its outermost cells.
 cellsToTable :: XlsxSheet -> Maybe Block
 cellsToTable sheet
-  | M.null (sheetCells sheet) = Nothing
+  | M.null cells = Nothing
   | otherwise =
-      let cells = sheetCells sheet
-          -- Get bounds
-          refs = sort $ M.keys cells
-          minCol = minimum $ map cellRefCol refs
-          maxCol = maximum $ map cellRefCol refs
-          minRow = minimum $ map cellRefRow refs
-          maxRow = maximum $ map cellRefRow refs
+      let rows = S.toAscList $ S.fromList $ map cellRefRow $ M.keys cells
+          cols = S.toAscList $ S.fromList $ map cellRefCol $ M.keys cells
 
-          -- Build dense grid
-          grid = [ [ M.lookup (CellRef col row) cells
-                   | col <- [minCol..maxCol]
-                   ]
-                 | row <- [minRow..maxRow]
+          grid = [ [ M.lookup (CellRef col row) cells | col <- cols ]
+                 | row <- rows
                  ]
 
           -- First row is header (simple heuristic)
           (headerRow, bodyRows) = case grid of
             (h:bs) -> (h, bs)
             [] -> ([], [])
-
-          -- Filter out trailing empty rows (rows with only whitespace)
-          filteredBodyRows = dropWhileEnd isEmptyRow bodyRows
 
           makeCell mcell = case mcell of
             Just cell ->
@@ -83,20 +74,20 @@ cellsToTable sheet
           numCols = length headerRow
           colSpec = replicate numCols (AlignDefault, ColWidthDefault)
           thead = TableHead nullAttr [Row nullAttr $ map makeCell headerRow]
-          tbody = [TableBody nullAttr 0 [] $ map (Row nullAttr . map makeCell) filteredBodyRows]
+          tbody = [TableBody nullAttr 0 [] $
+                     map (Row nullAttr . map makeCell) bodyRows]
           tfoot = TableFoot nullAttr []
 
        in Just $ Table nullAttr (Caption Nothing []) colSpec thead tbody tfoot
-
--- | Check if a row contains only whitespace or empty cells
-isEmptyRow :: [Maybe XlsxCell] -> Bool
-isEmptyRow = all isEmptyCell
   where
-    isEmptyCell Nothing = True
-    isEmptyCell (Just cell) = case cellValue cell of
-      EmptyValue -> True
-      TextValue t -> T.all isSpace t
-      NumberValue _ -> False
+    cells = M.filter (not . isBlankCell) (sheetCells sheet)
+
+-- | Check if a cell is empty or holds only whitespace
+isBlankCell :: XlsxCell -> Bool
+isBlankCell cell = case cellValue cell of
+  EmptyValue -> True
+  TextValue t -> T.all isSpace t
+  NumberValue _ -> False
 
 -- | Convert cell to Pandoc inlines
 cellToInlines :: XlsxCell -> [Inline]
