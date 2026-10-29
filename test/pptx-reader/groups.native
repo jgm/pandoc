@@ -1,0 +1,14 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Groups" ]
+  , Para [ Str "Before" ]
+  , Para [ Str "Grouped" ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "image.png" ]
+          ( "ppt/media/image1.png" , "Picture 5" )
+      ]
+  , Para [ Str "Nested" ]
+  , Para [ Str "After" ]
+  ]
