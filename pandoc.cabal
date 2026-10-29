@@ -453,8 +453,8 @@ extra-source-files:
                  test/pptx/*.pptx
                  test/pptx/**/*.pptx
                  test/pptx/**/*.native
-                 test/pptx-reader/basic.pptx
-                 test/pptx-reader/basic.native
+                 test/pptx-reader/*.pptx
+                 test/pptx-reader/*.native
                  test/ipynb/*.native
                  test/ipynb/*.in.native
                  test/ipynb/*.out.native

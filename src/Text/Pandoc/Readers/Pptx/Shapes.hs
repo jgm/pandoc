@@ -24,11 +24,12 @@ module Text.Pandoc.Readers.Pptx.Shapes
 
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
 import qualified Data.ByteString.Lazy as B
-import Data.List (find, groupBy)
+import Data.List (find, groupBy, intersperse)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Read (readMaybe)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
@@ -40,7 +41,7 @@ import Text.Pandoc.XML.Light
 data PptxParagraph = PptxParagraph
   { paraLevel   :: Int            -- Bullet level (0, 1, 2...)
   , paraBullet  :: BulletType
-  , paraText    :: Text
+  , paraText    :: [Inline]
   } deriving (Show)
 
 -- | Bullet type
@@ -182,7 +183,8 @@ shapeToBlocks _archive _rels (PptxTable rows) =
   case rows of
     [] -> return []
     (headerRow:bodyRows) -> do
-      let makeCell text = Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str text]]
+      let makeCell text = Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1)
+                            [Plain (B.toList (B.text text))]
           headerCells = map makeCell headerRow
           bodyCells = map (map makeCell) bodyRows
           caption = Caption Nothing []
@@ -233,7 +235,7 @@ parseParagraph :: NameSpaces -> Element -> PptxParagraph
 parseParagraph ns pElem =
   let level = parseBulletLevel ns pElem
       bullet = detectBulletType ns pElem
-      text = extractParagraphText ns pElem
+      text = paragraphInlines pElem
    in PptxParagraph level bullet text
 
 -- | Parse bullet level from paragraph properties
@@ -271,20 +273,14 @@ hasWingdingsSymbol ns pElem =
                      Nothing -> False
    in any checkRun runs
 
--- | Extract text from paragraph
-extractParagraphText :: NameSpaces -> Element -> Text
-extractParagraphText _ns pElem =
-  -- Find all <a:t> elements and concatenate
-  let textElems = filterElementsName (\qn -> qName qn == "t") pElem
-      texts = map strContent textElems
-   in T.unwords $ filter (not . T.null) texts
+-- | Inlines of a paragraph, with its line breaks
+paragraphInlines :: Element -> [Inline]
+paragraphInlines = B.toList . mconcat . intersperse B.linebreak .
+                   map B.text . drawingMLParagraphLines
 
--- | Extract text from DrawingML element (finds all <a:t> descendants)
+-- | Extract text from DrawingML element (all its paragraphs)
 extractDrawingMLText :: Element -> Text
-extractDrawingMLText el =
-  let textElems = filterElementsName (\qn -> qName qn == "t") el
-      texts = map strContent textElems
-   in T.unwords $ filter (not . T.null) texts
+extractDrawingMLText = drawingMLText
 
 -- | Convert paragraphs to blocks, grouping bullets into lists
 paragraphsToBlocks :: [PptxParagraph] -> [Block]
@@ -293,7 +289,7 @@ paragraphsToBlocks paras =
   let hasBullets = any (\p -> paraBullet p /= NoBullet) paras
    in if hasBullets
       then groupBulletParagraphs paras
-      else map (\p -> Para [Str $ paraText p]) paras
+      else map (Para . paraText) paras
 
 -- | Group bullet paragraphs into lists
 groupBulletParagraphs :: [PptxParagraph] -> [Block]
@@ -311,11 +307,11 @@ groupBulletParagraphs paras =
     groupToBlock ps@(p:_)
       | paraBullet p /= NoBullet =
           -- Bullet list
-          let items = map (\para -> [Plain [Str $ paraText para]]) ps
+          let items = map (\para -> [Plain (paraText para)]) ps
            in [BulletList items]
       | otherwise =
           -- Plain paragraph
-          map (\para -> Para [Str $ paraText para]) ps
+          map (Para . paraText) ps
 
 -- | Check if shape is title placeholder (also used in Slides module)
 isTitlePlaceholder :: NameSpaces -> Element -> Bool
