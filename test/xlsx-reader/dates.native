@@ -218,7 +218,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "45231.0" ] ]
+                  [ Plain [ Str "45231" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -233,7 +233,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "7.0" ] ]
+                  [ Plain [ Str "7" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -309,7 +309,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "60.0" ] ]
+                  [ Plain [ Str "60" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -357,7 +357,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "0.0" ] ]
+                  [ Plain [ Str "0" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -383,7 +383,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "-1.0" ] ]
+                  [ Plain [ Str "-1" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -424,7 +424,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "45231.0" ] ]
+                  [ Plain [ Str "45231" ] ]
               ]
           ]
       ]

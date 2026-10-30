@@ -49,7 +49,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "23.0" ] ]
+                  [ Plain [ Str "23" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -70,7 +70,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "35.0" ] ]
+                  [ Plain [ Str "35" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -262,7 +262,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "23.0" ] ]
+                  [ Plain [ Str "23" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -274,7 +274,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "23.0" ] ]
+                  [ Plain [ Str "23" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -289,7 +289,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "35.0" ] ]
+                  [ Plain [ Str "35" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -307,7 +307,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "35.0" ] ]
+                  [ Plain [ Str "35" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -355,13 +355,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "35.0" ] ]
+                  [ Plain [ Str "35" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "23.0" ] ]
+                  [ Plain [ Str "23" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -373,7 +373,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "58.0" ] ]
+                  [ Plain [ Str "58" ] ]
               ]
           ]
       ]

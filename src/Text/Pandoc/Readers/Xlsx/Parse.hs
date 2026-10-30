@@ -365,6 +365,8 @@ parseCell sharedStrings styles date1904 cElem = do
                     find (\e -> qName (elName e) == "is") (elChildren cElem)
               else if T.null vText
                 then EmptyValue
+              else if cellType == "b"
+                then BoolValue (vText == "1")
                 else
                   -- Number
                   case readMaybe (T.unpack vText) of

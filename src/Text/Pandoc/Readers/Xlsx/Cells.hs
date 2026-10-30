@@ -32,6 +32,7 @@ data CellRef = CellRef
 data CellValue
   = TextValue Text
   | NumberValue Double
+  | BoolValue Bool
   | EmptyValue
   deriving (Show, Eq)
 
