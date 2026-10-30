@@ -16,11 +16,12 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Text as T
 import Codec.Archive.Zip (toArchiveOrFail)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia)
 import Text.Pandoc.Definition (Pandoc(..))
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Readers.Xlsx.Parse (archiveToXlsx)
+import Text.Pandoc.Readers.Xlsx.Parse (Drawn (..), Xlsx (..), XlsxSheet (..),
+                                       archiveToXlsx)
 import Text.Pandoc.Readers.Xlsx.Sheets (xlsxToOutput)
 
 -- | Read XLSX file into Pandoc AST
@@ -31,6 +32,10 @@ readXlsx opts bytes =
       case archiveToXlsx archive of
         Right xlsx -> do
           let (meta, blocks) = xlsxToOutput opts xlsx
+          -- Pictures drawn on the sheets go in the media bag
+          sequence_ [ insertMedia path Nothing contents
+                    | sheet <- xlsxSheets xlsx
+                    , DrawnPicture path _ _ contents <- sheetDrawings sheet ]
           return $ Pandoc meta blocks
         Left err ->
           throwError $ PandocParseError $ "Failed to parse XLSX: " <> err
