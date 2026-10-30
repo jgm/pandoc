@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Pptx.Charts
+   Module      : Text.Pandoc.Readers.OOXML.Charts
    Copyright   : © 2026 Nacho García
    License     : GNU GPL, version 2 or above
 
@@ -8,11 +8,13 @@
    Stability   : alpha
    Portability : portable
 
-Reading of charts in PPTX slides, from the values cached in the chart part.
+Reading of DrawingML charts (in PPTX slides and XLSX sheets), from the
+values cached in the chart part.
 -}
-module Text.Pandoc.Readers.Pptx.Charts
-  ( PptxChart(..)
-  , parseChart
+module Text.Pandoc.Readers.OOXML.Charts
+  ( Chart(..)
+  , ChartSeries(..)
+  , readChart
   , chartToBlocks
   ) where
 
@@ -23,16 +25,14 @@ import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
-import qualified System.FilePath.Posix as Posix
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
-import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
 
 -- | A chart's data, as cached in its chart part
-data PptxChart = PptxChart
+data Chart = Chart
   { chartTitle  :: Text     -- ^ Empty if the chart has no title
   , chartTypes  :: [Text]   -- ^ Such as @bar@ or @line@, one per plot
   , chartSeries :: [ChartSeries]
@@ -44,14 +44,9 @@ data ChartSeries = ChartSeries
   , seriesPoints :: [(Text, Text)]
   } deriving (Show)
 
--- | Parse the chart part that a slide relationship points to
-parseChart :: Archive -> [(Text, Text)] -> Text -> Either Text PptxChart
-parseChart archive rels relId = do
-  target <- maybe (Left $ "Relationship not found: " <> relId) Right $
-            lookup relId rels
-  let path = case T.unpack target of
-        '/':p -> p
-        p -> collapseFilePath ("ppt/slides" Posix.</> p)
+-- | Read a chart part (@c:chartSpace@)
+readChart :: Archive -> FilePath -> Either Text Chart
+readChart archive path = do
   entry <- maybe (Left $ "Entry not found: " <> T.pack path) Right $
            findEntryByPath path archive
   chartSpace <- parseXMLElement (TL.decodeUtf8 (fromEntry entry))
@@ -64,7 +59,7 @@ parseChart archive rels relId = do
       title = maybe "" titleText (child "title" chart)
   if null series
      then Left "Chart has no series"
-     else Right PptxChart
+     else Right Chart
             { chartTitle = title
             , chartTypes = nub $ map (T.dropEnd 5 . qName . elName) plots
             , chartSeries = series
@@ -139,7 +134,7 @@ cachedValues tx =
 -- | A chart as a table, in a @chart@ div with the chart types as its
 -- @type@ attribute. Series that share their categories go in one table,
 -- one column per series; otherwise each series gets its own table.
-chartToBlocks :: PptxChart -> [Block]
+chartToBlocks :: Chart -> [Block]
 chartToBlocks chart =
   [Div ("", ["chart"], [("type", T.unwords (chartTypes chart))])
        (map table groups)]

@@ -34,9 +34,11 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
-import Text.Pandoc.Readers.Pptx.Charts
+import Text.Pandoc.Readers.OOXML.Charts
 import Text.Pandoc.Readers.Pptx.SmartArt
+import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
+import qualified System.FilePath.Posix as Posix
 
 -- | Paragraph with bullet/numbering information
 data PptxParagraph = PptxParagraph
@@ -220,8 +222,12 @@ shapeToBlocks archive rels (PptxDiagramRef dataRelId layoutRelId) = do
 shapeToBlocks archive rels (PptxChartRef relId uri) =
   -- A chart whose part can't be read keeps the placeholder
   return $ either (const [Para [Str $ "[Graphic: other: " <> uri <> "]"]])
-                  chartToBlocks
-                  (parseChart archive rels relId)
+                  chartToBlocks $ do
+    target <- maybe (Left $ "Relationship not found: " <> relId) Right $
+              lookup relId rels
+    readChart archive $ case T.unpack target of
+      '/':path -> path
+      path -> collapseFilePath ("ppt/slides" Posix.</> path)
 shapeToBlocks _archive _rels (PptxGraphic text) =
   -- Placeholder for other graphics (charts, etc.)
   return [Para [Str $ "[Graphic: " <> text <> "]"]]
