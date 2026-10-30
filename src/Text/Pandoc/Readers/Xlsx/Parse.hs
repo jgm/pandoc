@@ -31,6 +31,7 @@ import Data.Text (Text)
 import qualified Data.Vector as V
 import System.FilePath (splitFileName)
 import qualified System.FilePath.Posix as Posix
+import Text.Pandoc.Readers.OOXML.Charts (Chart, readChart)
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Xlsx.Cells
 import Text.Pandoc.Shared (collapseFilePath)
@@ -73,6 +74,7 @@ data XlsxSheet = XlsxSheet
   { sheetId :: SheetId
   , sheetName :: Text
   , sheetCells :: M.Map CellRef XlsxCell
+  , sheetCharts :: [Chart]  -- ^ In the order they are drawn
   } deriving (Show)
 
 -- | Parse XLSX archive
@@ -196,11 +198,49 @@ parseSheet archive wbPath rels sharedStrings styles (sid, name, relId) = do
   target <- maybeToEither ("Sheet relationship not found: " <> relId) $
             lookup relId rels
 
-  sheetElem <- loadXMLFromArchive archive (resolveTarget wbPath target)
+  let sheetPath = resolveTarget wbPath target
+  sheetElem <- loadXMLFromArchive archive sheetPath
 
   cells <- parseSheetCells sheetElem sharedStrings styles
 
-  return $ XlsxSheet sid name cells
+  return $ XlsxSheet sid name cells (sheetChartsOf archive sheetPath)
+
+-- | The charts on a worksheet or chart sheet: those its drawing refers
+-- to, in document order. A drawing or chart that can't be read is left
+-- out.
+sheetChartsOf :: Archive -> FilePath -> [Chart]
+sheetChartsOf archive sheetPath = fromMaybe [] $ do
+  drawingTarget <- findRelTargetByType archive (relsPathFor sheetPath)
+                     "drawing"
+  let drawingPath = resolveTarget sheetPath drawingTarget
+  drawing <- either (const Nothing) Just $
+             loadXMLFromArchive archive drawingPath
+  drawingRels <- either (const Nothing) Just $
+                 loadRelationships archive (relsPathFor drawingPath)
+  return
+    [ chart
+    | chartElem <- filterElementsName ((== "chart") . qName) drawing
+    , Just relId <- [lookupRelId chartElem]
+    , Just chartTarget <- [lookup relId drawingRels]
+    , Right chart <- [readChart archive
+                        (resolveTarget drawingPath chartTarget)]
+    ]
+  where
+    lookupRelId el = attrVal <$> find isRelId (elAttribs el)
+    isRelId a = qName (attrKey a) == "id" && qURI (attrKey a) == Just
+      "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+-- | Find the target of the first relationship in a .rels part whose Type
+-- ends with the given name, such as @drawing@
+findRelTargetByType :: Archive -> FilePath -> Text -> Maybe Text
+findRelTargetByType archive relsPath typeName = do
+  entry <- findEntryByPath relsPath archive
+  relsElem <- either (const Nothing) Just $ parseXMLFromEntry entry
+  rel <- find hasType (onlyElems $ elContent relsElem)
+  findAttr (unqual "Target") rel
+  where
+    hasType el = maybe False (("/" <> typeName) `T.isSuffixOf`) $
+                 findAttr (unqual "Type") el
 
 -- | Parse sheet cells
 parseSheetCells :: Element -> SharedStrings -> Styles -> Either Text (M.Map CellRef XlsxCell)
