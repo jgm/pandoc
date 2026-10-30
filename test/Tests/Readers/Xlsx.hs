@@ -44,5 +44,9 @@ tests = [ testGroup "basic"
             "sheet extraction"
             "xlsx-reader/basic.xlsx"
             "xlsx-reader/basic.native"
+          , testCompare
+            "package-absolute relationship targets"
+            "xlsx-reader/absolute-targets.xlsx"
+            "xlsx-reader/absolute-targets.native"
           ]
         ]
