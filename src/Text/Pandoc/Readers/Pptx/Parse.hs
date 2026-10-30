@@ -49,6 +49,8 @@ data PptxSlide = PptxSlide
   , slideElement :: Element     -- The parsed p:sld element
   , slideRels    :: [(Text, Text)]  -- Slide relationships
   , slideNotes   :: Maybe Element   -- The parsed p:notes element, if any
+  , slideLayout  :: Maybe Element   -- The slide's p:sldLayout
+  , slideMaster  :: Maybe Element   -- Its layout's p:sldMaster
   } deriving (Show)
 
 -- | Presentation-level information from presentation.xml
@@ -219,7 +221,24 @@ parseSlide archive rels (sid, relId) = do
         either (const Nothing) Just $
           loadXMLFromArchive archive (resolveTarget slidePath' notesTarget)
 
+  -- The slide's layout and master, which the text of its placeholders
+  -- inherits from; either may be missing.
+  let related source typeName = do
+        t <- findRelTargetByType archive (relsPathOf source) typeName
+        let path = resolveTarget source t
+        el <- either (const Nothing) Just $ loadXMLFromArchive archive path
+        return (path, el)
+      layout = related slidePath' "slideLayout"
+      master = layout >>= \(layoutPath, _) -> related layoutPath "slideMaster"
+
   return $ PptxSlide sid slidePath' slideElem slideRels' notesElem
+                     (snd <$> layout) (snd <$> master)
+
+-- | The path of a part's relationships
+relsPathOf :: FilePath -> FilePath
+relsPathOf path =
+  let (dir, file) = splitFileName path
+   in dir ++ "/_rels/" ++ file ++ ".rels"
 
 -- | Find the target of the first relationship in a .rels part whose Type
 -- ends with the given name, such as @notesSlide@.

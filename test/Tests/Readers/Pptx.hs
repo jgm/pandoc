@@ -75,6 +75,16 @@ tests = [ testGroup "basic"
             "pptx-reader/equations.pptx"
             "pptx-reader/equations.native"
           ]
+        , testGroup "lists"
+          [ testCompare
+            "inherited bullets, nesting and numbering"
+            "pptx-reader/lists.pptx"
+            "pptx-reader/lists.native"
+          , testCompare
+            "lists written by the pptx writer"
+            "pptx-reader/lists-writer.pptx"
+            "pptx-reader/lists-writer.native"
+          ]
         , testGroup "notes"
           [ testCompare
             "speaker notes"
