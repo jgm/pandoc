@@ -45,6 +45,10 @@ tests = [ testGroup "basic"
             "pptx-reader/groups.pptx"
             "pptx-reader/groups.native"
           , testCompare
+            "slide number placeholders"
+            "pptx-reader/slide-numbers.pptx"
+            "pptx-reader/slide-numbers.native"
+          , testCompare
             "text extraction"
             "pptx-reader/basic.pptx"
             "pptx-reader/basic.native"

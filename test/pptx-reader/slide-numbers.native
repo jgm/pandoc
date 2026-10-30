@@ -1,0 +1,7 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Numbered" ]
+  , Para [ Str "Body" , Space , Str "text" ]
+  , Para
+      [ Str "A" , Space , Str "footer" , Space , Str "note" ]
+  ]
