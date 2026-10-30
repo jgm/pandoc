@@ -769,6 +769,7 @@ library
                    Text.Pandoc.Readers.Docx.Symbols,
                    Text.Pandoc.Readers.Docx.Fields,
                    Text.Pandoc.Readers.OOXML.Shared,
+                   Text.Pandoc.Readers.OOXML.Charts,
                    Text.Pandoc.Readers.Pptx.Parse,
                    Text.Pandoc.Readers.Pptx.Shapes,
                    Text.Pandoc.Readers.Pptx.Slides,

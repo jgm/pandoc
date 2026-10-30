@@ -1,0 +1,106 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "sheet-1" , [] , [] ) [ Str "Data" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Group" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Mean" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Low" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "4.1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "A" , Space , Str "red" , Space , Str "square" ]
+          ( "xl/media/image1.png" , "Picture 2" )
+      ]
+  , Div
+      ( "" , [ "chart" ] , [ ( "type" , "bar" ) ] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption
+             Nothing [ Plain [ Str "Mean" , Space , Str "growth" ] ])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "Mean" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "Low" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "4.1" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  ]

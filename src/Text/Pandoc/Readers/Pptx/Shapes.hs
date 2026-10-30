@@ -34,8 +34,11 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
+import Text.Pandoc.Readers.OOXML.Charts
 import Text.Pandoc.Readers.Pptx.SmartArt
+import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
+import qualified System.FilePath.Posix as Posix
 
 -- | Paragraph with bullet/numbering information
 data PptxParagraph = PptxParagraph
@@ -64,6 +67,7 @@ data PptxShape
       { dgmDataRelId   :: Text          -- Relationship to data.xml
       , dgmLayoutRelId :: Text          -- Relationship to layout.xml
       }
+  | PptxChartRef Text Text              -- Relationship to the chart, URI
   | PptxGraphic Text                    -- Placeholder for other graphics
   deriving (Show)
 
@@ -134,8 +138,19 @@ parseShape ns el
                                   (Just dataRelId, Just layoutRelId) ->
                                     Just $ PptxDiagramRef dataRelId layoutRelId
                                   _ -> Just $ PptxGraphic "diagram-missing-rels"
+                  else if uri == chartUri
+                    then
+                      -- The c prefix is usually declared on c:chart itself
+                      case find ((== "chart") . qName . elName)
+                                (elChildren graphicData) of
+                        Just chartElem
+                          | Just relId <- findAttrByName
+                              (ns <> elemToNameSpaces chartElem) "r" "id"
+                              chartElem
+                          -> Just $ PptxChartRef relId uri
+                        _ -> Just $ PptxGraphic ("other: " <> uri)
                   else
-                    -- Other graphic (chart, etc.)
+                    -- Other graphic
                     Just $ PptxGraphic ("other: " <> uri)
 
   -- Skip other shapes for now
@@ -204,6 +219,15 @@ shapeToBlocks archive rels (PptxDiagramRef dataRelId layoutRelId) = do
       return [Para [Str $ "[Diagram parse error: " <> err <> "]"]]
     Right diagram ->
       return $ diagramToBlocks diagram
+shapeToBlocks archive rels (PptxChartRef relId uri) =
+  -- A chart whose part can't be read keeps the placeholder
+  return $ either (const [Para [Str $ "[Graphic: other: " <> uri <> "]"]])
+                  chartToBlocks $ do
+    target <- maybe (Left $ "Relationship not found: " <> relId) Right $
+              lookup relId rels
+    readChart archive $ case T.unpack target of
+      '/':path -> path
+      path -> collapseFilePath ("ppt/slides" Posix.</> path)
 shapeToBlocks _archive _rels (PptxGraphic text) =
   -- Placeholder for other graphics (charts, etc.)
   return [Para [Str $ "[Graphic: " <> text <> "]"]]
@@ -324,3 +348,7 @@ isTitlePlaceholder ns el =
         Just phType -> phType == "title" || phType == "ctrTitle"
         Nothing -> False
     Nothing -> False
+
+-- | The graphic data URI of a chart
+chartUri :: Text
+chartUri = "http://schemas.openxmlformats.org/drawingml/2006/chart"
