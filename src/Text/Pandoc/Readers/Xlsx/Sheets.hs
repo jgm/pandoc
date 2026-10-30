@@ -20,6 +20,7 @@ import Data.List (sort, dropWhileEnd)
 import Data.Char (isSpace)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Readers.OOXML.Charts (chartToBlocks)
 import Text.Pandoc.Readers.Xlsx.Parse
 import Text.Pandoc.Readers.Xlsx.Cells
 import qualified Text.Pandoc.Builder as B
@@ -43,7 +44,7 @@ sheetToBlocks sheet =
       tableBlock = case cellsToTable sheet of
         Just tbl -> [tbl]
         Nothing -> []  -- Empty sheet
-   in header : tableBlock
+   in header : tableBlock ++ concatMap chartToBlocks (sheetCharts sheet)
 
 -- | Convert cells to Pandoc Table
 cellsToTable :: XlsxSheet -> Maybe Block
