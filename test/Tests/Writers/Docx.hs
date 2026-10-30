@@ -194,6 +194,11 @@ tests = [ testGroup "inlines"
             "docx/table_then_para.native"
             "docx/golden/table_then_para.docx"
           , docxTest
+            "after-table style respects block boundaries"
+            def
+            "docx/table_boundaries.native"
+            "docx/golden/table_boundaries.docx"
+          , docxTest
             "tables with lists in cells"
             def
             "docx/table_with_list_cell.native"

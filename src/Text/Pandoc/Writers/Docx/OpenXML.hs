@@ -666,6 +666,8 @@ blockToOpenXML' opts (Figure (ident, _, _) (Caption _ longcapt) body) = do
     (Para xs  : bs) -> imageCaption (fstCaptionPara xs : bs)
     (Plain xs : bs) -> imageCaption (fstCaptionPara xs : bs)
     _               -> imageCaption longcapt
+  -- A table inside the figure must not mark text following the figure.
+  setFirstPara
   wrapBookmark ident $
     case writerFigureCaptionPosition opts of
       CaptionBelow -> contentsNode : captionNode
@@ -747,6 +749,9 @@ listItemToOpenXML :: (PandocMonad m)
                   -> Int -> [Block]
                   -> WS m [Content]
 listItemToOpenXML opts numid bs = do
+  -- A table before the list or at the end of the preceding item must
+  -- not mark the first paragraph of this item.
+  setFirstPara
   oldInList <- gets stInList
   modify $ \st -> st{ stInList = True }
   let isListBlock = \case
