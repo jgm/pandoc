@@ -59,4 +59,10 @@ tests = [ testGroup "basic"
             "pptx-reader/hidden.pptx"
             "pptx-reader/hidden.native"
           ]
+        , testGroup "tables"
+          [ testCompare
+            "merged cells"
+            "pptx-reader/table-spans.pptx"
+            "pptx-reader/table-spans.native"
+          ]
         ]
