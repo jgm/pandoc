@@ -67,4 +67,10 @@ tests = [ testGroup "basic"
             "xlsx-reader/dates-1904.xlsx"
             "xlsx-reader/dates-1904.native"
           ]
+        , testGroup "number formats"
+          [ testCompare
+            "decimals, separators, percentages and literals"
+            "xlsx-reader/number-formats.xlsx"
+            "xlsx-reader/number-formats.native"
+          ]
         ]

@@ -218,7 +218,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "45231.0" ] ]
+                  [ Plain [ Str "45231.00" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -233,7 +233,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "7.0" ] ]
+                  [ Plain [ Str "day" , Space , Str "7" ] ]
               ]
           , Row
               ( "" , [] , [] )

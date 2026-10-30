@@ -22,6 +22,7 @@ module Text.Pandoc.Readers.Xlsx.Parse
   ) where
 
 import Codec.Archive.Zip (Archive, Entry, findEntryByPath, fromEntry)
+import Control.Applicative ((<|>))
 import Control.Monad (join)
 import Data.Char (toLower)
 import Data.List (find)
@@ -36,6 +37,7 @@ import System.FilePath (splitFileName)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Xlsx.Cells
+import Text.Pandoc.Readers.Xlsx.NumberFormat
 import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
@@ -58,9 +60,16 @@ data Styles = Styles
   { styleFonts :: V.Vector FontInfo
   , styleCellFonts :: V.Vector Int
     -- ^ For each cell format (@cellXfs@), the index of its font
-  , styleDateFormats :: V.Vector (Maybe DateFormat)
-    -- ^ For each cell format (@cellXfs@), what it shows of a date
+  , styleNumberFormats :: V.Vector (Maybe CellNumberFormat)
+    -- ^ For each cell format (@cellXfs@), its number format, unless
+    -- General or one that can't be applied
   } deriving (Show)
+
+-- | A number format the reader applies
+data CellNumberFormat
+  = DateTimeFormat DateFormat
+  | DecimalFormat NumberFormat
+  deriving (Show)
 
 -- | What a date or time number format shows
 data DateFormat = DateFormat
@@ -221,13 +230,16 @@ parseStyles stylesElem = do
                            readMaybe . T.unpack]
         , Just code <- [findAttr (unqual "formatCode") numFmt]
         ]
-      xfDateFormat xf = do
+      xfNumberFormat xf = do
         fmtId <- findAttr (unqual "numFmtId") xf >>= readMaybe . T.unpack
-        maybe (builtinDateFormat fmtId) customDateFormat
-          (M.lookup fmtId customFormats)
-      dateFormats = V.fromList $ map xfDateFormat cellFormats
+        case M.lookup fmtId customFormats of
+          Just code -> DateTimeFormat <$> customDateFormat code
+                       <|> DecimalFormat <$> parseNumberFormat code
+          Nothing -> DateTimeFormat <$> builtinDateFormat fmtId
+                     <|> DecimalFormat <$> builtinNumberFormat fmtId
+      numberFormats = V.fromList $ map xfNumberFormat cellFormats
 
-  return $ Styles fonts cellFonts dateFormats
+  return $ Styles fonts cellFonts numberFormats
 
 -- | The built-in number formats that show dates or times. Format 46,
 -- @[h]:mm:ss@, shows a duration rather than a time of day.
@@ -369,11 +381,13 @@ parseCell sharedStrings styles date1904 cElem = do
                   -- Number
                   case readMaybe (T.unpack vText) of
                     Just n
-                      | Just txt <- dateFormat >>= \f -> formatDate date1904 f n
+                      | Just txt <- numberFormat >>= formatWith n
                       -> TextValue txt
                       | otherwise -> NumberValue n
                     Nothing -> TextValue vText
-      dateFormat = join $ styleIdx >>= (styleDateFormats styles V.!?)
+      numberFormat = join $ styleIdx >>= (styleNumberFormats styles V.!?)
+      formatWith n (DateTimeFormat f) = formatDate date1904 f n
+      formatWith n (DecimalFormat f) = applyNumberFormat f n
 
   -- Get formatting from style
   let font = do

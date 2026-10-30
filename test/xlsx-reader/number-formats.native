@@ -1,0 +1,561 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "sheet-1" , [] , [] ) [ Str "Formats" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Case" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Value" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "1"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "1235"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1235" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "2"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "2.68"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "2.68" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "3"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "1,234,568"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1,234,568" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "4"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "-1,234.50"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "-1,234.50" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "9"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "26%"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "26%" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "10"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "7.00%"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "7.00%" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "37"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "(1,234)"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "(1,234)" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "\"$\"#,##0.00"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "$1,234.50"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "$1,234.50" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "[$\8364-407]"
+                      , Space
+                      , Str "#,##0.00"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "\8364"
+                      , Space
+                      , Str "1,234.50"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "\8364" , Space , Str "1,234.50" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "#,##0.00"
+                      , Space
+                      , Str "[$\8364-407]"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "1,234.50"
+                      , Space
+                      , Str "\8364"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1,234.50" , Space , Str "\8364" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "#,##0,\"K\""
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "1,235K"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1,235K" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0.0,,\"M\""
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "1.2M"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1.2M" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "#.##"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str ".5"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str ".5" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0.0#"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "3.14"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "3.14" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0.0#"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "3.0"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "3.0" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "_(\"$\"*"
+                      , Space
+                      , Str "#,##0.00_);_(\"$\"*"
+                      , Space
+                      , Str "\\(#,##0.00\\);_(\"$\"*"
+                      , Space
+                      , Str "\"-\"??_);_(@_)"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "$(1,234.50)"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "$(1,234.50)" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "_(\"$\"*"
+                      , Space
+                      , Str "#,##0.00_);_(\"$\"*"
+                      , Space
+                      , Str "\\(#,##0.00\\);_(\"$\"*"
+                      , Space
+                      , Str "\"-\"??_);_(@_)"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "$-"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "$-" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0;[Red]-0"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "-5"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "-5" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0.00;-0.00;\"zero\""
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "zero"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "zero" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "0.00E+00"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "General"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12345.0" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "[>100]0;0.00"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "General"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "150.0" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "000-00-0000"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "General"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1.23456789e8" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "12"
+                      , Space
+                      , Str "\8594"
+                      , Space
+                      , Str "General"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "0.5" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]
