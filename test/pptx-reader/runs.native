@@ -4,7 +4,8 @@ Pandoc
       2
       ( "slide-1" , [] , [] )
       [ Str "Everworker" , Space , Str "diagram" ]
-  , Para [ Str "Hello" , Space , Str "world" ]
+  , Para
+      [ Str "Hel" , Strong [ Str "lo" ] , Space , Str "world" ]
   , Para [ Str "openai," , Space , Str "anthropic" ]
   , Para
       [ Str "line"

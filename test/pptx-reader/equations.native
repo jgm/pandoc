@@ -1,0 +1,26 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Equations" ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "mean"
+      , Space
+      , Str "is"
+      , Space
+      , Math InlineMath "\\bar{x} = \\frac{1}{n}\\sum x_{i}"
+      , Space
+      , Str "here."
+      ]
+  , Para [ Math DisplayMath "E = mc^{2}" ]
+  , Para
+      [ Str "After"
+      , Space
+      , Str "the"
+      , Space
+      , Str "equations."
+      ]
+  , Header 2 ( "slide-2" , [] , [] ) [ Str "Fallback" ]
+  , Para
+      [ Str "From" , Space , Str "the" , Space , Str "fallback" ]
+  ]

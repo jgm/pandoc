@@ -1,0 +1,65 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Formatting" ]
+  , Para
+      [ Str "A"
+      , Space
+      , Strong [ Str "bold" , Space , Str "word" ]
+      , Space
+      , Str "and"
+      , Space
+      , Str "an"
+      , Space
+      , Emph [ Str "italic" ]
+      , Space
+      , Str "one,"
+      , Space
+      , Str "not"
+      , Space
+      , Str "bold"
+      , Space
+      , Str "and"
+      , Space
+      , Str "mid"
+      , Strong [ Str "word" ]
+      ]
+  , Para
+      [ Str "Area"
+      , Space
+      , Str "in"
+      , Space
+      , Str "m"
+      , Superscript [ Str "2" ]
+      , Str ","
+      , Space
+      , Str "water"
+      , Space
+      , Str "is"
+      , Space
+      , Str "H"
+      , Subscript [ Str "2" ]
+      , Str "O."
+      ]
+  , Para
+      [ Str "See"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "the"
+          , Space
+          , Str "pandoc"
+          , Space
+          , Strong [ Str "site" ]
+          ]
+          ( "https://pandoc.org" , "" )
+      , Space
+      , Str "or"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "the" , Space , Str "report" ]
+          ( "Report%20draft.pdf" , "" )
+      , Str "."
+      ]
+  , Para [ Str "Next" , Space , Str "slide" ]
+  ]

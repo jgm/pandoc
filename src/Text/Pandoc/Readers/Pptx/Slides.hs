@@ -15,8 +15,10 @@ module Text.Pandoc.Readers.Pptx.Slides
   ) where
 
 import Codec.Archive.Zip (Archive)
+import Control.Applicative ((<|>))
 import Data.List (find)
-import Data.Maybe (mapMaybe)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B
@@ -43,7 +45,7 @@ pptxToOutput _opts pptx = do
 slideToBlocks :: PandocMonad m => Archive -> PptxSlide -> m [Block]
 slideToBlocks archive slide = do
   let SlideId n = slideId slide
-      slideElem = slideElement slide
+      slideElem = resolveAlternateContent (slideElement slide)
       rels = slideRels slide
       ns = elemToNameSpaces slideElem
 
@@ -91,3 +93,38 @@ extractSlideTitle ns slideElem =
        in maybe "" extractDrawingMLText titleShape
 
 -- isTitlePlaceholder is imported from Shapes module
+
+-- | Replace each markup-compatibility block (@mc:AlternateContent@) by
+-- the content of its first @mc:Choice@ whose required namespaces the
+-- reader understands, or else by its @mc:Fallback@. PowerPoint and the
+-- pptx writer put the shapes holding equations (@a14:m@) in such blocks.
+resolveAlternateContent :: Element -> Element
+resolveAlternateContent = resolve mempty
+  where
+    resolve ns el =
+      let ns' = elemToNameSpaces el <> ns
+       in el{ elContent = concatMap (content ns') (elContent el) }
+    content ns (Elem el)
+      | isMce "AlternateContent" el =
+          let ns' = elemToNameSpaces el <> ns
+              branches = elChildren el
+              chosen = find (understood ns') branches <|>
+                       find (isMce "Fallback") branches
+           in case chosen of
+                Just branch ->
+                  concatMap (content (elemToNameSpaces branch <> ns'))
+                            (elContent branch)
+                Nothing -> []
+      | otherwise = [Elem (resolve ns el)]
+    content _ c = [c]
+    understood ns branch =
+      isMce "Choice" branch &&
+      all (\prefix -> M.lookup prefix (elemToNameSpaces branch <> ns)
+                         `elem` map Just understoodNamespaces)
+          (T.words $ fromMaybe "" $ findAttr (unqual "Requires") branch)
+    isMce name el =
+      qName (elName el) == name &&
+      qURI (elName el) ==
+        Just "http://schemas.openxmlformats.org/markup-compatibility/2006"
+    understoodNamespaces =
+      [ "http://schemas.microsoft.com/office/drawing/2010/main" ] -- a14
