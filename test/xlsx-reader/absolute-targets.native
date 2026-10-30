@@ -42,7 +42,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "3.0" ] ]
+                  [ Plain [ Str "3" ] ]
               ]
           ]
       ]
