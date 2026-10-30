@@ -57,4 +57,14 @@ tests = [ testGroup "basic"
             "xlsx-reader/absolute-targets.xlsx"
             "xlsx-reader/absolute-targets.native"
           ]
+        , testGroup "dates"
+          [ testCompare
+            "date and time formats"
+            "xlsx-reader/dates.xlsx"
+            "xlsx-reader/dates.native"
+          , testCompare
+            "1904 date system"
+            "xlsx-reader/dates-1904.xlsx"
+            "xlsx-reader/dates-1904.native"
+          ]
         ]
