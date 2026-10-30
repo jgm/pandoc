@@ -57,6 +57,7 @@ data Extension =
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
+    | Ext_cell_details        -- ^ Cell references, formulas and comments
     | Ext_citations           -- ^ Pandoc/citeproc citations
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
@@ -535,6 +536,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_styles
     , Ext_citations
     ]
+  getAll "xlsx"            = extensionsFromList [Ext_cell_details]
   getAll "opendocument"    = extensionsFromList
     [ Ext_empty_paragraphs
     , Ext_native_numbering

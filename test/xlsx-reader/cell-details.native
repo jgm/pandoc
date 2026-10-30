@@ -1,0 +1,289 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "sheet-1" , [] , [] ) [ Str "Data" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [ ( "ref" , "A1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Item" ] ]
+             , Cell
+                 ( "" , [] , [ ( "ref" , "B1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Value" ] ]
+             , Cell
+                 ( "" , [ "hidden" ] , [ ( "ref" , "C1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Double" ] ]
+             , Cell
+                 ( "" , [] , [ ( "ref" , "D1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Share" ] ]
+             , Cell
+                 ( "" , [] , [ ( "ref" , "E1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [ ( "ref" , "A2" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "a" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "B2" )
+                    , ( "comment" , "Checked twice" )
+                    ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "10.0" ] ]
+              , Cell
+                  ( ""
+                  , [ "hidden" ]
+                  , [ ( "ref" , "C2" ) , ( "formula" , "B2*2" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "20.0" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "D2" ) , ( "formula" , "B2/$B$5" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "0.25" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "E2" )
+                    , ( "comment" , "Outside the data" )
+                    ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              ]
+          , Row
+              ( "" , [ "hidden" ] , [] )
+              [ Cell
+                  ( "" , [] , [ ( "ref" , "A3" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "b" ] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "B3" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "15.0" ] ]
+              , Cell
+                  ( ""
+                  , [ "hidden" ]
+                  , [ ( "ref" , "C3" ) , ( "formula" , "B3*2" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "30.0" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "D3" ) , ( "formula" , "B3/$B$5" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "0.375" ] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "E3" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [ ( "ref" , "A4" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "c" ] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "B4" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "15.0" ] ]
+              , Cell
+                  ( ""
+                  , [ "hidden" ]
+                  , [ ( "ref" , "C4" ) , ( "formula" , "B4*2" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "30.0" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "D4" ) , ( "formula" , "B4/$B$5" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "0.375" ] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "E4" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [ ( "ref" , "A5" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Total" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "B5" ) , ( "formula" , "SUM(B2:B4)" ) ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "40.0" ] ]
+              , Cell
+                  ( ""
+                  , [ "hidden" ]
+                  , [ ( "ref" , "C5" )
+                    , ( "formula" , "SUM(C:C)-SUM(C5)" )
+                    ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "80.0" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "D5" )
+                    , ( "formula" , "LOG10(10)*IF(A5=\"A1\",0,1)" )
+                    ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1.0" ] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "E5" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [ ( "ref" , "A6" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Other" ] ]
+              , Cell
+                  ( ""
+                  , []
+                  , [ ( "ref" , "B6" )
+                    , ( "formula" , "'Hidden data'!A1" )
+                    ]
+                  )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "7.0" ] ]
+              , Cell
+                  ( "" , [ "hidden" ] , [ ( "ref" , "C6" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "D6" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              , Cell
+                  ( "" , [] , [ ( "ref" , "E6" ) ] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header
+      2
+      ( "sheet-2" , [ "hidden" ] , [] )
+      [ Str "Hidden" , Space , Str "data" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [ ( "ref" , "A1" ) ] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "7.0" ] ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]
