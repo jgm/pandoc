@@ -45,6 +45,10 @@ tests = [ testGroup "basic"
             "pptx-reader/charts.pptx"
             "pptx-reader/charts.native"
           , testCompare
+            "run formatting and hyperlinks"
+            "pptx-reader/formatting.pptx"
+            "pptx-reader/formatting.native"
+          , testCompare
             "group shapes"
             "pptx-reader/groups.pptx"
             "pptx-reader/groups.native"
