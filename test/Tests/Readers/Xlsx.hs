@@ -41,6 +41,10 @@ testCompareWithOpts opts testName xlsxFP nativeFP =
 tests :: [TestTree]
 tests = [ testGroup "basic"
           [ testCompare
+            "cell fonts"
+            "xlsx-reader/cell-fonts.xlsx"
+            "xlsx-reader/cell-fonts.native"
+          , testCompare
             "inline and rich-text strings"
             "xlsx-reader/strings.xlsx"
             "xlsx-reader/strings.native"

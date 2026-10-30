@@ -53,6 +53,8 @@ data FontInfo = FontInfo
 -- | Style information
 data Styles = Styles
   { styleFonts :: V.Vector FontInfo
+  , styleCellFonts :: V.Vector Int
+    -- ^ For each cell format (@cellXfs@), the index of its font
   } deriving (Show)
 
 -- | Complete XLSX document
@@ -99,7 +101,7 @@ archiveToXlsx archive = do
     Just (_, target) -> do
       el <- loadXMLFromArchive archive (resolveTarget workbookPath target)
       parseStyles el
-    Nothing -> Right $ Styles V.empty
+    Nothing -> Right $ Styles V.empty V.empty
 
   -- Parse worksheets
   sheets <- mapM (parseSheet archive workbookPath workbookRels sharedStrings
@@ -179,7 +181,16 @@ parseStyles stylesElem = do
       fontElems = maybe [] (\fe -> filter (\e -> qName (elName e) == "font") (onlyElems $ elContent fe)) fontsElem
       fonts = V.fromList $ map (parseFont mempty) fontElems
 
-  return $ Styles fonts
+      -- A cell's style index (@s@) refers to a cell format in <cellXfs>,
+      -- which refers to its font by @fontId@.
+      children name el = filter (\e -> qName (elName e) == name) (elChildren el)
+      cellFonts = V.fromList
+        [ fromMaybe 0 $ findAttr (unqual "fontId") xf >>= readMaybe . T.unpack
+        | cellXfs <- children "cellXfs" stylesElem
+        , xf <- children "xf" cellXfs
+        ]
+
+  return $ Styles fonts cellFonts
 
 parseFont :: NameSpaces -> Element -> FontInfo
 parseFont _ns fontElem =
@@ -251,11 +262,12 @@ parseCell sharedStrings styles cElem = do
                     Nothing -> TextValue vText
 
   -- Get formatting from style
-  let (bold, italic) = case styleIdx of
-        Just idx | idx >= 0 && idx < V.length (styleFonts styles) ->
-          let font = styleFonts styles V.! idx
-           in (fontBold font, fontItalic font)
-        _ -> (False, False)
+  let font = do
+        idx <- styleIdx
+        fontIdx <- styleCellFonts styles V.!? idx
+        styleFonts styles V.!? fontIdx
+      (bold, italic) = maybe (False, False)
+                         (\f -> (fontBold f, fontItalic f)) font
 
   return $ XlsxCell cellRefParsed value bold italic
 
