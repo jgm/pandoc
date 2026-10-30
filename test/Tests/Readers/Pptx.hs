@@ -53,4 +53,10 @@ tests = [ testGroup "basic"
             "pptx-reader/runs.pptx"
             "pptx-reader/runs.native"
           ]
+        , testGroup "slides"
+          [ testCompare
+            "hidden slides"
+            "pptx-reader/hidden.pptx"
+            "pptx-reader/hidden.native"
+          ]
         ]

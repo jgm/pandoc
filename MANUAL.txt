@@ -7018,6 +7018,11 @@ These layouts are chosen from the default pptx reference doc included with
 pandoc, unless an alternative reference doc is specified using
 `--reference-doc`.
 
+When reading pptx, each slide becomes a level-2 heading with the
+identifier `slide-N`, followed by the slide's content. Slides hidden
+from the slide show are read too, with the class `hidden` on their
+heading.
+
 ## Incremental lists
 
 By default, these writers produce lists that display "all at once."
