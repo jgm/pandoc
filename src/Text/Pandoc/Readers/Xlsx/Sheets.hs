@@ -44,7 +44,13 @@ sheetToBlocks sheet =
       tableBlock = case cellsToTable sheet of
         Just tbl -> [tbl]
         Nothing -> []  -- Empty sheet
-   in header : tableBlock ++ concatMap chartToBlocks (sheetCharts sheet)
+   in header : tableBlock ++ concatMap drawnToBlocks (sheetDrawings sheet)
+
+-- | A chart or picture drawn on a sheet
+drawnToBlocks :: Drawn -> [Block]
+drawnToBlocks (DrawnChart chart) = chartToBlocks chart
+drawnToBlocks (DrawnPicture path name descr _) =
+  [Para [Image nullAttr (B.toList (B.text descr)) (T.pack path, name)]]
 
 -- | Convert cells to Pandoc Table
 cellsToTable :: XlsxSheet -> Maybe Block

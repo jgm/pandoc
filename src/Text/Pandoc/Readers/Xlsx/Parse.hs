@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.Xlsx.Parse
   , XlsxWorkbook(..)
   , XlsxSheet(..)
   , SheetId(..)
+  , Drawn(..)
   , SharedStrings
   , Styles(..)
   , FontInfo(..)
@@ -22,9 +23,10 @@ module Text.Pandoc.Readers.Xlsx.Parse
   ) where
 
 import Codec.Archive.Zip (Archive, Entry, findEntryByPath, fromEntry)
+import qualified Data.ByteString.Lazy as BL
 import Data.List (find)
 import qualified Data.Map.Strict as M
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
@@ -74,7 +76,7 @@ data XlsxSheet = XlsxSheet
   { sheetId :: SheetId
   , sheetName :: Text
   , sheetCells :: M.Map CellRef XlsxCell
-  , sheetCharts :: [Chart]  -- ^ In the order they are drawn
+  , sheetDrawings :: [Drawn]  -- ^ In the order they are drawn
   } deriving (Show)
 
 -- | Parse XLSX archive
@@ -203,13 +205,20 @@ parseSheet archive wbPath rels sharedStrings styles (sid, name, relId) = do
 
   cells <- parseSheetCells sheetElem sharedStrings styles
 
-  return $ XlsxSheet sid name cells (sheetChartsOf archive sheetPath)
+  return $ XlsxSheet sid name cells (sheetDrawingsOf archive sheetPath)
 
--- | The charts on a worksheet or chart sheet: those its drawing refers
--- to, in document order. A drawing or chart that can't be read is left
--- out.
-sheetChartsOf :: Archive -> FilePath -> [Chart]
-sheetChartsOf archive sheetPath = fromMaybe [] $ do
+-- | What a sheet's drawing shows
+data Drawn
+  = DrawnChart Chart
+  | DrawnPicture FilePath Text Text BL.ByteString
+    -- ^ Media path, name, description, contents
+  deriving (Show)
+
+-- | The charts and pictures on a worksheet or chart sheet: those its
+-- drawing refers to, in document order. A drawing, chart or picture that
+-- can't be read is left out.
+sheetDrawingsOf :: Archive -> FilePath -> [Drawn]
+sheetDrawingsOf archive sheetPath = fromMaybe [] $ do
   drawingTarget <- findRelTargetByType archive (relsPathFor sheetPath)
                      "drawing"
   let drawingPath = resolveTarget sheetPath drawingTarget
@@ -217,17 +226,29 @@ sheetChartsOf archive sheetPath = fromMaybe [] $ do
              loadXMLFromArchive archive drawingPath
   drawingRels <- either (const Nothing) Just $
                  loadRelationships archive (relsPathFor drawingPath)
-  return
-    [ chart
-    | chartElem <- filterElementsName ((== "chart") . qName) drawing
-    , Just relId <- [lookupRelId chartElem]
-    , Just chartTarget <- [lookup relId drawingRels]
-    , Right chart <- [readChart archive
-                        (resolveTarget drawingPath chartTarget)]
-    ]
+  -- A chart refers to its part with r:id, a picture to its image with
+  -- r:embed
+  let target attr el = do
+        relId <- attrVal <$> find (isRelAttr attr) (elAttribs el)
+        resolveTarget drawingPath <$> lookup relId drawingRels
+      drawn el = case qName (elName el) of
+        "chart" -> do
+          path <- target "id" el
+          either (const Nothing) (Just . DrawnChart) (readChart archive path)
+        "pic" -> do
+          blip <- listToMaybe (filterElementsName ((== "blip") . qName) el)
+          path <- target "embed" blip
+          entry <- findEntryByPath path archive
+          let nvPr = filterElementsName ((== "cNvPr") . qName) el
+              attr name = maybe "" (fromMaybe "" . findAttr (unqual name))
+                                (listToMaybe nvPr)
+          return $ DrawnPicture path (attr "name") (attr "descr")
+                                (fromEntry entry)
+        _ -> Nothing
+  return $ mapMaybe drawn $
+    filterElementsName ((`elem` ["chart", "pic"]) . qName) drawing
   where
-    lookupRelId el = attrVal <$> find isRelId (elAttribs el)
-    isRelId a = qName (attrKey a) == "id" && qURI (attrKey a) == Just
+    isRelAttr name a = qName (attrKey a) == name && qURI (attrKey a) == Just
       "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
 -- | Find the target of the first relationship in a .rels part whose Type
