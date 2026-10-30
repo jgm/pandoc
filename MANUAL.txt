@@ -4046,6 +4046,21 @@ This extension can be used with [docx custom styles](#custom-styles).
 input formats
 :  `docx`
 
+### Extension: `cell_details` ### {#ext-cell-details}
+
+When converting from xlsx, add each cell's reference (`ref`,
+such as `B20`), its formula (`formula`, as stored, without the
+leading `=`) and its comment (`comment`) as attributes of the
+table cell. A shared formula is given in each of its cells, with
+its references moved as Excel moves them. Hidden rows get the
+class `hidden`, as do the cells of hidden columns and the
+heading of a hidden sheet. The HTML writer renders these as
+`data-` attributes; the Markdown writers drop them, but a Lua
+filter can use them.
+
+input formats
+:  `xlsx`
+
 ### Extension: `amuse` ###
 
 In the `muse` input format, this enables Text::Amuse

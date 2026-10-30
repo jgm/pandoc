@@ -21,40 +21,46 @@ import Data.List (sort, dropWhileEnd)
 import Numeric (floatToDigits)
 import Data.Char (isSpace)
 import Text.Pandoc.Definition
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Extensions (Extension (Ext_cell_details))
+import Text.Pandoc.Options (ReaderOptions, isEnabled)
 import Text.Pandoc.Readers.Xlsx.Parse
 import Text.Pandoc.Readers.Xlsx.Cells
 import qualified Text.Pandoc.Builder as B
 
 -- | Convert XLSX to Pandoc output
 xlsxToOutput :: ReaderOptions -> Xlsx -> (Meta, [Block])
-xlsxToOutput _opts xlsx =
+xlsxToOutput opts xlsx =
   let sheets = xlsxSheets xlsx
-      sheetBlocks = concatMap sheetToBlocks sheets
+      details = isEnabled Ext_cell_details opts
+      sheetBlocks = concatMap (sheetToBlocks details) sheets
    in (mempty, sheetBlocks)
 
--- | Convert sheet to blocks (header + table)
-sheetToBlocks :: XlsxSheet -> [Block]
-sheetToBlocks sheet =
+-- | Convert sheet to blocks (header + table). With the @cell_details@
+-- extension, hidden sheets, rows and columns get a @hidden@ class, and
+-- cells get their reference, formula and comment as attributes.
+sheetToBlocks :: Bool -> XlsxSheet -> [Block]
+sheetToBlocks details sheet =
   let SheetId n = sheetId sheet
       name = sheetName sheet
       sheetIdent = "sheet-" <> T.pack (show n)
-      header = Header 2 (sheetIdent, [], []) (B.toList (B.text name))
+      classes = ["hidden" | details && sheetHidden sheet]
+      header = Header 2 (sheetIdent, classes, []) (B.toList (B.text name))
 
       -- Convert cells to table
-      tableBlock = case cellsToTable sheet of
+      tableBlock = case cellsToTable details sheet of
         Just tbl -> [tbl]
         Nothing -> []  -- Empty sheet
    in header : tableBlock
 
 -- | Convert cells to Pandoc Table
-cellsToTable :: XlsxSheet -> Maybe Block
-cellsToTable sheet
+cellsToTable :: Bool -> XlsxSheet -> Maybe Block
+cellsToTable details sheet
   | M.null (sheetCells sheet) = Nothing
   | otherwise =
       let cells = sheetCells sheet
-          -- Get bounds
-          refs = sort $ M.keys cells
+          -- Get bounds; with cell details, comments on empty cells count
+          refs = sort $ M.keys cells ++
+                 (if details then M.keys (sheetComments sheet) else [])
           minCol = minimum $ map cellRefCol refs
           maxCol = maximum $ map cellRefCol refs
           minRow = minimum $ map cellRefRow refs
@@ -100,10 +106,27 @@ cellsToTable sheet
 
           makeCell (ref, mcell) =
             let (rows, cols) = M.findWithDefault (1, 1) ref spans
-             in Cell nullAttr AlignDefault (RowSpan rows) (ColSpan cols)
-                     [Plain (maybe [] cellToInlines mcell)]
-          makeRow = Row nullAttr . map makeCell .
-                    filter (\(ref, _) -> not (ref `S.member` covered))
+             in Cell (cellAttr ref mcell) AlignDefault (RowSpan rows)
+                     (ColSpan cols) [Plain (maybe [] cellToInlines mcell)]
+
+          cellAttr ref mcell
+            | not details = nullAttr
+            | otherwise =
+                ( ""
+                , ["hidden" | cellRefCol ref `S.member` sheetHiddenCols sheet]
+                , [("ref", showCellRef ref)] ++
+                  [("formula", f) | Just f <- [mcell >>= cellFormula]] ++
+                  [("comment", c) | Just c <- [M.lookup ref
+                                                 (sheetComments sheet)]]
+                )
+          makeRow cs = Row (rowAttr cs) $ map makeCell $
+                       filter (\(ref, _) -> not (ref `S.member` covered)) cs
+          rowAttr cs = case cs of
+            (ref, _) : _
+              | details
+              , cellRefRow ref `S.member` sheetHiddenRows sheet
+              -> ("", ["hidden"], [])
+            _ -> nullAttr
 
           numCols = length headerRow
           colSpec = replicate numCols (AlignDefault, ColWidthDefault)

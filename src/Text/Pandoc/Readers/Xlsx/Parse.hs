@@ -26,6 +26,7 @@ import Control.Monad (join)
 import Data.Char (toLower)
 import Data.List (find)
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
@@ -36,6 +37,7 @@ import System.FilePath (splitFileName)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Xlsx.Cells
+import Text.Pandoc.Readers.Xlsx.Formula
 import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
@@ -81,6 +83,7 @@ data Xlsx = Xlsx
 data XlsxWorkbook = XlsxWorkbook
   { workbookSheetNames :: [(SheetId, Text, Text)]  -- (id, name, relId)
   , workbookDate1904 :: Bool  -- ^ Dates count from 1904 rather than 1900
+  , workbookHiddenSheets :: [SheetId]  -- ^ Hidden and very hidden sheets
   } deriving (Show)
 
 -- | Individual worksheet
@@ -90,6 +93,10 @@ data XlsxSheet = XlsxSheet
   , sheetCells :: M.Map CellRef XlsxCell
   , sheetMerges :: [(CellRef, CellRef)]
     -- ^ Merged ranges, as their top-left and bottom-right cells
+  , sheetHidden :: Bool
+  , sheetHiddenRows :: S.Set Int
+  , sheetHiddenCols :: S.Set Int
+  , sheetComments :: M.Map CellRef Text
   } deriving (Show)
 
 -- | Parse XLSX archive
@@ -119,8 +126,10 @@ archiveToXlsx archive = do
     Nothing -> Right $ Styles V.empty V.empty V.empty
 
   -- Parse worksheets
-  sheets <- mapM (parseSheet archive workbookPath workbookRels sharedStrings
-                    styles (workbookDate1904 workbook))
+  sheets <- mapM (\info@(sid, _, _) ->
+                    parseSheet archive workbookPath workbookRels sharedStrings
+                      styles (workbookDate1904 workbook)
+                      (sid `elem` workbookHiddenSheets workbook) info)
                  (workbookSheetNames workbook)
 
   return $ Xlsx workbook sheets sharedStrings styles
@@ -161,8 +170,13 @@ parseWorkbook wbElem = do
   let date1904 = maybe False (`elem` ["1", "true"]) $
         find (\e -> qName (elName e) == "workbookPr") (elChildren wbElem)
           >>= findAttr (unqual "date1904")
+      hidden = [ SheetId idx
+               | (idx, el) <- zip [1..] sheetElems
+               , findAttr (unqual "state") el `elem`
+                   [Just "hidden", Just "veryHidden"]
+               ]
 
-  return $ XlsxWorkbook sheetRefs date1904
+  return $ XlsxWorkbook sheetRefs date1904 hidden
 
 parseSheetRef :: NameSpaces -> (Int, Element) -> Either Text (SheetId, Text, Text)
 parseSheetRef ns (idx, sheetElem) = do
@@ -312,15 +326,18 @@ parseFont _ns fontElem =
 
 -- | Parse individual worksheet
 parseSheet :: Archive -> FilePath -> [(Text, Text)] -> SharedStrings -> Styles
-           -> Bool -> (SheetId, Text, Text) -> Either Text XlsxSheet
-parseSheet archive wbPath rels sharedStrings styles date1904
+           -> Bool  -- ^ The workbook uses the 1904 date system
+           -> Bool  -- ^ The sheet is hidden
+           -> (SheetId, Text, Text) -> Either Text XlsxSheet
+parseSheet archive wbPath rels strings styles date1904 hidden
            (sid, name, relId) = do
   target <- maybeToEither ("Sheet relationship not found: " <> relId) $
             lookup relId rels
 
-  sheetElem <- loadXMLFromArchive archive (resolveTarget wbPath target)
+  let sheetPath = resolveTarget wbPath target
+  sheetElem <- loadXMLFromArchive archive sheetPath
 
-  cells <- parseSheetCells sheetElem sharedStrings styles date1904
+  cells <- parseSheetCells sheetElem strings styles date1904
 
   let merges =
         [ (from, to)
@@ -334,7 +351,39 @@ parseSheet archive wbPath rels sharedStrings styles date1904
         , Right to <- [parseCellRef (T.drop 1 toText)]
         ]
 
-  return $ XlsxSheet sid name cells merges
+  let children el n = filter (\e -> qName (elName e) == n) (elChildren el)
+      hiddenAttr el = findAttr (unqual "hidden") el `elem`
+                        [Just "1", Just "true"]
+      intAttr n el = findAttr (unqual n) el >>= readMaybe . T.unpack
+      hiddenRows = S.fromList
+        [ r | sheetData <- children sheetElem "sheetData"
+            , row <- children sheetData "row", hiddenAttr row
+            , Just r <- [intAttr "r" row] ]
+      hiddenCols = S.fromList
+        [ c | cols <- children sheetElem "cols", col <- children cols "col"
+            , hiddenAttr col
+            , Just lo <- [intAttr "min" col], Just hi <- [intAttr "max" col]
+            -- a range up to the last column means "and all the rest"
+            , c <- [lo .. min hi (lo + 16384)] ]
+      -- Comments are in a part of their own; one that can't be read
+      -- leaves the sheet without comments.
+      comments = fromMaybe M.empty $ do
+        commentsTarget <- findRelTargetByType archive (relsPathFor sheetPath)
+                            "comments"
+        el <- either (const Nothing) Just $
+              loadXMLFromArchive archive
+                (resolveTarget sheetPath commentsTarget)
+        return $ M.fromList
+          [ (ref, stringItemText text)
+          | commentList <- children el "commentList"
+          , comment <- children commentList "comment"
+          , Just ref <- [findAttr (unqual "ref") comment >>=
+                           either (const Nothing) Just . parseCellRef]
+          , text <- children comment "text"
+          ]
+
+  return $ XlsxSheet sid name cells merges hidden hiddenRows hiddenCols
+           comments
 
 -- | Parse sheet cells
 parseSheetCells :: Element -> SharedStrings -> Styles -> Bool
@@ -346,8 +395,36 @@ parseSheetCells sheetElem sharedStrings styles date1904 = do
     Just sheetData -> do
       let rowElems = filter (\e -> qName (elName e) == "row") (onlyElems $ elContent sheetData)
           cellElems = concatMap (\r -> filter (\e -> qName (elName e) == "c") (onlyElems $ elContent r)) rowElems
-          cells = mapMaybe (parseCell sharedStrings styles date1904) cellElems
-      return $ M.fromList [(cellRef c, c) | c <- cells]
+          cells = mapMaybe (\e -> (\c -> (c, formulaOf e)) <$>
+                              parseCell sharedStrings styles date1904 e)
+                           cellElems
+          -- A shared formula's text is stored once, in the cell that
+          -- defines it; the other cells of the group take it from there,
+          -- moved by their offset.
+          masters = M.fromList
+            [ (si, (cellRef c, f))
+            | (c, (Just f, Just si)) <- cells ]
+          withFormula (c, (text, si)) = c{ cellFormula =
+            case (text, si) of
+              (Just f, _) -> Just f
+              (Nothing, Just i) | Just (ref, f) <- M.lookup i masters ->
+                Just $ shiftFormula (cellRefRow (cellRef c) - cellRefRow ref)
+                                    (cellRefCol (cellRef c) - cellRefCol ref)
+                                    f
+              _ -> Nothing }
+      return $ M.fromList [(cellRef c, withFormula x) | x@(c, _) <- cells]
+
+-- | The formula of a cell (@f@): its text, if any, and its shared formula
+-- group, if it belongs to one
+formulaOf :: Element -> (Maybe Text, Maybe Text)
+formulaOf cElem =
+  case find (\e -> qName (elName e) == "f") (elChildren cElem) of
+    Nothing -> (Nothing, Nothing)
+    Just f ->
+      let text = strContent f
+          shared = if findAttr (unqual "t") f == Just "shared"
+                      then findAttr (unqual "si") f else Nothing
+       in (if T.null text then Nothing else Just text, shared)
 
 -- | Parse individual cell
 parseCell :: SharedStrings -> Styles -> Bool -> Element -> Maybe XlsxCell
@@ -399,7 +476,7 @@ parseCell sharedStrings styles date1904 cElem = do
       (bold, italic) = maybe (False, False)
                          (\f -> (fontBold f, fontItalic f)) font
 
-  return $ XlsxCell cellRefParsed value bold italic
+  return $ XlsxCell cellRefParsed value bold italic Nothing
 
 -- Helper functions
 loadXMLFromArchive :: Archive -> FilePath -> Either Text Element
@@ -440,6 +517,18 @@ resolveTarget source target =
   case T.unpack target of
     '/':path -> path
     path -> collapseFilePath (Posix.takeDirectory source Posix.</> path)
+
+-- | Find the target of the first relationship in a .rels part whose Type
+-- ends with the given name, such as @comments@
+findRelTargetByType :: Archive -> FilePath -> Text -> Maybe Text
+findRelTargetByType archive relsPath typeName = do
+  entry <- findEntryByPath relsPath archive
+  relsElem <- either (const Nothing) Just $ parseXMLFromEntry entry
+  rel <- find hasType (onlyElems $ elContent relsElem)
+  findAttr (unqual "Target") rel
+  where
+    hasType el = maybe False (("/" <> typeName) `T.isSuffixOf`) $
+                 findAttr (unqual "Type") el
 
 findRelWithTarget :: [(Text, Text)] -> Text -> Maybe (Text, Text)
 findRelWithTarget rels targetName =
