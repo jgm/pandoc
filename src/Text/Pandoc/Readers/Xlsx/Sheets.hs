@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.Xlsx.Sheets
   ) where
 
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.List (sort, dropWhileEnd)
 import Data.Char (isSpace)
@@ -59,7 +60,7 @@ cellsToTable sheet
           maxRow = maximum $ map cellRefRow refs
 
           -- Build dense grid
-          grid = [ [ M.lookup (CellRef col row) cells
+          grid = [ [ (CellRef col row, M.lookup (CellRef col row) cells)
                    | col <- [minCol..maxCol]
                    ]
                  | row <- [minRow..maxRow]
@@ -71,19 +72,42 @@ cellsToTable sheet
             [] -> ([], [])
 
           -- Filter out trailing empty rows (rows with only whitespace)
-          filteredBodyRows = dropWhileEnd isEmptyRow bodyRows
+          filteredBodyRows = dropWhileEnd (isEmptyRow . map snd) bodyRows
+          lastRow = minRow + length filteredBodyRows
 
-          makeCell mcell = case mcell of
-            Just cell ->
-              let inlines = cellToInlines cell
-               in Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1) [Plain inlines]
-            Nothing ->
-              Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1) [Plain []]
+          -- A merged range becomes one cell spanning its rows and
+          -- columns, clipped to the table and kept within the header row
+          -- or within the body, as a cell can't span both.
+          spans = M.fromList
+            [ (from, (rows, cols))
+            | (from, to) <- sheetMerges sheet
+            , cellRefCol from >= minCol, cellRefCol from <= maxCol
+            , cellRefRow from >= minRow, cellRefRow from <= lastRow
+            , let rows = if cellRefRow from == minRow
+                            then 1
+                            else min (cellRefRow to) lastRow
+                                   - cellRefRow from + 1
+                  cols = min (cellRefCol to) maxCol - cellRefCol from + 1
+            , rows > 1 || cols > 1
+            ]
+          covered = S.fromList
+            [ CellRef col row
+            | (CellRef c r, (rows, cols)) <- M.toList spans
+            , row <- [r .. r + rows - 1], col <- [c .. c + cols - 1]
+            , (col, row) /= (c, r)
+            ]
+
+          makeCell (ref, mcell) =
+            let (rows, cols) = M.findWithDefault (1, 1) ref spans
+             in Cell nullAttr AlignDefault (RowSpan rows) (ColSpan cols)
+                     [Plain (maybe [] cellToInlines mcell)]
+          makeRow = Row nullAttr . map makeCell .
+                    filter (\(ref, _) -> not (ref `S.member` covered))
 
           numCols = length headerRow
           colSpec = replicate numCols (AlignDefault, ColWidthDefault)
-          thead = TableHead nullAttr [Row nullAttr $ map makeCell headerRow]
-          tbody = [TableBody nullAttr 0 [] $ map (Row nullAttr . map makeCell) filteredBodyRows]
+          thead = TableHead nullAttr [makeRow headerRow]
+          tbody = [TableBody nullAttr 0 [] $ map makeRow filteredBodyRows]
           tfoot = TableFoot nullAttr []
 
        in Just $ Table nullAttr (Caption Nothing []) colSpec thead tbody tfoot

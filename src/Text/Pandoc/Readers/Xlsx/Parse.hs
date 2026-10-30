@@ -73,6 +73,8 @@ data XlsxSheet = XlsxSheet
   { sheetId :: SheetId
   , sheetName :: Text
   , sheetCells :: M.Map CellRef XlsxCell
+  , sheetMerges :: [(CellRef, CellRef)]
+    -- ^ Merged ranges, as their top-left and bottom-right cells
   } deriving (Show)
 
 -- | Parse XLSX archive
@@ -200,7 +202,19 @@ parseSheet archive wbPath rels sharedStrings styles (sid, name, relId) = do
 
   cells <- parseSheetCells sheetElem sharedStrings styles
 
-  return $ XlsxSheet sid name cells
+  let merges =
+        [ (from, to)
+        | mergeCells <- filter (\e -> qName (elName e) == "mergeCells")
+                               (elChildren sheetElem)
+        , mergeCell <- filter (\e -> qName (elName e) == "mergeCell")
+                              (elChildren mergeCells)
+        , Just ref <- [findAttr (unqual "ref") mergeCell]
+        , (fromText, toText) <- [T.breakOn ":" ref]
+        , Right from <- [parseCellRef fromText]
+        , Right to <- [parseCellRef (T.drop 1 toText)]
+        ]
+
+  return $ XlsxSheet sid name cells merges
 
 -- | Parse sheet cells
 parseSheetCells :: Element -> SharedStrings -> Styles -> Either Text (M.Map CellRef XlsxCell)

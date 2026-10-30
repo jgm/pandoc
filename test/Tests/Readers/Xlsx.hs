@@ -53,4 +53,10 @@ tests = [ testGroup "basic"
             "xlsx-reader/absolute-targets.xlsx"
             "xlsx-reader/absolute-targets.native"
           ]
+        , testGroup "merged cells"
+          [ testCompare
+            "merged ranges as spans"
+            "xlsx-reader/merged.xlsx"
+            "xlsx-reader/merged.native"
+          ]
         ]
