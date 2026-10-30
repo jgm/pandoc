@@ -66,7 +66,9 @@ slideToBlocks archive slide = do
       -- Filter out title placeholder shapes before parsing
       let allShapeElems = ungroupShapes ns (onlyElems $ elContent spTree)
           nonTitleShapeElems = filter (not . isTitlePlaceholder ns) allShapeElems
-          shapes = mapMaybe (parseShape ns) nonTitleShapeElems
+          inherited = inheritedBullets (slideLayout slide) (slideMaster slide)
+          shapes = mapMaybe (\el -> parseShapeWith (inherited el) ns el)
+                            nonTitleShapeElems
       shapeBlocks <- concat <$> mapM (shapeToBlocks archive rels) shapes
       return $ header : shapeBlocks ++ notesBlocks
   where
