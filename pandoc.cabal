@@ -234,6 +234,7 @@ extra-source-files:
                  test/command/11989.docx
                  test/command/11991.docx
                  test/command/9222.docx
+                 test/command/9183.docx
                  test/command/11942.js
                  test/command/biblio.bib
                  test/command/averroes.bib

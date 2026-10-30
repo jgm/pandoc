@@ -191,6 +191,13 @@ combineBlocks bs cs
   , CodeBlock attr' codeStr' :< cs' <- viewl (unMany cs)
   , attr == attr' =
       Many $ (bs' |> CodeBlock attr (codeStr <> "\n" <> codeStr')) >< cs'
+  -- with +styles, each code paragraph is wrapped in a custom-style Div (#9183)
+  | bs' :> Div divAttr [CodeBlock attr codeStr] <- viewr (unMany bs)
+  , Div divAttr' [CodeBlock attr' codeStr'] :< cs' <- viewl (unMany cs)
+  , divAttr == divAttr'
+  , attr == attr' =
+      Many $ (bs' |> Div divAttr [CodeBlock attr (codeStr <> "\n" <> codeStr')])
+        >< cs'
 combineBlocks bs cs = bs <> cs
 
 instance (Monoid a, Eq a) => Eq (Modifier a) where

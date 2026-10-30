@@ -456,7 +456,8 @@ runTeXProgram program args tmpDir outDir = do
      let rerunWarnings = checkForRerun logContents
      tocFileExists <- fileExists (replaceExtension outfile ".toc")
        -- if we have a TOC we always need 3 runs, see #10308
-     let rerunWarnings' = rerunWarnings ++ ["TOC is present" | tocFileExists]
+     let rerunWarnings' = rerunWarnings ++
+           ["TOC is present" | tocFileExists, runNumber < 3]
      if not (null rerunWarnings') && runNumber < maxruns
         then do
           report $ MakePDFInfo "Rerun needed"
