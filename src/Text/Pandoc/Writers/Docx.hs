@@ -501,10 +501,7 @@ loadArchives :: PandocMonad m
 loadArchives opts = do
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getTimestamp
-  oldUserDataDir <- P.getUserDataDir
-  P.setUserDataDir Nothing
   res <- readDefaultDataFile "reference.docx"
-  P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
                    Just f  -> do

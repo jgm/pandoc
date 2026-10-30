@@ -60,6 +60,8 @@ module Text.Pandoc.Class.PandocMonad
   , makeCanonical
   , findFileWithDataFallback
   , checkUserDataDir
+  , getDataDirs
+  , getPandocDataDirs
   ) where
 
 import Control.Monad.Except (MonadError (catchError, throwError))
@@ -75,8 +77,9 @@ import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
-import System.FilePath ((</>), takeExtension, dropExtension,
-                        isRelative, makeRelative, splitDirectories)
+import System.FilePath ((</>), takeExtension, dropExtension, isAbsolute,
+                        isRelative, makeRelative, splitDirectories,
+                        splitSearchPath)
 import System.Random (StdGen)
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
@@ -478,6 +481,27 @@ checkUserDataDir fname =
      then getUserDataDir
      else return Nothing
 
+-- | Returns the directories to search for a data file, in order of
+-- priority: the user data directory (if any), followed by the
+-- directories returned by 'getPandocDataDirs'.  Returns an empty list
+-- if the file path is absolute or relative to a parent directory.
+getDataDirs :: PandocMonad m => FilePath -> m [FilePath]
+getDataDirs fname =
+  if isRelative fname && not (isRelativeToParentDir fname)
+     then do
+       mbUserDataDir <- getUserDataDir
+       pandocDataDirs <- getPandocDataDirs
+       return $ maybe id (:) mbUserDataDir pandocDataDirs
+     else return []
+
+-- | Returns the directories listed in the @PANDOC_DATA_DIRS@
+-- environment variable, in order.  Relative paths (including
+-- empty entries) in @PANDOC_DATA_DIRS@ are ignored.
+getPandocDataDirs :: PandocMonad m => m [FilePath]
+getPandocDataDirs =
+  maybe [] (filter isAbsolute . splitSearchPath . T.unpack)
+    <$> lookupEnv "PANDOC_DATA_DIRS"
+
 -- | Read metadata file from the working directory or, if not found there, from
 -- the metadata subdirectory of the user data directory.
 readMetadataFile :: PandocMonad m => FilePath -> m B.ByteString
@@ -557,29 +581,29 @@ findDecodingError = go 0
         Nothing -> Just (i, w)
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
--- searches for the data file relative to @/subdir/@. Returns @Nothing@
--- if neither file exists.
+-- searches for the data file relative to @/subdir/@ in the user data
+-- directory and then in the system data directories (see 'getDataDirs').
+-- Returns @Nothing@ if the file is not found.
 findFileWithDataFallback :: PandocMonad m
                          => FilePath  -- ^ subdir
                          -> FilePath  -- ^ fp
                          -> m (Maybe FilePath)
 findFileWithDataFallback subdir fp = do
   -- First we check to see if the file is found. If not, and if it's not
-  -- an absolute path, we check to see whether it's in @userdir/@. If
-  -- not, we leave it unchanged.
+  -- an absolute path, we check to see whether it's in @subdir@ of
+  -- one of the data directories. If not, we return Nothing.
   existsInWorkingDir <- fileExists fp
   if existsInWorkingDir
      then return $ Just fp
-     else do
-       mbDataDir <- checkUserDataDir fp
-       case mbDataDir of
-         Nothing -> return Nothing
-         Just datadir -> do
-           let datafp = datadir </> subdir </> fp
-           existsInDataDir <- fileExists datafp
-           return $ if existsInDataDir
-                    then Just datafp
-                    else Nothing
+     else getDataDirs fp >>= findFirst
+ where
+  findFirst [] = return Nothing
+  findFirst (d:ds) = do
+    let datafp = d </> subdir </> fp
+    exists <- fileExists datafp
+    if exists
+       then return $ Just datafp
+       else findFirst ds
 
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.

@@ -887,6 +887,7 @@ test-suite test-pandoc
                   Tests.Helpers
                   Tests.Shared
                   Tests.MediaBag
+                  Tests.Data
                   Tests.XML
                   Tests.ImageSize
                   Tests.Readers.LaTeX
