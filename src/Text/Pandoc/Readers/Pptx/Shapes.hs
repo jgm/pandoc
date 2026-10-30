@@ -17,15 +17,19 @@ module Text.Pandoc.Readers.Pptx.Shapes
   , BulletType(..)
   , parseShapes
   , parseShape
+  , parseShapeWith
+  , inheritedBullets
   , shapeToBlocks
+  , paragraphsToBlocks
   , isTitlePlaceholder
   , extractDrawingMLText
   ) where
 
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
 import qualified Data.ByteString.Lazy as B
-import Data.List (find, groupBy, intersperse)
-import Data.Maybe (mapMaybe)
+import Data.Char (isSpace)
+import Data.List (find, intersperse)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Read (readMaybe)
@@ -49,6 +53,7 @@ data BulletType
   = NoBullet
   | Bullet                        -- Has bullet (character detected or implicit)
   | WingdingsBullet              -- Detected via Wingdings symbol
+  | Numbered ListAttributes      -- Automatic numbering (a:buAutoNum)
   deriving (Show, Eq)
 
 -- | Shape types in PPTX slides
@@ -77,12 +82,18 @@ parseShapes ns spTreeElem =
 
 -- | Parse individual shape element
 parseShape :: NameSpaces -> Element -> Maybe PptxShape
-parseShape ns el
+parseShape = parseShapeWith (const Nothing)
+
+-- | Parse a shape, given the bullet its paragraphs inherit at each level
+-- (0 for the first) when they don't set one themselves
+parseShapeWith :: (Int -> Maybe BulletType) -> NameSpaces -> Element
+               -> Maybe PptxShape
+parseShapeWith inherited ns el
   -- Text box: <p:sp> with <p:txBody>
   | isElem ns "p" "sp" el =
       case findChildByName ns "p" "txBody" el of
         Just txBody ->
-          let paras = parseParagraphs ns txBody
+          let paras = parseParagraphs inherited ns txBody
            in if null paras
               then Nothing
               else Just $ PptxTextBox paras
@@ -225,16 +236,18 @@ loadMediaFromArchive archive path =
     Nothing -> Nothing
 
 -- | Parse paragraphs from text box
-parseParagraphs :: NameSpaces -> Element -> [PptxParagraph]
-parseParagraphs ns txBody =
+parseParagraphs :: (Int -> Maybe BulletType) -> NameSpaces -> Element
+                -> [PptxParagraph]
+parseParagraphs inherited ns txBody =
   let pElems = findChildrenByName ns "a" "p" txBody
-   in map (parseParagraph ns) pElems
+   in map (parseParagraph inherited ns) pElems
 
 -- | Parse individual paragraph
-parseParagraph :: NameSpaces -> Element -> PptxParagraph
-parseParagraph ns pElem =
+parseParagraph :: (Int -> Maybe BulletType) -> NameSpaces -> Element
+               -> PptxParagraph
+parseParagraph inherited ns pElem =
   let level = parseBulletLevel ns pElem
-      bullet = detectBulletType ns pElem
+      bullet = detectBulletType (inherited level) ns pElem
       text = paragraphInlines pElem
    in PptxParagraph level bullet text
 
@@ -247,18 +260,84 @@ parseBulletLevel ns pElem =
     Just lvl -> lvl
     Nothing -> 0  -- Default to level 0
 
--- | Detect bullet type
-detectBulletType :: NameSpaces -> Element -> BulletType
-detectBulletType ns pElem =
-  -- Check for explicit <a:pPr><a:buChar>
-  case findChildByName ns "a" "pPr" pElem >>=
-       findChildByName ns "a" "buChar" of
-    Just _buCharElem -> Bullet
-    Nothing ->
+-- | Detect bullet type: the paragraph's own, or else the one it inherits
+detectBulletType :: Maybe BulletType -> NameSpaces -> Element -> BulletType
+detectBulletType inherited ns pElem =
+  case findChildByName ns "a" "pPr" pElem >>= explicitBullet of
+    Just bullet -> bullet
+    Nothing
       -- Check for Wingdings symbol (common in PowerPoint)
-      if hasWingdingsSymbol ns pElem
-        then WingdingsBullet
-        else NoBullet
+      | hasWingdingsSymbol ns pElem -> WingdingsBullet
+      | otherwise -> fromMaybe NoBullet inherited
+
+-- | The bullet that paragraph properties (@a:pPr@ or @a:lvlNpPr@) set,
+-- if they set one
+explicitBullet :: Element -> Maybe BulletType
+explicitBullet pPr = listToMaybe (mapMaybe bullet (elChildren pPr))
+  where
+    bullet el = case qName (elName el) of
+      "buChar"    -> Just Bullet
+      "buBlip"    -> Just Bullet
+      "buNone"    -> Just NoBullet
+      "buAutoNum" -> Just (Numbered (numbering el))
+      _           -> Nothing
+    numbering el =
+      let scheme = fromMaybe "arabicPeriod" (findAttr (unqual "type") el)
+          start = fromMaybe 1 $
+                  findAttr (unqual "startAt") el >>= readMaybe . T.unpack
+          style | "arabic" `T.isPrefixOf` scheme = Decimal
+                | "alphaLc" `T.isPrefixOf` scheme = LowerAlpha
+                | "alphaUc" `T.isPrefixOf` scheme = UpperAlpha
+                | "romanLc" `T.isPrefixOf` scheme = LowerRoman
+                | "romanUc" `T.isPrefixOf` scheme = UpperRoman
+                | otherwise = DefaultStyle
+          delim | "ParenBoth" `T.isSuffixOf` scheme = TwoParens
+                | "ParenR" `T.isSuffixOf` scheme = OneParen
+                | "Period" `T.isSuffixOf` scheme = Period
+                | otherwise = DefaultDelim
+       in (start, style, delim)
+
+-- | The bullet a shape's paragraphs inherit at each level (0 for the
+-- first), from the shape's own list style, then the matching placeholder
+-- on the slide layout and on the slide master, then the master's text
+-- style for that kind of placeholder (or for other text).
+inheritedBullets :: Maybe Element  -- ^ Slide layout
+                 -> Maybe Element  -- ^ Slide master
+                 -> Element        -- ^ Shape
+                 -> Int -> Maybe BulletType
+inheritedBullets layout master shape level =
+  listToMaybe $ mapMaybe (>>= explicitBullet) $
+    [lstLevel shape] ++
+    case placeholder shape of
+      Just (phType, phIdx) ->
+        [ layout >>= findPlaceholder phType phIdx >>= lstLevel
+        , master >>= findPlaceholder (masterType phType) Nothing >>= lstLevel
+        , textStyle (styleFor phType) ]
+      Nothing -> [textStyle "otherStyle"]
+  where
+    lvlName = "lvl" <> T.pack (show (level + 1)) <> "pPr"
+    child name el = find ((== name) . qName . elName) (elChildren el)
+    lstLevel sp = child "txBody" sp >>= child "lstStyle" >>= child lvlName
+    textStyle name = master >>= child "txStyles" >>= child name >>=
+                     child lvlName
+    placeholder sp = do
+      ph <- child "nvSpPr" sp >>= child "nvPr" >>= child "ph"
+      return ( fromMaybe "obj" (findAttr (unqual "type") ph)
+             , findAttr (unqual "idx") ph )
+    -- A placeholder is matched by index if it has one, else by type
+    findPlaceholder phType phIdx root = do
+      tree <- child "cSld" root >>= child "spTree"
+      let phs = [ (sp, p) | sp <- elChildren tree
+                          , Just p <- [placeholder sp] ]
+          byIdx = [ sp | Just i <- [phIdx], (sp, (_, j)) <- phs, j == Just i ]
+          byType = [ sp | (sp, (t, _)) <- phs, masterType t == phType ||
+                                              t == phType ]
+      listToMaybe (byIdx ++ byType)
+    masterType t = if t `elem` ["obj", "body"] then "body" else t
+    styleFor t
+      | t `elem` ["title", "ctrTitle"] = "titleStyle"
+      | t `elem` ["obj", "body", "subTitle"] = "bodyStyle"
+      | otherwise = "otherStyle"
 
 -- | Check if paragraph starts with Wingdings symbol
 hasWingdingsSymbol :: NameSpaces -> Element -> Bool
@@ -282,36 +361,42 @@ paragraphInlines = B.toList . mconcat . intersperse B.linebreak .
 extractDrawingMLText :: Element -> Text
 extractDrawingMLText = drawingMLText
 
--- | Convert paragraphs to blocks, grouping bullets into lists
+-- | Convert paragraphs to blocks, grouping bulleted and numbered
+-- paragraphs into lists. Paragraphs at a deeper level than a list item
+-- go inside that item, as a nested list or as further paragraphs.
 paragraphsToBlocks :: [PptxParagraph] -> [Block]
-paragraphsToBlocks paras =
-  -- If we have multiple paragraphs with bullets, group them
-  let hasBullets = any (\p -> paraBullet p /= NoBullet) paras
-   in if hasBullets
-      then groupBulletParagraphs paras
-      else map (Para . paraText) paras
-
--- | Group bullet paragraphs into lists
-groupBulletParagraphs :: [PptxParagraph] -> [Block]
-groupBulletParagraphs paras =
-  let grouped = groupBy sameBulletLevel paras
-   in concatMap groupToBlock grouped
+paragraphsToBlocks [] = []
+paragraphsToBlocks (p:ps)
+  | paraBullet p == NoBullet = Para (paraText p) : paragraphsToBlocks ps
+  -- PowerPoint shows no bullet or number on an empty paragraph
+  | isEmpty p = paragraphsToBlocks ps
+  | otherwise =
+      let (items, rest) = listItems p (p:ps)
+       in listBlock (paraBullet p) items : paragraphsToBlocks rest
   where
-    sameBulletLevel p1 p2 =
-      (paraBullet p1 /= NoBullet) &&
-      (paraBullet p2 /= NoBullet) &&
-      (paraLevel p1 == paraLevel p2)
-
-    groupToBlock :: [PptxParagraph] -> [Block]
-    groupToBlock [] = []
-    groupToBlock ps@(p:_)
-      | paraBullet p /= NoBullet =
-          -- Bullet list
-          let items = map (\para -> [Plain (paraText para)]) ps
-           in [BulletList items]
-      | otherwise =
-          -- Plain paragraph
-          map (Para . paraText) ps
+    -- The items of a list that starts with the paragraph first, with the
+    -- deeper paragraphs that follow each item
+    listItems first (q:qs)
+      | isEmpty q, paraBullet q /= NoBullet = listItems first qs
+      | paraLevel q == paraLevel first, sameKind q first =
+          let (inner, rest) = span ((> paraLevel first) . paraLevel) qs
+              (items, rest') = listItems first rest
+           in ((Plain (paraText q) : paragraphsToBlocks inner) : items, rest')
+    listItems _ qs = ([], qs)
+    sameKind a b = case (paraBullet a, paraBullet b) of
+      (Numbered _, Numbered _) -> True
+      (Numbered _, _) -> False
+      (_, Numbered _) -> False
+      (x, y) -> (x == NoBullet) == (y == NoBullet)
+    listBlock (Numbered attrs) items = OrderedList attrs items
+    listBlock _ items = BulletList items
+    isEmpty = all blank . paraText
+    blank il = case il of
+      Space -> True
+      SoftBreak -> True
+      LineBreak -> True
+      Str t -> T.all isSpace t
+      _ -> False
 
 -- | Check if shape is title placeholder (also used in Slides module)
 isTitlePlaceholder :: NameSpaces -> Element -> Bool

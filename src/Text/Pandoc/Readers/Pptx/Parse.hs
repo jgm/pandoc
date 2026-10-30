@@ -26,7 +26,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
 import System.FilePath (splitFileName)
+import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.Readers.OOXML.Shared
+import Text.Pandoc.Shared (collapseFilePath)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
 
@@ -46,6 +48,9 @@ data PptxSlide = PptxSlide
   , slidePath    :: FilePath
   , slideElement :: Element     -- The parsed p:sld element
   , slideRels    :: [(Text, Text)]  -- Slide relationships
+  , slideNotes   :: Maybe Element   -- The parsed p:notes element, if any
+  , slideLayout  :: Maybe Element   -- The slide's p:sldLayout
+  , slideMaster  :: Maybe Element   -- Its layout's p:sldMaster
   } deriving (Show)
 
 -- | Presentation-level information from presentation.xml
@@ -208,7 +213,53 @@ parseSlide archive rels (sid, relId) = do
   slideRelsPath <- getPresentationRelsPath archive slidePath'
   slideRels' <- loadRelationships archive slideRelsPath
 
-  return $ PptxSlide sid slidePath' slideElem slideRels'
+  -- Follow the slide's own notesSlide relationship: notesSlideN.xml need
+  -- not belong to slideN.xml. A missing or unreadable notes part means
+  -- the slide has no notes; it never fails the conversion.
+  let notesElem = do
+        notesTarget <- findRelTargetByType archive slideRelsPath "notesSlide"
+        either (const Nothing) Just $
+          loadXMLFromArchive archive (resolveTarget slidePath' notesTarget)
+
+  -- The slide's layout and master, which the text of its placeholders
+  -- inherits from; either may be missing.
+  let related source typeName = do
+        t <- findRelTargetByType archive (relsPathOf source) typeName
+        let path = resolveTarget source t
+        el <- either (const Nothing) Just $ loadXMLFromArchive archive path
+        return (path, el)
+      layout = related slidePath' "slideLayout"
+      master = layout >>= \(layoutPath, _) -> related layoutPath "slideMaster"
+
+  return $ PptxSlide sid slidePath' slideElem slideRels' notesElem
+                     (snd <$> layout) (snd <$> master)
+
+-- | The path of a part's relationships
+relsPathOf :: FilePath -> FilePath
+relsPathOf path =
+  let (dir, file) = splitFileName path
+   in dir ++ "/_rels/" ++ file ++ ".rels"
+
+-- | Find the target of the first relationship in a .rels part whose Type
+-- ends with the given name, such as @notesSlide@.
+findRelTargetByType :: Archive -> FilePath -> Text -> Maybe Text
+findRelTargetByType archive relsPath typeName = do
+  entry <- findEntryByPath relsPath archive
+  relsElem <- either (const Nothing) Just $ parseXMLFromEntry entry
+  rel <- find hasType (onlyElems $ elContent relsElem)
+  findAttr (unqual "Target") rel
+  where
+    hasType el = maybe False (("/" <> typeName) `T.isSuffixOf`) $
+                 findAttr (unqual "Type") el
+
+-- | Resolve a relationship target to an archive path. A target starting
+-- with @/@ is relative to the package root; any other target is relative
+-- to the folder of the part that holds the relationship.
+resolveTarget :: FilePath -> Text -> FilePath
+resolveTarget source target =
+  case T.unpack target of
+    '/':path -> path
+    path -> collapseFilePath (Posix.takeDirectory source Posix.</> path)
 
 -- | Helper: Maybe a -> Either Text a
 maybeToEither :: Text -> Maybe a -> Either Text a

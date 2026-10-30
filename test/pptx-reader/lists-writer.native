@@ -1,0 +1,26 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Bullets" ]
+  , BulletList
+      [ [ Plain [ Str "one" ] ]
+      , [ Plain [ Str "two" ]
+        , BulletList
+            [ [ Plain [ Str "nested" , Space , Str "a" ] ]
+            , [ Plain [ Str "nested" , Space , Str "b" ] ]
+            ]
+        ]
+      , [ Plain [ Str "three" ] ]
+      ]
+  , Header 2 ( "slide-2" , [] , [] ) [ Str "Numbers" ]
+  , OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Plain [ Str "first" ] ]
+      , [ Plain [ Str "second" ]
+        , OrderedList
+            ( 1 , LowerAlpha , Period ) [ [ Plain [ Str "inner" ] ] ]
+        ]
+      , [ Plain [ Str "third" ] ]
+      ]
+  , Para
+      [ Str "After" , Space , Str "the" , Space , Str "list." ]
+  ]

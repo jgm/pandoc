@@ -26,6 +26,7 @@ import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Pptx.Parse
 import Text.Pandoc.Readers.Pptx.Shapes
+import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.XML.Light
 
 -- | Convert Pptx intermediate representation to Pandoc AST
@@ -60,14 +61,42 @@ slideToBlocks archive slide = do
   -- Parse shapes and convert to blocks
   case findChildByName ns "p" "cSld" slideElem >>=
        findChildByName ns "p" "spTree" of
-    Nothing -> return [header]
+    Nothing -> return $ header : notesBlocks
     Just spTree -> do
       -- Filter out title placeholder shapes before parsing
       let allShapeElems = ungroupShapes ns (onlyElems $ elContent spTree)
           nonTitleShapeElems = filter (not . isTitlePlaceholder ns) allShapeElems
-          shapes = mapMaybe (parseShape ns) nonTitleShapeElems
+          inherited = inheritedBullets (slideLayout slide) (slideMaster slide)
+          shapes = mapMaybe (\el -> parseShapeWith (inherited el) ns el)
+                            nonTitleShapeElems
       shapeBlocks <- concat <$> mapM (shapeToBlocks archive rels) shapes
-      return $ header : shapeBlocks
+      return $ header : shapeBlocks ++ notesBlocks
+  where
+    notesBlocks = maybe [] notesToBlocks (slideNotes slide)
+
+-- | Convert a notes slide (@p:notes@) to a @notes@ div, the form the pptx
+-- writer turns into speaker notes. The notes text is in the shape holding
+-- the body placeholder; the slide image and slide number placeholders are
+-- ignored. Notes without text yield nothing.
+notesToBlocks :: Element -> [Block]
+notesToBlocks notesElem =
+  case filter isBody shapeElems >>= textBoxBlocks of
+    blocks | T.null (T.strip (stringify blocks)) -> []
+           | otherwise -> [Div ("", ["notes"], []) blocks]
+  where
+    ns = elemToNameSpaces notesElem
+    shapeElems = maybe [] elChildren $
+      findChildByName ns "p" "cSld" notesElem >>=
+      findChildByName ns "p" "spTree"
+    isBody el =
+      case findChildByName ns "p" "nvSpPr" el >>=
+           findChildByName ns "p" "nvPr" >>=
+           findChildByName ns "p" "ph" of
+        Just ph -> findAttr (unqual "type") ph == Just "body"
+        Nothing -> False
+    textBoxBlocks el = case parseShape ns el of
+      Just (PptxTextBox paras) -> paragraphsToBlocks paras
+      _ -> []
 
 -- | Replace each group shape (@p:grpSp@, possibly nested) by the shapes
 -- it contains, keeping document order.
