@@ -74,7 +74,8 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
-import Text.Pandoc.Translations (Term(Abstract), translateTerm)
+import Text.Pandoc.Translations (Term(Abstract, BackToReference), translateTerm,
+                                 getTranslations, lookupTerm)
 import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -1743,7 +1744,16 @@ blockListToNote opts ref blocks = do
     Nothing -> do -- web page
       -- If last block is Para or Plain, include the backlink at the end of
       -- that block. Otherwise, insert a new Plain block with the backlink.
-      let kvs = [("role","doc-backlink") | html5]
+      -- The arrow alone does not tell a screen reader user where the link
+      -- goes (see #11965), so give the link an accessible name. Languages
+      -- without a translation for the term fall back to the English one.
+      translations <- getTranslations
+      let backlinkText = fromMaybe "Back to reference"
+                           (lookupTerm BackToReference translations)
+      let kvs = if html5
+                   then [ ("role","doc-backlink")
+                        , ("aria-label", backlinkText <> " " <> ref) ]
+                   else []
       let backlink = [Link ("",["footnote-back"],kvs)
                         [Str "↩"] ("#" <> "fnref" <> ref,"")]
       let blocks'  = if null blocks

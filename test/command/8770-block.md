@@ -29,7 +29,7 @@ role="doc-noteref"><sup>1</sup></a></p>
 role="doc-footnote">
 <ol>
 <li id="fn1"><p>doc footnote<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 1">↩︎</a></p></li>
 </ol>
 </aside>
 <table style="width:16%;">
@@ -55,11 +55,12 @@ id="fnref4" role="doc-noteref"><sup>4</sup></a></td>
 role="doc-footnote">
 <ol start="2">
 <li id="fn2"><p>caption footnote<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 2">↩︎</a></p></li>
 <li id="fn3"><p>header footnote<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 3">↩︎</a></p></li>
 <li id="fn4"><p>table cell footnote<a href="#fnref4"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+class="footnote-back" role="doc-backlink"
+aria-label="Back to reference 4">↩︎</a></p></li>
 </ol>
 </aside>
 <h1 id="section-2">Section 2</h1>
@@ -69,7 +70,7 @@ role="doc-noteref"><sup>5</sup></a></p>
 role="doc-footnote">
 <ol start="5">
 <li id="fn5"><p>doc footnote<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+role="doc-backlink" aria-label="Back to reference 5">↩︎</a></p></li>
 </ol>
 </aside>
 ```

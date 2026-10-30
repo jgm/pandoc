@@ -36,6 +36,7 @@ import GHC.Generics (Generic)
 data Term =
     Abstract
   | Appendix
+  | BackToReference
   | Bibliography
   | Cc
   | Chapter
