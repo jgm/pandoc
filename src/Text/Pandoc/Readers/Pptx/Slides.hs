@@ -63,11 +63,20 @@ slideToBlocks archive slide = do
     Nothing -> return [header]
     Just spTree -> do
       -- Filter out title placeholder shapes before parsing
-      let allShapeElems = onlyElems $ elContent spTree
+      let allShapeElems = ungroupShapes ns (onlyElems $ elContent spTree)
           nonTitleShapeElems = filter (not . isTitlePlaceholder ns) allShapeElems
           shapes = mapMaybe (parseShape ns) nonTitleShapeElems
       shapeBlocks <- concat <$> mapM (shapeToBlocks archive rels) shapes
       return $ header : shapeBlocks
+
+-- | Replace each group shape (@p:grpSp@, possibly nested) by the shapes
+-- it contains, keeping document order.
+ungroupShapes :: NameSpaces -> [Element] -> [Element]
+ungroupShapes ns = concatMap ungroup
+  where
+    ungroup el
+      | isElem ns "p" "grpSp" el = ungroupShapes ns (elChildren el)
+      | otherwise = [el]
 
 -- | Extract title from title placeholder
 extractSlideTitle :: NameSpaces -> Element -> Text
