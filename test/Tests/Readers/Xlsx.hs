@@ -39,7 +39,18 @@ testCompareWithOpts opts testName xlsxFP nativeFP =
             >>= BS.writeFile nativeFP . UTF8.fromText)
 
 tests :: [TestTree]
-tests = [ testGroup "basic"
+tests = [ testGroup "cell details"
+          [ testCompareWithOpts
+            def{ readerExtensions = extensionsFromList [Ext_cell_details] }
+            "references, formulas, comments and hidden parts"
+            "xlsx-reader/cell-details.xlsx"
+            "xlsx-reader/cell-details.native"
+          , testCompare
+            "without the extension"
+            "xlsx-reader/cell-details.xlsx"
+            "xlsx-reader/cell-details-off.native"
+          ]
+        , testGroup "basic"
           [ testCompare
             "inline and rich-text strings"
             "xlsx-reader/strings.xlsx"

@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.Xlsx.Cells
   , XlsxCell(..)
   , CellValue(..)
   , parseCellRef
+  , showCellRef
   ) where
 
 import qualified Data.Text as T
@@ -41,6 +42,7 @@ data XlsxCell = XlsxCell
   , cellValue :: CellValue
   , cellBold :: Bool
   , cellItalic :: Bool
+  , cellFormula :: Maybe Text  -- ^ As stored, without the leading @=@
   } deriving (Show)
 
 -- | Parse cell reference (A1 → CellRef)
@@ -61,3 +63,12 @@ parseColumn :: Text -> Either Text Int
 parseColumn colStr
   | T.null colStr = Left "Empty column"
   | otherwise = Right $ T.foldl' (\acc c -> acc * 26 + (ord c - ord 'A' + 1)) 0 colStr
+
+-- | Show a cell reference in A1 notation
+showCellRef :: CellRef -> Text
+showCellRef (CellRef col row) = T.pack (letters col ++ show row)
+  where
+    letters n
+      | n <= 0 = ""
+      | otherwise = let (q, r) = (n - 1) `divMod` 26
+                     in letters q ++ [toEnum (fromEnum 'A' + r)]
