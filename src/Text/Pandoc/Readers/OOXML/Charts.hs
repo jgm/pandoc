@@ -57,8 +57,8 @@ readChart archive path = do
                      (elChildren plotArea)
       series = zipWith parseSeries [1..] (concatMap (children "ser") plots)
       title = maybe "" titleText (child "title" chart)
-  if null series
-     then Left "Chart has no series"
+  if all (all (T.null . snd) . seriesPoints) series
+     then Left "Chart has no cached values"
      else Right Chart
             { chartTitle = title
             , chartTypes = nub $ map (T.dropEnd 5 . qName . elName) plots
