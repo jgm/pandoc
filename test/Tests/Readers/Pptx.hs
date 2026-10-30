@@ -41,6 +41,10 @@ testCompareWithOpts opts testName pptxFP nativeFP =
 tests :: [TestTree]
 tests = [ testGroup "basic"
           [ testCompare
+            "run formatting and hyperlinks"
+            "pptx-reader/formatting.pptx"
+            "pptx-reader/formatting.native"
+          , testCompare
             "group shapes"
             "pptx-reader/groups.pptx"
             "pptx-reader/groups.native"

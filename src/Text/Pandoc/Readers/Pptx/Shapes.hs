@@ -24,8 +24,8 @@ module Text.Pandoc.Readers.Pptx.Shapes
 
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
 import qualified Data.ByteString.Lazy as B
-import Data.List (find, groupBy, intersperse)
-import Data.Maybe (mapMaybe)
+import Data.List (find, groupBy)
+import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Read (readMaybe)
@@ -35,6 +35,7 @@ import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Pptx.SmartArt
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML.Light
 import Text.TeXMath (writeTeX)
 import Text.TeXMath.Readers.OMML (readOMML)
@@ -162,8 +163,8 @@ parseTableRow ns trElem =
 
 -- | Convert shape to Pandoc blocks
 shapeToBlocks :: PandocMonad m => Archive -> [(Text, Text)] -> PptxShape -> m [Block]
-shapeToBlocks _archive _rels (PptxTextBox paras) =
-  return $ paragraphsToBlocks paras
+shapeToBlocks _archive rels (PptxTextBox paras) =
+  return $ resolveLinks rels $ paragraphsToBlocks paras
 shapeToBlocks archive rels (PptxPicture relId title alt) = do
   -- Resolve relationship to get media path
   case lookup relId rels of
@@ -275,19 +276,103 @@ hasWingdingsSymbol ns pElem =
                      Nothing -> False
    in any checkRun runs
 
--- | Inlines of a paragraph: its text, with its line breaks, and its
--- equations (@a14:m@) as math
+-- | Inlines of a paragraph: the text of its runs and fields with their
+-- bold, italic, superscript and subscript, its line breaks, its
+-- hyperlinks, and its equations (@a14:m@) as math. A hyperlink's target
+-- is a relationship id at this point, which 'resolveLinks' replaces.
 paragraphInlines :: Element -> [Inline]
 paragraphInlines pElem =
-  B.toList $ mconcat $ map toInlines $ groupBy bothText $ elChildren pElem
+  B.toList $ foldMap linked $ groupBy (\a b -> fst a == fst b) $
+    concatMap piece (elChildren pElem)
   where
-    isMath el = qName (elName el) == "m"
-    bothText a b = not (isMath a || isMath b)
-    toInlines els@(el:_)
-      | isMath el = foldMap mathInlines (elChildren el)
-      | otherwise = mconcat $ intersperse B.linebreak $ map B.text $
-          drawingMLParagraphLines pElem{ elContent = map Elem els }
-    toInlines [] = mempty
+    piece el = case qName (elName el) of
+      "r"   -> [(runLink el, Left (runFormat el, runText el))]
+      "fld" -> [(runLink el, Left (runFormat el, runText el))]
+      "br"  -> [(Nothing, Right B.linebreak)]
+      "m"   -> [(Nothing, Right (foldMap mathInlines (elChildren el)))]
+      _     -> []
+    linked grp =
+      let inls = foldMap formatted $ groupBy sameFormat (map snd grp)
+       in case grp of
+            (Just relId, _) : _ ->
+              B.linkWith ("", [], [(linkRelAttr, relId)]) "" "" inls
+            _ -> inls
+    sameFormat (Left (f, _)) (Left (g, _)) = f == g
+    sameFormat _ _ = False
+    -- Runs with the same format are joined before it is applied, so
+    -- that adjacent bold runs make one strong span.
+    formatted pieces@(Left (fmt, _) : _) =
+      applyFormat fmt (T.concat [t | Left (_, t) <- pieces])
+    formatted pieces = mconcat [ils | Right ils <- pieces]
+
+-- | The format of a run: bold, italic, and its baseline shift (positive
+-- for superscript, negative for subscript)
+type RunFormat = (Bool, Bool, Int)
+
+runFormat :: Element -> RunFormat
+runFormat run =
+  case find ((== "rPr") . qName . elName) (elChildren run) of
+    Nothing -> (False, False, 0)
+    Just rPr ->
+      ( flag "b" rPr, flag "i" rPr
+      , fromMaybe 0 $
+          findAttr (unqual "baseline") rPr >>= readMaybe . T.unpack )
+  where
+    flag name el = findAttr (unqual name) el `elem` [Just "1", Just "true"]
+
+runText :: Element -> Text
+runText = T.concat . map strContent .
+          filter ((== "t") . qName . elName) . elChildren
+
+-- | Text with a run format. Spaces at the edges stay outside the
+-- formatting, as Markdown emphasis can't start or end with a space.
+applyFormat :: RunFormat -> Text -> B.Inlines
+applyFormat (bold, italic, baseline) txt
+  | not (bold || italic || baseline /= 0) || T.null core = B.text txt
+  | otherwise = edge leading <> wrap (B.text core) <> edge trailing
+  where
+    isBlank = (`elem` (" \t\r\n" :: String))
+    core = T.dropAround isBlank txt
+    leading = T.takeWhile isBlank txt
+    trailing = T.takeWhileEnd isBlank txt
+    edge t = if T.null t then mempty else B.space
+    wrap = (if bold then B.strong else id) .
+           (if italic then B.emph else id) .
+           (if baseline > 0 then B.superscript
+              else if baseline < 0 then B.subscript else id)
+
+-- | The relationship id of a run's hyperlink (@a:hlinkClick@). Links
+-- that act within the presentation, such as a jump to another slide,
+-- carry an @action@ and are not kept.
+runLink :: Element -> Maybe Text
+runLink run = do
+  rPr <- find ((== "rPr") . qName . elName) (elChildren run)
+  link <- find ((== "hlinkClick") . qName . elName) (elChildren rPr)
+  case findAttr (unqual "action") link of
+    Just _ -> Nothing
+    Nothing -> fmap attrVal $ find isRelId (elAttribs link)
+  where
+    isRelId a = qName (attrKey a) == "id" && qURI (attrKey a) == Just relNs
+    relNs =
+      "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+-- | The attribute that marks a hyperlink whose target is still a
+-- relationship id
+linkRelAttr :: Text
+linkRelAttr = "pptx-relationship"
+
+-- | Replace the relationship id of each hyperlink read by
+-- 'paragraphInlines' with the relationship's target. A link whose
+-- relationship is missing is replaced by its text.
+resolveLinks :: [(Text, Text)] -> [Block] -> [Block]
+resolveLinks rels = walk (concatMap resolve)
+  where
+    resolve (Link (_, _, [(key, relId)]) inls _)
+      | key == linkRelAttr =
+          case lookup relId rels of
+            Just target -> [Link nullAttr inls (target, "")]
+            Nothing -> inls
+    resolve x = [x]
 
 -- | An equation (@m:oMathPara@ or @m:oMath@) as math. If texmath can't
 -- read it, its text is kept.

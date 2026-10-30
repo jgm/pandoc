@@ -79,16 +79,18 @@ Pandoc
       , Space
       , Str "diagram"
       ]
-  , Para [ Str "SKILLS" ]
+  , Para [ Strong [ Str "SKILLS" ] ]
   , Para []
   , Para
-      [ Str "Specialized"
-      , Space
-      , Str "Workers"
-      , Space
-      , Str "/"
-      , Space
-      , Str "Workflows:"
+      [ Strong
+          [ Str "Specialized"
+          , Space
+          , Str "Workers"
+          , Space
+          , Str "/"
+          , Space
+          , Str "Workflows:"
+          ]
       ]
   , Para []
   , Para
@@ -100,18 +102,20 @@ Pandoc
       , Space
       ]
   , Para [ Str "other" , Space , Str "RPA" ]
-  , Para [ Str "BRAINS" ]
+  , Para [ Strong [ Str "BRAINS" ] ]
   , Para []
   , Para
-      [ Str "Universal"
-      , Space
-      , Str "Workers"
-      , Space
-      , Str "/"
-      , Space
-      , Str "AI"
-      , Space
-      , Str "Agents:"
+      [ Strong
+          [ Str "Universal"
+          , Space
+          , Str "Workers"
+          , Space
+          , Str "/"
+          , Space
+          , Str "AI"
+          , Space
+          , Str "Agents:"
+          ]
       ]
   , Para []
   , Para [ Str "openai," , Space , Str "anthropic," ]
@@ -124,10 +128,10 @@ Pandoc
       , Space
       ]
   , Para [ Str "\8220AI" , Space , Str "natives\8221" ]
-  , Para [ Str "KNOWLEDGE" , Space ]
+  , Para [ Strong [ Str "KNOWLEDGE" ] , Space ]
   , Para []
-  , Para [ Str "Data" , Space , Str "/" , Space ]
-  , Para [ Str "RAG" , Space , Str "Pipelines" ]
+  , Para [ Strong [ Str "Data" , Space , Str "/" ] , Space ]
+  , Para [ Strong [ Str "RAG" , Space , Str "Pipelines" ] ]
   , Para []
   , Para
       [ Str "Vector"
@@ -145,7 +149,7 @@ Pandoc
       , Str "\8230"
       ]
   , Para [ Str "glean" ]
-  , Para [ Str "EW" ]
+  , Para [ Strong [ Str "EW" ] ]
   , Header 2 ( "slide-3" , [] , [] ) [ Str "Table" ]
   , Table
       ( "" , [] , [] )
