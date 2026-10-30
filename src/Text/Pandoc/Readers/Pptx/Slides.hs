@@ -55,7 +55,11 @@ slideToBlocks archive slide = do
       headerText = if T.null title
                    then "Slide " <> T.pack (show n)
                    else title
-      header = Header 2 (slideIdent, [], []) (B.toList (B.text headerText))
+      -- A slide hidden from the slide show (show="0") is still read,
+      -- with a "hidden" class on its header.
+      classes = ["hidden" | findAttr (unqual "show") slideElem == Just "0"]
+      header = Header 2 (slideIdent, classes, [])
+                 (B.toList (B.text headerText))
 
   -- Parse shapes and convert to blocks
   case findChildByName ns "p" "cSld" slideElem >>=

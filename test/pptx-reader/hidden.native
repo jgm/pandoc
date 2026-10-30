@@ -1,0 +1,21 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "Shown" ]
+  , Header
+      2 ( "slide-2" , [ "hidden" ] , [] ) [ Str "Hidden" ]
+  , Para
+      [ Str "Body"
+      , Space
+      , Str "of"
+      , Space
+      , Str "the"
+      , Space
+      , Str "hidden"
+      , Space
+      , Str "slide"
+      ]
+  , Header
+      2
+      ( "slide-3" , [] , [] )
+      [ Str "Shown" , Space , Str "explicitly" ]
+  ]
