@@ -14,6 +14,7 @@ Parsing of PPTX shapes (text boxes, images, tables, diagrams).
 module Text.Pandoc.Readers.Pptx.Shapes
   ( PptxShape(..)
   , PptxParagraph(..)
+  , TableCell(..)
   , BulletType(..)
   , parseShapes
   , parseShape
@@ -26,6 +27,7 @@ import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
 import qualified Data.ByteString.Lazy as B
 import Data.List (find, groupBy, intersperse)
 import Data.Maybe (mapMaybe)
+import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Read (readMaybe)
@@ -44,6 +46,20 @@ data PptxParagraph = PptxParagraph
   , paraText    :: [Inline]
   } deriving (Show)
 
+-- | A table cell (@a:tc@): its text, its row and column span, and whether
+-- another cell's span covers it from the left (@hMerge@) or from above
+-- (@vMerge@)
+data TableCell = TableCell
+  { tcText    :: Text
+  , tcRowSpan :: Int
+  , tcColSpan :: Int
+  , tcHMerge  :: Bool
+  , tcVMerge  :: Bool
+  } deriving (Show)
+
+tcCovered :: TableCell -> Bool
+tcCovered c = tcHMerge c || tcVMerge c
+
 -- | Bullet type
 data BulletType
   = NoBullet
@@ -59,7 +75,7 @@ data PptxShape
       , picTitle  :: Text
       , picAlt    :: Text
       }
-  | PptxTable [[Text]]                  -- Simple text cells for now
+  | PptxTable [[TableCell]]             -- Rows of cells
   | PptxDiagramRef
       { dgmDataRelId   :: Text          -- Relationship to data.xml
       , dgmLayoutRelId :: Text          -- Relationship to layout.xml
@@ -142,21 +158,29 @@ parseShape ns el
   | otherwise = Nothing
 
 -- | Parse table rows (simple text extraction)
-parseTableRows :: NameSpaces -> Element -> [[Text]]
+parseTableRows :: NameSpaces -> Element -> [[TableCell]]
 parseTableRows ns tblElem =
   let trElems = findChildrenByName ns "a" "tr" tblElem
    in map (parseTableRow ns) trElems
 
-parseTableRow :: NameSpaces -> Element -> [Text]
+parseTableRow :: NameSpaces -> Element -> [TableCell]
 parseTableRow ns trElem =
   let tcElems = findChildrenByName ns "a" "tc" trElem
-   in map extractCellText tcElems
+   in map parseCell tcElems
   where
-    extractCellText tcElem =
-      -- Get text from txBody/a:p/a:r/a:t
-      case findChildByName ns "a" "txBody" tcElem of
-        Just txBody -> extractDrawingMLText txBody
-        Nothing -> ""
+    parseCell tcElem = TableCell
+      { tcText = case findChildByName ns "a" "txBody" tcElem of
+          -- Get text from txBody/a:p/a:r/a:t
+          Just txBody -> extractDrawingMLText txBody
+          Nothing -> ""
+      , tcRowSpan = span' "rowSpan" tcElem
+      , tcColSpan = span' "gridSpan" tcElem
+      , tcHMerge = flag "hMerge" tcElem
+      , tcVMerge = flag "vMerge" tcElem
+      }
+    span' name el = maybe 1 (max 1) $
+      findAttr (unqual name) el >>= readMaybe . T.unpack
+    flag name el = findAttr (unqual name) el `elem` [Just "1", Just "true"]
 
 -- | Convert shape to Pandoc blocks
 shapeToBlocks :: PandocMonad m => Archive -> [(Text, Text)] -> PptxShape -> m [Block]
@@ -179,14 +203,15 @@ shapeToBlocks archive rels (PptxPicture relId title alt) = do
           return [Para [Image nullAttr altText (mediaPath, title)]]
 
 shapeToBlocks _archive _rels (PptxTable rows) =
-  -- Simple table representation for now
-  case rows of
+  case spannedRows rows of
     [] -> return []
     (headerRow:bodyRows) -> do
-      let makeCell text = Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1)
-                            [Plain (B.toList (B.text text))]
-          headerCells = map makeCell headerRow
-          bodyCells = map (map makeCell) bodyRows
+      let makeCell (TableCell text rs cs _ _) =
+            Cell nullAttr AlignDefault (RowSpan rs) (ColSpan cs)
+                 [Plain (B.toList (B.text text))]
+          visible = map makeCell . filter (not . tcCovered)
+          headerCells = visible headerRow
+          bodyCells = map visible bodyRows
           caption = Caption Nothing []
           colSpec = replicate (length headerRow) (AlignDefault, ColWidthDefault)
           headerRow' = Row nullAttr headerCells
@@ -207,6 +232,33 @@ shapeToBlocks archive rels (PptxDiagramRef dataRelId layoutRelId) = do
 shapeToBlocks _archive _rels (PptxGraphic text) =
   -- Placeholder for other graphics (charts, etc.)
   return [Para [Str $ "[Graphic: " <> text <> "]"]]
+
+-- | Make the spans of a table's cells fit pandoc's table model. Each row
+-- has a cell for every grid column, with the cells covered by a span
+-- marked. As a cell can't span the header row and the body, the header
+-- row's spans are kept to that row, and the body cells they covered
+-- become empty cells of their own. Row spans are clipped to the rows
+-- there are.
+spannedRows :: [[TableCell]] -> [[TableCell]]
+spannedRows [] = []
+spannedRows (header:body) =
+  map (\c -> c{ tcRowSpan = 1 }) header : go headerSpanCols (length body) body
+  where
+    headerSpanCols = S.fromList
+      [ col' | (col, c) <- zip [0 :: Int ..] header
+             , tcRowSpan c > 1, not (tcCovered c)
+             , col' <- [col .. col + tcColSpan c - 1] ]
+    -- cols: the columns still covered by a span from the header row;
+    -- left: the number of rows from this one to the last
+    go _ _ [] = []
+    go cols left (row:rows) =
+      let cells = zip [0 ..] row
+          fix (col, c)
+            | col `S.member` cols && tcVMerge c =
+                TableCell "" 1 1 False False
+            | otherwise = c{ tcRowSpan = min (tcRowSpan c) left }
+          stillCovered col = maybe False tcVMerge (lookup col cells)
+       in map fix cells : go (S.filter stillCovered cols) (left - 1) rows
 
 -- | Resolve media path (handle relative paths)
 resolveMediaPath :: Text -> Text
