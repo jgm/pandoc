@@ -773,6 +773,7 @@ library
                    Text.Pandoc.Readers.Pptx.Shapes,
                    Text.Pandoc.Readers.Pptx.Slides,
                    Text.Pandoc.Readers.Pptx.SmartArt,
+                   Text.Pandoc.Readers.Pptx.Charts,
                    Text.Pandoc.Readers.Xlsx.Parse,
                    Text.Pandoc.Readers.Xlsx.Cells,
                    Text.Pandoc.Readers.Xlsx.Sheets,

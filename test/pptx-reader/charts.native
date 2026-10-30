@@ -1,0 +1,336 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      2
+      ( "slide-1" , [] , [] )
+      [ Str "Bar" , Space , Str "chart" ]
+  , Div
+      ( "" , [ "chart" ] , [ ( "type" , "bar" ) ] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption
+             Nothing
+             [ Plain
+                 [ Str "Growth"
+                 , Space
+                 , Str "by"
+                 , Space
+                 , Str "debt"
+                 ]
+             ])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "2019" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "2020" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "Below" , Space , Str "30%" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "4.1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "3.9" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain
+                          [ Str "30"
+                          , Space
+                          , Str "to"
+                          , Space
+                          , Str "60%"
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "2.8" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "2.5" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain
+                          [ Str "60"
+                          , Space
+                          , Str "to"
+                          , Space
+                          , Str "90%"
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "2.8" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain
+                          [ Str "90%"
+                          , Space
+                          , Str "and"
+                          , Space
+                          , Str "above"
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "-0.1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "0.4" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  , Header
+      2
+      ( "slide-2" , [] , [] )
+      [ Str "Line" , Space , Str "chart" ]
+  , Div
+      ( "" , [ "chart" ] , [ ( "type" , "line" ) ] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "Revenue" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "Q1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "10" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "Q2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "12" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "Q3" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "15" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  , Header
+      2
+      ( "slide-3" , [] , [] )
+      [ Str "Scatter" , Space , Str "chart" ]
+  , Div
+      ( "" , [ "chart" ] , [ ( "type" , "scatter" ) ] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "Trial" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "2.5" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "4.0" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "3" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "5.5" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  , Header
+      2
+      ( "slide-4" , [] , [] )
+      [ Str "Unreadable" , Space , Str "chart" ]
+  , Para
+      [ Str
+          "[Graphic: other: http://schemas.openxmlformats.org/drawingml/2006/chart]"
+      ]
+  ]
