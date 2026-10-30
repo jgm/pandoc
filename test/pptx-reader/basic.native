@@ -1,149 +1,256 @@
-[ Header 2 ( "slide-1" , [] , [] ) [ Str "LLMs" ]
-, BulletList
-    [ [ Plain
-          [ Str
-              "Provider  \61664 Available LLMs \8211 who manages? How?"
-          ]
-      ]
-    , [ Plain
-          [ Str
-              "EW maintained list of \8220approved\8221 LLMs for Universal workers"
-          ]
-      ]
-    , [ Plain
-          [ Str
-              "Rebuilding of UWs to the \8220Newgen\8221 thing completely"
-          ]
-      ]
-    , [ Plain [ Str "Streaming support" ] ]
-    , [ Plain [ Str "Multimodal (voice streaming) models?" ] ]
-    ]
-, Header
-    2
-    ( "slide-2" , [] , [] )
-    [ Str "Everworker   venn   diagram" ]
-, Para [ Str "SKILLS" ]
-, Para [ Str "" ]
-, Para [ Str "Specialized Workers / Workflows:" ]
-, Para [ Str "" ]
-, Para [ Str "n8n, UI Path, " ]
-, Para [ Str "other RPA" ]
-, Para [ Str "BRAINS" ]
-, Para [ Str "" ]
-, Para [ Str "Universal Workers / AI Agents:" ]
-, Para [ Str "" ]
-, Para [ Str "openai , anthropic," ]
-, Para [ Str "Crew AI, other " ]
-, Para [ Str "\8220AI natives\8221" ]
-, Para [ Str "KNOWLEDGE " ]
-, Para [ Str "" ]
-, Para [ Str "Data / " ]
-, Para [ Str "RAG Pipelines" ]
-, Para [ Str "" ]
-, Para
-    [ Str "Vector DBs, specialized data prep vendors, \8230" ]
-, Para [ Str "glean" ]
-, Para [ Str "EW" ]
-, Header 2 ( "slide-3" , [] , [] ) [ Str "Table" ]
-, Table
-    ( "" , [] , [] )
-    (Caption Nothing [])
-    [ ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Col1" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Col2" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Col3" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Name" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Anton" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Antich" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Age" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "23" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "years" ] ]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "slide-1" , [] , [] ) [ Str "LLMs" ]
+  , BulletList
+      [ [ Plain
+            [ Str "Provider"
+            , Space
+            , Str "\61664"
+            , Space
+            , Str "Available"
+            , Space
+            , Str "LLMs"
+            , Space
+            , Str "\8211"
+            , Space
+            , Str "who"
+            , Space
+            , Str "manages?"
+            , Space
+            , Str "How?"
             ]
         ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Image
-        ( "" , [] , [] ) [] ( "ppt/media/image1.png" , "Picture 6" )
-    ]
-, Header 2 ( "slide-4" , [] , [] ) [ Str "Smart Art" ]
-, Div
-    ( ""
-    , [ "smartart" , "chevron2" ]
-    , [ ( "layout" , "chevron2" ) ]
-    )
-    [ Para [ Strong [ Str "First" ] ]
-    , BulletList
-        [ [ Plain [ Str "another" ] ]
-        , [ Plain [ Str "subtitle" ] ]
+      , [ Plain
+            [ Str "EW"
+            , Space
+            , Str "maintained"
+            , Space
+            , Str "list"
+            , Space
+            , Str "of"
+            , Space
+            , Str "\8220approved\8221"
+            , Space
+            , Str "LLMs"
+            , Space
+            , Str "for"
+            , Space
+            , Str "Universal"
+            , Space
+            , Str "workers"
+            ]
         ]
-    , Para [ Strong [ Str "Second" ] ]
-    , BulletList
-        [ [ Plain [ Str "and yet again" ] ]
-        , [ Plain [ Str "yet more" ] ]
+      , [ Plain
+            [ Str "Rebuilding"
+            , Space
+            , Str "of"
+            , Space
+            , Str "UWs"
+            , Space
+            , Str "to"
+            , Space
+            , Str "the"
+            , Space
+            , Str "\8220Newgen\8221"
+            , Space
+            , Str "thing"
+            , Space
+            , Str "completely"
+            ]
         ]
-    ]
-]
+      , [ Plain [ Str "Streaming" , Space , Str "support" ] ]
+      , [ Plain
+            [ Str "Multimodal"
+            , Space
+            , Str "(voice"
+            , Space
+            , Str "streaming)"
+            , Space
+            , Str "models?"
+            ]
+        ]
+      ]
+  , Header
+      2
+      ( "slide-2" , [] , [] )
+      [ Str "Everworker"
+      , Space
+      , Str "venn"
+      , Space
+      , Str "diagram"
+      ]
+  , Para [ Str "SKILLS" ]
+  , Para []
+  , Para
+      [ Str "Specialized"
+      , Space
+      , Str "Workers"
+      , Space
+      , Str "/"
+      , Space
+      , Str "Workflows:"
+      ]
+  , Para []
+  , Para
+      [ Str "n8n,"
+      , Space
+      , Str "UI"
+      , Space
+      , Str "Path,"
+      , Space
+      ]
+  , Para [ Str "other" , Space , Str "RPA" ]
+  , Para [ Str "BRAINS" ]
+  , Para []
+  , Para
+      [ Str "Universal"
+      , Space
+      , Str "Workers"
+      , Space
+      , Str "/"
+      , Space
+      , Str "AI"
+      , Space
+      , Str "Agents:"
+      ]
+  , Para []
+  , Para [ Str "openai," , Space , Str "anthropic," ]
+  , Para
+      [ Str "Crew"
+      , Space
+      , Str "AI,"
+      , Space
+      , Str "other"
+      , Space
+      ]
+  , Para [ Str "\8220AI" , Space , Str "natives\8221" ]
+  , Para [ Str "KNOWLEDGE" , Space ]
+  , Para []
+  , Para [ Str "Data" , Space , Str "/" , Space ]
+  , Para [ Str "RAG" , Space , Str "Pipelines" ]
+  , Para []
+  , Para
+      [ Str "Vector"
+      , Space
+      , Str "DBs,"
+      , Space
+      , Str "specialized"
+      , Space
+      , Str "data"
+      , Space
+      , Str "prep"
+      , Space
+      , Str "vendors,"
+      , Space
+      , Str "\8230"
+      ]
+  , Para [ Str "glean" ]
+  , Para [ Str "EW" ]
+  , Header 2 ( "slide-3" , [] , [] ) [ Str "Table" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Col1" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Col2" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Col3" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Name" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Anton" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Antich" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Age" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "23" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "years" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Image
+          ( "" , [] , [] ) [] ( "ppt/media/image1.png" , "Picture 6" )
+      ]
+  , Header
+      2
+      ( "slide-4" , [] , [] )
+      [ Str "Smart" , Space , Str "Art" ]
+  , Div
+      ( ""
+      , [ "smartart" , "chevron2" ]
+      , [ ( "layout" , "chevron2" ) ]
+      )
+      [ Para [ Strong [ Str "First" ] ]
+      , BulletList
+          [ [ Plain [ Str "another" ] ]
+          , [ Plain [ Str "subtitle" ] ]
+          ]
+      , Para [ Strong [ Str "Second" ] ]
+      , BulletList
+          [ [ Plain
+                [ Str "and" , Space , Str "yet" , Space , Str "again" ]
+            ]
+          , [ Plain [ Str "yet" , Space , Str "more" ] ]
+          ]
+      ]
+  ]

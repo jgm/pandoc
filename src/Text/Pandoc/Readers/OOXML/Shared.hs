@@ -26,6 +26,9 @@ module Text.Pandoc.Readers.OOXML.Shared
   , findChildrenByName
   , findElementByName
   , findAttrByName
+    -- * DrawingML text
+  , drawingMLParagraphLines
+  , drawingMLText
   ) where
 
 import qualified Data.Map as M
@@ -93,3 +96,25 @@ findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =
   let ns' = ns <> elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
+
+-- | The text of a DrawingML paragraph (@a:p@), one item per line: line
+-- breaks (@a:br@) split it. The text of runs (@a:r@) and fields
+-- (@a:fld@) is concatenated as written, without adding spaces between
+-- them, since a run boundary can fall anywhere, even inside a word.
+drawingMLParagraphLines :: Element -> [Text]
+drawingMLParagraphLines = T.splitOn "\n" . T.concat . map piece . elChildren
+  where
+    piece el = case qName (elName el) of
+      "r"   -> runText el
+      "fld" -> runText el
+      "br"  -> "\n"
+      _     -> ""
+    runText = T.concat . map strContent .
+              filter ((== "t") . qName . elName) . elChildren
+
+-- | The text of all DrawingML paragraphs (@a:p@) in an element, with a
+-- space between paragraphs and in place of line breaks.
+drawingMLText :: Element -> Text
+drawingMLText = T.unwords . filter (not . T.null) . map T.strip .
+                concatMap drawingMLParagraphLines .
+                filterElementsName ((== "p") . qName)

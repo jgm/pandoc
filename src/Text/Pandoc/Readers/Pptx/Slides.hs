@@ -19,6 +19,7 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
@@ -54,7 +55,7 @@ slideToBlocks archive slide = do
       headerText = if T.null title
                    then "Slide " <> T.pack (show n)
                    else title
-      header = Header 2 (slideIdent, [], []) [Str headerText]
+      header = Header 2 (slideIdent, [], []) (B.toList (B.text headerText))
 
   -- Parse shapes and convert to blocks
   case findChildByName ns "p" "cSld" slideElem >>=

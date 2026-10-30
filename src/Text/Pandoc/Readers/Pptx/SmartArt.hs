@@ -22,6 +22,7 @@ import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.XML.Light
@@ -136,8 +137,7 @@ extractNodeText ns ptElem = do
   -- Extract text from dgm:t element (which contains a:p/a:r/a:t)
   let text = case findChildByName ns "dgm" "t" ptElem of
         Just tElem ->
-          -- Recursively get ALL text content from all descendants
-          getAllText tElem
+          drawingMLText tElem
         Nothing -> ""
 
   -- Only return nodes with actual text
@@ -200,19 +200,12 @@ diagramToBlocks diagram =
 nodeToBlocks :: (Text, [Text]) -> [Block]
 nodeToBlocks (nodeText, childTexts) =
   if null childTexts
-    then [Para [Strong [Str nodeText]]]
-    else [ Para [Strong [Str nodeText]]
-         , BulletList [[Plain [Str child]] | child <- childTexts]
+    then [Para [Strong (inlines nodeText)]]
+    else [ Para [Strong (inlines nodeText)]
+         , BulletList [[Plain (inlines child)] | child <- childTexts]
          ]
-
--- | Recursively extract all text from an element and its descendants
-getAllText :: Element -> Text
-getAllText el =
-  let textFromContent (Text cdata) = cdData cdata
-      textFromContent (Elem e) = getAllText e
-      textFromContent _ = ""
-      texts = map textFromContent (elContent el)
-   in T.unwords $ filter (not . T.null) texts
+  where
+    inlines = B.toList . B.text
 
 -- Helper functions
 maybeToEither :: Text -> Maybe a -> Either Text a

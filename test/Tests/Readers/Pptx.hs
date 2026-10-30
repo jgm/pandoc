@@ -44,5 +44,9 @@ tests = [ testGroup "basic"
             "text extraction"
             "pptx-reader/basic.pptx"
             "pptx-reader/basic.native"
+          , testCompare
+            "text runs and line breaks"
+            "pptx-reader/runs.pptx"
+            "pptx-reader/runs.native"
           ]
         ]
