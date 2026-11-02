@@ -17,28 +17,37 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            cabal_opts: '-fembed_data_files -fserver -flua'
+            # --enable-tests makes the solver choose the same dependencies
+            # as CI, whose store is shared.  It doesn't build the test suites,
+            # since pandoc-cli is the only target.
+            cabal_opts: '--enable-tests -fembed_data_files -fserver -flua'
 
     steps:
     - uses: actions/checkout@v7
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.10
-        ghcup install cabal --set 3.14
+        ghcup install cabal --set 3.18.2.0
 
     # declare/restore cached things
 
-    - name: Cache cabal global package db
+    - name: Update cabal and compute cache keys
+      id:   cabal-keys
+      uses: ./.github/actions/cabal-cache-key
+
+    # Shares the store saved by the CI windows job, so nothing is saved here.
+    - name: Restore cabal store
       id:   cabal-global
-      uses: actions/cache@v6
+      uses: actions/cache/restore@v6
       with:
         path: |
-          C:\cabal\store
-        key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+          ${{ steps.cabal-keys.outputs.store-dir }}
+        key: ${{ steps.cabal-keys.outputs.store-key }}
+        restore-keys: |
+          ${{ steps.cabal-keys.outputs.store-restore-key }}
 
     - name: Install dependencies
       run: |
-          cabal update
           cabal build ${{ matrix.versions.cabal_opts }} --dependencies-only pandoc-cli
 
     - name: Create windows package
@@ -108,17 +117,23 @@ jobs:
     - name: Install ghc and cabal
       run: |
         ghcup install ghc --set 9.10
-        ghcup install cabal --set 3.14
+        ghcup install cabal --set 3.18.2.0
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
 
-    - name: Cache cabal global package db
+    - name: Update cabal and compute cache keys
+      id:   cabal-keys
+      uses: ./.github/actions/cabal-cache-key
+
+    # CI doesn't run on macOS, so this job saves its own store.
+    - name: Restore cabal store
       id:   cabal-global
-      uses: actions/cache@v6
+      uses: actions/cache/restore@v6
       with:
         path: |
-          ~/.local/state/cabal/store
-          ~/.cabal/store
-        key: ${{ runner.os }}-appdata-cabal-rc-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
+          ${{ steps.cabal-keys.outputs.store-dir }}
+        key: ${{ steps.cabal-keys.outputs.store-key }}
+        restore-keys: |
+          ${{ steps.cabal-keys.outputs.store-restore-key }}
 
     - name: Create release
       run: |
@@ -129,4 +144,12 @@ jobs:
       with:
         name: macos-x86_64.zip
         path: macos-x86_64.zip
+
+    - name: Save cabal store
+      if: steps.cabal-global.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: |
+          ${{ steps.cabal-keys.outputs.store-dir }}
+        key: ${{ steps.cabal-global.outputs.cache-primary-key }}
 

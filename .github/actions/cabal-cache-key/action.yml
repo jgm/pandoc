@@ -1,0 +1,63 @@
+name: Cabal cache keys
+description: >
+  Run cabal update and compute cache keys from the dependency plan, so
+  that CI, nightly, and release candidate builds can share a cabal store.
+
+outputs:
+  store-dir:
+    description: Path of the cabal store
+    value: ${{ steps.keys.outputs.store-dir }}
+  store-key:
+    description: Primary cache key for the cabal store
+    value: ${{ steps.keys.outputs.store-key }}
+  store-restore-key:
+    description: Fallback cache key prefix for the cabal store
+    value: ${{ steps.keys.outputs.store-restore-key }}
+  prefix:
+    description: Key prefix identifying platform, compilers, and cache version
+    value: ${{ steps.keys.outputs.prefix }}
+  plan-hash:
+    description: Hash of the unit ids of all non-local dependencies
+    value: ${{ steps.keys.outputs.plan-hash }}
+  week:
+    description: Current year and week, for caches that should refresh weekly
+    value: ${{ steps.keys.outputs.week }}
+
+runs:
+  using: composite
+  steps:
+  # cabal update also writes a default config file if there is none;
+  # without one, cabal path prints a notice on stdout.  -z (ignore the
+  # project) keeps cabal path from checking out source-repository-packages,
+  # which prints git output on stdout too.  cabal update needs -z as well:
+  # otherwise it clones source-repository-packages into dist-newstyle,
+  # and restoring the dist-newstyle cache on top of that clone corrupts it.
+  # For the same reason the dry run uses a separate build directory.
+  #
+  # Always compute the plan with --enable-tests: optimization and pandoc's
+  # own flags don't affect the unit ids of dependencies, but --enable-tests
+  # can change which versions the solver picks.  Builds that want to share
+  # a store must therefore use --enable-tests too.
+  #
+  # Bump the v3 below to invalidate all of the caches that use these keys.
+  - id: keys
+    shell: bash
+    run: |
+      cabal update -z
+      plandir="$RUNNER_TEMP/cabal-plan"
+      cabal build --dry-run --builddir="$plandir" --enable-tests all
+      if command -v sha256sum > /dev/null; then
+        sha="sha256sum"
+      else
+        sha="shasum -a 256"
+      fi
+      planhash=$(jq -r '."install-plan"[] | select(.style != "local" and .type == "configured") | .id' "$plandir/cache/plan.json" | tr -d '\r' | sort -u | $sha | cut -d' ' -f1)
+      prefix="$RUNNER_OS-$RUNNER_ARCH-ghc-$(ghc --numeric-version)-cabal-$(cabal --numeric-version)-v3"
+      {
+        echo "store-dir=$(cabal path -z --store-dir)"
+        echo "store-key=$prefix-store-$planhash"
+        echo "store-restore-key=$prefix-store-"
+        echo "prefix=$prefix"
+        echo "plan-hash=$planhash"
+        echo "week=$(date +%G-%V)"
+      } >> "$GITHUB_OUTPUT"
