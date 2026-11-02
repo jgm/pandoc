@@ -90,6 +90,26 @@ jobs:
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R $USER /usr/local/.ghcup
 
+    - name: Resolve GHC version
+      id:   ghc
+      shell: bash
+      run: |
+          version=$(ghcup list -t ghc -c available -r | awk -v prefix="${{ matrix.versions.ghc }}." 'index($2, prefix) == 1 { print $2 }' | sort -V | tail -1)
+          test -n "$version"
+          dir="$(ghcup whereis basedir)/ghc/$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          echo "preinstalled=$(test -d "$dir" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
+
+    - name: Cache GHC installation
+      if:   steps.ghc.outputs.preinstalled != 'true'
+      uses: actions/cache@v6
+      with:
+        path: |
+          ${{ steps.ghc.outputs.dir }}
+        key: ${{ steps.ghc.outputs.os }}-ghc-install-${{ secrets.CACHE_VERSION }}-${{ steps.ghc.outputs.version }}
+
     - name: Install cabal/ghc
       run: |
         ghcup install ghc --set ${{ matrix.versions.ghc }}
