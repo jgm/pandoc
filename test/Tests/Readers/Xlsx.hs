@@ -73,4 +73,10 @@ tests = [ testGroup "basic"
             "xlsx-reader/dates-1904.xlsx"
             "xlsx-reader/dates-1904.native"
           ]
+        , testGroup "merged cells"
+          [ testCompare
+            "merged ranges as spans"
+            "xlsx-reader/merged.xlsx"
+            "xlsx-reader/merged.native"
+          ]
         ]

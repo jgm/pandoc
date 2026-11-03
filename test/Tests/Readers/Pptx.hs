@@ -64,5 +64,10 @@ tests = [ testGroup "basic"
             "equations and alternate content"
             "pptx-reader/equations.pptx"
             "pptx-reader/equations.native"
+        , testGroup "tables"
+          [ testCompare
+            "merged cells"
+            "pptx-reader/table-spans.pptx"
+            "pptx-reader/table-spans.native"
           ]
         ]
