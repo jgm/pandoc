@@ -461,11 +461,10 @@ tokenize = totoks (TokenizerState False False)
                                Just ('\n', _) ->
                                  Tok pos (CtrlSeq " ") ("\\" <> w1)
                                  : totoks atIsLetter
-                                    (incSourceColumn pos (T.length ws)) r1
+                                    (incSourceColumn pos (1 + T.length w1)) r1
                                _ ->
                                  Tok pos (CtrlSeq " ") ws
-                                 : totoks atIsLetter
-                                    (incSourceColumn pos (T.length ws)) r3
+                                 : totoks atIsLetter (advancePos pos ws) r3
                   | otherwise  ->
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
                       : totoks atIsLetter (incSourceColumn pos 2) rest'
@@ -517,6 +516,13 @@ tokenize = totoks (TokenizerState False False)
          | otherwise ->
            Tok pos Symbol (T.singleton c) :
              totoks atIsLetter (incSourceColumn pos 1) rest
+
+  advancePos pos t =
+    case T.uncons t of
+      Just ('\n', rest) ->
+        advancePos (setSourceColumn (incSourceLine pos 1) 1) rest
+      Just (_, rest) -> advancePos (incSourceColumn pos 1) rest
+      Nothing -> pos
 
 isSpaceOrTab :: Char -> Bool
 isSpaceOrTab ' '  = True
