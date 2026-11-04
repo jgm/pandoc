@@ -50,7 +50,8 @@ import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown,
                                             linkAttributes,
                                             attrsToMarkdown,
                                             attrsToMarkua,
-                                            linkDestination)
+                                            linkDestination,
+                                            escapeLinkTitle)
 import Text.Pandoc.Writers.Markdown.Table (pipeTable, pandocTable)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
@@ -282,7 +283,7 @@ keyToMarkdown :: PandocMonad m
 keyToMarkdown opts (label', (src, tit), attr) = do
   let tit' = if T.null tit
                 then empty
-                else space <> "\"" <> literal tit <> "\""
+                else space <> "\"" <> literal (escapeLinkTitle tit) <> "\""
   return $ nest 2 $ hang 2
             ("[" <> literal label' <> "]:" <> space)
             (literal (linkDestination src) <> tit')

@@ -15,7 +15,8 @@ module Text.Pandoc.Writers.Markdown.Inline (
   linkAttributes,
   attrsToMarkdown,
   attrsToMarkua,
-  linkDestination
+  linkDestination,
+  escapeLinkTitle
   ) where
 import Control.Monad (when, liftM2)
 import Control.Monad.Reader
@@ -341,14 +342,31 @@ avoidBadWraps inListItem = go . toList
 
 -- | Render a link destination, enclosing it in angle brackets if
 -- it contains whitespace, which is not allowed in a bare destination.
+-- In either form, @&@ is escaped when it begins a character
+-- reference, since readers decode character references in link
+-- destinations (#11994).
 linkDestination :: Text -> Text
 linkDestination src
-  | T.any isSpace src = "<" <> T.concatMap escapeChar src <> ">"
-  | otherwise = src
+  | T.any isSpace src = "<" <> T.pack (go True (T.unpack src)) <> ">"
+  | otherwise = T.pack (go False (T.unpack src))
   where
-    escapeChar c
-      | c `elem` ['<', '>', '\\'] = T.pack ['\\', c]
-      | otherwise = T.singleton c
+    go _ ('&':cs)
+      | Right _ <- parse characterReference "" ('&':cs)
+      = '\\' : '&' : go False cs
+    go bracketed (c:cs)
+      | bracketed && c `elem` ['<', '>', '\\'] = '\\' : c : go bracketed cs
+      | otherwise = c : go bracketed cs
+    go _ [] = []
+
+-- | Escape a link title for use between double quotes.  Readers
+-- process backslash escapes there, so @\"@ and @\\\\@ would otherwise
+-- change the title or break the link (#11994).
+escapeLinkTitle :: Text -> Text
+escapeLinkTitle = T.concatMap go
+  where
+    go '"'  = "\\\""
+    go '\\' = "\\\\"
+    go c    = T.singleton c
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
@@ -660,7 +678,7 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if T.null tit
                      then empty
-                     else literal $ " \"" <> tit <> "\""
+                     else literal $ " \"" <> escapeLinkTitle tit <> "\""
   let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
   let useAuto = isURI src &&
                 T.null ident &&
