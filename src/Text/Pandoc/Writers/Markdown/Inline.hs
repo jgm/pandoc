@@ -15,7 +15,8 @@ module Text.Pandoc.Writers.Markdown.Inline (
   linkAttributes,
   attrsToMarkdown,
   attrsToMarkua,
-  linkDestination
+  linkDestination,
+  escapeText
   ) where
 import Control.Monad (when, liftM2)
 import Control.Monad.Reader
@@ -333,7 +334,17 @@ avoidBadWraps inListItem = go . toList
              || (t == "1." || t == "1)")
             -> Text (len + 1) (" " <> t) <> go (BreakingSpace : xs)
         _   -> BreakingSpace <> Text len t <> go (BreakingSpace : xs)
+  -- A run of only dashes or equals as the last word of a paragraph
+  -- would end up alone on a line when the text wraps, where it reads
+  -- back as a setext heading underline or a thematic break (#11992).
+  -- Keep it on the previous line.
+  go (BreakingSpace : Text len t : [])
+    | isDashOrEqualsRun t
+    = Text (len + 1) (" " <> t)
   go (x:xs) = x <> go xs
+
+  isDashOrEqualsRun t =
+    not (T.null t) && (T.all (== '-') t || T.all (== '=') t)
 
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
   toList (Concat a b) = a : toList b
