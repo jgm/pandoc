@@ -269,7 +269,8 @@ getReference attr label target = do
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts ils = do
     inlist <- asks envInList
-    avoidBadWraps inlist <$> go ils
+    variant <- asks envVariant
+    avoidBadWraps inlist <$> go (insertSeparators opts variant ils)
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
@@ -318,6 +319,40 @@ inlineListToMarkdown opts ils = do
         isLinkOrSpan Link{} = True
         isLinkOrSpan Span{} = True
         isLinkOrSpan _ = False
+
+-- | Insert a zero-width space between adjacent inline elements that
+-- would run together in the output and read back differently
+-- (#11993): back-to-back code spans whose backtick runs would join
+-- into one span, and emphasis, strong, strikeout, subscript or
+-- superscript elements whose closing and opening delimiter runs would
+-- join into a longer or differently parsed run.  The zero-width space
+-- keeps the elements apart at the cost of an invisible character in
+-- the text.  No separator is needed where the writer already emits
+-- one, e.g. the attribute block after a code span that has attributes.
+insertSeparators :: WriterOptions -> MarkdownVariant -> [Inline] -> [Inline]
+insertSeparators opts variant ils
+  | variant == PlainText = ils
+  | otherwise = go ils
+  where
+    go (x@(Code attr1 _) : y@(Code _ _) : rest)
+      | not (writesAttrs attr1) = x : zwsp : go (y : rest)
+    go (x@(Emph _) : y@(Emph _) : rest) = x : zwsp : go (y : rest)
+    go (x@(Strong _) : y@(Strong _) : rest) = x : zwsp : go (y : rest)
+    go (x@(Strikeout _) : y@(Strikeout _) : rest)
+      | isEnabled Ext_strikeout opts = x : zwsp : go (y : rest)
+    go (x@(Subscript _) : y@(Subscript _) : rest)
+      | isEnabled Ext_subscript opts = x : zwsp : go (y : rest)
+    go (x@(Superscript _) : y@(Superscript _) : rest)
+      | isEnabled Ext_superscript opts = x : zwsp : go (y : rest)
+    go (x:xs) = x : go xs
+    go [] = []
+    zwsp = Str "\x200B"
+    writesAttrs a = a /= nullAttr &&
+                    case variant of
+                      Markua -> True
+                      Markdown -> isEnabled Ext_inline_code_attributes opts ||
+                                  isEnabled Ext_attributes opts
+                      _ -> False
 
 -- Remove breaking spaces that might cause bad wraps.
 avoidBadWraps :: Bool -> Doc Text -> Doc Text
