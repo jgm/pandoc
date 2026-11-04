@@ -371,7 +371,7 @@ blocksThenInline = try $ do
 listTodoMarker :: PandocMonad m => VwParser m Inlines
 listTodoMarker = try $ do
   x <- (many spaceChar >> char '[')
-       *> oneOf " .oOX"
+       *> oneOf " .oOX-"
        <* (char ']' >> spaceChar)
   return $ makeListMarkerSpan x
 
@@ -383,6 +383,7 @@ makeListMarkerSpan x =
             'o' -> "done2"
             'O' -> "done3"
             'X' -> "done4"
+            '-' -> "rejected"
             _   -> ""
     in
       B.spanWith ("", [cl], []) mempty
