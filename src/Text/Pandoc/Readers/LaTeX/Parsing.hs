@@ -517,12 +517,11 @@ tokenize = totoks (TokenizerState False False)
            Tok pos Symbol (T.singleton c) :
              totoks atIsLetter (incSourceColumn pos 1) rest
 
-  advancePos pos t =
-    case T.uncons t of
-      Just ('\n', rest) ->
-        advancePos (setSourceColumn (incSourceLine pos 1) 1) rest
-      Just (_, rest) -> advancePos (incSourceColumn pos 1) rest
-      Nothing -> pos
+  -- Keep tabs at one column, as in the rest of the tokenizer.
+  advancePos = T.foldl' $ \pos c ->
+    if c == '\n'
+       then setSourceColumn (incSourceLine pos 1) 1
+       else incSourceColumn pos 1
 
 isSpaceOrTab :: Char -> Bool
 isSpaceOrTab ' '  = True
