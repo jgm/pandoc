@@ -51,6 +51,24 @@ extra-deps:
   subdirs: [commonmark]
 - git: https://github.com/jgm/typst-hs.git
   commit: c5548ce803657545a9672e919d5b9a8a805ed8f1
+# needed for crypton:
+- crypton-2.2.6
+- crypton-x509-1.10.1
+- crypton-x509-validation-1.10.1
+- crypton-x509-store-1.10.0
+- crypton-x509-system-1.10.0
+- crypton-asn1-encoding-0.10.0
+- crypton-asn1-types-0.4.1
+- crypton-asn1-parse-0.10.0
+- crypton-connection-0.4.6
+- time-hourglass-0.3.0
+- tls-session-manager-0.1.2
+- crypto-token-0.2.1
+- http-client-tls-0.4.0
+- tls-2.4.14
+- ram-0.22.1
+- hpke-0.4.0
+- ech-config-0.0.2
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
