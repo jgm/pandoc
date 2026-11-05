@@ -33,9 +33,8 @@ if impl(ghc >= 9.14)
 
 -- Otherwise the solver prefers disabling the http flag to using
 -- allow-newer.  (Can still be overridden with -f-http.)
-if impl(ghc >= 9.14) && !arch(wasm32)
-  package pandoc
-    flags: +http
+package pandoc
+  flags: +http
 
 -- Use the bundled C zlib, so the build doesn't require any
 -- C libraries to be installed.
