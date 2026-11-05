@@ -54,7 +54,8 @@ extra-deps:
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 # needed because not yet in nixpkgs:
-- emojis-0.1.5
+- git: https://github.com/jgm/emojis.git
+  commit: eb7776592b48e6f7137c63bcecd14d20445648f5
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.51
