@@ -4,8 +4,7 @@ packages: .
           pandoc-cli
 constraints: skylighting-format-blaze-html >= 0.1.2.2,
              skylighting-format-context >= 0.1.0.2,
-             auto-update >= 0.2.6,
-             crypton >= 2.0.1
+             auto-update >= 0.2.6
 
 source-repository-package
   type: git
@@ -28,8 +27,7 @@ source-repository-package
 if impl(ghc >= 9.14)
   allow-newer: serialise:base,
                serialise:containers,
-               cborg:base,
-               haddock-library:base
+               cborg:base
 
 -- Otherwise the solver prefers disabling the http flag to using
 -- allow-newer.  (Can still be overridden with -f-http.)
