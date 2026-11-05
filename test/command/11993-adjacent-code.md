@@ -1,8 +1,8 @@
 Adjacent inline elements that would run together in the output
 must be separated, so they read back as they were written (#11993).
 
-Back-to-back code spans read back as a single span containing
-backticks; a zero-width space keeps them apart:
+Back-to-back code spans would render as a single code span, so
+we insert a zero-width space to keep them apart:
 
 ```
 % pandoc -f native -t markdown
@@ -11,18 +11,7 @@ backticks; a zero-width space keeps them apart:
 `a(`​`b)`
 ```
 
-A zero-width space reads back as a separate `Str`, and attributes on
-either span survive:
-
-```
-% pandoc -f native -t markdown
-[Para [Code ("",[],[]) "a(", Code ("",["y"],[]) "b)"]]
-^D
-`a(`​`b)`{.y}
-```
-
-No separator is needed where the writer already emits one, i.e. the
-attribute block after a code span that has attributes:
+No separator is needed when the first code span has attributes:
 
 ```
 % pandoc -f native -t markdown
@@ -31,18 +20,19 @@ attribute block after a code span that has attributes:
 `a(`{.x}`b)`
 ```
 
-The same applies to variants without attribute support, such as gfm:
+In formats that don't support attributes on inline code, such as gfm,
+we'll need the zero-width space again:
 
 ```
 % pandoc -f native -t gfm
-[Para [Code ("",[],[]) "a(", Code ("",[],[]) "b)"]]
+[Para [Code ("",["x"],[]) "a(", Code ("",[],[]) "b)"]]
 ^D
 `a(`​`b)`
 ```
 
 The same problem arises for emphasis-like elements, whose delimiter
-runs would join; emphasis, strong, strikeout and subscript spans get
-the same treatment:
+runs would join; emphasis, strong, strikeout, subscript, and superscript
+spans get the same treatment:
 
 ```
 % pandoc -f native -t markdown
@@ -77,6 +67,13 @@ the same treatment:
 [Para [Subscript [Str "hi"], Subscript [Str "hi"]]]
 ^D
 ~hi~​~hi~
+```
+
+```
+% pandoc -f native -t markdown
+[Para [Superscript [Str "hi"], Superscript [Str "hi"]]]
+^D
+^hi^​^hi^
 ```
 
 Reading a separated pair back yields the two elements with a
