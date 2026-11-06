@@ -16,7 +16,7 @@ module Tests.Readers.HTML (tests) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck hiding (orderedList)
 import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
@@ -57,7 +57,65 @@ roundTrip b = d'' == d'''
                             { writerWrapText = WrapPreserve })
 
 tests :: [TestTree]
-tests = [ testGroup "math groups and comments"
+tests = [ testGroup "footnotes"
+          [ test html "bullet list and backlink" $
+              "<p><a href=\"#fn1\" role=\"doc-noteref\">1</a></p>\
+              \<section role=\"doc-endnotes\"><hr><ol><li id=\"fn1\">\
+              \<ul><li><p>one</p></li><li><p>two</p></li></ul>\
+              \<a href=\"#ref1\" role=\"doc-backlink\">back</a>\
+              \</li></ol></section>" =?>
+              para (note (bulletList [para "one", para "two"]))
+          , test html "ordered list (#11852)" $
+              "<p><a href=\"#fn1\" role=\"doc-noteref\">1</a></p>\
+              \<section role=\"doc-endnotes\"><hr><ol><li id=\"fn1\">\
+              \<ol><li><p>one</p></li><li><p>two</p></li></ol>\
+              \<a href=\"#ref1\" role=\"doc-backlink\">back</a>\
+              \</li></ol></section>" =?>
+              para (note (orderedList [para "one", para "two"]))
+          , test html "nested ordered and bullet lists (#11852)" $
+              "<p><a href=\"#fn1\" role=\"doc-noteref\">1</a></p>\
+              \<section role=\"doc-endnotes\"><ol><li id=\"fn1\">\
+              \<ol start=\"3\" type=\"I\"><li><p>one</p>\
+              \<ul><li><p>two</p><ol start=\"2\" type=\"a\">\
+              \<li><p>three</p></li></ol></li></ul></li></ol>\
+              \<a href=\"#ref1\" role=\"doc-backlink\">back</a>\
+              \</li></ol></section>" =?>
+              para (note (orderedListWith (3, UpperRoman, DefaultDelim)
+                [para "one" <> bulletList
+                  [para "two" <>
+                   orderedListWith (2, LowerAlpha, DefaultDelim)
+                     [para "three"]]]))
+          , test html "multiple notes and following list (#11852)" $
+              "<p><a href=\"#fn1\" role=\"doc-noteref\">1</a>\
+              \<a href=\"#fn2\" role=\"doc-noteref\">2</a>\
+              \<a href=\"#fn3\" role=\"doc-noteref\">3</a></p>\
+              \<section role=\"doc-endnotes\"><hr><ol><li id=\"fn1\">\
+              \<ol><li><p>one</p></li></ol>\
+              \<a href=\"#ref1\" role=\"doc-backlink\">back</a></li>\
+              \<li id=\"fn2\"><ul><li><p>two</p><ol>\
+              \<li><p>three</p></li></ol></li></ul>\
+              \<a href=\"#ref2\" role=\"doc-backlink\">back</a></li>\
+              \<li id=\"fn3\"><p>four\
+              \<a href=\"#ref3\" role=\"doc-backlink\">back</a></p>\
+              \</li></ol></section><ol><li><p>five</p></li></ol>" =?>
+              para (note (orderedList [para "one"]) <>
+                    note (bulletList
+                      [para "two" <> orderedList [para "three"]]) <>
+                    note (para "four")) <>
+              orderedList [para "five"]
+          , test (purely (readHtml def
+                    { readerExtensions = enableExtension Ext_epub_html_exts
+                        (readerExtensions def) }) :: Text -> Pandoc)
+              "EPUB note contents (#11852)" $
+              "<p><a href=\"#fn1\" epub:type=\"noteref\">1</a></p>\
+              \<section epub:type=\"footnotes\">\
+              \<aside id=\"fn1\" epub:type=\"footnote\">\
+              \<ol><li><p>one</p></li></ol>\
+              \<a href=\"#ref1\" role=\"doc-backlink\">back</a>\
+              \</aside></section>" =?>
+              para (note (orderedList [para "one"]))
+          ]
+        , testGroup "math groups and comments"
           [ testGroup name
             [ test reader "nested math in a color box" $
                 wrap "\\colorbox{aqua}{$F=ma$}" =?>
