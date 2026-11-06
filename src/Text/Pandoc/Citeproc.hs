@@ -637,6 +637,8 @@ removeFinalPeriod ils =
   case lastMay ils of
     Just (Span attr ils')
       -> initSafe ils ++ [Span attr (removeFinalPeriod ils')]
+    Just (Link attr ils' tgt)
+      -> initSafe ils ++ [Link attr (removeFinalPeriod ils') tgt]
     Just (Emph ils')
       -> initSafe ils ++ [Emph (removeFinalPeriod ils')]
     Just (Strong ils')
