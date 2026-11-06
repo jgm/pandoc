@@ -310,7 +310,7 @@ eFootnote = do
        _ -> False)
   let attr = toStringAttr attr'
   let ident = fromMaybe "" (lookup "id" attr)
-  content <- pInTags tag block
+  content <- (if tag == "li" then setInListItem else id) $ pInTags tag block
   updateState $ \s ->
     s {noteTable = M.insert ident content (noteTable s)}
 
@@ -422,7 +422,9 @@ parseTypeAttr _   = DefaultStyle
 pOrderedList :: PandocMonad m => TagParser m Blocks
 pOrderedList = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "ol" [])
-  isNoteList <- inFootnotes <$> getState
+  inNotes <- inFootnotes <$> getState
+  inItem <- asks inListItem
+  let isNoteList = inNotes && not inItem
   let attribs = toStringAttr attribs'
   let start = fromMaybe 1 $ lookup "start" attribs >>= safeRead
   let style = fromMaybe DefaultStyle
