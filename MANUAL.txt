@@ -758,7 +758,11 @@ header when requesting a document from a URL:
 
 `--tab-stop=`*NUMBER*
 
-:   Specify the number of spaces per tab (default is 4).
+:   *Deprecated.  It's not supported by all input formats (e.g. CommonMark
+    hard-codes 4), so this option should be avoided and 4 spaces per tab
+    should be assumed.*
+
+    Specify the number of spaces per tab (default is 4).
 
 `--track-changes=accept`|`reject`|`all`
 
