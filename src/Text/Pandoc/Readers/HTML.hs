@@ -308,7 +308,7 @@ eFootnote = do
        _ -> False)
   let attr = toStringAttr attr'
   let ident = fromMaybe "" (lookup "id" attr)
-  content <- pInTags tag block
+  content <- (if tag == "li" then setInListItem else id) $ pInTags tag block
   updateState $ \s ->
     s {noteTable = M.insert ident content (noteTable s)}
 
