@@ -1219,7 +1219,7 @@ elemToParPart' ns element
                 (matchQName "drawingml" "chart" (Just "c") "chart") drawingElem
   = return [Chart]
 elemToParPart' ns element
-  | isElem ns "w" "r" element = do
+  | isElem ns "w" "r" element || isElem ns "w" "customXml" element = do
     runs <- elemToRun ns element
     return $ map PlainRun runs
 elemToParPart' ns element
@@ -1364,6 +1364,9 @@ elemToRun ns element
     runElems <- elemToRunElems ns element
     runStyle <- elemToRunStyleD ns element
     return [Run runStyle runElems]
+elemToRun ns element
+  | isElem ns "w" "customXml" element =
+    mconcat <$> mapM (elemToRun ns) (elChildren element)
 elemToRun _ _ = throwError WrongElem
 
 getParentStyleValue :: (ParStyle -> Maybe a) -> ParStyle -> Maybe a

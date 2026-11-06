@@ -220,6 +220,10 @@ tests = [ testGroup "document"
             "docx/nested_smart_tags.docx"
             "docx/nested_smart_tags.native"
           , testCompare
+            "inline customXml elements"
+            "docx/custom_xml.docx"
+            "docx/custom_xml.native"
+          , testCompare
             "remove anchor spans with nothing pointing to them"
             "docx/unused_anchors.docx"
             "docx/unused_anchors.native"
