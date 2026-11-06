@@ -752,6 +752,7 @@ parseTable mbident fields = do
     VInteger x -> pure $ replicate (fromIntegral x) B.ColWidthDefault
     VArray x -> pure $ normalizeWidths $ map toWidth (V.toList x)
     VNone -> pure [B.ColWidthDefault]
+    VAuto -> pure [B.ColWidthDefault]
     _ -> fail $ "Could not determine number of columns: " <> show columns
   let numcols = length widths
   align <- getField "align" fields
