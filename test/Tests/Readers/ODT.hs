@@ -31,7 +31,19 @@ tests :: [TestTree]
 tests = testsComparingToMarkdown ++ testsComparingToNative ++
         [ testGroup "fodt" (fodtTestsComparingToMarkdown ++
                             fodtTestsComparingToNative ++
-                            fodtTestsComparingToOwnNative) ]
+                            fodtTestsComparingToOwnNative)
+        , testGroup "styles extension"
+          [ unsafePerformIO $ liftM (test id "enabled")
+              (compareFODTToNative stylesopts "odt/fodt/styles.fodt"
+                                              "odt/fodt-native/styles.native")
+          , unsafePerformIO $ liftM (test id "disabled")
+              (compareFODTToNative defopts "odt/fodt/styles.fodt"
+                                           "odt/fodt-native/styles-off.native")
+          ]
+        ]
+  where
+    stylesopts = defopts{ readerExtensions = enableExtension Ext_styles
+                                               (readerExtensions defopts) }
 
 testsComparingToMarkdown :: [TestTree]
 testsComparingToMarkdown    = map nameToTest namesOfTestsComparingToMarkdown

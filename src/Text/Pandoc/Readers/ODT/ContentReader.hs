@@ -101,13 +101,16 @@ data ReaderState
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
                  , odtMediaBag      :: MediaBag
+                   -- | Whether to record named styles in @custom-style@
+                   -- attributes (the @styles@ extension)
+                 , keepStyles       :: Bool
                  }
   deriving ( Show )
 
-readerState :: Styles -> [(FilePath, B.ByteString)] -> ReaderState
-readerState styles media =
+readerState :: Bool -> Styles -> [(FilePath, B.ByteString)] -> ReaderState
+readerState keepStyles' styles media =
   ReaderState styles [] 0 M.empty Nothing Nothing M.empty Set.empty
-              (M.fromList media) mempty
+              (M.fromList media) mempty keepStyles'
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -270,9 +273,61 @@ readStyleByName = do
   style <- getStyleByName name
   return (name, style)
 
---
-withNewStyle :: ODTReader Inlines -> ODTReader Inlines
-withNewStyle reader = do
+-- | With the @styles@ extension, the name (as shown to the user) of the
+-- named style that the current element is an instance of, unless the
+-- first argument says to ignore it. If the element's style is an automatic
+-- one, its named parent is used. A style that is not defined at all is
+-- taken to be a named one, since automatic styles are always defined.
+getCustomStyle :: (StyleName -> Bool) -> ODTReader (Maybe T.Text)
+getCustomStyle ignored = do
+  keep <- keepStyles <$> getExtraState
+  if not keep
+     then return Nothing
+     else do
+       fName  <- tryC (findAttr NsText "style-name")
+       styles <- getStyles
+       return $ case fName of
+         Right name
+           | Just (name', mbStyle) <- lookupNamedStyle name styles
+           , not (ignored name')
+           -> Just (styleUIName name' mbStyle)
+         _ -> Nothing
+
+customStyleAttr :: T.Text -> Attr
+customStyleAttr sty = ("", [], [("custom-style", sty)])
+
+-- | Paragraph styles not recorded with the @styles@ extension: the
+-- default style, the default styles of table cells, and styles that
+-- pandoc interprets itself.
+ignoredParaStyle :: StyleName -> Bool
+ignoredParaStyle name = name `elem` [ "Standard"
+                                    , "Table_20_Contents"
+                                    , "Table_20_Heading"
+                                    ] || isTableCaptionStyle name
+
+-- | Character styles not recorded with the @styles@ extension.
+ignoredCharStyle :: StyleName -> Bool
+ignoredCharStyle name = name `elem` [ "Internet_20_link"
+                                    , "Visited_20_Internet_20_Link"
+                                    , "Emphasis"
+                                    , "Strong_20_Emphasis"
+                                    ] || isCodeStyle name
+
+isCodeStyle :: StyleName -> Bool
+isCodeStyle "Source_Text" = True
+isCodeStyle "Source_20_Text" = True
+isCodeStyle _             = False
+
+isTableCaptionStyle :: StyleName -> Bool
+isTableCaptionStyle "Table" = True
+isTableCaptionStyle _       = False
+
+-- | Apply the text formatting of the current element's style. If the
+-- first argument is 'True', the formatting of a named (non-automatic)
+-- style is not applied, since it is recorded in a @custom-style@
+-- attribute instead; the direct formatting of an automatic style still is.
+withNewStyle :: Bool -> ODTReader Inlines -> ODTReader Inlines
+withNewStyle styleRecorded reader = do
   fStyle <- tryC readStyleByName
   case fStyle of
     Right (styleName, _) | isCodeStyle styleName ->
@@ -281,18 +336,15 @@ withNewStyle reader = do
       | Just textProps <- textProperties (styleProperties style) -> do
           state <- getExtraState
           let mFamily  = styleFamily style
-              modifier = modifierFromStyleDiff (state, textProps, mFamily)
+              modifier
+                | styleRecorded && not (styleAutomatic style) = id
+                | otherwise = modifierFromStyleDiff (state, textProps, mFamily)
           pushStyle style
           inlines <- reader
           popStyle
           return $ modifier inlines
     _ -> reader
   where
-    isCodeStyle :: StyleName -> Bool
-    isCodeStyle "Source_Text" = True
-    isCodeStyle "Source_20_Text" = True
-    isCodeStyle _             = False
-
     inlineCode :: Inlines -> Inlines
     inlineCode = code . stringifyInlines
 
@@ -387,9 +439,6 @@ constructPara reader = do
       listLevel <- getCurrentListLevel
       getParaModifier listLevel props <$> reader
   where
-    isTableCaptionStyle :: StyleName -> Bool
-    isTableCaptionStyle "Table" = True
-    isTableCaptionStyle _       = False
     tableCaptionP b = divWith ("", ["caption"], []) b
 
 type ListConstructor = [Blocks] -> Blocks
@@ -565,8 +614,14 @@ read_tab          = matchingElement NsText "tab"
                     $ return space
 --
 read_span        :: InlineMatcher
-read_span         = matchingElement NsText "span"
-                    $ withNewStyle matchInlineContent
+read_span         = matchingElement NsText "span" $ do
+                      mbCustom <- getCustomStyle ignoredCharStyle
+                      inlines  <- withNewStyle (isJust mbCustom)
+                                    matchInlineContent
+                      return $ case mbCustom of
+                        Just sty | not (null inlines)
+                          -> spanWith (customStyleAttr sty) inlines
+                        _ -> inlines
 
 -- | ODF wraps inline content in a few elements that carry nothing but
 -- metadata: @text:meta@ holds RDFa annotations, @text:meta-field@ marks
@@ -618,13 +673,27 @@ fieldElements     =
 
 --
 read_paragraph   :: Matcher CombiningBlocks
-read_paragraph    = matchingElement NsText "p" $ fmap CombiningBlocks $ do
-                      fStyle <- tryC readStyleByName
-                      case fStyle of
-                        Right style | isPreformattedStyle style ->
-                          codeBlock . stringifyInlines <$> matchInlineContent
-                        _ ->
-                          constructPara (para <$> withNewStyle matchInlineContent)
+read_paragraph    = read_paragraph' True
+
+-- | Read a paragraph. If the argument is 'True' and the @styles@ extension
+-- is enabled, a paragraph with a named style (other than one of the
+-- 'ignoredParaStyle's) is wrapped in a Div with a @custom-style@
+-- attribute. This is not done for the paragraphs of list items, which
+-- would make every list loose.
+read_paragraph'  :: Bool -> Matcher CombiningBlocks
+read_paragraph' recordStyle = matchingElement NsText "p" $ fmap CombiningBlocks $ do
+                      fStyle    <- tryC readStyleByName
+                      listLevel <- getCurrentListLevel
+                      mbCustom  <- if recordStyle && listLevel == 0
+                                      then getCustomStyle ignoredParaStyle
+                                      else return Nothing
+                      maybe id (divWith . customStyleAttr) mbCustom <$>
+                        case fStyle of
+                          Right style | isPreformattedStyle style ->
+                            codeBlock . stringifyInlines <$> matchInlineContent
+                          _ ->
+                            constructPara (para <$> withNewStyle (isJust mbCustom)
+                                                      matchInlineContent)
                     where
                       isPreformattedStyle :: (StyleName, Style) -> Bool
                       isPreformattedStyle ("Preformatted_20_Text", _) = True
@@ -681,7 +750,11 @@ read_header       = matchingElement NsText "h" $ do
   level    <- readAttrWithDefault NsText "outline-level" 1
   children <- matchInlineContent
   anchor   <- getHeaderAnchor children
-  let idAttr = (anchor, [], []) -- no classes, no key-value pairs
+  -- with the styles extension, record any style other than the
+  -- standard one for the heading's level
+  mbCustom <- getCustomStyle (\name -> name == "Heading_20_" <> tshow level
+                                    || name == "Heading")
+  let idAttr = (anchor, [], maybe [] (\sty -> [("custom-style", sty)]) mbCustom)
   return $ CombiningBlocks $ headerWith idAttr level children
 
 ----------------------
@@ -1006,7 +1079,9 @@ addMathMLNamespace el =
 
 read_frame_text_box :: XML.Element -> ODTReader (FirstMatch Inlines)
 read_frame_text_box box = do
-  paragraphs <- executeIn box (matchSmushedChildBlocks' [ read_paragraph ])
+  -- caption paragraphs must not be wrapped in Divs (see
+  -- 'read_img_with_caption')
+  paragraphs <- executeIn box (matchSmushedChildBlocks' [ read_paragraph' False ])
   return $ read_img_with_caption $ toList paragraphs
 
 read_img_with_caption :: [Block] -> FirstMatch Inlines

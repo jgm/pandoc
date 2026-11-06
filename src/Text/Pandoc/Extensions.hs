@@ -541,7 +541,8 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_xrefs_name
     , Ext_xrefs_number
     ]
-  getAll "odt"             = getAll "opendocument" <> autoIdExtensions
+  getAll "odt"             = getAll "opendocument" <> autoIdExtensions <>
+    extensionsFromList [ Ext_styles ]
   getAll "fodt"            = getAll "odt"
   getAll "muse"            = autoIdExtensions <>
     extensionsFromList
