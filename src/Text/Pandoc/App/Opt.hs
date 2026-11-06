@@ -52,7 +52,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             CiteMethod (Citeproc),
                             pattern DefaultHighlightingString)
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
-                          PandocMonad(lookupEnv), getUserDataDir)
+                          PandocMonad(lookupEnv), getUserDataDir,
+                          getPandocDataDirs)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
 import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Data (defaultUserDataDir)
@@ -953,17 +954,16 @@ fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  -> m FilePath
 fullDefaultsPath dataDir file = do
   defaultDataDir <- liftIO defaultUserDataDir
-  let ddir = fromMaybe defaultDataDir dataDir </> "defaults"
+  pandocDataDirs <- getPandocDataDirs
+  let ddirs = map (</> "defaults") (fromMaybe defaultDataDir dataDir : pandocDataDirs)
   let findFile [] = return file
       findFile (fp:fps) = do
         fpExists <- fileExists fp
         if fpExists
            then return fp
            else findFile fps
-  findFile [file,
-            file <.> "yaml",
-            ddir </> file,
-            ddir </> file <.> "yaml"]
+  findFile $ [file, file <.> "yaml"] ++
+             concatMap (\ddir -> [ddir </> file, ddir </> file <.> "yaml"]) ddirs
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.

@@ -418,6 +418,19 @@ header when requesting a document from a URL:
     is not created by pandoc, so you will need to create it yourself
     if you want to make use of it.)
 
+    If the `PANDOC_DATA_DIRS` environment variable is set to a list
+    of directories (separated by `:`, or `;` on Windows), these
+    directories will be searched, in order, for data files not
+    found in the user data directory, before pandoc falls back to
+    its default data files.  This applies to all data files that
+    are looked up in the user data directory, including templates,
+    filters, defaults files, metadata files, and CSL styles. Only
+    absolute paths in `PANDOC_DATA_DIRS` are used.  This makes it
+    possible for a package manager to install, for example, Lua
+    filters into `/some/prefix/share/pandoc/filters` and make them
+    available by adding `/some/prefix/share/pandoc` to
+    `PANDOC_DATA_DIRS`.
+
 `-d` *FILE*, `--defaults=`*FILE*
 
 :   Specify a set of default option settings.  *FILE* is a YAML or JSON
