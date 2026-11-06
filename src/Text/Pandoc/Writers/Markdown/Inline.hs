@@ -269,6 +269,7 @@ getReference attr label target = do
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts ils = do
     inlist <- asks envInList
+    variant <- asks envVariant
     avoidBadWraps inlist <$> go ils
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
@@ -280,6 +281,13 @@ inlineListToMarkdown opts ils = do
           , T.takeEnd 1 t == "!"
           = do x <- inlineToMarkdown opts (Str (T.dropEnd 1 t))
                ((x <> "\\!") <>) <$> go (i:is)
+        -- Elements whose closing and opening delimiters would run
+        -- together and read back differently need a zero-width space
+        -- between them (#11993).
+        go (x:y:zs)
+          | needsSeparator x y
+          = do x' <- inlineToMarkdown opts x
+               (x' <> literal "\x200B" <>) <$> go (y:zs)
         go (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
@@ -315,6 +323,25 @@ inlineListToMarkdown opts ils = do
                         (inlineToMarkdown opts i)
                fmap (iMark <>) (go is)
            thead = fmap fst . T.uncons
+        -- A code span's attributes are written after it, which already
+        -- separates it from the next span; Markua has no empty attribute
+        -- block, but writes attributes for any non-null attribute.
+        writesAttrs a = a /= nullAttr &&
+                        case variant of
+                          Markua -> True
+                          Markdown -> isEnabled Ext_inline_code_attributes opts ||
+                                      isEnabled Ext_attributes opts
+                          _ -> False
+        needsSeparator x y = variant /= PlainText &&
+          case (x, y) of
+            (Code attr _, Code _ _) -> not (writesAttrs attr)
+            (Emph{}, Emph{}) -> True
+            (Strong{}, Strong{}) -> True
+            (Strikeout{}, Strikeout{}) -> isEnabled Ext_strikeout opts
+            (Subscript{}, Subscript{}) -> isEnabled Ext_subscript opts
+            (Superscript{}, Superscript{}) -> isEnabled Ext_superscript opts
+            _ -> False
+
         isLinkOrSpan Link{} = True
         isLinkOrSpan Span{} = True
         isLinkOrSpan _ = False
