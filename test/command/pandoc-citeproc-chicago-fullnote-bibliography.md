@@ -113,7 +113,7 @@ Sam Smith. Oxford: Oxford University Press, 2007.
     Oxford University Press, 2007)](#ref-пункт3).
 
 [^7]: Doe and Roe, ["Why Water Is Wet," 12](#ref-пункт3) and a citation
-    without locators ([Doe and Roe, "Why Water Is Wet"](#ref-пункт3)).
+    without locators ([Doe and Roe, "Why Water Is Wet."](#ref-пункт3)).
 
 [^8]: See [Doe, *First Book*, chap. 3](#ref-item1); also [Doe and Roe,
     "Why Water Is Wet," 34--35](#ref-пункт3).
@@ -121,7 +121,7 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 [^9]: See [Doe, *First Book*, 34--35](#ref-item1).
 
 [^10]: Some citations (see [Doe, chap. 3](#ref-item1); [Doe and Roe,
-    "Why Water Is Wet"](#ref-пункт3); [Doe, "Article"](#ref-item2)).
+    "Why Water Is Wet"](#ref-пункт3); [Doe, "Article."](#ref-item2)).
 
 [^11]: [Doe, *First Book*, 33, 35--37](#ref-item1), and nowhere else.
 

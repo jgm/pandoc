@@ -24,7 +24,7 @@ Berlin: S. Hermann.
 
 ::: {#ref-averroes/hannes .csl-entry}
 Averroes. (1892). *Des Averroës Abhandlung: "Über die Möglichkeit der
-Conjunktion" oder "Über den materiellen Intellekt"*. (L. Hannes, Ed. &
+Conjunktion" oder "Über den materiellen Intellekt."* (L. Hannes, Ed. &
 Trans.). Halle an der Saale: C. A. Kaemmerer.
 :::
 
