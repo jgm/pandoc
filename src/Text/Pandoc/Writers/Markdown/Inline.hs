@@ -270,7 +270,7 @@ inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc 
 inlineListToMarkdown opts ils = do
     inlist <- asks envInList
     variant <- asks envVariant
-    avoidBadWraps inlist <$> go (insertSeparators opts variant ils)
+    avoidBadWraps inlist <$> go ils
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
@@ -281,6 +281,13 @@ inlineListToMarkdown opts ils = do
           , T.takeEnd 1 t == "!"
           = do x <- inlineToMarkdown opts (Str (T.dropEnd 1 t))
                ((x <> "\\!") <>) <$> go (i:is)
+        -- Elements whose closing and opening delimiters would run
+        -- together and read back differently need a zero-width space
+        -- between them (#11993).
+        go (x:y:zs)
+          | needsSeparator x y
+          = do x' <- inlineToMarkdown opts x
+               (x' <> literal "\x200B" <>) <$> go (y:zs)
         go (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
@@ -316,43 +323,28 @@ inlineListToMarkdown opts ils = do
                         (inlineToMarkdown opts i)
                fmap (iMark <>) (go is)
            thead = fmap fst . T.uncons
+        -- A code span's attributes are written after it, which already
+        -- separates it from the next span; Markua has no empty attribute
+        -- block, but writes attributes for any non-null attribute.
+        writesAttrs a = a /= nullAttr &&
+                        case variant of
+                          Markua -> True
+                          Markdown -> isEnabled Ext_inline_code_attributes opts ||
+                                      isEnabled Ext_attributes opts
+                          _ -> False
+        needsSeparator x y = variant /= PlainText &&
+          case (x, y) of
+            (Code attr _, Code _ _) -> not (writesAttrs attr)
+            (Emph{}, Emph{}) -> True
+            (Strong{}, Strong{}) -> True
+            (Strikeout{}, Strikeout{}) -> isEnabled Ext_strikeout opts
+            (Subscript{}, Subscript{}) -> isEnabled Ext_subscript opts
+            (Superscript{}, Superscript{}) -> isEnabled Ext_superscript opts
+            _ -> False
+
         isLinkOrSpan Link{} = True
         isLinkOrSpan Span{} = True
         isLinkOrSpan _ = False
-
--- | Insert a zero-width space between adjacent inline elements that
--- would run together in the output and read back differently
--- (#11993): back-to-back code spans whose backtick runs would join
--- into one span, and emphasis, strong, strikeout, subscript or
--- superscript elements whose closing and opening delimiter runs would
--- join into a longer or differently parsed run.  The zero-width space
--- keeps the elements apart at the cost of an invisible character in
--- the text.  No separator is needed where the writer already emits
--- one, e.g. the attribute block after a code span that has attributes.
-insertSeparators :: WriterOptions -> MarkdownVariant -> [Inline] -> [Inline]
-insertSeparators opts variant ils
-  | variant == PlainText = ils
-  | otherwise = go ils
-  where
-    go (x@(Code attr1 _) : y@(Code _ _) : rest)
-      | not (writesAttrs attr1) = x : zwsp : go (y : rest)
-    go (x@(Emph _) : y@(Emph _) : rest) = x : zwsp : go (y : rest)
-    go (x@(Strong _) : y@(Strong _) : rest) = x : zwsp : go (y : rest)
-    go (x@(Strikeout _) : y@(Strikeout _) : rest)
-      | isEnabled Ext_strikeout opts = x : zwsp : go (y : rest)
-    go (x@(Subscript _) : y@(Subscript _) : rest)
-      | isEnabled Ext_subscript opts = x : zwsp : go (y : rest)
-    go (x@(Superscript _) : y@(Superscript _) : rest)
-      | isEnabled Ext_superscript opts = x : zwsp : go (y : rest)
-    go (x:xs) = x : go xs
-    go [] = []
-    zwsp = Str "\x200B"
-    writesAttrs a = a /= nullAttr &&
-                    case variant of
-                      Markua -> True
-                      Markdown -> isEnabled Ext_inline_code_attributes opts ||
-                                  isEnabled Ext_attributes opts
-                      _ -> False
 
 -- Remove breaking spaces that might cause bad wraps.
 avoidBadWraps :: Bool -> Doc Text -> Doc Text
