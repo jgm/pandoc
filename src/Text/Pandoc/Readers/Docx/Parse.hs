@@ -1057,6 +1057,19 @@ getTitleAndAlt ns element =
       alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
   in (title, alt)
 
+-- | Whether a legacy check box form field (w:checkBox) is checked:
+-- @w:checked@ takes precedence if present, otherwise @w:default@ is
+-- consulted. An on/off value that is absent counts as true.
+checkBoxChecked :: NameSpaces -> Element -> Bool
+checkBoxChecked ns checkBox =
+  case findChildByName ns "w" "checked" checkBox of
+    Just checked -> maybe True isOn (findAttrByName ns "w" "val" checked)
+    Nothing -> case findChildByName ns "w" "default" checkBox of
+      Just def -> maybe False isOn (findAttrByName ns "w" "val" def)
+      Nothing -> False
+  where
+    isOn v = v `notElem` ["0", "false", "off"]
+
 elemToParPart :: NameSpaces -> Element -> D [ParPart]
 {-
 The next one is a bit complicated. fldChar fields work by first
@@ -1107,6 +1120,23 @@ elemToParPart ns element
   , Just fldCharType <- findAttrByName ns "w" "fldCharType" fldChar = do
       fldCharState <- gets stateFldCharState
       case fldCharState of
+        -- A legacy check box form field (FORMCHECKBOX): the check box
+        -- state lives in w:ffData on the begin fldChar, and the field
+        -- has no result runs. Push FldCharContent right away, so the
+        -- instruction text is ignored and the field is closed by the
+        -- generic FldCharContent handler (#11990).
+        _ | fldCharType == "begin"
+          , Just checkBox <- findChildByName ns "w" "ffData" fldChar >>=
+                             findChildByName ns "w" "checkBox" -> do
+          modify $ \st -> st {stateFldCharState =
+                               FldCharContent (CheckBoxField $
+                                               checkBoxChecked ns checkBox) [] :
+                               fldCharState}
+          return []
+        -- Skip the separator of a check box field; its checked state
+        -- is already known.
+        FldCharContent (CheckBoxField _) _ : _ | fldCharType == "separate" ->
+          return []
         _ | fldCharType == "begin" -> do
           modify $ \st -> st {stateFldCharState = FldCharOpen : fldCharState}
           return []

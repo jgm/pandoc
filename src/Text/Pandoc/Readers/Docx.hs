@@ -548,6 +548,8 @@ parPartToInlines' (Field info children) =
       if isEnabled Ext_citations opts
          then return mempty -- omit EndNote-generated bibliography
          else smushInlines <$> mapM parPartToInlines' children
+    CheckBoxField b ->
+      return $ str (if b then "\x2612" else "\x2610")
     _ -> smushInlines <$> mapM parPartToInlines' children
 
 -- Helper function to convert CitationItemType to CitationMode
