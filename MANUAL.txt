@@ -4043,8 +4043,20 @@ styles will cause Spans to be created to hold the attributes.
 (Table styles will be added to the Table elements directly.)
 This extension can be used with [docx custom styles](#custom-styles).
 
+When converting from odt or fodt, add `custom-styles`
+attributes for paragraph and character styles, using the
+style names shown in the word processor. Automatic styles,
+which only record direct formatting, are not recorded; instead,
+the named style they are based on is used. A few styles are not
+recorded: the default paragraph style (`Default Paragraph Style`,
+or `Standard`), the default styles of table cells, and styles
+that pandoc interprets itself (such as `Emphasis` and `Strong
+Emphasis`). The paragraphs of list items are not wrapped in Divs.
+A heading gets a `custom-style` attribute if its style is not the
+standard one for its level.
+
 input formats
-:  `docx`
+:  `docx`, `odt`, `fodt`
 
 ### Extension: `amuse` ###
 
@@ -7929,6 +7941,8 @@ of the input document, using the `custom-style` class. A `custom-style`
 attribute will be added for each style. Divs will be created to
 hold the paragraph styles, and Spans to hold the character styles.
 Table styles will be applied directly to the Table.
+The odt and fodt readers also support the `styles` extension
+(`-f odt+styles`), for paragraph and character styles.
 
 For example, using the `custom-style-reference.docx` file in the test
 directory, we have the following different outputs:

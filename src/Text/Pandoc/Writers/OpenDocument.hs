@@ -16,7 +16,8 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Monad (unless, liftM, when)
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
-import Data.Char (chr, isDigit)
+import Data.Char (chr, isDigit, isLetter, isMark, ord)
+import Numeric (showHex)
 import Data.List (sortOn, sortBy)
 import qualified Data.List as L
 import qualified Data.Map as Map
@@ -550,7 +551,7 @@ blockToOpenDocument o = \case
         let (ident,_,kvs) = attr
             i = withDirFromAttr attr $ withLangFromAttr attr $
                 case lookup "custom-style" kvs of
-                  Just sty -> withParagraphStyle o sty s
+                  Just sty -> withParagraphStyle o (encodeStyleName sty) s
                   _        -> blocksToOpenDocument o s
             mkBookmarkedDiv = inTags False "text:section" [("text:name", ident)]
         if T.null ident
@@ -832,7 +833,7 @@ inlineToOpenDocument o ils
         let (ident,_,kvs) = attr
             i = maybe id (\sty ->
                            fmap (inTags False "text:span"
-                                  [ ("text:style-name", sty) ]))
+                                  [ ("text:style-name", encodeStyleName sty) ]))
                   (lookup "custom-style" kvs) .
                  withLangFromAttr attr $ inlinesToOpenDocument o xs
             mkBookmarkedSpan b =
@@ -1012,6 +1013,21 @@ getDirAttrs = do
                         ("fo:text-align", "right")]
       Just LTR -> [("style:writing-mode", "lr-tb"),
                         ("fo:text-align", "left")]
+
+-- | Encode a style name as LibreOffice does: characters not allowed
+-- in an XML name are replaced by their code point in hex between
+-- underscores, so that, e.g., @Text body@ becomes @Text_20_body@.
+encodeStyleName :: Text -> Text
+encodeStyleName t = case T.uncons t of
+  Nothing      -> t
+  Just (c, cs) -> enc isStartChar c <> T.concatMap (enc isNameChar) cs
+  where
+    enc ok c
+      | ok c      = T.singleton c
+      | otherwise = "_" <> T.pack (showHex (ord c) "") <> "_"
+    isStartChar c = isLetter c || c == '_'
+    isNameChar c  = isStartChar c || isDigit c || isMark c
+                    || c == '-' || c == '.'
 
 -- | Adjust a named paragraph style for the current writing direction.
 -- When a direction is active, an automatic style derived from the
