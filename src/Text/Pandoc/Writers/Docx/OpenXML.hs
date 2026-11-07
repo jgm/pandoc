@@ -539,17 +539,28 @@ blockToOpenXML' opts (Para lst)
        -- inline math element with display math style
   | otherwise = do
       isFirstPara <- gets stFirstPara
+      afterTable <- gets stAfterTable
       let displayMathPara = case lst of
                                  [x] -> isDisplayMath x
                                  _   -> False
-      bodyTextStyle <- pStyleM $ if isFirstPara
-                       then "First Paragraph"
-                       else "Body Text"
+      -- Word gives the paragraph after a table none of the spacing its
+      -- style provides (#11901), so it takes a dedicated style; like
+      -- stFirstPara, the mark is consumed here.
+      let afterTableStyle = fromString "First Paragraph After Table" :: ParaStyleName
+      bodyTextStyle <- pStyleM $
+        if afterTable then afterTableStyle
+        else if isFirstPara
+               then "First Paragraph"
+               else "Body Text"
+      when afterTable $
+        modify $ \s -> s{ stDynamicParaProps =
+                            Set.insert afterTableStyle
+                              (stDynamicParaProps s) }
       paraProps <- local (\env -> env{ envParaProperties =
                                         envParaProperties env <>
                                         EnvProps (Just bodyTextStyle) mempty })
                       (getParaProps displayMathPara)
-      modify $ \s -> s { stFirstPara = False }
+      modify $ \s -> s { stFirstPara = False, stAfterTable = False }
       contents <- inlinesToOpenXML opts lst
       return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
@@ -587,6 +598,7 @@ blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
   content <- tableToOpenXML opts
               (local (\env -> env{ envListLevel = -1 }) . blocksToOpenXML opts)
                  (Grid.toTable attr caption colspecs thead tbodies tfoot)
+  modify $ \s -> s { stAfterTable = True }
   let (tableId, _, _) = attr
   wrapBookmark tableId content
 blockToOpenXML' opts el
@@ -656,6 +668,8 @@ blockToOpenXML' opts (Figure (ident, _, _) (Caption _ longcapt) body) = do
     (Para xs  : bs) -> imageCaption (fstCaptionPara xs : bs)
     (Plain xs : bs) -> imageCaption (fstCaptionPara xs : bs)
     _               -> imageCaption longcapt
+  -- A table inside the figure must not mark text following the figure.
+  setFirstPara
   wrapBookmark ident $
     case writerFigureCaptionPosition opts of
       CaptionBelow -> contentsNode : captionNode
@@ -737,6 +751,9 @@ listItemToOpenXML :: (PandocMonad m)
                   -> Int -> [Block]
                   -> WS m [Content]
 listItemToOpenXML opts numid bs = do
+  -- A table before the list or at the end of the preceding item must
+  -- not mark the first paragraph of this item.
+  setFirstPara
   oldInList <- gets stInList
   modify $ \st -> st{ stInList = True }
   let isListBlock = \case
@@ -1108,6 +1125,8 @@ inlineToOpenXML' opts (Note bs) = do
                                 , envInNote = True })
               (withParaPropM (pStyleM "Footnote Text") $
                blocksToOpenXML opts $ insertNoteRef bs)
+  -- a table at the end of a note must not mark the enclosing text
+  modify $ \s -> s{ stAfterTable = False }
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ Elem $ mknode "w:r" []
