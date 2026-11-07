@@ -112,6 +112,8 @@ parseShapeWith :: (Int -> Maybe BulletType) -> NameSpaces -> Element
                -> Maybe PptxShape
 parseShapeWith inherited ns el
   -- Text box: <p:sp> with <p:txBody>
+  -- A slide number placeholder only holds the number PowerPoint shows
+  | isSlideNumberPlaceholder ns el = Nothing
   | isElem ns "p" "sp" el =
       case findChildByName ns "p" "txBody" el of
         Just txBody ->
@@ -495,6 +497,14 @@ paragraphsToBlocks (p:ps)
       LineBreak -> True
       Str t -> T.all isSpace t
       _ -> False
+
+-- | Check if shape is a slide number placeholder
+isSlideNumberPlaceholder :: NameSpaces -> Element -> Bool
+isSlideNumberPlaceholder ns el =
+  maybe False ((== Just "sldNum") . findAttr (unqual "type")) $
+    findChildByName ns "p" "nvSpPr" el >>=
+    findChildByName ns "p" "nvPr" >>=
+    findChildByName ns "p" "ph"
 
 -- | Check if shape is title placeholder (also used in Slides module)
 isTitlePlaceholder :: NameSpaces -> Element -> Bool
