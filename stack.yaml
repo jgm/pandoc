@@ -35,7 +35,6 @@ extra-deps:
 - doctemplates-0.11.1
 - asciidoc-0.1.1.1
 - commonmark-pandoc-0.3.0.2
-- commonmark-extensions-0.2.7.3
 - djot-0.1.4.3
 - yamlet-1.0.0.1
 - yamlet-aeson-1.0.0.1
@@ -50,8 +49,8 @@ extra-deps:
   commit: b0d74f4cbde104a71e6d40270711178482077f38
 - emojis-0.1.6
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: 89b2686bbc77aba333a79790e39cb08b90c1d75d
-  subdirs: [commonmark]
+  commit: f747e7d694743eb3bead55e1d7b9b7eeca3d4f80
+  subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/typst-hs.git
   commit: c5548ce803657545a9672e919d5b9a8a805ed8f1
 # needed because not yet in nixpkgs:
