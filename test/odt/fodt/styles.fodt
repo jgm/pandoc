@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">
+ <office:styles>
+  <style:style style:name="Standard" style:family="paragraph" style:class="text"/>
+  <style:style style:name="Heading" style:family="paragraph" style:parent-style-name="Standard"/>
+  <style:style style:name="Heading_20_1" style:display-name="Heading 1" style:family="paragraph" style:parent-style-name="Heading"/>
+  <style:style style:name="Chapter_20_Title" style:display-name="Chapter Title" style:family="paragraph" style:parent-style-name="Heading"/>
+  <style:style style:name="Text_20_body" style:display-name="Text body" style:family="paragraph" style:parent-style-name="Standard"/>
+  <style:style style:name="Poetry" style:family="paragraph" style:parent-style-name="Standard">
+   <style:text-properties fo:font-style="italic"/>
+  </style:style>
+  <style:style style:name="Preformatted_20_Text" style:display-name="Preformatted Text" style:family="paragraph" style:parent-style-name="Standard"/>
+  <style:style style:name="Table_20_Contents" style:display-name="Table Contents" style:family="paragraph" style:parent-style-name="Standard"/>
+  <style:style style:name="Keyword" style:family="text"/>
+  <style:style style:name="Emphatic_28_x_29_" style:family="text">
+   <style:text-properties fo:font-style="italic"/>
+  </style:style>
+  <style:style style:name="Source_20_Text" style:display-name="Source Text" style:family="text"/>
+  <style:style style:name="Emphasis" style:family="text">
+   <style:text-properties fo:font-style="italic"/>
+  </style:style>
+ </office:styles>
+ <office:automatic-styles>
+  <style:style style:name="P1" style:family="paragraph" style:parent-style-name="Text_20_body">
+   <style:text-properties fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="T1" style:family="text" style:parent-style-name="Keyword"/>
+  <style:style style:name="T2" style:family="text">
+   <style:text-properties fo:font-weight="bold"/>
+  </style:style>
+ </office:automatic-styles>
+ <office:body>
+  <office:text>
+   <text:h text:style-name="Heading_20_1" text:outline-level="1">Plain Heading</text:h>
+   <text:h text:style-name="Chapter_20_Title" text:outline-level="1">Custom Title</text:h>
+   <text:p text:style-name="Standard">Standard paragraph.</text:p>
+   <text:p text:style-name="Text_20_body">Body text.</text:p>
+   <text:p text:style-name="P1">Bold body text.</text:p>
+   <text:p text:style-name="Poetry">A Bird came down the Walk</text:p>
+   <text:p text:style-name="Standard">Some <text:span text:style-name="T1">keyword</text:span>, <text:span text:style-name="Emphatic_28_x_29_">emphatic</text:span>, <text:span text:style-name="T2">bold</text:span> and <text:span text:style-name="Source_20_Text">code</text:span> text.</text:p>
+   <text:p text:style-name="Undefined_20_Style">An <text:span text:style-name="Emphasis">emphasized</text:span> word.</text:p>
+   <text:p text:style-name="Preformatted_20_Text">code line 1</text:p>
+   <text:p text:style-name="Preformatted_20_Text">code line 2</text:p>
+   <text:list>
+    <text:list-item>
+     <text:p text:style-name="Text_20_body">item one</text:p>
+    </text:list-item>
+    <text:list-item>
+     <text:p text:style-name="Text_20_body">item <text:span text:style-name="Keyword">two</text:span></text:p>
+    </text:list-item>
+   </text:list>
+   <table:table>
+    <table:table-row>
+     <table:table-cell>
+      <text:p text:style-name="Table_20_Contents">cell</text:p>
+     </table:table-cell>
+     <table:table-cell>
+      <text:p text:style-name="Poetry">poem</text:p>
+     </table:table-cell>
+    </table:table-row>
+   </table:table>
+  </office:text>
+ </office:body>
+</office:document>

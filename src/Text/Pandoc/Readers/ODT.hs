@@ -61,10 +61,10 @@ readFODT :: (PandocMonad m, ToSources a)
          => ReaderOptions
          -> a
          -> m Pandoc
-readFODT _ inp = do
+readFODT opts inp = do
   root <- either (throwError . PandocXMLError "") pure
             (parseXMLElement (TL.fromStrict (sourcesToText (toSources inp))))
-  case elementToODT root of
+  case elementToODT opts root of
     Right (doc, mb) -> do
       P.setMediaBag mb
       return $ walk makeFigure doc
@@ -74,8 +74,8 @@ readFODT _ inp = do
 -- package distributes over @content.xml@ and @styles.xml@, and they are
 -- all children of the root.  The converter addresses everything relative
 -- to the element it is given, so it can simply be handed that root.
-elementToODT :: Element -> Either PandocError (Pandoc, MediaBag)
-elementToODT root = do
+elementToODT :: ReaderOptions -> Element -> Either PandocError (Pandoc, MediaBag)
+elementToODT opts root = do
   -- the local name only, consistently with the URI-based namespace
   -- matching downstream; office:document-content is correctly rejected
   unless (XML.qName (XML.elName root) == "document") $
@@ -87,7 +87,8 @@ elementToODT root = do
                (readStylesAt root)
   -- the media list is empty: all media arrives in office:binary-data
   either (\_ -> Left $ PandocParseError "Could not convert opendocument") Right
-    (runConverter read_body (readerState styles []) root)
+    (runConverter read_body
+       (readerState (isEnabled Ext_styles opts) styles []) root)
 
 -- the ODT parser uses old-style figures: an image with title beginning
 -- "fig:" in a paragraph by itself.  Convert these to new Figure elements.
@@ -108,20 +109,14 @@ makeFigure x = x
 readODT' :: ReaderOptions
          -> B.ByteString
          -> Either PandocError (Pandoc, MediaBag)
-readODT' _ bytes = bytesToODT bytes-- of
---                    Right (pandoc, mediaBag) -> Right (pandoc , mediaBag)
---                    Left  err                -> Left err
-
---
-bytesToODT :: B.ByteString -> Either PandocError (Pandoc, MediaBag)
-bytesToODT bytes = case toArchiveOrFail bytes of
-  Right archive -> archiveToODT archive
+readODT' opts bytes = case toArchiveOrFail bytes of
+  Right archive -> archiveToODT opts archive
   Left err      -> Left $ PandocParseError
                         $ "Could not unzip ODT: " <> T.pack err
 
 --
-archiveToODT :: Archive -> Either PandocError (Pandoc, MediaBag)
-archiveToODT archive = do
+archiveToODT :: ReaderOptions -> Archive -> Either PandocError (Pandoc, MediaBag)
+archiveToODT opts archive = do
   let onFailure msg Nothing = Left $ PandocParseError msg
       onFailure _   (Just x) = Right x
   contentEntry <- onFailure "Could not find content.xml"
@@ -139,7 +134,7 @@ archiveToODT archive = do
         let (dir, name) = splitFileName fp
         in  (dir == "Pictures/") || (dir /= "./" && name == "content.xml")
   let media = filteredFilesFromArchive archive filePathIsODTMedia
-  let startState = readerState styles media
+  let startState = readerState (isEnabled Ext_styles opts) styles media
   either (\_ -> Left $ PandocParseError "Could not convert opendocument") Right
     (runConverter read_body startState contentElem)
 
