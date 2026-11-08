@@ -32,7 +32,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
-  tag: e3e4b835ca2a3548a1ef0118266a736d345b10bd
+  tag: 67789007b8447d036022810467e28f4ac5f67b8a
 
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.

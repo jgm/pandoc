@@ -44,7 +44,7 @@ extra-deps:
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
 - git: https://github.com/jgm/citeproc.git
-  commit: e3e4b835ca2a3548a1ef0118266a736d345b10bd
+  commit: 67789007b8447d036022810467e28f4ac5f67b8a
 - git: https://github.com/jgm/texmath.git
   commit: b0d74f4cbde104a71e6d40270711178482077f38
 - emojis-0.1.6
