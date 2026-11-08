@@ -79,4 +79,14 @@ tests = [ testGroup "basic"
             "xlsx-reader/merged.xlsx"
             "xlsx-reader/merged.native"
           ]
+        , testGroup "charts"
+          [ testCompare
+            "charts on a sheet and on a chart sheet"
+            "xlsx-reader/charts.xlsx"
+            "xlsx-reader/charts.native"
+          , testCompare
+            "pictures and charts in drawing order"
+            "xlsx-reader/pictures.xlsx"
+            "xlsx-reader/pictures.native"
+          ]
         ]

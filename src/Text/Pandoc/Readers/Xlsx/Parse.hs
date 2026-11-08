@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.Xlsx.Parse
   , XlsxWorkbook(..)
   , XlsxSheet(..)
   , SheetId(..)
+  , Drawn(..)
   , SharedStrings
   , Styles(..)
   , FontInfo(..)
@@ -23,10 +24,11 @@ module Text.Pandoc.Readers.Xlsx.Parse
 
 import Codec.Archive.Zip (Archive, Entry, findEntryByPath, fromEntry)
 import Control.Monad (join)
+import qualified Data.ByteString.Lazy as BL
 import Data.Char (toLower)
 import Data.List (find)
 import qualified Data.Map.Strict as M
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
@@ -34,6 +36,7 @@ import Data.Time.Calendar (Day, addDays, fromGregorian, showGregorian)
 import qualified Data.Vector as V
 import System.FilePath (splitFileName)
 import qualified System.FilePath.Posix as Posix
+import Text.Pandoc.Readers.OOXML.Charts (Chart, readChart)
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.Readers.Xlsx.Cells
 import Text.Pandoc.Shared (collapseFilePath)
@@ -90,6 +93,7 @@ data XlsxSheet = XlsxSheet
   , sheetCells :: M.Map CellRef XlsxCell
   , sheetMerges :: [(CellRef, CellRef)]
     -- ^ Merged ranges, as their top-left and bottom-right cells
+  , sheetDrawings :: [Drawn]  -- ^ In the order they are drawn
   } deriving (Show)
 
 -- | Parse XLSX archive
@@ -318,7 +322,8 @@ parseSheet archive wbPath rels sharedStrings styles date1904
   target <- maybeToEither ("Sheet relationship not found: " <> relId) $
             lookup relId rels
 
-  sheetElem <- loadXMLFromArchive archive (resolveTarget wbPath target)
+  let sheetPath = resolveTarget wbPath target
+  sheetElem <- loadXMLFromArchive archive sheetPath
 
   cells <- parseSheetCells sheetElem sharedStrings styles date1904
 
@@ -335,6 +340,63 @@ parseSheet archive wbPath rels sharedStrings styles date1904
         ]
 
   return $ XlsxSheet sid name cells merges
+           (sheetDrawingsOf archive sheetPath)
+
+-- | What a sheet's drawing shows
+data Drawn
+  = DrawnChart Chart
+  | DrawnPicture FilePath Text Text BL.ByteString
+    -- ^ Media path, name, description, contents
+  deriving (Show)
+
+-- | The charts and pictures on a worksheet or chart sheet: those its
+-- drawing refers to, in document order. A drawing, chart or picture that
+-- can't be read is left out.
+sheetDrawingsOf :: Archive -> FilePath -> [Drawn]
+sheetDrawingsOf archive sheetPath = fromMaybe [] $ do
+  drawingTarget <- findRelTargetByType archive (relsPathFor sheetPath)
+                     "drawing"
+  let drawingPath = resolveTarget sheetPath drawingTarget
+  drawing <- either (const Nothing) Just $
+             loadXMLFromArchive archive drawingPath
+  drawingRels <- either (const Nothing) Just $
+                 loadRelationships archive (relsPathFor drawingPath)
+  -- A chart refers to its part with r:id, a picture to its image with
+  -- r:embed
+  let target attr el = do
+        relId <- attrVal <$> find (isRelAttr attr) (elAttribs el)
+        resolveTarget drawingPath <$> lookup relId drawingRels
+      drawn el = case qName (elName el) of
+        "chart" -> do
+          path <- target "id" el
+          either (const Nothing) (Just . DrawnChart) (readChart archive path)
+        "pic" -> do
+          blip <- listToMaybe (filterElementsName ((== "blip") . qName) el)
+          path <- target "embed" blip
+          entry <- findEntryByPath path archive
+          let nvPr = filterElementsName ((== "cNvPr") . qName) el
+              attr name = maybe "" (fromMaybe "" . findAttr (unqual name))
+                                (listToMaybe nvPr)
+          return $ DrawnPicture path (attr "name") (attr "descr")
+                                (fromEntry entry)
+        _ -> Nothing
+  return $ mapMaybe drawn $
+    filterElementsName ((`elem` ["chart", "pic"]) . qName) drawing
+  where
+    isRelAttr name a = qName (attrKey a) == name && qURI (attrKey a) == Just
+      "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+-- | Find the target of the first relationship in a .rels part whose Type
+-- ends with the given name, such as @drawing@
+findRelTargetByType :: Archive -> FilePath -> Text -> Maybe Text
+findRelTargetByType archive relsPath typeName = do
+  entry <- findEntryByPath relsPath archive
+  relsElem <- either (const Nothing) Just $ parseXMLFromEntry entry
+  rel <- find hasType (onlyElems $ elContent relsElem)
+  findAttr (unqual "Target") rel
+  where
+    hasType el = maybe False (("/" <> typeName) `T.isSuffixOf`) $
+                 findAttr (unqual "Type") el
 
 -- | Parse sheet cells
 parseSheetCells :: Element -> SharedStrings -> Styles -> Bool
