@@ -138,13 +138,15 @@ resolveRefs _ x = x
 
 -- | Resolve footnote marks (\footnotemark) to actual notes using
 -- the footnote texts collected from \footnotetext commands.
-resolveFootnoteMarks :: M.Map Int Blocks -> Inline -> Inline
+-- Marks inside the resolved note texts are resolved too (each text
+-- is used at most once, so this terminates).
+resolveFootnoteMarks :: M.Map Text Blocks -> Inline -> Inline
 resolveFootnoteMarks fnTexts (Span (_, classes, kvs) _)
   | "footnote-mark" `elem` classes
-  , Just numText <- lookup "note-num" kvs
-  , [(n, "")] <- reads (T.unpack numText)
-  = case M.lookup n fnTexts of
-      Just contents -> Note (toList contents)
+  , Just key <- lookup "note-key" kvs
+  = case M.lookup key fnTexts of
+      Just contents -> Note $ walk (resolveFootnoteMarks (M.delete key fnTexts))
+                            $ toList contents
       Nothing       -> Str ""  -- No matching footnotetext found
 resolveFootnoteMarks _ x = x
 
@@ -440,6 +442,8 @@ inlineCommands = M.unions
     , ("footnote", skipopts >> footnote)
     , ("footnotemark", footnotemark)
     , ("footnotetext", footnotetext)
+    , ("pandocfootnotemark", pandocfootnotemark)
+    , ("pandocfootnotetext", pandocfootnotetext)
     , ("newline", pure B.linebreak)
     -- xparse argument markers, in case they leak into the document:
     , ("NoValue", pure (B.str "-NoValue-"))
@@ -538,7 +542,7 @@ footnotemark = do
     Nothing -> do
       updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + 1 }
       sLastNoteNum <$> getState
-  return $ B.spanWith ("", ["footnote-mark"], [("note-num", tshow noteNum)]) mempty
+  return $ footnoteMarkSpan (tshow noteNum)
 
 -- | Parse \footnotetext[n]{text}. If n is not given, use current counter.
 -- Stores the text in state to be resolved later.
@@ -548,10 +552,50 @@ footnotetext = do
   noteNum <- case mbNum of
     Just n  -> return n
     Nothing -> sLastNoteNum <$> getState
+  storeFootnoteText (tshow noteNum)
+
+-- | Parse \pandocfootnotemark{id}, which is produced by the LaTeX writer
+-- for notes in tables, captions, etc. It is paired with
+-- \pandocfootnotetext{id}{text}.
+pandocfootnotemark :: PandocMonad m => LP m Inlines
+pandocfootnotemark = do
+  key <- untokenize <$> braced
+  updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + 1 }
+  return $ footnoteMarkSpan ("pandoc:" <> key)
+
+-- | Parse \pandocfootnotetext{id}{text}.
+pandocfootnotetext :: PandocMonad m => LP m Inlines
+pandocfootnotetext = do
+  key <- untokenize <$> braced
+  storeFootnoteText ("pandoc:" <> key)
+
+-- | A placeholder for a footnote mark, to be resolved later
+-- (see 'resolveFootnoteMarks').
+footnoteMarkSpan :: Text -> Inlines
+footnoteMarkSpan key = B.spanWith ("", ["footnote-mark"], [("note-key", key)]) mempty
+
+storeFootnoteText :: PandocMonad m => Text -> LP m Inlines
+storeFootnoteText key = do
   contents <- grouped block >>= walkM resolveNoteLabel
   updateState $ \st -> st{
-    sFootnoteTexts = M.insert noteNum contents (sFootnoteTexts st) }
+    sFootnoteTexts = M.insert key contents (sFootnoteTexts st) }
   return mempty
+
+-- | Parse \addtocounter{ctr}{n}. Adjustments to the footnote counter
+-- are tracked, so that \footnotetext gets the right number;
+-- otherwise the command is treated as raw LaTeX.
+addtocounter :: PandocMonad m => LP m Blocks
+addtocounter = do
+  (ctrAndNum, toks) <- withRaw $ (,) <$> (untokenize <$> braced)
+                                     <*> (untokenize <$> braced)
+  case ctrAndNum of
+    ("footnote", num) | Just n <- safeRead (T.strip num) -> do
+      updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + n }
+      return mempty
+    _ -> do
+      let raw = "\\addtocounter" <> untokenize toks
+      (guardEnabled Ext_raw_tex >> return (rawBlock "latex" raw))
+        <|> ignore raw
 
 -- | Parse optional footnote number argument [n]
 optionalFootnoteNum :: PandocMonad m => LP m (Maybe Int)
@@ -765,7 +809,7 @@ treatAsBlock = Set.fromList
    [ "special", "pdfannot", "pdfstringdef"
    , "bibliographystyle"
    , "maketitle", "makeindex", "makeglossary"
-   , "addcontentsline", "addtocontents", "addtocounter"
+   , "addcontentsline", "addtocontents"
       -- \ignore{} is used conventionally in literate haskell for definitions
       -- that are to be processed by the compiler but not printed.
    , "ignore"
@@ -1094,6 +1138,7 @@ parbox = try $ do
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
 blockCommands = M.fromList
    [ ("par", mempty <$ skipopts)
+   , ("addtocounter", addtocounter)
    , ("parbox",  parbox)
    , ("title", mempty <$ (skipopts *>
                              (grouped inline >>= addMeta "title")

@@ -170,7 +170,10 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLastFigureNum :: DottedNum
                             , sLastTableNum  :: DottedNum
                             , sLastNoteNum   :: Int
-                            , sFootnoteTexts :: M.Map Int Blocks
+                            , sFootnoteTexts :: M.Map Text Blocks
+                              -- ^ keys are footnote numbers for
+                              -- \footnotetext and "pandoc:" ids for
+                              -- \pandocfootnotetext
                             , sTheoremMap    :: M.Map Text TheoremSpec
                             , sLastTheoremStyle :: TheoremStyle
                             , sLastLabel     :: Maybe Text

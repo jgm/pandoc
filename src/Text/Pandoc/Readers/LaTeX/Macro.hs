@@ -36,7 +36,9 @@ macroDef constructor = do
             newDocumentEnvironment <|> commandCopy <|> environmentCopy <|>
             checkGlobal (letmacro <|> edefmacro <|> defmacro <|> newif)
           guardDisabled Ext_latex_macros <|>
-            mapM_ insertMacro nameMacroPairs
+            mapM_ insertMacro
+              (filter ((`Set.notMember` pandocInternalMacros) . fst)
+                      nameMacroPairs)
         environmentDef = do
           mbenv <- newenvironment
           case mbenv of
@@ -49,6 +51,13 @@ macroDef constructor = do
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
         -- @\newcommand{\endenvname}@
+
+-- | Macros defined in pandoc's LaTeX template and handled directly
+-- by the reader. Their definitions are too complex for the reader's
+-- macro expansion, so we ignore them.
+pandocInternalMacros :: Set.Set Text
+pandocInternalMacros = Set.fromList
+  [ "pandocbounded", "pandocfootnotemark", "pandocfootnotetext" ]
 
 -- | Control sequences that can begin a macro definition.  This
 -- must include every control sequence that one of the parsers
