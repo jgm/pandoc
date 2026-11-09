@@ -34,6 +34,18 @@ source-repository-package
   location: https://github.com/jgm/citeproc.git
   tag: 67789007b8447d036022810467e28f4ac5f67b8a
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting.git
+  tag: 1125b05232a1db35db16e853546c3e295bbe29a0
+  subdir: skylighting-core
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting.git
+  tag: 1125b05232a1db35db16e853546c3e295bbe29a0
+  subdir: skylighting
+
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
 if impl(ghc >= 9.14)
