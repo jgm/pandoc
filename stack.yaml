@@ -27,9 +27,8 @@ extra-deps:
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
 - skylighting-format-blaze-html-0.1.2.2
-- git: https://github.com/jgm/skylighting.git
-  commit: 1125b05232a1db35db16e853546c3e295bbe29a0
-  subdirs: [skylighting-core, skylighting]
+- skylighting-0.15
+- skylighting-core-0.15
 - typst-symbols-0.3
 - zip-archive-0.5
 - doclayout-0.6
