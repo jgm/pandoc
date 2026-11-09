@@ -243,6 +243,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
+                  defField "deferred-notes" (stDeferredNoteNum st > 0) $
                   defField "multirow" (stMultiRow st) $
                   defField "cancel" (stCancel st) $
                   defField "strikeout" (stStrikeout st) $
@@ -1220,6 +1221,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) description (source, _)) = do
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
   modify (\s -> s{stInNote = True })
+  numNotesBefore <- gets (length . stNotes)
   contents' <- withExternalNotes $ blockListToLaTeX contents
   modify (\s -> s {stInNote = False })
   let optnl = case reverse contents of
@@ -1238,8 +1240,14 @@ inlineToLaTeX (Note contents) = do
   externalNotes <- gets stExternalNotes
   if externalNotes
      then do
-       modify $ \st -> st{ stNotes = noteContents : stNotes st }
-       return "\\footnotemark{}"
+       -- the marks of notes nested in this one are only set when
+       -- this note's text is typeset, so their texts must come after it
+       notes <- gets stNotes
+       let (nested, rest) = splitAt (length notes - numNotesBefore) notes
+       num <- gets ((+ 1) . stDeferredNoteNum)
+       modify $ \st -> st{ stNotes = nested ++ (num, noteContents) : rest
+                         , stDeferredNoteNum = num }
+       return $ "\\pandocfootnotemark" <> braces (text (show num))
        -- note: a \n before } needed when note ends with a Verbatim environment
        else return $ "\\footnote" <> beamerMark <> braces noteContents
 
