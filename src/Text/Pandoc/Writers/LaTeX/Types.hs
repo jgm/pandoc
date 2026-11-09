@@ -29,7 +29,8 @@ data WriterState =
   , stInItem        :: Bool          -- ^ true if in \item[..]
   , stInFigure      :: Bool          -- ^ true if in figure environment
   , stInCite        :: Bool          -- ^ true if in a Cite
-  , stNotes         :: [Doc Text]    -- ^ notes in a minipage
+  , stNotes         :: [(Int, Doc Text)] -- ^ deferred notes (id, text)
+  , stDeferredNoteNum :: Int         -- ^ number of deferred notes so far
   , stOLLevel       :: Int           -- ^ level of ordered list nesting
   , stOptions       :: WriterOptions -- ^ writer options, so they don't have to
                                      --   be parameter
@@ -76,6 +77,7 @@ startingState options =
   , stInFigure = False
   , stInCite = False
   , stNotes = []
+  , stDeferredNoteNum = 0
   , stOLLevel = 1
   , stOptions = options
   , stVerbInNote = False

@@ -91,6 +91,27 @@ $else$
 $endif$
 $endif$
 $--
+$-- deferred footnotes (in tables, captions, etc.)
+$--
+$if(deferred-notes)$
+% \pandocfootnotemark{n} saves the footnote mark and hyperref anchor;
+% \pandocfootnotetext{n}{text} restores them, so the footnote text
+% gets the right number and link target.
+\makeatletter
+\protected\def\pandocfootnotemark#1{\footnotemark{}%
+  \expandafter\xdef\csname pandoc@fn@#1\endcsname{%
+    \noexpand\pandoc@fnrestore
+    {\unexpanded\expandafter{\@thefnmark}}%
+    {\ifdefined\Hy@footnote@currentHref
+       \unexpanded\expandafter{\Hy@footnote@currentHref}\fi}}}
+\def\pandoc@fnrestore#1#2{%
+  \gdef\@thefnmark{#1}%
+  \ifdefined\Hy@footnote@currentHref\gdef\Hy@footnote@currentHref{#2}\fi}
+\newcommand\pandocfootnotetext[1]{%
+  \csname pandoc@fn@#1\endcsname\@footnotetext}
+\makeatother
+$endif$
+$--
 $-- graphics
 $--
 $if(graphics)$

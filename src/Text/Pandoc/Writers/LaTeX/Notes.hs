@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Notes
@@ -9,26 +8,21 @@
    Stability   : alpha
    Portability : portable
 
-Output tables as LaTeX.
+Output deferred footnote texts as LaTeX.
 -}
 module Text.Pandoc.Writers.LaTeX.Notes
   ( notesToLaTeX
   ) where
 
-import Data.List (intersperse)
-import Text.DocLayout ( Doc, braces, empty, text, vcat, ($$))
+import Text.DocLayout ( Doc, braces, text, vcat )
 import Data.Text (Text)
 
-notesToLaTeX :: [Doc Text] -> Doc Text
-notesToLaTeX = \case
-  [] -> empty
-  ns -> (case length ns of
-            n | n > 1 -> "\\addtocounter" <>
-                         braces "footnote" <>
-                         braces (text $ show $ 1 - n)
-              | otherwise -> empty)
-        $$
-        vcat (intersperse
-               ("\\addtocounter" <> braces "footnote" <> braces "1")
-               $ map (\x -> "\\footnotetext" <> braces x)
-               $ reverse ns)
+-- | Render the texts of notes whose marks were produced with
+-- @\\pandocfootnotemark{n}@. @\\pandocfootnotetext{n}@ restores
+-- the footnote mark and hyperref anchor saved by the corresponding
+-- mark (see the template). Notes are stored in reverse order.
+notesToLaTeX :: [(Int, Doc Text)] -> Doc Text
+notesToLaTeX = vcat . map toNoteText . reverse
+  where
+    toNoteText (num, x) =
+      "\\pandocfootnotetext" <> braces (text (show num)) <> braces x
