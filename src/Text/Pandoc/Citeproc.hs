@@ -24,6 +24,7 @@ import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Class (PandocMonad(..), getResourcePath, getUserDataDir,
+                          getPandocDataDirs,
                           fetchItem, report, setResourcePath, toTextM)
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
@@ -132,9 +133,10 @@ getStyle (Pandoc meta _) = do
   let getFile defaultExtension fp = do
         oldRp <- getResourcePath
         mbUdd <- getUserDataDir
-        setResourcePath $ oldRp ++ maybe []
-                                   (\u -> [u <> "/csl",
-                                           u <> "/csl/dependent"]) mbUdd
+        pandocDataDirs <- getPandocDataDirs
+        setResourcePath $ oldRp ++
+          concatMap (\u -> [u <> "/csl", u <> "/csl/dependent"])
+            (maybe id (:) mbUdd pandocDataDirs)
         let fp' = if T.any (=='.') fp || "data:" `T.isPrefixOf` fp
                      then fp
                      else fp <> defaultExtension

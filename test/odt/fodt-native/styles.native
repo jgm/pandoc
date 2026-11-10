@@ -1,0 +1,117 @@
+[ Header
+    1
+    ( "plain-heading" , [] , [] )
+    [ Str "Plain" , Space , Str "Heading" ]
+, Header
+    1
+    ( "custom-title"
+    , []
+    , [ ( "custom-style" , "Chapter Title" ) ]
+    )
+    [ Str "Custom" , Space , Str "Title" ]
+, Para [ Str "Standard" , Space , Str "paragraph." ]
+, Div
+    ( "" , [] , [ ( "custom-style" , "Text body" ) ] )
+    [ Para [ Str "Body" , Space , Str "text." ] ]
+, Div
+    ( "" , [] , [ ( "custom-style" , "Text body" ) ] )
+    [ Para
+        [ Strong
+            [ Str "Bold" , Space , Str "body" , Space , Str "text." ]
+        ]
+    ]
+, Div
+    ( "" , [] , [ ( "custom-style" , "Poetry" ) ] )
+    [ Para
+        [ Str "A"
+        , Space
+        , Str "Bird"
+        , Space
+        , Str "came"
+        , Space
+        , Str "down"
+        , Space
+        , Str "the"
+        , Space
+        , Str "Walk"
+        ]
+    ]
+, Para
+    [ Str "Some"
+    , Space
+    , Span
+        ( "" , [] , [ ( "custom-style" , "Keyword" ) ] )
+        [ Str "keyword" ]
+    , Str ","
+    , Space
+    , Span
+        ( "" , [] , [ ( "custom-style" , "Emphatic(x)" ) ] )
+        [ Str "emphatic" ]
+    , Str ","
+    , Space
+    , Strong [ Str "bold" ]
+    , Space
+    , Str "and"
+    , Space
+    , Code ( "" , [] , [] ) "code"
+    , Space
+    , Str "text."
+    ]
+, Div
+    ( "" , [] , [ ( "custom-style" , "Undefined Style" ) ] )
+    [ Para
+        [ Str "An"
+        , Space
+        , Emph [ Str "emphasized" ]
+        , Space
+        , Str "word."
+        ]
+    ]
+, Div
+    ( "" , [] , [ ( "custom-style" , "Preformatted Text" ) ] )
+    [ CodeBlock ( "" , [] , [] ) "code line 1\ncode line 2" ]
+, OrderedList
+    ( 1 , DefaultStyle , DefaultDelim )
+    [ [ Plain [ Str "item" , Space , Str "one" ] ]
+    , [ Plain
+          [ Str "item"
+          , Space
+          , Span
+              ( "" , [] , [ ( "custom-style" , "Keyword" ) ] )
+              [ Str "two" ]
+          ]
+      ]
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    ]
+    (TableHead ( "" , [] , [] ) [])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "cell" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Div
+                    ( "" , [] , [ ( "custom-style" , "Poetry" ) ] )
+                    [ Para [ Str "poem" ] ]
+                ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+]

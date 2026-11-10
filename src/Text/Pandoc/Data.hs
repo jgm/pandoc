@@ -19,8 +19,8 @@ module Text.Pandoc.Data ( readDefaultDataFile
                         , getDataFileNames
                         , defaultUserDataDir
                         ) where
-import Text.Pandoc.Class (PandocMonad(..), checkUserDataDir, getTimestamp,
-                          getUserDataDir, getPOSIXTime)
+import Text.Pandoc.Class (PandocMonad(..), getDataDirs, getTimestamp,
+                          getPOSIXTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
@@ -39,15 +39,31 @@ import Text.Pandoc.Shared (makeCanonical)
 import Paths_pandoc (getDataDir)
 #endif
 
--- | Read file from the default data files.
+-- | Read file from the default data files, ignoring the user data
+-- directory and @PANDOC_DATA_DIRS@.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
-readDefaultDataFile "reference.docx" =
-  B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceDocx
-readDefaultDataFile "reference.pptx" =
-  B.concat . BL.toChunks . fromArchive <$> getDefaultReferencePptx
-readDefaultDataFile "reference.odt" =
-  B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceODT
 readDefaultDataFile fname =
+  case buildReferenceDoc readDefaultDataFile fname of
+    Just getArchive -> archiveToByteString <$> getArchive
+    Nothing -> readDefaultDataFile' fname
+
+-- | If the file is a reference document, returns an action that builds
+-- it from its component files, which are read using the supplied function.
+buildReferenceDoc :: PandocMonad m
+                  => (FilePath -> m B.ByteString) -> FilePath
+                  -> Maybe (m Archive)
+buildReferenceDoc readComponent fname =
+  case fname of
+    "reference.docx" -> Just $ getDefaultReferenceDocx readComponent
+    "reference.pptx" -> Just $ getDefaultReferencePptx readComponent
+    "reference.odt"  -> Just $ getDefaultReferenceODT readComponent
+    _                -> Nothing
+
+archiveToByteString :: Archive -> B.ByteString
+archiveToByteString = B.concat . BL.toChunks . fromArchive
+
+readDefaultDataFile' :: PandocMonad m => FilePath -> m B.ByteString
+readDefaultDataFile' fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
     Nothing       -> throwError $ PandocCouldNotFindDataFileError $ T.pack fname
@@ -66,22 +82,28 @@ checkExistence fn = do
      else throwError $ PandocCouldNotFindDataFileError $ T.pack fn
 #endif
 
---- | Read file from user data directory or,
---- if not found there, from the default data files.
+--- | Read file from user data directory or, if not found there,
+--- from one of the directories listed in @PANDOC_DATA_DIRS@,
+--- or, if not found there, from the default
+--- data files.  If a reference document (e.g. @reference.docx@)
+--- is not found, it is built from component files (e.g.
+--- @docx/word/styles.xml@), which are looked up in the same way.
 readDataFile :: PandocMonad m => FilePath -> m B.ByteString
-readDataFile fname = do
-  datadir <- checkUserDataDir fname
-  case datadir of
-       Nothing -> readDefaultDataFile fname
-       Just userDir -> do
-         exists <- fileExists (userDir </> fname)
-         if exists
-            then readFileStrict (userDir </> fname)
-            else readDefaultDataFile fname
+readDataFile fname = getDataDirs fname >>= go
+ where
+  go [] = case buildReferenceDoc readDataFile fname of
+            Just getArchive -> archiveToByteString <$> getArchive
+            Nothing -> readDefaultDataFile' fname
+  go (d:ds) = do
+    exists <- fileExists (d </> fname)
+    if exists
+       then readFileStrict (d </> fname)
+       else go ds
 
 -- | Retrieve default reference.docx.
-getDefaultReferenceDocx :: PandocMonad m => m Archive
-getDefaultReferenceDocx = do
+getDefaultReferenceDocx :: PandocMonad m
+                        => (FilePath -> m B.ByteString) -> m Archive
+getDefaultReferenceDocx readComponent = do
   let paths = ["[Content_Types].xml",
                "_rels/.rels",
                "docProps/app.xml",
@@ -101,24 +123,14 @@ getDefaultReferenceDocx = do
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
         epochtime <- floor . utcTimeToPOSIXSeconds <$> getTimestamp
-        contents <- toLazy <$> readDataFile ("docx/" ++ path)
+        contents <- toLazy <$> readComponent ("docx/" ++ path)
         return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.docx")
-                       if exists
-                          then return (Just (d </> "reference.docx"))
-                          else return Nothing
-  case mbArchive of
-     Just arch -> toArchive <$> readFileLazy arch
-     Nothing   -> foldr addEntryToArchive emptyArchive <$>
-                     mapM pathToEntry paths
+  foldr addEntryToArchive emptyArchive <$> mapM pathToEntry paths
 
 -- | Retrieve default reference.odt.
-getDefaultReferenceODT :: PandocMonad m => m Archive
-getDefaultReferenceODT = do
+getDefaultReferenceODT :: PandocMonad m
+                        => (FilePath -> m B.ByteString) -> m Archive
+getDefaultReferenceODT readComponent = do
   let paths = ["mimetype",
                "manifest.rdf",
                "styles.xml",
@@ -127,24 +139,14 @@ getDefaultReferenceODT = do
                "META-INF/manifest.xml"]
   let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
                             contents <- (BL.fromChunks . (:[])) `fmap`
-                                          readDataFile ("odt/" ++ path)
+                                          readComponent ("odt/" ++ path)
                             return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.odt")
-                       if exists
-                          then return (Just (d </> "reference.odt"))
-                          else return Nothing
-  case mbArchive of
-     Just arch -> toArchive <$> readFileLazy arch
-     Nothing   -> foldr addEntryToArchive emptyArchive <$>
-                     mapM pathToEntry paths
+  foldr addEntryToArchive emptyArchive <$> mapM pathToEntry paths
 
 -- | Retrieve default reference.pptx.
-getDefaultReferencePptx :: PandocMonad m => m Archive
-getDefaultReferencePptx = do
+getDefaultReferencePptx :: PandocMonad m
+                        => (FilePath -> m B.ByteString) -> m Archive
+getDefaultReferencePptx readComponent = do
   -- We're going to narrow this down substantially once we get it
   -- working.
   let paths = [ "[Content_Types].xml"
@@ -201,20 +203,9 @@ getDefaultReferencePptx = do
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
         epochtime <- floor <$> getPOSIXTime
-        contents <- toLazy <$> readDataFile ("pptx/" ++ path)
+        contents <- toLazy <$> readComponent ("pptx/" ++ path)
         return $ toEntry path epochtime contents
-  datadir <- getUserDataDir
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- fileExists (d </> "reference.pptx")
-                       if exists
-                          then return (Just (d </> "reference.pptx"))
-                          else return Nothing
-  case mbArchive of
-     Just arch -> toArchive <$> readFileLazy arch
-     Nothing   -> foldr addEntryToArchive emptyArchive <$>
-                     mapM pathToEntry paths
+  foldr addEntryToArchive emptyArchive <$> mapM pathToEntry paths
 
 getDataFileNames :: IO [FilePath]
 getDataFileNames = do

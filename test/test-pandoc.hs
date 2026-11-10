@@ -1,6 +1,6 @@
 module Main (main) where
 
-import System.Environment (getArgs, getExecutablePath)
+import System.Environment (getArgs, getExecutablePath, setEnv)
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, handleOptInfo, defaultOpts, options,
                         parseOptionsFromArgs)
@@ -58,7 +58,10 @@ import qualified Tests.Writers.BBCode
 import qualified Tests.Writers.Txt2Tags
 import qualified Tests.XML
 import qualified Tests.MediaBag
+import qualified Tests.Data
 import Text.Pandoc.Shared (inDirectory)
+import System.FilePath (takeDirectory)
+import System.Directory (getCurrentDirectory)
 
 tests :: FilePath -> TestTree
 tests pandocPath = testGroup "pandoc tests"
@@ -66,6 +69,7 @@ tests pandocPath = testGroup "pandoc tests"
         , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "MediaBag" Tests.MediaBag.tests
+        , testGroup "Data" Tests.Data.tests
         , testGroup "XML" Tests.XML.tests
         , testGroup "ImageSize" Tests.ImageSize.tests
         , testGroup "Writers"
@@ -134,4 +138,7 @@ main = do
     _ -> inDirectory "test" $ do
            fp <- getExecutablePath
            -- putStrLn $ "Using pandoc executable at " ++ fp
+           -- look for data in data/ directory...
+           cwd <- getCurrentDirectory
+           setEnv "pandoc_datadir" (takeDirectory cwd) -- drop the /test
            defaultMain $ tests fp

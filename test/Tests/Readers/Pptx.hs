@@ -53,6 +53,10 @@ tests = [ testGroup "basic"
             "pptx-reader/groups.pptx"
             "pptx-reader/groups.native"
           , testCompare
+            "slide number placeholders"
+            "pptx-reader/slide-numbers.pptx"
+            "pptx-reader/slide-numbers.native"
+          , testCompare
             "text extraction"
             "pptx-reader/basic.pptx"
             "pptx-reader/basic.native"
@@ -78,6 +82,16 @@ tests = [ testGroup "basic"
             "equations and alternate content"
             "pptx-reader/equations.pptx"
             "pptx-reader/equations.native"
+          ]
+        , testGroup "lists"
+          [ testCompare
+            "inherited bullets, nesting and numbering"
+            "pptx-reader/lists.pptx"
+            "pptx-reader/lists.native"
+          , testCompare
+            "lists written by the pptx writer"
+            "pptx-reader/lists-writer.pptx"
+            "pptx-reader/lists-writer.native"
           ]
         , testGroup "notes"
           [ testCompare

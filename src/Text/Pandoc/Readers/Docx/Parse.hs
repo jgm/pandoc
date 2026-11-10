@@ -704,7 +704,23 @@ archiveToNumbering' zf =
           numElems = findChildrenByName namespaces "w" "num" numberingElem
           absNumElems = findChildrenByName namespaces "w" "abstractNum" numberingElem
           nums = mapMaybe (numElemToNum namespaces) numElems
-          absNums = mapMaybe (absNumElemToAbsNum namespaces) absNumElems
+          parsed = mapMaybe (\el -> (,) el <$> absNumElemToAbsNum namespaces el)
+                     absNumElems
+          linkVal name el = findChildByName namespaces "w" name el
+                            >>= findAttrByName namespaces "w" "val"
+          -- An abstractNum with w:numStyleLink has no levels of its own: they
+          -- are in the abstractNum whose w:styleLink names the same numbering
+          -- style (#9222).
+          levelsByStyle = M.fromList
+            [ (s, lvls) | (el, AbstractNumb _ lvls) <- parsed
+                        , Just s <- [linkVal "styleLink" el] ]
+          resolve (el, absNum@(AbstractNumb absNumId lvls))
+            | null lvls
+            , Just lvls' <- linkVal "numStyleLink" el
+                            >>= (`M.lookup` levelsByStyle)
+            = AbstractNumb absNumId lvls'
+            | otherwise = absNum
+          absNums = map resolve parsed
       return $ Numbering namespaces nums absNums
 
 archiveToNumbering :: Archive -> Numbering
@@ -1219,7 +1235,7 @@ elemToParPart' ns element
                 (matchQName "drawingml" "chart" (Just "c") "chart") drawingElem
   = return [Chart]
 elemToParPart' ns element
-  | isElem ns "w" "r" element = do
+  | isElem ns "w" "r" element || isElem ns "w" "customXml" element = do
     runs <- elemToRun ns element
     return $ map PlainRun runs
 elemToParPart' ns element
@@ -1364,6 +1380,9 @@ elemToRun ns element
     runElems <- elemToRunElems ns element
     runStyle <- elemToRunStyleD ns element
     return [Run runStyle runElems]
+elemToRun ns element
+  | isElem ns "w" "customXml" element =
+    mconcat <$> mapM (elemToRun ns) (elChildren element)
 elemToRun _ _ = throwError WrongElem
 
 getParentStyleValue :: (ParStyle -> Maybe a) -> ParStyle -> Maybe a

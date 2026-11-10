@@ -35,7 +35,6 @@ extra-deps:
 - doctemplates-0.11.1
 - asciidoc-0.1.1.1
 - commonmark-pandoc-0.3.0.2
-- commonmark-extensions-0.2.7.3
 - djot-0.1.4.3
 - yamlet-1.0.0.1
 - yamlet-aeson-1.0.0.1
@@ -45,13 +44,13 @@ extra-deps:
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
 - git: https://github.com/jgm/citeproc.git
-  commit: e3e4b835ca2a3548a1ef0118266a736d345b10bd
+  commit: 67789007b8447d036022810467e28f4ac5f67b8a
 - git: https://github.com/jgm/texmath.git
   commit: b0d74f4cbde104a71e6d40270711178482077f38
 - emojis-0.1.6
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: 89b2686bbc77aba333a79790e39cb08b90c1d75d
-  subdirs: [commonmark]
+  commit: e67a0480f09f7d3d814c5a050489a9faa8667fe8
+  subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/typst-hs.git
   commit: c5548ce803657545a9672e919d5b9a8a805ed8f1
 # needed because not yet in nixpkgs:

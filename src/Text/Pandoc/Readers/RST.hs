@@ -393,6 +393,7 @@ optionListItem = try $ do
   bodyElements <- do
     raw <- option "" indentedBlock
     parseFromString' parseBlocks $ (rawfirst <> raw) <> "\n\n"
+  guard (not (null bodyElements))
   optional blanklines
   pure (B.code opts, [bodyElements])
 

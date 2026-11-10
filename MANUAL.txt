@@ -418,6 +418,19 @@ header when requesting a document from a URL:
     is not created by pandoc, so you will need to create it yourself
     if you want to make use of it.)
 
+    If the `PANDOC_DATA_DIRS` environment variable is set to a list
+    of directories (separated by `:`, or `;` on Windows), these
+    directories will be searched, in order, for data files not
+    found in the user data directory, before pandoc falls back to
+    its default data files.  This applies to all data files that
+    are looked up in the user data directory, including templates,
+    filters, defaults files, metadata files, and CSL styles. Only
+    absolute paths in `PANDOC_DATA_DIRS` are used.  This makes it
+    possible for a package manager to install, for example, Lua
+    filters into `/some/prefix/share/pandoc/filters` and make them
+    available by adding `/some/prefix/share/pandoc` to
+    `PANDOC_DATA_DIRS`.
+
 `-d` *FILE*, `--defaults=`*FILE*
 
 :   Specify a set of default option settings.  *FILE* is a YAML or JSON
@@ -4043,8 +4056,20 @@ styles will cause Spans to be created to hold the attributes.
 (Table styles will be added to the Table elements directly.)
 This extension can be used with [docx custom styles](#custom-styles).
 
+When converting from odt or fodt, add `custom-styles`
+attributes for paragraph and character styles, using the
+style names shown in the word processor. Automatic styles,
+which only record direct formatting, are not recorded; instead,
+the named style they are based on is used. A few styles are not
+recorded: the default paragraph style (`Default Paragraph Style`,
+or `Standard`), the default styles of table cells, and styles
+that pandoc interprets itself (such as `Emphasis` and `Strong
+Emphasis`). The paragraphs of list items are not wrapped in Divs.
+A heading gets a `custom-style` attribute if its style is not the
+standard one for its level.
+
 input formats
-:  `docx`
+:  `docx`, `odt`, `fodt`
 
 ### Extension: `amuse` ###
 
@@ -5126,6 +5151,13 @@ fit on one page), add the `float` class to the table's attributes
 attribute may be used to pass parameters affecting the float placement:
 
     : The caption of the table. {#ident .float latex-placement="ht"}
+
+To repeat the caption of a `longtable` on each page, add the
+`repeat-caption` class to the table's attributes. Repeated captions are
+not added to the list of tables. This class has no effect on tables with
+the `float` class, since those tables cannot span pages.
+
+    : The caption of the table. {.repeat-caption}
 
 Note that `longtable` does not work with two-column layouts, so if you
 are producing a two-column document using LaTeX, you will need to specify
@@ -7929,6 +7961,8 @@ of the input document, using the `custom-style` class. A `custom-style`
 attribute will be added for each style. Divs will be created to
 hold the paragraph styles, and Spans to hold the character styles.
 Table styles will be applied directly to the Table.
+The odt and fodt readers also support the `styles` extension
+(`-f odt+styles`), for paragraph and character styles.
 
 For example, using the `custom-style-reference.docx` file in the test
 directory, we have the following different outputs:

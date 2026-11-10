@@ -1,0 +1,36 @@
+[ Para
+    [ Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "some"
+    , Space
+    , Str "sample"
+    , Space
+    , Str "content"
+    , Space
+    , Str "that"
+    , Space
+    , Str "will"
+    , Space
+    , Str "be"
+    , Space
+    , Str "wrapped"
+    , Space
+    , Str "inside"
+    , Space
+    , Str "a"
+    , Space
+    , Str "customXml"
+    , Space
+    , Str "element"
+    , Space
+    , Str "in"
+    , Space
+    , Str "the"
+    , Space
+    , Str "OpenXML"
+    , Space
+    , Str "structure."
+    ]
+]

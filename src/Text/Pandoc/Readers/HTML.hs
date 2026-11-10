@@ -310,7 +310,7 @@ eFootnote = do
        _ -> False)
   let attr = toStringAttr attr'
   let ident = fromMaybe "" (lookup "id" attr)
-  content <- pInTags tag block
+  content <- local (\s -> s{ inNoteBody = True }) $ pInTags tag block
   updateState $ \s ->
     s {noteTable = M.insert ident content (noteTable s)}
 
@@ -422,7 +422,11 @@ parseTypeAttr _   = DefaultStyle
 pOrderedList :: PandocMonad m => TagParser m Blocks
 pOrderedList = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "ol" [])
-  isNoteList <- inFootnotes <$> getState
+  -- an <ol> inside the body of a note is an ordered list, not the
+  -- list of notes (#11852):
+  inNotes <- inFootnotes <$> getState
+  inBody <- asks inNoteBody
+  let isNoteList = inNotes && not inBody
   let attribs = toStringAttr attribs'
   let start = fromMaybe 1 $ lookup "start" attribs >>= safeRead
   let style = fromMaybe DefaultStyle
@@ -637,7 +641,8 @@ pHrule :: PandocMonad m => TagParser m Blocks
 pHrule = do
   pSelfClosing (=="hr") (const True)
   inNotes <- inFootnotes <$> getState
-  return $ if inNotes
+  inBody <- asks inNoteBody
+  return $ if inNotes && not inBody
               then mempty
               else B.horizontalRule
 

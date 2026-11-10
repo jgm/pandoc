@@ -29,6 +29,8 @@ module Text.Pandoc.Readers.ODT.StyleReader
 , ListLevelType        (..)
 , LengthOrPercent      (..)
 , lookupStyle
+, lookupNamedStyle
+, styleUIName
 , getListLevelStyle
 , getStyleFamily
 , lookupDefaultStyle'
@@ -39,6 +41,7 @@ module Text.Pandoc.Readers.ODT.StyleReader
 
 import Control.Applicative ((<|>), optional)
 
+import Data.Char (chr, isHexDigit)
 import Data.Default
 import qualified Data.Foldable as F
 import qualified Data.Map as M
@@ -46,6 +49,7 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Set as S
+import Numeric (readHex)
 
 import qualified Text.Pandoc.XML.Light as XML
 
@@ -178,10 +182,17 @@ instance Lookupable StyleFamily where
                 ]
 
 -- | A named style
-data Style            = Style  { styleFamily     :: Maybe StyleFamily
-                               , styleParentName :: Maybe StyleName
-                               , listStyle       :: Maybe StyleName
-                               , styleProperties :: StyleProperties
+data Style            = Style  { styleFamily      :: Maybe StyleFamily
+                               , styleParentName  :: Maybe StyleName
+                               , listStyle        :: Maybe StyleName
+                               , styleProperties  :: StyleProperties
+                                 -- | The name shown to the user
+                                 -- (@style:display-name@), if given.
+                               , styleDisplayName :: Maybe Text
+                                 -- | Whether this is an automatic style,
+                                 -- i.e. one that only records direct
+                                 -- formatting and is not visible to the user.
+                               , styleAutomatic   :: Bool
                                }
   deriving ( Eq, Show )
 
@@ -404,14 +415,14 @@ readAllStyles = do
 --
 readStyles :: StyleReader Styles
 readStyles = executeInSub NsOffice "styles" $
-  Styles <$> (M.fromList <$> tryAll NsStyle "style"         readStyle       )
+  Styles <$> (M.fromList <$> tryAll NsStyle "style"   (readStyle False) )
          <*> (M.fromList <$> tryAll NsText  "list-style"    readListStyle   )
          <*> (M.fromList <$> tryAll NsStyle "default-style" readDefaultStyle)
 
 --
 readAutomaticStyles :: StyleReader Styles
 readAutomaticStyles = executeInSub NsOffice "automatic-styles" $
-  Styles <$> (M.fromList <$> tryAll NsStyle "style"         readStyle       )
+  Styles <$> (M.fromList <$> tryAll NsStyle "style"   (readStyle True)  )
          <*> (M.fromList <$> tryAll NsText  "list-style"    readListStyle   )
          <*> pure M.empty
 
@@ -420,14 +431,16 @@ readDefaultStyle :: StyleReader (StyleFamily, StyleProperties)
 readDefaultStyle = (,) <$> lookupAttr NsStyle "family"
                        <*> readStyleProperties
 
---
-readStyle :: StyleReader (StyleName, Style)
-readStyle = do
+-- | Read a style; the argument says whether it is an automatic style.
+readStyle :: Bool -> StyleReader (StyleName, Style)
+readStyle automatic = do
   name  <- findAttr NsStyle "name"
   style <- Style <$> lookupAttr' NsStyle "family"
                  <*> findAttr'   NsStyle "parent-style-name"
                  <*> findAttr'   NsStyle "list-style-name"
                  <*> readStyleProperties
+                 <*> findAttr'   NsStyle "display-name"
+                 <*> pure automatic
   return (name, style)
 
 --
@@ -553,6 +566,48 @@ chooseMostSpecificListLevelStyle ls = F.foldr select Nothing ls
 --
 lookupStyle           :: StyleName   -> Styles -> Maybe Style
 lookupStyle name Styles{..} = M.lookup name stylesByName
+
+-- | Find the named (i.e., non-automatic) style that an element with the
+-- given style name is an instance of. An automatic style (@P1@, @T3@, ...)
+-- only records direct formatting, so it is followed up its chain of parents.
+-- Returns the internal name of the style together with the style, which
+-- may not be defined: automatic styles always are, so an undefined style
+-- is a named one.
+lookupNamedStyle      :: StyleName   -> Styles
+                      -> Maybe (StyleName, Maybe Style)
+lookupNamedStyle name0 styles = go S.empty name0
+  where
+    go seen name
+      | name `S.member` seen = Nothing  -- cyclic parent references
+      | otherwise =
+          case lookupStyle name styles of
+            Nothing -> Just (name, Nothing)
+            Just style
+              | styleAutomatic style
+                -> styleParentName style >>= go (S.insert name seen)
+              | otherwise -> Just (name, Just style)
+
+-- | The name of a style as shown to the user: its @style:display-name@,
+-- if any, or else its internal name with ODF's escapes (@_20_@ for a
+-- space, etc.) decoded.
+styleUIName           :: StyleName   -> Maybe Style -> Text
+styleUIName name mbStyle =
+  fromMaybe (decodeStyleName name) (mbStyle >>= styleDisplayName)
+
+-- | Decode the hex escapes (e.g. @_20_@) that ODF uses for characters that
+-- are not allowed in style names.
+decodeStyleName :: StyleName -> Text
+decodeStyleName t =
+  case T.breakOn "_" t of
+    (before, rest)
+      | T.null rest -> before
+      | (hex, rest') <- T.span isHexDigit (T.drop 1 rest)
+      , not (T.null hex)
+      , "_" `T.isPrefixOf` rest'
+      , [(n, "")] <- readHex (T.unpack hex)
+      , n <= 0x10FFFF
+      -> before <> T.singleton (chr n) <> decodeStyleName (T.drop 1 rest')
+      | otherwise -> before <> "_" <> decodeStyleName (T.drop 1 rest)
 
 --
 lookupDefaultStyle'   :: Styles -> StyleFamily -> StyleProperties
