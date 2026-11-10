@@ -34,8 +34,6 @@ source-repository-package
   location: https://github.com/jgm/citeproc.git
   tag: 67789007b8447d036022810467e28f4ac5f67b8a
 
--- TODO: release skylighting + skylighting-core and bump dependencies
-
 -- GHC 9.14 ships base 4.22 and containers 0.8, which are newer than
 -- the upper bounds of these packages allow.
 if impl(ghc >= 9.14)

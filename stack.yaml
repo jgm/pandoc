@@ -27,8 +27,8 @@ extra-deps:
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
 - skylighting-format-blaze-html-0.1.2.2
-- skylighting-0.15
-- skylighting-core-0.15
+- skylighting-0.15.0.1
+- skylighting-core-0.15.0.1
 - typst-symbols-0.3
 - zip-archive-0.5
 - doclayout-0.6
