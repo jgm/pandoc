@@ -46,11 +46,10 @@ extra-deps:
 - emojis-0.1.6
 - texmath-0.13.3.4
 - citeproc-0.14.2
+- typst-0.12.1
 - git: https://github.com/jgm/commonmark-hs.git
   commit: e67a0480f09f7d3d814c5a050489a9faa8667fe8
   subdirs: [commonmark, commonmark-extensions]
-- git: https://github.com/jgm/typst-hs.git
-  commit: c5548ce803657545a9672e919d5b9a8a805ed8f1
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 ghc-options:
