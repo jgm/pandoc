@@ -43,11 +43,10 @@ extra-deps:
 - scientific-0.3.9.0
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
+- emojis-0.1.6
+- texmath-0.13.3.4
 - git: https://github.com/jgm/citeproc.git
   commit: 67789007b8447d036022810467e28f4ac5f67b8a
-- git: https://github.com/jgm/texmath.git
-  commit: b0d74f4cbde104a71e6d40270711178482077f38
-- emojis-0.1.6
 - git: https://github.com/jgm/commonmark-hs.git
   commit: e67a0480f09f7d3d814c5a050489a9faa8667fe8
   subdirs: [commonmark, commonmark-extensions]

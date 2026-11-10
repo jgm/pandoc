@@ -26,11 +26,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/texmath.git
-  tag: b0d74f4cbde104a71e6d40270711178482077f38
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/citeproc.git
   tag: 67789007b8447d036022810467e28f4ac5f67b8a
 
