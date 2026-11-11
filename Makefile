@@ -111,7 +111,7 @@ LOG.md:
 .PHONY: LOG.md
 
 check-stack:
-	$$HOME/.local/bin/stack-lint-extra-deps --no-exit # check that stack.yaml dependencies are up to date
+	$$HOME/.local/bin/stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
 .PHONY: check-stack
 
