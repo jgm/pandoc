@@ -555,25 +555,22 @@ hrule = try $ do
 -- code blocks
 --
 
--- read a line indented by a given string
-indentedLine :: (HasReaderOptions st, Monad m)
-             => Int -> ParsecT Sources st m Text
-indentedLine indents = try $ do
-  lookAhead spaceChar
-  gobbleAtMostSpaces indents
-  anyLine
-
 -- one or more indented lines, possibly separated by blank lines.
--- any amount of indentation will work.
+-- any amount of indentation will work; the minimum indentation
+-- is stripped from all lines (#12071).
 indentedBlock :: (HasReaderOptions st, Monad m)
               => ParsecT Sources st m Text
 indentedBlock = try $ do
-  indents <- length <$> lookAhead (many1 spaceChar)
+  lookAhead spaceChar
   lns <- many1 $ try $ do b <- option "" blanklines
-                          l <- indentedLine indents
-                          return (b <> l)
+                          lookAhead spaceChar
+                          n <- gobbleAtMostSpaces maxBound
+                          l <- anyLine
+                          return (b, n, l)
   optional blanklines
-  return $ T.unlines lns
+  let minIndent = minimum [n | (_, n, _) <- lns]
+  return $ T.unlines
+    [b <> T.replicate (n - minIndent) " " <> l | (b, n, l) <- lns]
 
 quotedBlock :: Monad m => ParsecT Sources st m Text
 quotedBlock = try $ do
