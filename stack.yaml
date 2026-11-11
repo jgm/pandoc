@@ -44,7 +44,7 @@ extra-deps:
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
 - emojis-0.1.6
-- texmath-0.13.3.4
+- texmath-0.13.3.5
 - citeproc-0.14.2
 - typst-0.12.1
 - git: https://github.com/jgm/commonmark-hs.git
