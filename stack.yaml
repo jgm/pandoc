@@ -3,11 +3,6 @@ flags:
     embed_data_files: true
   QuickCheck:
     old-random: false
-allow-newer: true
-allow-newer-deps:
-  # These need to allow aeson 2.4:
-  - hslua-aeson
-  - pandoc-lua-marshal
 packages:
 - '.'
 - 'pandoc-cli'
@@ -15,6 +10,7 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - hslua-2.5.0
+- hslua-aeson-2.3.2.1
 - hslua-module-doclayout-1.2.1.1
 - hslua-module-path-1.2.0
 - hslua-module-text-1.2.0
@@ -24,6 +20,7 @@ extra-deps:
 - hslua-objectorientation-2.5.0
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
+- pandoc-lua-marshal-0.3.3
 - skylighting-0.15.0.1
 - skylighting-core-0.15.0.1
 - typst-symbols-0.3
