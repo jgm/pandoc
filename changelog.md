@@ -1,5 +1,205 @@
 # Revision history for pandoc
 
+## pandoc 3.14 (2026-11-10)
+
+  * Support `PANDOC_DATA_DIRS` for data file lookup (#7922).
+    If `PANDOC_DATA_DIRS` is set, the (absolute) directories it lists are
+    searched, in order, for data files not found in the user data directory,
+    before falling back to the default data files.  This covers templates,
+    filters, defaults files, metadata files, CSL styles, and other data files.
+    If `PANDOC_USER_DATA_DIRS` is set, print its value in `--version` output.
+
+  * Reset sourcepos when parsing footnotes and grid table cells (#12001).
+    Extends the fix for #11888 (c8c68ec0a) to footnote definitions in the
+    Markdown reader and to grid table cells.  Otherwise, when one of these
+    ends a file, relative paths in it can be rebased against the next file on
+    the command line.
+
+  * LaTeX reader:
+
+    + Fix duplicated text after a control space at line end (#12051, Asuka).
+    + Handle pandoc's deferred footnotes (`\pandocfootnotemark{n}` and
+      `\pandocfootnotetext{n}{..}`) as produced by the LaTeX writer for
+      notes in tables, captions, etc.
+    + Ignore definitions of `\pandocbounded`, `\pandocfootnotemark`,
+      and `\pandocfootnotetext` (e.g. from pandoc's template), which
+      the reader handles directly. Previously these definitions were
+      expanded, producing garbage and losing content.
+
+  * Typst reader:
+
+    + Handle `columns: auto` in grid (#12061).
+
+  * HTML reader:
+
+    + Don't drop ordered lists and rules inside footnotes (#11852).
+      Previously an `<ol>` inside the body of a note was treated as the list of
+      notes, and its items were lost.  Similarly, an `<hr>` inside a note was
+      dropped.
+
+  * RST reader:
+
+    + Strip minimum indentation from indented blocks (#12071). Previously
+      the indentation of the first line was stripped, so lines with
+      less indentation lost all their leading whitespace. Now, as
+      in docutils, the minimum indentation is stripped and relative
+      indentation is preserved.
+    + Require descriptions in option list items (#12063).
+
+  * ODT reader:
+
+    + Support the `styles` extension (#12060).
+
+  * Docx reader:
+
+    + Merge adjacent styled code blocks (#9183, Caio Vinícius).
+      Without `+styles`, consecutive "Source Code" paragraphs are combined into
+      a single code block by `combineBlocks`. With `+styles`, each paragraph is
+      first wrapped in a `Div` carrying its `custom-style` attribute, so
+      the `CodeBlock` case no longer matched and every line became its
+      own `Div [CodeBlock]`.
+    + Don't drop contents of customXml element (#12050).
+    + Read all underline types (#11988, Patrick Creighton).
+    + Follow `w:numStyleLink` in abstract numberings (#9222, Caio Vinícius).
+
+  * Pptx reader:
+
+    + Don't add spaces between text runs (#12016, Nacho García). The text of a
+      paragraph was built by joining all its `a:t` elements with spaces.
+    + Read the shapes inside group shapes (#12017, Nacho García). Only the
+      top-level children of a slide's shape tree were parsed, so everything
+      inside a group shape (`p:grpSp`) was dropped silently: text boxes,
+      pictures and tables. Groups, including nested ones, are now
+      replaced by the shapes they contain, in document order.
+    + Read equations and markup-compatibility blocks (#12025, Nacho Garcia).
+    + Read speaker notes (Nacho García, #12023). Each slide's notes are now read
+      into a `notes` div at the end of the slide's blocks, the form the pptx
+      writer turns into speaker notes, so pptx -> Markdown -> pptx keeps them.
+    + Read charts as tables (Nacho García, #12023). Previously, a chart was read
+      as the paragraph "[Graphic: other:
+      http://schemas.openxmlformats.org/drawingml/2006/chart]". We now create
+      a table from the chart's cached data. The table is put in a `chart` Div
+      whose `type` attribute holds the chart type. The chart's title becomes
+      the table captions. The chart code is in Text.Pandoc.Readers.OOXML.Charts.
+    + Mark hidden slides (Nacho García, #12023). Slides hidden from the slide
+      show (`show="0"` on `p:sld`) are read (as before), but the class `hidden`
+      is added to their header.
+    + Read merged table cells as spans (Nacho García). Previously, merged cells
+      in a table were ignored: a merged cell's text stayed in its
+      first cell.
+    + Read bold, italic, sub/superscript and hyperlinks (Nacho García). Text runs
+      were previously read as plain text, so their formatting and hyperlinks were lost.
+    + Read inherited bullets, numbering and nested lists (#12042, Nacho García).
+    + Skip slide number placeholders (#12045, Nacho García).
+
+  * Xlsx reader:
+
+    + Resolve package-absolute relationship targets (#12013, Nacho García).
+    + Read inline strings and rich text as written (#12014, Nacho García).
+      Cells of type `inlineStr` were read as empty and dropped.
+      Rich-text shared strings were read by joining the text of all their
+      descendants with spaces. Both now take the text of their `t`, or of their
+      runs' `t`, concatenated as written, skipping phonetic runs.
+    + Look up a cell's font through its cell format (#12033, Nacho García).
+    + Read merged cells as spans (Nacho García).
+    + Render dates and times (Nacho García). Number formats were previously ignored,
+      so a date came out as its serial number (45231.0 rather than 2023-11-01).
+    + Render numbers as Excel's General format (Nacho García, #12023).
+      Numbers were rendered with Haskell's `show`: 0.05 became 5.0e-2, 12345678
+      became 1.2345678e7, 21 became 21.0, and floating-point noise showed
+      (0.30000000000000004). Booleans became 1.0 and 0.0. Numbers are now rendered
+      as Excel's General format renders them. Booleans read as TRUE and FALSE.
+    + Read charts (#12043, Nacho García). Charts are now read as tables using
+      the cached data.
+
+  * Docx writer:
+
+    + Implement flip-flopping for emph (#11961). Emph within emph becomes upright.
+      This is important for correct formatting of titles in CSL, among other things.
+      LaTeX does this automatically, and in HTML we achieve it via CSS.
+
+  * EPUB writer:
+
+    + Fix `id` clash with added title header (#12003, Alain Lesage).
+      When content precedes the first level-1 header, a header with the title is
+      added. Its generated identifier could duplicate an existing header's, so
+      the TOC and internal links pointed to the wrong chapter.
+    + Skip dates that cannot be normalized (#12002, Alain Lesage).
+      Such dates produced an empty `dc:date`, which epubcheck rejects. They are
+      now dropped; if no date remains, the current time is used, as when no date
+      is given.
+
+  * Ipynb writer:
+
+    + Make ANSI escape stripping linear (#7744, Jeremy Levartovsky).
+
+  * Vimwiki reader:
+
+    + Support rejected todos (tyler000000).
+
+  * LaTeX writer:
+
+    + Fix hyperlinks for deferred footnotes (#11936). Notes in tables,
+      captions, and definition list terms are rendered as a mark
+      followed later by the note text. Previously we used
+      `\footnotemark{}` and `\footnotetext` with manual adjustments to
+      the footnote counter. But hyperref anchors each `\footnotetext` at
+      the destination of the most recent `\footnotemark`, so when there
+      were several such notes, all of the texts got the last mark's
+      anchor and the links for the other marks were broken. We now emit
+      `\pandocfootnotemark{n}` and `\pandocfootnotetext{n}{..}`, where
+      `n` is a unique id. These macros, defined in the default template
+      when the `deferred-notes` variable is set, save the footnote mark
+      and hyperref anchor at the mark and restore them at the text. This
+      removes the need for counter arithmetic, works when the footnote
+      counter is reset by chapter, and handles notes nested inside
+      deferred notes (whose texts are now emitted after the text
+      containing their marks). **Note:** Users of custom LaTeX
+      templates, or of LaTeX fragments produced without `--standalone`,
+      will need to include the definitions of `\pandocfootnotemark` and
+      `\pandocfootnotetext` from the default template.
+    + Allow repeated longtable captions (#4558, Václav Haisman). If a
+      table has a `repeat-caption` class, captions will be repeated on
+      each page of a longtable.
+
+  * HTML styles template:
+
+    + Add emph flip-flopping. So, emph within emph renders as upright, etc.
+    + Move `@print` rules to end (#12064), so they aren't overridden.
+
+  * Text.Pandoc.PDF:
+
+    + PDF via LaTeX: do at most 3 runs when only a TOC is present (#12012, Alain Lesage).
+
+  * Text.Pandoc.Class:
+
+    + Export new functions `getDataDirs` and `getPandocDataDirs`. [API change]
+
+  * Text.Pandoc.Citeproc:
+
+    + `removeFinalPeriod` - act across Link boundary.
+
+  * pandoc-lua-engine: raise lower bound for pandoc to 3.13 (#12066).
+
+  * Depend on texmath 0.13.3.5, commonmark 0.3.2, commonmark-extensions 0.2.8,
+    citeproc 0.14.2, typst 0.12.1, emojis 0.1.6, skylighting 0.15.0.1.
+
+  * New bounds for crypton in pandoc-lua-engine and pandoc.
+
+  * Makefile:
+
+    + Fix release-templates target so it pushes tags.
+    + Remove default CABALOPTS. These can be put in cabal.project.local.
+      This will ensure that the same options are used by HLS, so that rebuilds
+      aren't needed.
+    + `make check-cabal`: exit with error status on outdated deps.
+    + Reorganize `check-cabal; add `check-sdist` target we can run separately.
+
+  * cabal.project: specify `+http` flag for all ghc versions.
+
+  * Minimize the test docx, odt, pptx files. This reduces the
+    size of the test files (and release tarball) by 1.79 MB.
+
 ## pandoc 3.13 (2026-10-26)
 
   * Report the location of errors in defaults files (#8759, Andrzej Rybczak).
