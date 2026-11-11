@@ -39,7 +39,7 @@ make prerelease
 make authors
 #+end_src
 *** TODO Build and download release candidates
-#+begin_src sh
+#+begin_src
 mkdir -p RELEASE_VERSION
 ARTIFACTS=RELEASE_VERSION make release
 #+end_src
