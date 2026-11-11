@@ -6,6 +6,7 @@
 - Agustín Martín Barbero
 - Akash Patel
 - Akos Marton
+- Alain Lesage
 - Albert Krewinkel
 - Albert Lei
 - Alex Ivkin
@@ -47,6 +48,7 @@
 - Artyom Kazak
 - Aslak Hellesøy
 - Asliddinbek Azizovich
+- Asuka
 - B. Scott Michel
 - Bastien Dumont
 - Ben Firshman
@@ -65,6 +67,7 @@
 - Brent Yorgey
 - Brian Leung
 - Bryan O'Sullivan
+- Caio Vinícius
 - Caleb McDaniel
 - Caleb Mclennan
 - Calvin Beck
@@ -218,6 +221,7 @@
 - Jens Oehlschlägel
 - Jesse Hathaway
 - Jeremie Knuesel
+- Jeremy Levartovsky
 - Jérémy Bobbio
 - Jeroen de Haas
 - Jerry Sky
@@ -318,6 +322,7 @@
 - Mohamed Akram
 - Morgan Willcock
 - Morton Fox
+- Nacho García
 - Nathan Gass
 - Naveen
 - Neil Mayhew
@@ -557,6 +562,7 @@
 - thsutton
 - thron7
 - timo-a
+- tyler000000
 - vijayphoenix
 - vkraven
 - wgevaert
