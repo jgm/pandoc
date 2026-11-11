@@ -353,7 +353,7 @@ rawLaTeXParser lenv toks parser valParser = do
                 updateState (updateMacros ((NonEmpty.head (sMacros st)) <>))
                 let rawChar = do
                       pos <- getPosition
-                      if pos >= endpos
+                      if sourceName pos == sourceName endpos && pos >= endpos
                          then mzero
                          else anyChar
                 result <- (guardEnabled Ext_latex_macros
