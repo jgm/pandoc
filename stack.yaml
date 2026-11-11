@@ -47,9 +47,8 @@ extra-deps:
 - texmath-0.13.3.5
 - citeproc-0.14.2
 - typst-0.12.1
-- git: https://github.com/jgm/commonmark-hs.git
-  commit: e67a0480f09f7d3d814c5a050489a9faa8667fe8
-  subdirs: [commonmark, commonmark-extensions]
+- commonmark-0.3.2
+- commonmark-extensions-0.2.8
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
 ghc-options:
