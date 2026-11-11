@@ -9,11 +9,10 @@
     filters, defaults files, metadata files, CSL styles, and other data files.
     If `PANDOC_USER_DATA_DIRS` is set, print its value in `--version` output.
 
-  * Reset sourcepos when parsing footnotes and grid table cells (#12001).
-    Extends the fix for #11888 (c8c68ec0a) to footnote definitions in the
-    Markdown reader and to grid table cells.  Otherwise, when one of these
-    ends a file, relative paths in it can be rebased against the next file on
-    the command line.
+  * Reset sourcepos when parsing footnotes and grid table cells (#12001,
+    extends fix for #11888). Otherwise, when one of these ends a
+    file, relative paths in it can be rebased against the next
+    file on the command line.
 
   * LaTeX reader:
 
@@ -64,31 +63,23 @@
 
   * Pptx reader:
 
-    + Don't add spaces between text runs (#12016, Nacho García). The text of a
-      paragraph was built by joining all its `a:t` elements with spaces.
-    + Read the shapes inside group shapes (#12017, Nacho García). Only the
-      top-level children of a slide's shape tree were parsed, so everything
-      inside a group shape (`p:grpSp`) was dropped silently: text boxes,
-      pictures and tables. Groups, including nested ones, are now
-      replaced by the shapes they contain, in document order.
+    + Don't add spaces between text runs (#12016, Nacho García).
+    + Read the shapes inside group shapes (#12017, Nacho García).
     + Read equations and markup-compatibility blocks (#12025, Nacho Garcia).
     + Read speaker notes (Nacho García, #12023). Each slide's notes are now read
       into a `notes` div at the end of the slide's blocks, the form the pptx
       writer turns into speaker notes, so pptx -> Markdown -> pptx keeps them.
     + Read charts as tables (Nacho García, #12023). Previously, a chart was read
-      as the paragraph "[Graphic: other:
-      http://schemas.openxmlformats.org/drawingml/2006/chart]". We now create
-      a table from the chart's cached data. The table is put in a `chart` Div
-      whose `type` attribute holds the chart type. The chart's title becomes
-      the table captions. The chart code is in Text.Pandoc.Readers.OOXML.Charts.
-    + Mark hidden slides (Nacho García, #12023). Slides hidden from the slide
-      show (`show="0"` on `p:sld`) are read (as before), but the class `hidden`
-      is added to their header.
-    + Read merged table cells as spans (Nacho García). Previously, merged cells
-      in a table were ignored: a merged cell's text stayed in its
-      first cell.
-    + Read bold, italic, sub/superscript and hyperlinks (Nacho García). Text runs
-      were previously read as plain text, so their formatting and hyperlinks were lost.
+      as a placeholder text. We now create a table from the chart's cached
+      data. The table is put in a `chart` Div whose `type` attribute holds
+      the chart type. The chart's title becomes the table captions.
+      The chart code is in Text.Pandoc.Readers.OOXML.Charts.
+    + Mark hidden slides with a `hidden` class on the header
+      (Nacho García, #12023).
+    + Handle merged table cells (Nacho García).
+    + Parse bold, italic, sub/superscript and hyperlinks (Nacho García). Text runs
+      were previously read as plain text, so their formatting and hyperlinks
+      were lost.
     + Read inherited bullets, numbering and nested lists (#12042, Nacho García).
     + Skip slide number placeholders (#12045, Nacho García).
 
@@ -96,38 +87,23 @@
 
     + Resolve package-absolute relationship targets (#12013, Nacho García).
     + Read inline strings and rich text as written (#12014, Nacho García).
-      Cells of type `inlineStr` were read as empty and dropped.
-      Rich-text shared strings were read by joining the text of all their
-      descendants with spaces. Both now take the text of their `t`, or of their
-      runs' `t`, concatenated as written, skipping phonetic runs.
     + Look up a cell's font through its cell format (#12033, Nacho García).
     + Read merged cells as spans (Nacho García).
-    + Render dates and times (Nacho García). Number formats were previously ignored,
-      so a date came out as its serial number (45231.0 rather than 2023-11-01).
+    + Render dates and times (Nacho García).
     + Render numbers as Excel's General format (Nacho García, #12023).
-      Numbers were rendered with Haskell's `show`: 0.05 became 5.0e-2, 12345678
-      became 1.2345678e7, 21 became 21.0, and floating-point noise showed
-      (0.30000000000000004). Booleans became 1.0 and 0.0. Numbers are now rendered
-      as Excel's General format renders them. Booleans read as TRUE and FALSE.
     + Read charts (#12043, Nacho García). Charts are now read as tables using
       the cached data.
 
   * Docx writer:
 
     + Implement flip-flopping for emph (#11961). Emph within emph becomes upright.
-      This is important for correct formatting of titles in CSL, among other things.
-      LaTeX does this automatically, and in HTML we achieve it via CSS.
+      This is important for correct formatting of titles in CSL, among other
+      things. LaTeX does this automatically, and in HTML we achieve it via CSS.
 
   * EPUB writer:
 
     + Fix `id` clash with added title header (#12003, Alain Lesage).
-      When content precedes the first level-1 header, a header with the title is
-      added. Its generated identifier could duplicate an existing header's, so
-      the TOC and internal links pointed to the wrong chapter.
     + Skip dates that cannot be normalized (#12002, Alain Lesage).
-      Such dates produced an empty `dc:date`, which epubcheck rejects. They are
-      now dropped; if no date remains, the current time is used, as when no date
-      is given.
 
   * Ipynb writer:
 
@@ -169,7 +145,8 @@
 
   * Text.Pandoc.PDF:
 
-    + PDF via LaTeX: do at most 3 runs when only a TOC is present (#12012, Alain Lesage).
+    + PDF via LaTeX: do at most 3 runs when only a TOC is present
+      (#12012, Alain Lesage).
 
   * Text.Pandoc.Class:
 
@@ -177,7 +154,7 @@
 
   * Text.Pandoc.Citeproc:
 
-    + `removeFinalPeriod` - act across Link boundary.
+    + `removeFinalPeriod` now acts across Link boundary.
 
   * pandoc-lua-engine: raise lower bound for pandoc to 3.13 (#12066).
 
