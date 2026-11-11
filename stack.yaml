@@ -31,18 +31,12 @@ extra-deps:
 - typst-symbols-0.3
 - zip-archive-0.5
 - doclayout-0.6
-- doctemplates-0.11.1
 - asciidoc-0.1.1.1
 - commonmark-pandoc-0.3.0.2
-- djot-0.1.4.3
 - yamlet-1.0.0.1
 - yamlet-aeson-1.0.0.1
 # yamlet and yamlet-aeson need newer versions than the snapshot has:
 - aeson-2.3.2.0
-- scientific-0.3.9.0
-- text-iso8601-0.1.1.2
-- gridtables-0.1.1.1
-- emojis-0.1.6
 - texmath-0.13.3.5
 - citeproc-0.14.2
 - typst-0.12.1
