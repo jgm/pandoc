@@ -182,4 +182,3 @@ roundDigits n (ds, e) =
     carry [] = Nothing
     carry (9:rest) = (++ [0]) <$> carry rest
     carry (k:rest) = Just (reverse (k + 1 : rest))
-
