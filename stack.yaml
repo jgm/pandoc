@@ -5,11 +5,9 @@ flags:
     old-random: false
 allow-newer: true
 allow-newer-deps:
-  # This needs zip-archive 0.5
-  - hslua-module-zip
-  # These need to allow doclayout 0.6
-  - gridtables
-  - hslua-module-doclayout
+  # These need to allow aeson 2.4:
+  - hslua-aeson
+  - pandoc-lua-marshal
 packages:
 - '.'
 - 'pandoc-cli'
