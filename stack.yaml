@@ -39,7 +39,7 @@ extra-deps:
 - yamlet-1.0.0.1
 - yamlet-aeson-1.0.0.1
 # yamlet and yamlet-aeson need newer versions than the snapshot has:
-- aeson-2.2.5.1
+- aeson-2.3.2.0
 - scientific-0.3.9.0
 - text-iso8601-0.1.1.2
 - gridtables-0.1.1.1
