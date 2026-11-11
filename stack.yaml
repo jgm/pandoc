@@ -26,7 +26,6 @@ extra-deps:
 - hslua-objectorientation-2.5.0
 - hslua-packaging-2.4.1
 - hslua-typing-0.2.0
-- skylighting-format-blaze-html-0.1.2.2
 - skylighting-0.15.0.1
 - skylighting-core-0.15.0.1
 - typst-symbols-0.3
@@ -53,7 +52,7 @@ extra-deps:
 - pandoc-types-1.23.1.2
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-24.51
+resolver: lts-24.66
 nix:
   packages:
   - pkg-config
