@@ -24,6 +24,9 @@
       and `\pandocfootnotetext` (e.g. from pandoc's template), which
       the reader handles directly. Previously these definitions were
       expanded, producing garbage and losing content.
+    + Fix file-crossing bug in `rawLaTeXParser` (#12072).
+      The raw LaTeX parser didn't work properly when crossing
+      from one source file to another.
 
   * Typst reader:
 
