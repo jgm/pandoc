@@ -269,18 +269,26 @@ getReference attr label target = do
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts ils = do
     inlist <- asks envInList
-    avoidBadWraps inlist <$> go ils
-  where go [] = return empty
-        go (x@Math{}:y@(Str t):zs)
+    variant <- asks envVariant
+    avoidBadWraps inlist <$> go variant ils
+  where go _ [] = return empty
+        go variant (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
           = liftM2 (<>) (inlineToMarkdown opts x)
-              (go (RawInline (Format "html") "<!-- -->" : y : zs))
-        go (Str t : i : is)
+              (go variant (RawInline (Format "html") "<!-- -->" : y : zs))
+        go variant (Str t : i : is)
           | isLinkOrSpan i
           , T.takeEnd 1 t == "!"
           = do x <- inlineToMarkdown opts (Str (T.dropEnd 1 t))
-               ((x <> "\\!") <>) <$> go (i:is)
-        go (i:is) = case i of
+               ((x <> "\\!") <>) <$> go variant (i:is)
+        -- Elements whose closing and opening delimiters would run
+        -- together and read back differently need a zero-width space
+        -- between them (#11993).
+        go variant (x:y:zs)
+          | needsSeparator variant x y
+          = do x' <- inlineToMarkdown opts x
+               ((x' <> literal "\x200B") <>) <$> go variant (y:zs)
+        go variant (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
                 -- then we don't shortcut
@@ -308,13 +316,32 @@ inlineListToMarkdown opts ils = do
                 _                                               -> shortcutable
             _ -> shortcutable
           where
-           shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
+           shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go variant is)
            unshortcutable = do
                iMark <- local
                         (\env -> env { envRefShortcutable = False })
                         (inlineToMarkdown opts i)
-               fmap (iMark <>) (go is)
+               fmap (iMark <>) (go variant is)
            thead = fmap fst . T.uncons
+        -- A code span's attributes are written after it, which already
+        -- separates it from the next span; Markua has no empty attribute
+        -- block, but writes attributes for any non-null attribute.
+        writesAttrs variant a = a /= nullAttr &&
+                        case variant of
+                          Markua -> True
+                          Markdown -> isEnabled Ext_inline_code_attributes opts ||
+                                      isEnabled Ext_attributes opts
+                          _ -> False
+        needsSeparator variant x y = variant /= PlainText &&
+          case (x, y) of
+            (Code attr _, Code _ _) -> not (writesAttrs variant attr)
+            (Emph{}, Emph{}) -> True
+            (Strong{}, Strong{}) -> True
+            (Strikeout{}, Strikeout{}) -> isEnabled Ext_strikeout opts
+            (Subscript{}, Subscript{}) -> isEnabled Ext_subscript opts
+            (Superscript{}, Superscript{}) -> isEnabled Ext_superscript opts
+            _ -> False
+
         isLinkOrSpan Link{} = True
         isLinkOrSpan Span{} = True
         isLinkOrSpan _ = False
