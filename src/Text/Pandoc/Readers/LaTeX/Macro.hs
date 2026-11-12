@@ -150,7 +150,7 @@ letmacro = do
 
 checkGlobal :: PandocMonad m => LP m [(Text, Macro)] -> LP m [(Text, Macro)]
 checkGlobal p =
-  (controlSeq "global" *>
+  try (controlSeq "global" *>
       (map (\(n, Macro _ expand arg optarg contents) ->
                 (n, Macro GlobalScope expand arg optarg contents)) <$> p))
    <|> p
