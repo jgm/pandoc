@@ -53,7 +53,8 @@ rawInlineOr name' fallback = do
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
-  v <- braced
+  -- as in TeX, the argument may follow on the next line:
+  v <- sp *> braced
   let refstr = untokenize v
   updateState $ \st ->
     st{ sLastLabel = Just refstr }
@@ -61,7 +62,8 @@ dolabel = do
 
 doref :: PandocMonad m => Text -> LP m Inlines
 doref cls = do
-  v <- braced
+  -- as in TeX, the argument may follow on the next line:
+  v <- sp *> braced
   let refstr = untokenize v
   return $ linkWith ("",[],[ ("reference-type", cls)
                            , ("reference", refstr)])
