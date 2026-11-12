@@ -155,12 +155,17 @@ checkGlobal p =
                 (n, Macro GlobalScope expand arg optarg contents)) <$> p))
    <|> p
 
+-- | Parse the name in @\def\name@ and similar definitions, which may
+-- follow on the next line, as in TeX.
+macroName :: PandocMonad m => LP m Tok
+macroName = sp *> anyControlSeq
+
 edefmacro :: PandocMonad m => LP m [(Text, Macro)]
 edefmacro = do
   scope <- (GroupScope <$ controlSeq "edef")
        <|> (GlobalScope <$ controlSeq "xdef")
   (name, contents) <- withVerbatimMode $ do
-    Tok _ (CtrlSeq name) _ <- anyControlSeq
+    Tok _ (CtrlSeq name) _ <- macroName
     -- we first parse in verbatim mode, and then expand macros,
     -- because we don't want \let\foo\bar to turn into
     -- \let\foo hello if we have previously \def\bar{hello}
@@ -177,7 +182,7 @@ defmacro = do
   scope <- (GroupScope <$ controlSeq "def")
        <|> (GlobalScope <$ controlSeq "gdef")
   withVerbatimMode $ do
-    Tok _ (CtrlSeq name) _ <- anyControlSeq
+    Tok _ (CtrlSeq name) _ <- macroName
     argspecs <- many (argspecArg <|> argspecPattern)
     contents <- bracedOrToken
     return [(name, Macro scope ExpandWhenUsed argspecs Nothing contents)]
