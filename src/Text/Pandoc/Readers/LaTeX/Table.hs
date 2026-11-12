@@ -88,12 +88,12 @@ hasSections envname = go
 -- | A head or foot section, the rows in it, and the caption and label
 -- set when it ends. Rules and empty lines in it are skipped.
 tableSection :: PandocMonad m
-             => LP m Inlines -> LP m Row
+             => LP m Blocks -> LP m Inlines -> LP m Row
              -> LP m (TableSection, ([Row], (Maybe Caption, Maybe Text)))
-tableSection inline row = try $ do
+tableSection block inline row = try $ do
   let caption' = try $ do
         spaces
-        controlSeq "caption" *> setCaption inline
+        controlSeq "caption" *> setCaption block inline
         spaces
         optional label
         spaces
@@ -392,7 +392,7 @@ simpTable block inline envname hasWidthParameter = try $ do
   colspecs <- parseAligns
   let (aligns, widths, prefsufs) = unzip3 colspecs
   let row = parseTableRow block inline envname prefsufs
-  optional $ controlSeq "caption" *> setCaption inline
+  optional $ controlSeq "caption" *> setCaption block inline
   spaces
   optional label
   spaces
@@ -403,7 +403,7 @@ simpTable block inline envname hasWidthParameter = try $ do
   before <- (\st -> (sCaption st, sLastLabel st)) <$> getState
   TokStream _ toks <- getInput
   sections <- if hasSections envname toks
-                 then many (tableSection inline row)
+                 then many (tableSection block inline row)
                  else return []
   -- The caption of the first head is the table's; a caption in another
   -- section repeats it.
@@ -423,7 +423,7 @@ simpTable block inline envname hasWidthParameter = try $ do
   spaces
   rows <- sepEndBy row (lbreak <* optional (skipMany hline))
   spaces
-  optional $ controlSeq "caption" *> setCaption inline
+  optional $ controlSeq "caption" *> setCaption block inline
   spaces
   optional label
   spaces

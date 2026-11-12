@@ -1302,7 +1302,7 @@ blockCommands = M.fromList $
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
    , ("centerline", para . trimInlines <$> (skipopts *> tok))
-   , ("caption", mempty <$ setCaption inline)
+   , ("caption", mempty <$ setCaption block inline)
    , ("bibliography", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
