@@ -7,7 +7,7 @@
     searched, in order, for data files not found in the user data directory,
     before falling back to the default data files.  This covers templates,
     filters, defaults files, metadata files, CSL styles, and other data files.
-    If `PANDOC_USER_DATA_DIRS` is set, print its value in `--version` output.
+    If `PANDOC_DATA_DIRS` is set, print its value in `--version` output.
 
   * Reset sourcepos when parsing footnotes and grid table cells (#12001,
     extends fix for #11888). Otherwise, when one of these ends a
