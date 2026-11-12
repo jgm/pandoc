@@ -400,6 +400,17 @@ familyFont = do
   void $ optional (symbol '=')
   sp
   void anyControlSeq
+-- | Fail on a rule as wide as the line, such as
+-- @\\noindent\\rule{\\linewidth}{0.4pt}@, so that the paragraph ends
+-- there and the block parser makes it a horizontal rule.
+notLineWidthRule :: PandocMonad m => LP m ()
+notLineWidthRule = do
+  width <- lookAhead (skipopts *> braced)
+  guard $ not (any isLineLength width)
+ where
+  isLineLength (Tok _ (CtrlSeq n) _) =
+    n `elem` ["linewidth", "textwidth", "columnwidth", "hsize"]
+  isLineLength _ = False
 
 tok :: PandocMonad m => LP m Inlines
 tok = tokWith inline
@@ -466,6 +477,12 @@ inlineCommands = M.unions
     , ("scriptfont", fontSetup "scriptfont" familyFont)
     , ("scriptscriptfont", fontSetup "scriptscriptfont" familyFont)
     , ("strut", pure mempty)
+    -- \rule and \centerline are block commands at the start of a
+    -- paragraph, but they can also occur in inline contexts, e.g. a
+    -- colored \rule as a legend swatch in a caption:
+    , ("rule", notLineWidthRule *>
+               rawInlineOr "rule" (mempty <$ (skipopts *> tok *> tok)))
+    , ("centerline", trimInlines <$> (skipopts *> tok))
     , ("lettrine", rawInlineOr "lettrine" lettrine)
     , ("(", withMathMode
         (mathInline . untokenize <$> manyTill anyTok (controlSeq ")")))
