@@ -173,7 +173,7 @@
       This will ensure that the same options are used by HLS, so that rebuilds
       aren't needed.
     + `make check-cabal`: exit with error status on outdated deps.
-    + Reorganize `check-cabal; add `check-sdist` target we can run separately.
+    + Reorganize `check-cabal`; add `check-sdist` target we can run separately.
 
   * cabal.project: specify `+http` flag for all ghc versions.
 
