@@ -30,8 +30,6 @@ extra-deps:
 - commonmark-pandoc-0.3.0.2
 - yamlet-1.0.0.1
 - yamlet-aeson-1.0.0.1
-# yamlet and yamlet-aeson need newer versions than the snapshot has:
-- aeson-2.3.2.0
 - texmath-0.13.3.5
 - citeproc-0.14.2
 - typst-0.12.1
@@ -39,6 +37,8 @@ extra-deps:
 - commonmark-extensions-0.2.8
 # needed because not yet in nixpkgs:
 - pandoc-types-1.23.1.2
+- doctemplates-0.11.1
+- gridtables-0.1.1.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.66
