@@ -13,7 +13,7 @@ import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
-import Control.Monad (guard, mzero)
+import Control.Monad (guard, mzero, when)
 import Data.Char (chr, isLetter, ord)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
@@ -111,7 +111,7 @@ characterDef = try $ do
     -- that text such as "\newcommand." is not taken for a definition
     if | cmd `elem` ["def", "gdef", "edef", "xdef"] -> do
            _ <- activeChar
-           _ <- many (argspecArg <|> argspecPattern)
+           _ <- many (argspecArg <|> argspecPattern True)
            [] <$ braced
        | cmd == "let" -> do
            _ <- activeChar
@@ -158,9 +158,21 @@ checkGlobal p =
    <|> p
 
 -- | Parse the name in @\def\name@ and similar definitions, which may
--- follow on the next line, as in TeX.
+-- follow on the next line, as in TeX. A line end after a name that is a
+-- control word is skipped too, so that it is not taken for parameter
+-- text (@\def\foo@ may be followed by its parameter text or body on the
+-- next line).
 macroName :: PandocMonad m => LP m Tok
-macroName = sp *> anyControlSeq
+macroName = do
+  sp
+  t@(Tok _ (CtrlSeq name) _) <- anyControlSeq
+  when (isControlWord name) sp
+  return t
+
+-- | Is this the name of a control word (rather than a control symbol)?
+-- TeX skips spaces after a control word.
+isControlWord :: Text -> Bool
+isControlWord n = not (T.null n) && T.all (\c -> isLetter c || c == '@') n
 
 edefmacro :: PandocMonad m => LP m [(Text, Macro)]
 edefmacro = do
@@ -185,7 +197,10 @@ defmacro = do
        <|> (GlobalScope <$ controlSeq "gdef")
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) _ <- macroName
-    argspecs <- many (argspecArg <|> argspecPattern)
+    argspecs <- filter (not . isEmptyPattern) <$>
+                  (try (many (argspecArg <|> argspecPattern True)
+                          <* lookAhead (symbol '{'))
+                   <|> many (argspecArg <|> argspecPattern False))
     contents <- bracedOrToken
     return [(name, Macro scope ExpandWhenUsed argspecs Nothing contents)]
 
@@ -228,11 +243,54 @@ argspecArg = do
   Tok _ (Arg i) _ <- satisfyTok isArgTok
   return $ ArgNum i
 
-argspecPattern :: PandocMonad m => LP m ArgSpec
-argspecPattern =
-  Pattern <$> many1 (satisfyTok (\(Tok _ toktype' txt) ->
-                              (toktype' == Symbol || toktype' == Word) &&
-                              (txt /= "{" && txt /= "\\" && txt /= "}")))
+-- | Parse delimiter tokens in the parameter text of a @\def@. With
+-- @full@, any token but a brace may be a delimiter, as in TeX: this
+-- includes spaces and control sequences (e.g. in @\def\item#1. {...}@
+-- or @\def\pair#1\and#2{...}@). Whitespace is normalized as TeX does:
+-- a run of spaces is one space, and spaces after a control word and
+-- comments with their line end are skipped. The parameter text only
+-- continues on the next line after a comment, so that a definition
+-- without a braced body, such as @\def\foo\bar@, does not take the
+-- following lines up to the next brace as its parameter text. Without
+-- @full@, only symbols and words are accepted, which allows such
+-- definitions.
+argspecPattern :: PandocMonad m => Bool -> LP m ArgSpec
+argspecPattern full =
+  Pattern . normalize . concat <$> many1 delimToks
+ where
+  delimToks = do
+    t <- satisfyTok isDelimTok
+    case t of
+      Tok _ Comment _ -> (t :) <$> option [] ((:[]) <$> satisfyTok isNewline)
+      _               -> pure [t]
+  isNewline (Tok _ toktype _) = toktype == Newline
+  isDelimTok (Tok _ toktype txt) =
+    case toktype of
+      Symbol    -> txt /= "{" && txt /= "\\" && txt /= "}"
+      Word      -> True
+      Spaces    -> full
+      Comment   -> full
+      CtrlSeq _ -> full
+      _         -> False
+  normalize ts =
+    case ts of
+      [] -> []
+      Tok _ Comment _ : rest -> normalize (dropLineEnd rest)
+      t@(Tok _ (CtrlSeq n) _) : rest
+        | isControlWord n -> t : normalize (dropWhile isWhite rest)
+      t@(Tok pos _ _) : _
+        | isWhite t -> Tok pos Spaces " " : normalize (dropWhile isWhite ts)
+      t : rest -> t : normalize rest
+  isWhite (Tok _ toktype _) = toktype == Spaces || toktype == Newline
+  dropLineEnd ts =
+    case ts of
+      Tok _ Newline _ : rest -> dropWhile (\(Tok _ tt _) -> tt == Spaces) rest
+      _ -> ts
+
+-- | A pattern can be empty after normalization (e.g. only a comment).
+isEmptyPattern :: ArgSpec -> Bool
+isEmptyPattern (Pattern []) = True
+isEmptyPattern _            = False
 
 newcommand :: PandocMonad m => LP m [(Text, Macro)]
 newcommand = do
