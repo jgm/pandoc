@@ -847,6 +847,8 @@ trySpecialMacro "xspace" ts = do
     Tok pos Word t : _
       | startsWithAlphaNum t -> return $ Tok pos Spaces " " : ts'
     _ -> return ts'
+-- \csname name\endcsname: turn the name into a control sequence:
+trySpecialMacro "csname" ts = handleIf csnameParser ts
 trySpecialMacro "iftrue" ts = doIf True ts
 trySpecialMacro "iffalse" ts = doIf False ts
 trySpecialMacro "ifmmode" ts = do
@@ -947,6 +949,28 @@ useNameParser = do
   name <- untokenize <$> withVerbatimMode (spaces *> braced)
   TokStream _ rest <- getInput
   return $ Tok pos (CtrlSeq name) ("\\" <> name <> " ") : rest
+
+-- | Parser for the tokens after @\\csname@, up to @\\endcsname@.
+-- The tokens are not expanded, so the name must be made of
+-- characters only (as in @\\csname val-1\\endcsname@).  The
+-- resulting token keeps the original text, so raw LaTeX output is
+-- unchanged.
+csnameParser :: PandocMonad m => LP m [Tok]
+csnameParser = withVerbatimMode $ do
+  pos <- getPosition
+  (nameToks, Tok _ _ end) <-
+    manyUntil (satisfyTok isNameTok) (controlSeq "endcsname")
+  let name = untokenize nameToks
+  guard $ not (T.null name)
+  TokStream _ rest <- getInput
+  return $ Tok pos (CtrlSeq name) ("\\csname " <> name <> end) : rest
+ where
+  isNameTok (Tok _ toktype t) =
+    case toktype of
+      Word   -> True
+      Spaces -> True
+      Symbol -> t /= "{" && t /= "}"
+      _      -> False
 
 -- | Parser for the arguments of @\\ExpandArgs{spec}\\cmd{arg1}...@:
 -- transform each argument as described by the corresponding letter
