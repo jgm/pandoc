@@ -1728,7 +1728,10 @@ keyval = try $ do
   val <- option mempty $ do
            symbol '='
            sp
-           (untokenize <$> braced) <|>
+           -- as with the keyval package, the braces are stripped only
+           -- if they enclose the whole value (unlike, e.g., in
+           -- caption={Text}\label{lst:a}):
+           try (untokenize <$> braced <* lookAhead valueEnd) <|>
              (mconcat <$> many (
                  (untokenize . snd <$> withRaw braced)
                  <|>
@@ -1743,6 +1746,8 @@ keyval = try $ do
   sp
   skipMany (symbol ',' *> sp) -- empty entries, as in [a,,b]
   return (key, T.strip val)
+ where
+  valueEnd = sp *> (symbol ',' <|> symbol ']')
 
 keyvals :: PandocMonad m => LP m [(Text, Text)]
 keyvals = try $ sp >> symbol '[' >> skipMany (try (sp *> symbol ',')) >>
