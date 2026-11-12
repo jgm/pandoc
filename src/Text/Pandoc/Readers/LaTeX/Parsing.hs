@@ -1971,13 +1971,16 @@ label = do
   t <- braced
   updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
 
-setCaption :: PandocMonad m => LP m Inlines -> LP m ()
-setCaption inline = try $ do
+setCaption :: PandocMonad m => LP m Blocks -> LP m Inlines -> LP m ()
+setCaption block inline = try $ do
   mbshort <- Just . toList <$> bracketed inline <|> pure Nothing
-  ils <- tokWith inline
+  -- the argument of \caption may contain paragraph breaks (LaTeX
+  -- allows them when there is a short caption), so it is read as
+  -- blocks when it cannot be read as inlines:
+  long <- (\ils -> [Plain $ toList ils]) <$> tokWith inline
+          <|> toList <$> (spaces *> grouped block)
   optional $ try $ spaces *> label
-  updateState $ \st -> st{ sCaption = Just $
-                              Caption mbshort [Plain $ toList ils] }
+  updateState $ \st -> st{ sCaption = Just $ Caption mbshort long }
 
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption   = Nothing
