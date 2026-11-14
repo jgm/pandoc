@@ -33,6 +33,7 @@ extra-deps:
 - texmath-0.13.3.5
 - citeproc-0.14.2
 - typst-0.12.1
+- ipynb-0.3
 - commonmark-0.3.2
 - commonmark-extensions-0.2.8
 # needed because not yet in nixpkgs:
