@@ -631,11 +631,11 @@ Pandoc
           , Plain
               [ Math
                   DisplayMath
-                  "\\int_{- \\infty}^{\\infty}e^{- x^{2}}\\, dx = \\sqrt{\\pi}"
+                  "\\int_{- \\mathrm{\\infty}}^{\\mathrm{\\infty}}e^{- x^{2}}\\, dx = \\sqrt{\\pi}"
               , SoftBreak
               , Math
                   DisplayMath
-                  "\\sum\\limits_{n = 1}^{\\infty}\\frac{1}{n^{2}} = \\frac{\\pi^{2}}{6}"
+                  "\\sum\\limits_{n = 1}^{\\mathrm{\\infty}}\\frac{1}{n^{2}} = \\frac{\\pi^{2}}{6}"
               , SoftBreak
               , Math
                   DisplayMath
