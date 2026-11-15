@@ -571,7 +571,7 @@ header when requesting a document from a URL:
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
 [Plain Old Documentation]: https://perldoc.perl.org/perlpod
 [Textile]: https://textile-lang.com
-[MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
+[MediaWiki markup]: https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
