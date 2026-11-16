@@ -296,4 +296,10 @@ shortcutLinkRefsTests =
                       , ""
                       , "  [link]: /url"
                       ]
+     , "Display math with an unescaped % comment keeps closing dollars on own line (#12082)"
+          =: para (singleton (Math DisplayMath "x = 1 % note"))
+          =?> "$$\nx = 1 % note\n$$"
+     , "Display math with an escaped percent stays on one line"
+          =: para (singleton (Math DisplayMath "50\\% of x"))
+          =?> "$$50\\% of x$$"
      ]

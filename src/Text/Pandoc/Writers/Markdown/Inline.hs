@@ -558,7 +558,13 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                              $$ literal (T.dropAround (=='\n') str)
                              $$ literal "```") <> cr
             | isEnabled Ext_tex_math_dollars opts ->
-                return $ "$$" <> literal str <> "$$"
+                -- An unescaped % starts a TeX comment. With the closing $$ on
+                -- the same line, the comment swallows it and the math no longer
+                -- round-trips (see #12082), so put the fences on their own
+                -- lines in that case.
+                if mathHasUnescapedPercent str
+                   then return $ "$$" <> cr <> literal str <> cr <> "$$"
+                   else return $ "$$" <> literal str <> "$$"
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\[" <> literal str <> "\\]"
             | isEnabled Ext_tex_math_double_backslash opts ->
@@ -750,3 +756,16 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
+
+
+-- | True if the text contains a % that is not escaped by a backslash, i.e. one
+-- that starts a TeX comment.
+mathHasUnescapedPercent :: Text -> Bool
+mathHasUnescapedPercent = go False . T.unpack
+ where
+  go _ [] = False
+  go escaped (c : cs)
+    | escaped    = go False cs
+    | c == '\\'  = go True cs
+    | c == '%'   = True
+    | otherwise  = go False cs
