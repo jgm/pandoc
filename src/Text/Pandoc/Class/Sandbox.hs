@@ -44,8 +44,14 @@ sandboxWithFileTree :: (PandocMonad m, MonadIO m)
                     => FileTree -> PandocPure a -> m a
 sandboxWithFileTree tree action = do
   oldState <- getCommonState
+  -- The sandbox restricts file and network access, not the clock: the
+  -- current time and SOURCE_DATE_EPOCH apply inside it as they do outside.
+  time <- getTimestamp
+  timeZone <- getCurrentTimeZone
   case runPure (do putCommonState oldState
-                   modifyPureState $ \ps -> ps{ stFiles = tree }
+                   modifyPureState $ \ps -> ps{ stFiles = tree
+                                              , stTime = time
+                                              , stTimeZone = timeZone }
                    result <- action
                    st <- getCommonState
                    return (st, result)) of
