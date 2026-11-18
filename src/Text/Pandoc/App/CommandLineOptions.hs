@@ -995,7 +995,9 @@ options =
                      return opt { optVariables =
                        setVariable "epub-cover-image"
                          (T.pack $ normalizePath arg) $
-                         optVariables opt })
+                         optVariables opt
+                                , optEpubCoverImage =
+                                    Just (normalizePath arg) })
                   "FILE")
                  Files
                  (T.pack "EPUB cover image")
