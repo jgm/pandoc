@@ -15,7 +15,7 @@ module Tests.Readers.LaTeX (tests) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
-import Test.Tasty.HUnit (HasCallStack)
+import Test.Tasty.HUnit (HasCallStack, assertBool, testCase)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -363,6 +363,12 @@ tests = [ testGroup "basic"
           , "unknown option fallback" =:
             "\\textgerman[variant=moon]{ueberhoechdeutsche}" =?>
             para (spanWith ("", [], [("lang", "de")]) $ str "ueberhoechdeutsche")
+          ]
+        , testGroup "today"
+          [ testCase "uses the clock in a sandbox" $ do
+              result <- runIOorExplode $ sandbox [] $ readLaTeX def ("\\today" :: Text)
+              assertBool "\\today gave the Unix epoch" $
+                result /= Pandoc nullMeta [Para [Str "1970-01-01"]]
           ]
         ]
 
