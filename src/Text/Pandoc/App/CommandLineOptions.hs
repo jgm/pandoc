@@ -1098,9 +1098,8 @@ options =
      , option "" ["citation-abbreviations"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata =
-                                  addMeta "citation-abbreviations"
-                                    (normalizePath arg) $ optMetadata opt })
+                     return opt{ optCitationAbbreviations =
+                                    Just (normalizePath arg) })
                    "FILE")
                  Files
                  (T.pack "Citation abbreviations file")
