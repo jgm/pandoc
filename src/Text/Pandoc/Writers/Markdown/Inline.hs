@@ -518,7 +518,15 @@ inlineToMarkdown opts (Str str) = do
                         else escapeText opts) $ str
   return $ literal str'
 inlineToMarkdown opts (Math InlineMath str) = do
-  let str' = T.strip str
+  -- This is to handle `$x%\n$`:
+  let addFinalNewlineIfEndsInComment t =
+        let (a,b) = T.breakOnEnd "%" t
+        in  if T.null a
+               then t -- no comment
+               else if '\n' `T.elem` b -- newline after comment
+                       then t
+                       else t <> "\n" -- ends with comment
+  let str' = addFinalNewlineIfEndsInComment $ T.strip str
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> return $ "`" <> literal str <> "`" <> "$"
