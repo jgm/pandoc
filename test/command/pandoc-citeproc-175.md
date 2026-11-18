@@ -37,7 +37,7 @@ Foo (Doe 2011).
 
 :::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
-Doe, Jane. 2011. "A Title." *A Magazine*, January--February, 33--44.
+Doe, Jane. 2011. "A Title." *A Magazine*, January--February.
 :::
 ::::
 ```
