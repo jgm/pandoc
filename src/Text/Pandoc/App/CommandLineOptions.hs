@@ -992,10 +992,8 @@ options =
     , option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
-                     return opt { optVariables =
-                       setVariable "epub-cover-image"
-                         (T.pack $ normalizePath arg) $
-                         optVariables opt })
+                     return opt { optEpubCoverImage =
+                       Just (normalizePath arg) })
                   "FILE")
                  Files
                  (T.pack "EPUB cover image")
