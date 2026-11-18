@@ -964,11 +964,8 @@ options =
     , option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt ->
-                    return opt {
-                       optVariables =
-                         setVariable "title-prefix" (T.pack arg) $
-                           optVariables opt,
-                       optStandalone = True })
+                    return opt { optTitlePrefix = Just (T.pack arg)
+                               , optStandalone = True })
                   "STRING")
                  Files
                  (T.pack "Window title prefix")
