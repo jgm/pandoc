@@ -1079,7 +1079,7 @@ inlineToLaTeX (Math _ str)
   | isMathEnv str -- see #9711
   = do setEmptyLine False
        when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
-       pure $ literal str
+       pure $ cr <> literal (trim str) <> cr
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
