@@ -519,13 +519,18 @@ inlineToMarkdown opts (Str str) = do
   return $ literal str'
 inlineToMarkdown opts (Math InlineMath str) = do
   -- This is to handle `$x%\n$`:
+  let endsWithComment t =
+        go (T.unpack $ T.reverse t)
+       where
+         go [] = False
+         go ('\n':_) = False
+         go ('%':'\\':cs) = go cs
+         go ('%':_) = True
+         go (_:cs) = go cs
   let addFinalNewlineIfEndsInComment t =
-        let (a,b) = T.breakOnEnd "%" t
-        in  if T.null a
-               then t -- no comment
-               else if '\n' `T.elem` b -- newline after comment
-                       then t
-                       else t <> "\n" -- ends with comment
+        if endsWithComment t
+           then t <> "\n"
+           else t
   let str' = addFinalNewlineIfEndsInComment $ T.strip str
   variant <- asks envVariant
   case () of
