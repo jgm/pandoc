@@ -1751,7 +1751,10 @@ getRawCommand name txt = do
   (_, rawargs) <- withRaw $
       case name of
            "write" -> do
-             void $ many $ satisfyTok isDigitTok -- digits
+             -- the stream: a number, or a register such as \@auxout
+             optional sp
+             void anyControlSeq <|> void (many $ satisfyTok isDigitTok)
+             optional sp
              void braced
            "titleformat" -> do
              void braced
