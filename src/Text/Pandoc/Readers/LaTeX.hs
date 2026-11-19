@@ -463,6 +463,7 @@ inlineCommands = M.unions
     , ("textfont", fontSetup "textfont" familyFont)
     , ("scriptfont", fontSetup "scriptfont" familyFont)
     , ("scriptscriptfont", fontSetup "scriptscriptfont" familyFont)
+    , ("strut", pure mempty)
     , ("lettrine", rawInlineOr "lettrine" lettrine)
     , ("(", withMathMode
         (mathInline . untokenize <$> manyTill anyTok (controlSeq ")")))
@@ -1278,7 +1279,6 @@ blockCommands = M.fromList $
    , ("pfbreak*", pure horizontalRule)
    --
    , ("hrule", pure horizontalRule)
-   , ("strut", pure mempty)
    , ("rule", rule)
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
