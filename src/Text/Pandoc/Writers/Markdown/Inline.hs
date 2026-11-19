@@ -524,6 +524,7 @@ inlineToMarkdown opts (Math InlineMath str) = do
        where
          go [] = False
          go ('\n':_) = False
+         go ('%':'\\':'\\':_) = True
          go ('%':'\\':cs) = go cs
          go ('%':_) = True
          go (_:cs) = go cs
