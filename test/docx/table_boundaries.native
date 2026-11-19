@@ -1,0 +1,1019 @@
+[ Header
+    1
+    ( "table-before-a-bullet-list" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "bullet"
+    , Space
+    , Str "list"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, BulletList
+    [ [ Para [ Str "bullet" , Space , Str "first" ] ]
+    , [ Para [ Str "bullet" , Space , Str "second" ]
+      , Para
+          [ Str "bullet"
+          , Space
+          , Str "second"
+          , Space
+          , Str "continuation"
+          ]
+      ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "bullet"
+    , Space
+    , Str "list."
+    ]
+, Header
+    1
+    ( "table-before-an-ordered-list" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "an"
+    , Space
+    , Str "ordered"
+    , Space
+    , Str "list"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Para [ Str "ordered" , Space , Str "first" ] ]
+    , [ Para [ Str "ordered" , Space , Str "second" ]
+      , Para
+          [ Str "ordered"
+          , Space
+          , Str "second"
+          , Space
+          , Str "continuation"
+          ]
+      ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "ordered"
+    , Space
+    , Str "list."
+    ]
+, Header
+    1
+    ( "table-before-a-code-block" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "code"
+    , Space
+    , Str "block"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, CodeBlock ( "" , [] , [] ) "code after table"
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "code"
+    , Space
+    , Str "block."
+    ]
+, Header
+    1
+    ( "table-before-a-block-quote" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, BlockQuote
+    [ Para [ Str "quoted" , Space , Str "paragraph" ] ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote."
+    ]
+, Header
+    1
+    ( "table-at-the-end-of-a-block-quote" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "at"
+    , Space
+    , Str "the"
+    , Space
+    , Str "end"
+    , Space
+    , Str "of"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote"
+    ]
+, BlockQuote
+    [ Table
+        ( "" , [] , [] )
+        (Caption Nothing [])
+        [ ( AlignDefault , ColWidthDefault ) ]
+        (TableHead
+           ( "" , [] , [] )
+           [ Row
+               ( "" , [] , [] )
+               [ Cell
+                   ( "" , [] , [] )
+                   AlignDefault
+                   (RowSpan 1)
+                   (ColSpan 1)
+                   [ Plain [ Str "A" ] ]
+               ]
+           ])
+        [ TableBody
+            ( "" , [] , [] )
+            (RowHeadColumns 0)
+            []
+            [ Row
+                ( "" , [] , [] )
+                [ Cell
+                    ( "" , [] , [] )
+                    AlignDefault
+                    (RowSpan 1)
+                    (ColSpan 1)
+                    [ Plain [ Str "B" ] ]
+                ]
+            ]
+        ]
+        (TableFoot ( "" , [] , [] ) [])
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "closing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote."
+    ]
+, Header
+    1
+    ( "table-followed-by-a-paragraph-in-a-block-quote"
+    , []
+    , []
+    )
+    [ Str "Table"
+    , Space
+    , Str "followed"
+    , Space
+    , Str "by"
+    , Space
+    , Str "a"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "in"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote"
+    ]
+, BlockQuote
+    [ Table
+        ( "" , [] , [] )
+        (Caption Nothing [])
+        [ ( AlignDefault , ColWidthDefault ) ]
+        (TableHead
+           ( "" , [] , [] )
+           [ Row
+               ( "" , [] , [] )
+               [ Cell
+                   ( "" , [] , [] )
+                   AlignDefault
+                   (RowSpan 1)
+                   (ColSpan 1)
+                   [ Plain [ Str "A" ] ]
+               ]
+           ])
+        [ TableBody
+            ( "" , [] , [] )
+            (RowHeadColumns 0)
+            []
+            [ Row
+                ( "" , [] , [] )
+                [ Cell
+                    ( "" , [] , [] )
+                    AlignDefault
+                    (RowSpan 1)
+                    (ColSpan 1)
+                    [ Plain [ Str "B" ] ]
+                ]
+            ]
+        ]
+        (TableFoot ( "" , [] , [] ) [])
+    , Para
+        [ Str "quoted" , Space , Str "after" , Space , Str "table" ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "populated"
+    , Space
+    , Str "block"
+    , Space
+    , Str "quote."
+    ]
+, Header
+    1
+    ( "table-at-the-end-of-a-list-item" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "at"
+    , Space
+    , Str "the"
+    , Space
+    , Str "end"
+    , Space
+    , Str "of"
+    , Space
+    , Str "a"
+    , Space
+    , Str "list"
+    , Space
+    , Str "item"
+    ]
+, BulletList
+    [ [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault ) ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "A" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "B" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+    , [ Para
+          [ Str "item"
+          , Space
+          , Str "after"
+          , Space
+          , Str "table"
+          , Space
+          , Str "item"
+          ]
+      , Para
+          [ Str "item"
+          , Space
+          , Str "after"
+          , Space
+          , Str "table"
+          , Space
+          , Str "continuation"
+          ]
+      ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "terminated"
+    , Space
+    , Str "list."
+    ]
+, Header
+    1
+    ( "table-followed-by-a-paragraph-in-a-list-item" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "followed"
+    , Space
+    , Str "by"
+    , Space
+    , Str "a"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "in"
+    , Space
+    , Str "a"
+    , Space
+    , Str "list"
+    , Space
+    , Str "item"
+    ]
+, BulletList
+    [ [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault ) ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Plain [ Str "A" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Plain [ Str "B" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para
+          [ Str "paragraph"
+          , Space
+          , Str "after"
+          , Space
+          , Str "table"
+          , Space
+          , Str "in"
+          , Space
+          , Str "item"
+          ]
+      ]
+    , [ Para [ Str "following" , Space , Str "item" ] ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "populated"
+    , Space
+    , Str "list."
+    ]
+, Header
+    1
+    ( "table-before-a-definition-list" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "definition"
+    , Space
+    , Str "list"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, DefinitionList
+    [ ( [ Str "Term" ]
+      , [ [ Plain
+              [ Str "Definition"
+              , Space
+              , Str "after"
+              , Space
+              , Str "table"
+              ]
+          ]
+        ]
+      )
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "definition"
+    , Space
+    , Str "list."
+    ]
+, Header
+    1
+    ( "table-before-a-horizontal-rule" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "horizontal"
+    , Space
+    , Str "rule"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, HorizontalRule
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "horizontal"
+    , Space
+    , Str "rule."
+    ]
+, Header
+    1
+    ( "table-before-a-transparent-div" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "before"
+    , Space
+    , Str "a"
+    , Space
+    , Str "transparent"
+    , Space
+    , Str "Div"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault ) ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "A" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "B" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, Div
+    ( "" , [] , [] )
+    [ Para
+        [ Str "paragraph"
+        , Space
+        , Str "in"
+        , Space
+        , Str "div"
+        , Space
+        , Str "after"
+        , Space
+        , Str "table"
+        ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "transparent"
+    , Space
+    , Str "div."
+    ]
+, Header
+    1
+    ( "table-at-the-end-of-a-transparent-div" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "at"
+    , Space
+    , Str "the"
+    , Space
+    , Str "end"
+    , Space
+    , Str "of"
+    , Space
+    , Str "a"
+    , Space
+    , Str "transparent"
+    , Space
+    , Str "Div"
+    ]
+, Div
+    ( "" , [] , [] )
+    [ Table
+        ( "" , [] , [] )
+        (Caption Nothing [])
+        [ ( AlignDefault , ColWidthDefault ) ]
+        (TableHead
+           ( "" , [] , [] )
+           [ Row
+               ( "" , [] , [] )
+               [ Cell
+                   ( "" , [] , [] )
+                   AlignDefault
+                   (RowSpan 1)
+                   (ColSpan 1)
+                   [ Plain [ Str "A" ] ]
+               ]
+           ])
+        [ TableBody
+            ( "" , [] , [] )
+            (RowHeadColumns 0)
+            []
+            [ Row
+                ( "" , [] , [] )
+                [ Cell
+                    ( "" , [] , [] )
+                    AlignDefault
+                    (RowSpan 1)
+                    (ColSpan 1)
+                    [ Plain [ Str "B" ] ]
+                ]
+            ]
+        ]
+        (TableFoot ( "" , [] , [] ) [])
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "closing"
+    , Space
+    , Str "transparent"
+    , Space
+    , Str "div."
+    ]
+, Header
+    1
+    ( "table-in-a-footnote" , [] , [] )
+    [ Str "Table"
+    , Space
+    , Str "in"
+    , Space
+    , Str "a"
+    , Space
+    , Str "footnote"
+    ]
+, Para
+    [ Str "Text"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "table"
+    , Space
+    , Str "note."
+    , Note
+        [ Table
+            ( "" , [] , [] )
+            (Caption Nothing [])
+            [ ( AlignDefault , ColWidthDefault ) ]
+            (TableHead
+               ( "" , [] , [] )
+               [ Row
+                   ( "" , [] , [] )
+                   [ Cell
+                       ( "" , [] , [] )
+                       AlignDefault
+                       (RowSpan 1)
+                       (ColSpan 1)
+                       [ Plain [ Str "A" ] ]
+                   ]
+               ])
+            [ TableBody
+                ( "" , [] , [] )
+                (RowHeadColumns 0)
+                []
+                [ Row
+                    ( "" , [] , [] )
+                    [ Cell
+                        ( "" , [] , [] )
+                        AlignDefault
+                        (RowSpan 1)
+                        (ColSpan 1)
+                        [ Plain [ Str "B" ] ]
+                    ]
+                ]
+            ]
+            (TableFoot ( "" , [] , [] ) [])
+        ]
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "table"
+    , Space
+    , Str "note."
+    ]
+, Header
+    1
+    ( "" , [] , [] )
+    [ Str "Nested"
+    , Space
+    , Str "table"
+    , Space
+    , Str "at"
+    , Space
+    , Str "the"
+    , Space
+    , Str "end"
+    , Space
+    , Str "of"
+    , Space
+    , Str "a"
+    , Space
+    , Str "table"
+    , Space
+    , Str "cell"
+    ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    ]
+    (TableHead ( "" , [] , [] ) [])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Table
+                    ( "" , [] , [] )
+                    (Caption Nothing [])
+                    [ ( AlignDefault , ColWidthDefault ) ]
+                    (TableHead
+                       ( "" , [] , [] )
+                       [ Row
+                           ( "" , [] , [] )
+                           [ Cell
+                               ( "" , [] , [] )
+                               AlignDefault
+                               (RowSpan 1)
+                               (ColSpan 1)
+                               [ Plain [ Str "A" ] ]
+                           ]
+                       ])
+                    [ TableBody
+                        ( "" , [] , [] )
+                        (RowHeadColumns 0)
+                        []
+                        [ Row
+                            ( "" , [] , [] )
+                            [ Cell
+                                ( "" , [] , [] )
+                                AlignDefault
+                                (RowSpan 1)
+                                (ColSpan 1)
+                                [ Plain [ Str "B" ] ]
+                            ]
+                        ]
+                    ]
+                    (TableFoot ( "" , [] , [] ) [])
+                ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Para
+                    [ Str "next"
+                    , Space
+                    , Str "cell"
+                    , Space
+                    , Str "after"
+                    , Space
+                    , Str "nested"
+                    , Space
+                    , Str "table"
+                    ]
+                ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "outer"
+    , Space
+    , Str "table."
+    ]
+, Header
+    1
+    ( "" , [] , [] )
+    [ Str "Figure"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "tabular"
+    , Space
+    , Str "body"
+    ]
+, Figure
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ Table
+        ( "" , [] , [] )
+        (Caption Nothing [])
+        [ ( AlignDefault , ColWidthDefault ) ]
+        (TableHead
+           ( "" , [] , [] )
+           [ Row
+               ( "" , [] , [] )
+               [ Cell
+                   ( "" , [] , [] )
+                   AlignDefault
+                   (RowSpan 1)
+                   (ColSpan 1)
+                   [ Plain [ Str "A" ] ]
+               ]
+           ])
+        [ TableBody
+            ( "" , [] , [] )
+            (RowHeadColumns 0)
+            []
+            [ Row
+                ( "" , [] , [] )
+                [ Cell
+                    ( "" , [] , [] )
+                    AlignDefault
+                    (RowSpan 1)
+                    (ColSpan 1)
+                    [ Plain [ Str "B" ] ]
+                ]
+            ]
+        ]
+        (TableFoot ( "" , [] , [] ) [])
+    ]
+, Para
+    [ Str "After"
+    , Space
+    , Str "the"
+    , Space
+    , Str "figure"
+    , Space
+    , Str "table."
+    ]
+]
