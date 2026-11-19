@@ -1645,7 +1645,10 @@ dimenarg :: PandocMonad m => LP m Text
 dimenarg = try $ do
   optional sp
   ch  <- option False $ True <$ symbol '='
-  minus <- option "" $ "-" <$ symbol '-'
+  -- as in TeX, any number of signs, each may be followed by spaces:
+  signs <- many $ try $ optional sp *> (symbol '-' <|> symbol '+')
+  unless (null signs) $ optional sp
+  let minus = if odd (length [() | Tok _ _ "-" <- signs]) then "-" else ""
   s1 <- option ""
         (do Tok _ _ s1 <- satisfyTok isWordTok
             guard (case T.uncons s1 of
