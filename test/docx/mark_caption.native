@@ -1,0 +1,92 @@
+[ Table
+    ( "" , [] , [] )
+    ( Caption
+        Nothing
+        [ Para
+            [ Span
+                ( "" , [ "mark" ] , [] )
+                [ Str "marked table caption " , Math InlineMath "p" ]
+            ]
+        ]
+    )
+    [ ( AlignDefault , ColWidthDefault ) ]
+    ( TableHead ( "" , [] , [] ) [] )
+    [ TableBody
+        ( "" , [] , [] )
+        ( RowHeadColumns 0 )
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                ( RowSpan 1 )
+                ( ColSpan 1 )
+                [ Plain [ Str "c1" ] ]
+            ]
+        ]
+    ]
+    ( TableFoot ( "" , [] , [] ) [] )
+, Table
+    ( "" , [] , [] )
+    ( Caption Nothing [ Para [ Str "unmarked table caption" ] ] )
+    [ ( AlignDefault , ColWidthDefault ) ]
+    ( TableHead ( "" , [] , [] ) [] )
+    [ TableBody
+        ( "" , [] , [] )
+        ( RowHeadColumns 0 )
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                ( RowSpan 1 )
+                ( ColSpan 1 )
+                [ Plain [ Str "c2" ] ]
+            ]
+        ]
+    ]
+    ( TableFoot ( "" , [] , [] ) [] )
+, Table
+    ( "" , [] , [] )
+    ( Caption
+        Nothing
+        [ Plain
+            [ Span
+                ( "caption-id" , [ "mark" ] , [] )
+                [ Str "attributed mark caption" ]
+            ]
+        ]
+    )
+    [ ( AlignDefault , ColWidthDefault ) ]
+    ( TableHead ( "" , [] , [] ) [] )
+    [ TableBody
+        ( "" , [] , [] )
+        ( RowHeadColumns 0 )
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                ( RowSpan 1 )
+                ( ColSpan 1 )
+                [ Plain [ Str "c3" ] ]
+            ]
+        ]
+    ]
+    ( TableFoot ( "" , [] , [] ) [] )
+, Figure
+    ( "" , [] , [] )
+    ( Caption
+        Nothing
+        [ Para
+            [ Span
+                ( "" , [ "mark" ] , [] )
+                [ Str "marked figure caption" ]
+            ]
+        ]
+    )
+    [ Plain [ Str "body" ] ]
+]
