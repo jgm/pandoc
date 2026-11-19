@@ -1788,10 +1788,15 @@ getRawCommand name txt = do
              optional sp
              void anyControlSeq <|> void (many $ satisfyTok isDigitTok)
              void braced
-           "titleformat" -> do
-             void braced
-             skipopts
-             void $ count 4 braced
+           -- titlesec: \titleformat*{cmd}{format} or
+           -- \titleformat{cmd}[shape]{format}{label}{sep}{before}[after]
+           "titleformat"
+             | "*" `T.isSuffixOf` txt -> void $ count 2 braced
+             | otherwise -> do
+                 void braced
+                 skipopts
+                 void $ count 4 braced
+                 skipopts
            "def" ->
              void $ manyTill anyTok braced
            "vadjust" ->
