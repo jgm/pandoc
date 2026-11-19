@@ -16,6 +16,7 @@ import Control.Applicative ((<|>), optional)
 import Control.Monad (guard, mzero)
 import Data.Char (chr, isLetter, ord)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -69,6 +70,7 @@ macroDefCommands = Set.fromList
   [ "global"  -- see checkGlobal
   , "let", "edef", "xdef", "def", "gdef", "newif"
   , "newcommand", "renewcommand", "providecommand"
+  , "algnewcommand", "algrenewcommand"
   , "DeclareMathOperator", "DeclareRobustCommand"
   , "NewDocumentCommand", "RenewDocumentCommand"
   , "ProvideDocumentCommand", "DeclareDocumentCommand"
@@ -229,11 +231,16 @@ argspecPattern =
 
 newcommand :: PandocMonad m => LP m [(Text, Macro)]
 newcommand = do
-  Tok pos (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
+  Tok pos (CtrlSeq mtype') _ <- controlSeq "newcommand" <|>
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand" <|>
+                             controlSeq "algnewcommand" <|>
+                             controlSeq "algrenewcommand" <|>
                              controlSeq "DeclareMathOperator" <|>
                              controlSeq "DeclareRobustCommand"
+  -- algpseudocode's \algnewcommand and \algrenewcommand are
+  -- \newcommand and \renewcommand:
+  let mtype = fromMaybe mtype' (T.stripPrefix "alg" mtype')
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
       optional (symbol '*')
