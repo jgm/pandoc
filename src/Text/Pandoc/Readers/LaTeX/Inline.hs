@@ -53,6 +53,7 @@ rawInlineOr name' fallback = do
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
+  skipopts -- cleveref's \label[type]{key}
   v <- braced
   let refstr = untokenize v
   updateState $ \st ->
