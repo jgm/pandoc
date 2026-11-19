@@ -1135,8 +1135,34 @@ parbox = try $ do
   updateState $ \st -> st{ sInTableCell = oldInTableCell }
   return res
 
+-- | A package's definition command, such as @\\newcolumntype@, which
+-- produces no output.  With @raw_tex@ it is kept as raw LaTeX.
+packageDefinition :: PandocMonad m => Text -> LP m () -> LP m Blocks
+packageDefinition name args = do
+  (_, toks) <- withRaw args
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  return $ if parseRaw
+              then rawBlock "latex" ("\\" <> name <> untokenize toks)
+              else mempty
+
+-- | The arguments of tcolorbox's @\\newtcolorbox@ and the commands like it:
+-- @[init options]{name}[number of arguments][default]{options}@.
+tcolorboxDefinition :: PandocMonad m => LP m ()
+tcolorboxDefinition = skipopts *> definitionArg *> skipopts *> definitionArg
+
+definitionArg :: PandocMonad m => LP m ()
+definitionArg = void (spaces *> braced)
+
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
-blockCommands = M.fromList
+blockCommands = M.fromList $
+   [ ("newcolumntype", packageDefinition "newcolumntype" $
+        definitionArg *> skipopts *> definitionArg)
+   ] ++
+   [ (name, packageDefinition name tcolorboxDefinition)
+   | name <- [ "newtcolorbox", "renewtcolorbox", "newtcbox", "renewtcbox"
+             , "newtcblisting", "renewtcblisting"
+             , "newtcbinputlisting", "renewtcbinputlisting" ]
+   ] ++
    [ ("par", mempty <$ skipopts)
    , ("addtocounter", addtocounter)
    , ("parbox",  parbox)
