@@ -1699,6 +1699,23 @@ dimenarg = try $ do
     ]
   return $ T.pack ['=' | ch] <> minus <> s
 
+-- | The amount of a skip: a dimension, or a length register such as
+-- @\\baselineskip@, optionally with a sign and a factor.
+skiparg :: PandocMonad m => LP m ()
+skiparg = void (try dimenRegister) <|> void dimenarg
+  where
+    dimenRegister = do
+      optional sp
+      optional (symbol '=')
+      optional sp
+      optional (symbol '-')
+      skipMany (satisfyTok isFactorTok)
+      anyControlSeq
+    -- the digits and decimal point of a factor such as 0.5 or .5
+    isFactorTok (Tok _ Word t) = T.all isDigit t
+    isFactorTok (Tok _ Symbol ".") = True
+    isFactorTok _ = False
+
 ignore :: (Monoid a, PandocMonad m) => Text -> ParsecT s u m a
 ignore raw = do
   pos <- getPosition
@@ -1801,7 +1818,7 @@ getRawCommand name txt = do
              | name `elem` ["hfil", "hfill", "vfil", "vfill",
                             "hfilneg", "vfilneg"] -> return ()
              | name `elem` ["hskip", "vskip", "mskip"] -> do
-                 dimenarg
+                 skiparg
                  skipMany $ try $ do
                    sp
                    satisfyTok $
