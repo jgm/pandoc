@@ -1146,7 +1146,10 @@ blockCommands = M.fromList
    , ("subtitle", mempty <$ (skipopts *> tok >>= addMeta "subtitle"))
    , ("author", mempty <$ (skipopts *> authors))
    -- -- in letter class, temp. store address & sig as title, author
-   , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
+   -- \and may separate affiliations in an address:
+   , ("address", mempty <$ (skipopts *>
+        tokWith (inline <|> (linebreak <$ controlSeq "and"))
+          >>= addMeta "address"))
    , ("signature", mempty <$ (skipopts *> authors))
    , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
    , ("newtheorem", newtheorem)
