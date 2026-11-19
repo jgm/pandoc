@@ -26,7 +26,8 @@ import qualified Data.Text as T
 import qualified Data.Set as Set
 import Data.Char (isSpace, isAscii, isHexDigit, chr)
 import Safe (readMay)
-import Network.URI (URI (uriScheme), parseURI, escapeURIString)
+import Network.URI (URI (uriScheme), parseURI, escapeURIString,
+                    unEscapeString)
 import qualified Data.Attoparsec.Text as A
 import Data.Text.Encoding (encodeUtf8)
 import Control.Applicative (many, (<|>))
@@ -110,10 +111,11 @@ isURI t =
       (`Set.member` schemes) . T.toLower . T.filter (/= ':') . T.pack . uriScheme
 
 -- | Converts the path part of a file: URI to a regular path.
+-- Percent-encoding is resolved, so @/foo%20bar@ becomes @/foo bar@.
 -- On windows, @/c:/foo@ should be @c:/foo@.
 -- On linux, @/foo@ should be @/foo@.
 uriPathToPath :: T.Text -> FilePath
-uriPathToPath (T.unpack -> path) =
+uriPathToPath (unEscapeString . T.unpack -> path) =
 #ifdef _WINDOWS
   case path of
     '/':ps -> ps
