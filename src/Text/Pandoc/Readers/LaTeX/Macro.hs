@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.Macro
   ( macroDef
@@ -12,7 +13,7 @@ import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
-import Control.Monad (guard)
+import Control.Monad (guard, mzero)
 import Data.Char (chr, isLetter, ord)
 import qualified Data.Map as M
 import qualified Data.Set as Set
@@ -32,7 +33,8 @@ macroDef constructor = do
       guardDisabled Ext_latex_macros)
      <|> return mempty
   where commandDef = do
-          nameMacroPairs <- newcommand <|> newDocumentCommand <|>
+          nameMacroPairs <- characterDef <|> newcommand <|>
+            newDocumentCommand <|>
             newDocumentEnvironment <|> commandCopy <|> environmentCopy <|>
             checkGlobal (letmacro <|> edefmacro <|> defmacro <|> newif)
           guardDisabled Ext_latex_macros <|>
@@ -94,6 +96,40 @@ lookupMacro name = do
    case M.lookup name macros of
      Just m -> return m
      Nothing -> fail "Macro not found"
+
+-- | A definition whose name is a character the author has made active,
+-- as in @\\def~{...}@ or @\\gdef:{...}@.  Pandoc does not track
+-- category codes, so such a definition is read and ignored.
+characterDef :: PandocMonad m => LP m [(Text, Macro)]
+characterDef = try $ do
+  optional (controlSeq "global")
+  Tok _ (CtrlSeq cmd) _ <- anyControlSeq
+  withVerbatimMode $
+    -- the body must be braced (or, for \let, a control sequence), so
+    -- that text such as "\newcommand." is not taken for a definition
+    if | cmd `elem` ["def", "gdef", "edef", "xdef"] -> do
+           _ <- activeChar
+           _ <- many (argspecArg <|> argspecPattern)
+           [] <$ braced
+       | cmd == "let" -> do
+           _ <- activeChar
+           optional (symbol '=')
+           spaces
+           [] <$ anyControlSeq
+       | cmd `elem` ["newcommand", "renewcommand", "providecommand"] -> do
+           optional (symbol '*')
+           _ <- activeChar <|>
+                  (symbol '{' *> spaces *> activeChar <* spaces <* symbol '}')
+           spaces
+           optional (try bracketedNum)
+           spaces
+           optional (try bracketedToks)
+           spaces
+           [] <$ braced
+       | otherwise -> mzero
+ where
+  activeChar = satisfyTok $ \(Tok _ toktype t) ->
+    toktype == Symbol && t `notElem` ["{", "}", "\\"]
 
 letmacro :: PandocMonad m => LP m [(Text, Macro)]
 letmacro = do
