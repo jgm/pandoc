@@ -247,12 +247,22 @@ newcommand = do
   -- \newcommand and \renewcommand:
   let mtype = fromMaybe mtype' (T.stripPrefix "alg" mtype')
   withVerbatimMode $ do
-    Tok _ (CtrlSeq name) txt <- do
+    (Tok _ (CtrlSeq name) txt, extra) <- do
       optional (symbol '*')
       sp
-      anyControlSeq <|> bracedName
-    numargs <- option 0 $ try bracketedNum
-    let argspecs = map ArgNum [1..numargs]
+      ((\t -> (t, [])) <$> anyControlSeq) <|> bracedName
+    -- Tokens after the name, as in \DeclareMathOperator{\Pol2}:
+    -- \DeclareRobustCommand (and so \DeclareMathOperator) makes them
+    -- delimiters, as \def would, while \newcommand reads [n] there
+    -- as the number of arguments.
+    let delimited = not (null extra) &&
+          mtype `elem` ["DeclareMathOperator", "DeclareRobustCommand"]
+    innerNumargs <- case extra of
+      [] -> pure Nothing
+      _ | delimited -> pure Nothing
+        | otherwise -> maybe mzero (pure . Just) (bracketedNumIn extra)
+    numargs <- maybe (option 0 $ try bracketedNum) pure innerNumargs
+    let argspecs = [Pattern extra | delimited] ++ map ArgNum [1..numargs]
     optarg <- option Nothing $ Just <$> try bracketedToks
     sp
     contents' <- bracedOrToken
@@ -274,13 +284,22 @@ newcommand = do
           _ -> [] <$ report (MacroAlreadyDefined txt pos))
       <|> pure [(name, macro)]
 
--- | The name in @\\newcommand{\\foo}@.  LaTeX strips the braces
--- around the name more than once, so @\\newcommand{{\\foo}}@ also
--- defines @\\foo@.
-bracedName :: PandocMonad m => LP m Tok
+-- | The name in @\\newcommand{\\foo}@, with any tokens that follow
+-- it inside the braces.  LaTeX strips the braces around the name more
+-- than once, so @\\newcommand{{\\foo}}@ also defines @\\foo@.
+bracedName :: PandocMonad m => LP m (Tok, [Tok])
 bracedName =
-  symbol '{' *> spaces *> (anyControlSeq <|> bracedName)
+  symbol '{' *> spaces *> (bracedName <|> nameWithTokens)
     <* spaces <* symbol '}'
+ where
+  nameWithTokens = (,) <$> anyControlSeq <*> many (try (spaces *> nameTok))
+  nameTok = satisfyTok $ \(Tok _ toktype t) ->
+    toktype /= Spaces && toktype /= Newline && t /= "{" && t /= "}"
+
+-- | The number in tokens of the form @[n]@.
+bracketedNumIn :: [Tok] -> Maybe Int
+bracketedNumIn [Tok _ Symbol "[", Tok _ Word n, Tok _ Symbol "]"] = safeRead n
+bracketedNumIn _ = Nothing
 
 -- | Parses a definition of the form
 -- @\NewDocumentCommand\cmd{argspec}{body}@ (and the Renew, Provide,
