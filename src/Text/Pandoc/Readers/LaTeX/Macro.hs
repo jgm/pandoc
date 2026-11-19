@@ -203,8 +203,7 @@ newcommand = do
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
       optional (symbol '*')
-      anyControlSeq <|>
-        (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
+      anyControlSeq <|> bracedName
     spaces
     numargs <- option 0 $ try bracketedNum
     let argspecs = map ArgNum [1..numargs]
@@ -229,6 +228,14 @@ newcommand = do
           "renewcommand" -> return [(name, macro)]
           _ -> [] <$ report (MacroAlreadyDefined txt pos))
       <|> pure [(name, macro)]
+
+-- | The name in @\\newcommand{\\foo}@.  LaTeX strips the braces
+-- around the name more than once, so @\\newcommand{{\\foo}}@ also
+-- defines @\\foo@.
+bracedName :: PandocMonad m => LP m Tok
+bracedName =
+  symbol '{' *> spaces *> (anyControlSeq <|> bracedName)
+    <* spaces <* symbol '}'
 
 -- | Parses a definition of the form
 -- @\NewDocumentCommand\cmd{argspec}{body}@ (and the Renew, Provide,
