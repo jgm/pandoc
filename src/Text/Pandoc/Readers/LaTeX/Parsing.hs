@@ -1696,7 +1696,7 @@ keyval = try $ do
            symbol '='
            sp
            (untokenize <$> braced) <|>
-             (mconcat <$> many1 (
+             (mconcat <$> many (
                  (untokenize . snd <$> withRaw braced)
                  <|>
                  (untokenize <$> many1
@@ -1708,12 +1708,12 @@ keyval = try $ do
                                 Tok _ Symbol "}" -> False
                                 _                -> True)))))
   sp
-  optional (symbol ',')
-  sp
+  skipMany (symbol ',' *> sp) -- empty entries, as in [a,,b]
   return (key, T.strip val)
 
 keyvals :: PandocMonad m => LP m [(Text, Text)]
-keyvals = try $ symbol '[' >> manyTill keyval (symbol ']') <* sp
+keyvals = try $ symbol '[' >> skipMany (try (sp *> symbol ',')) >>
+  manyTill keyval (symbol ']') <* sp
 
 verbEnv :: PandocMonad m => Text -> LP m Text
 verbEnv name = withVerbatimMode $ do
