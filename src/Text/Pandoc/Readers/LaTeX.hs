@@ -839,6 +839,7 @@ treatAsInline = Set.fromList
   , "newpage"
   , "clearpage"
   , "pagebreak"
+  , "markboth", "markright", "markleft"
   ]
 
 lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
