@@ -1061,7 +1061,7 @@ section (ident, classes, kvs) lvl = do
   contents <- grouped inline
   lab <- option ident $
           try (spaces >> controlSeq "label"
-               >> spaces >> untokenize <$> braced)
+               >> skipopts >> spaces >> untokenize <$> braced)
   when (lvl == 0) $
     updateState $ \st -> st{ sHasChapters = True }
   unless ("unnumbered" `elem` classes) $ do
