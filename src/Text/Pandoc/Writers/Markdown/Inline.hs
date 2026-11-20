@@ -524,8 +524,11 @@ inlineToMarkdown opts (Math InlineMath str) = do
        where
          go [] = False
          go ('\n':_) = False
-         go ('%':'\\':'\\':_) = True
-         go ('%':'\\':cs) = go cs
+         go ('%':'\\':cs) =
+           let (as,bs) = span (=='\\') cs
+           in  if length as `mod` 2 == 0
+                  then go bs -- this is an escaped %
+                  else True -- this is an unescaped % after an escaped \
          go ('%':_) = True
          go (_:cs) = go cs
   let addFinalNewlineIfEndsInComment t =
