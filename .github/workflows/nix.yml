@@ -11,6 +11,11 @@ on:
     branches:
     - 'main'
   pull_request:
+    paths:
+    - 'stack.yaml'
+    - 'pandoc.cabal'
+    - 'flake.nix'
+    - 'flake.lock'
   workflow_dispatch:
 
 permissions:
