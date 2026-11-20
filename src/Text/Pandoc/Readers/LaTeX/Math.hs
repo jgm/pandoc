@@ -137,13 +137,11 @@ theoremstyle = do
 
 newtheorem :: PandocMonad m => LP m Blocks
 newtheorem = do
-  number <- option True (False <$ symbol '*' <* sp)
+  number <- option True (False <$ symbol '*')
   name <- untokenize <$> braced
-  sp
   series <- option Nothing $ Just . untokenize <$> bracketedToks
   sp
   showName <- braced <|> ((:[]) <$> anyTok)
-  sp
   syncTo <- option Nothing $ Just . untokenize <$> bracketedToks
   sty <- sLastTheoremStyle <$> getState
   let spec = TheoremSpec { theoremName = showName

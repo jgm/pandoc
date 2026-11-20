@@ -676,11 +676,11 @@ doMacros' n inp =
        getargs num argmap rest
     getargs _ argmap (ArgNum i : Pattern toks : rest) =
       try $ do
-        x <- mconcat <$> manyTill (braced <|> ((:[]) <$> anyTok))
+        x <- mconcat <$> manyTill (bracedNoSp <|> ((:[]) <$> anyTok))
                   (matchPattern toks)
         getargs (i + 1) (M.insert i x argmap) rest
     getargs _ argmap (ArgNum i : rest) = do
-      x <- try $ spaces >> bracedOrToken
+      x <- try $ sp >> (bracedOrToken <|> parArg)
       getargs (i + 1) (M.insert i x argmap) rest
     getargs num argmap (BoolArg skipSp t@(Tok pos _ _) : rest) = do
       -- the ! modifier (skipSp False) disables space-skipping:
@@ -702,7 +702,7 @@ doMacros' n inp =
     -- \end{name} pattern; spaces at the ends are trimmed unless
     -- the ! modifier was used:
     getargs _ argmap (BodyArg doTrim i : Pattern toks : rest) = try $ do
-      x <- mconcat <$> manyTill ((snd <$> withRaw (try braced))
+      x <- mconcat <$> manyTill ((snd <$> withRaw (try bracedNoSp))
                                   <|> ((:[]) <$> anyTok))
                 (matchPattern toks)
       let x' = if doTrim then trimSpaceToks x else x
@@ -713,7 +713,7 @@ doMacros' n inp =
     -- to the \end{name} pattern; blank lines at the ends are
     -- trimmed unless the ! modifier was used:
     getargs _ argmap (VerbBodyArg doTrim i : Pattern toks : rest) = try $ do
-      x <- mconcat <$> manyTill ((snd <$> withRaw (try braced))
+      x <- mconcat <$> manyTill ((snd <$> withRaw (try bracedNoSp))
                                   <|> ((:[]) <$> anyTok))
                 (matchPattern toks)
       getargs (i + 1) (M.insert i (verbatimBodyToks doTrim x) argmap) rest
@@ -1431,8 +1431,20 @@ grouped parser = try $ do
   -- {{a,b}} should be parsed the same as {a,b}
   try (grouped parser <* egroup) <|> (mconcat <$> manyTill parser egroup)
 
+-- | A braced argument (without the braces).  As in TeX, the argument
+-- may be preceded by spaces, comments, and a single newline (but not
+-- a blank line).
 braced' :: PandocMonad m => LP m Tok -> LP m [Tok]
-braced' getTok = symbol '{' *> go (1 :: Int)
+braced' getTok = try (sp *> symbol '{') *> bracedContents getTok
+
+-- | Like 'braced', but doesn't skip whitespace before the opening
+-- brace.  Use this when scanning token sequences in which whitespace
+-- is significant.
+bracedNoSp :: PandocMonad m => LP m [Tok]
+bracedNoSp = symbol '{' *> bracedContents anyTok
+
+bracedContents :: PandocMonad m => LP m Tok -> LP m [Tok]
+bracedContents getTok = go (1 :: Int)
  where
   go n = do
     t <- getTok
@@ -1463,15 +1475,33 @@ retokenizeComment = (do
 bracedOrToken :: PandocMonad m => LP m [Tok]
 bracedOrToken = braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
 
+-- | As in TeX, a blank line where a macro argument is expected yields
+-- a @\\par@ token, which becomes the argument.
+parArg :: PandocMonad m => LP m [Tok]
+parArg = try $ do
+  pos <- getPosition
+  let par = Tok pos (CtrlSeq "par") "\\par "
+  newlineTok
+  blankline
+  -- further blank lines yield another \par, which follows the argument:
+  further <- many blankline
+  unless (null further) $ do
+    TokStream macrosExpanded ts <- getInput
+    setInput $ TokStream macrosExpanded (par : ts)
+  return [par]
+
 bracketed :: PandocMonad m => Monoid a => LP m a -> LP m a
 bracketed parser = try $ do
+  sp
   symbol '['
   mconcat <$> manyTill parser (symbol ']')
 
+-- | A bracketed optional argument (without the brackets).  As with
+-- 'braced', it may be preceded by spaces and a single newline.
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
-  symbol '['
-  concat <$> manyTill ((snd <$> withRaw (try braced)) <|> count 1 anyTok)
+  try (sp *> symbol '[')
+  concat <$> manyTill ((snd <$> withRaw (try bracedNoSp)) <|> count 1 anyTok)
                       (symbol ']')
 
 -- | Tokens between opening and closing delimiter tokens (which are
@@ -1483,7 +1513,7 @@ delimitedToks open close = matchesTok open *> go (1 :: Int)
  where
   matchesTok (Tok _ toktype txt) =
     satisfyTok (\(Tok _ toktype' txt') -> toktype == toktype' && txt == txt')
-  go n = (do ts <- snd <$> withRaw (try braced)
+  go n = (do ts <- snd <$> withRaw (try bracedNoSp)
              (ts ++) <$> go n)
      <|> (do t <- matchesTok close
              if n == 1
@@ -1715,7 +1745,7 @@ keyval = try $ do
   return (key, T.strip val)
 
 keyvals :: PandocMonad m => LP m [(Text, Text)]
-keyvals = try $ symbol '[' >> skipMany (try (sp *> symbol ',')) >>
+keyvals = try $ sp >> symbol '[' >> skipMany (try (sp *> symbol ',')) >>
   manyTill keyval (symbol ']') <* sp
 
 verbEnv :: PandocMonad m => Text -> LP m Text
@@ -1757,7 +1787,6 @@ getRawCommand name txt = do
              -- the stream: a number, or a register such as \@auxout
              optional sp
              void anyControlSeq <|> void (many $ satisfyTok isDigitTok)
-             optional sp
              void braced
            "titleformat" -> do
              void braced
@@ -1784,7 +1813,9 @@ getRawCommand name txt = do
              | otherwise -> do
                skipopts
                option "" (try dimenarg)
-               void $ many braced
+               -- we don't know how many arguments the command takes,
+               -- so don't swallow a group on the next line:
+               void $ many bracedNoSp
   return $ txt <> untokenize rawargs
 
 isPreTok :: Tok -> Bool
@@ -1819,7 +1850,6 @@ overlayTok =
 
 rawopt :: PandocMonad m => LP m Text
 rawopt = try $ do
-  sp
   inner <- untokenize <$> bracketedToks
   sp
   return $ "[" <> inner <> "]"

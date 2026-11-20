@@ -118,7 +118,7 @@ simpleCiteArgs inline = try $ do
     parseFromToks (mconcat <$> many inline) toks
   opt :: PandocMonad m => LP m Inlines
   opt = do
-    toks <- try (sp *> bracketedToks <* sp)
+    toks <- try (bracketedToks <* sp)
     -- now parse the toks as inlines; parseFromToks preserves any
     -- state changes (e.g. macro definitions), since an optional
     -- argument is not a TeX group

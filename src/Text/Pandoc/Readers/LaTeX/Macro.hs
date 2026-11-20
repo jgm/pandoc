@@ -114,17 +114,15 @@ characterDef = try $ do
        | cmd == "let" -> do
            _ <- activeChar
            optional (symbol '=')
-           spaces
+           sp
            [] <$ anyControlSeq
        | cmd `elem` ["newcommand", "renewcommand", "providecommand"] -> do
            optional (symbol '*')
+           sp
            _ <- activeChar <|>
                   (symbol '{' *> spaces *> activeChar <* spaces <* symbol '}')
-           spaces
            optional (try bracketedNum)
-           spaces
            optional (try bracketedToks)
-           spaces
            [] <$ braced
        | otherwise -> mzero
  where
@@ -137,7 +135,7 @@ letmacro = do
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     optional $ symbol '='
-    spaces
+    sp
     -- we first parse in verbatim mode, and then expand macros,
     -- because we don't want \let\foo\bar to turn into
     -- \let\foo hello if we have previously \def\bar{hello}
@@ -239,13 +237,12 @@ newcommand = do
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
       optional (symbol '*')
+      sp
       anyControlSeq <|> bracedName
-    spaces
     numargs <- option 0 $ try bracketedNum
     let argspecs = map ArgNum [1..numargs]
-    spaces
     optarg <- option Nothing $ Just <$> try bracketedToks
-    spaces
+    sp
     contents' <- bracedOrToken
     let contents =
          case mtype of
@@ -290,12 +287,12 @@ newDocumentCommand = try $ do
     <|> controlSeq "DeclareExpandableDocumentCommand"
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
-      spaces
+      sp
       anyControlSeq <|>
         (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
-    spaces
+    sp
     (argspecs, _) <- xparseArgSpecs False
-    spaces
+    sp
     contents <- bracedOrToken
     let macro = Macro GroupScope ExpandWhenUsed argspecs Nothing contents
     (do lookupMacro name
@@ -323,12 +320,11 @@ newDocumentEnvironment = try $ do
     <|> controlSeq "ProvideDocumentEnvironment"
     <|> controlSeq "DeclareDocumentEnvironment"
   withVerbatimMode $ do
-    spaces
     name <- T.strip . untokenize <$> braced
-    spaces
+    sp
     (argspecs, usesBody) <- xparseArgSpecs True
-    startcontents <- spaces >> bracedOrToken
-    endcontents <- spaces >> bracedOrToken
+    startcontents <- sp >> bracedOrToken
+    endcontents <- sp >> bracedOrToken
     -- we need the environment to be in a group so macros defined
     -- inside behave correctly:
     let bg = Tok pos (CtrlSeq "bgroup") "\\bgroup "
@@ -374,10 +370,10 @@ commandCopy = try $ do
     <|> controlSeq "DeclareCommandCopy"
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
-      spaces
+      sp
       anyControlSeq <|>
         (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
-    spaces
+    sp
     target@(Tok _ (CtrlSeq targetName) _) <- anyControlSeq
     result <- (do m <- lookupMacro targetName
                   pure [(name, m)])
@@ -400,9 +396,7 @@ environmentCopy = try $ do
     <|> controlSeq "RenewEnvironmentCopy"
     <|> controlSeq "DeclareEnvironmentCopy"
   withVerbatimMode $ do
-    spaces
     name <- untokenize <$> braced
-    spaces
     target <- untokenize <$> braced
     let copyOne to from fallback =
           (do m <- lookupMacro from
@@ -516,15 +510,12 @@ newenvironment = do
                              controlSeq "provideenvironment"
   withVerbatimMode $ do
     optional $ symbol '*'
-    spaces
     name <- untokenize <$> braced
-    spaces
     numargs <- option 0 $ try bracketedNum
-    spaces
     optarg <- option Nothing $ Just <$> try bracketedToks
     let argspecs = map (\i -> ArgNum i) [1..numargs]
-    startcontents <- spaces >> bracedOrToken
-    endcontents <- spaces >> bracedOrToken
+    startcontents <- sp >> bracedOrToken
+    endcontents <- sp >> bracedOrToken
     -- we need the environment to be in a group so macros defined
     -- inside behave correctly:
     let bg = Tok pos (CtrlSeq "bgroup") "\\bgroup "

@@ -790,7 +790,7 @@ hyperlink = try $ do
 
 hyperref :: PandocMonad m => LP m Inlines
 hyperref = try $ do
-  url <- (("#" <>) . untokenize <$> try (sp *> bracketedToks <* sp))
+  url <- (("#" <>) . untokenize <$> try (bracketedToks <* sp))
        <|> untokenize <$> (bracedUrl <* bracedUrl <* bracedUrl)
   link url "" <$> tok
 
@@ -957,7 +957,7 @@ inlines = mconcat <$> many inline
 
 opt :: PandocMonad m => LP m Inlines
 opt = do
-  toks <- try (sp *> bracketedToks <* sp)
+  toks <- try (bracketedToks <* sp)
   -- now parse the toks as inlines; parseFromToks preserves any
   -- state changes (e.g. macro definitions), since an optional
   -- argument is not a TeX group
@@ -1526,7 +1526,6 @@ letterContents = do
 
 figure' :: PandocMonad m => LP m Blocks
 figure' = try $ do
-  sp
   poshint <- option "" $ untokenize <$> bracketedToks
   sp
   resetCaption
@@ -1621,7 +1620,6 @@ descItem :: PandocMonad m => LP m (Inlines, [Blocks])
 descItem = do
   optional spaces1
   controlSeq "item"
-  sp
   ils <- opt
   bs <- blocks
   return (ils, [bs])
@@ -1657,7 +1655,6 @@ orderedList' = try $ do
                                ctr <- untokenize <$> braced
                                guard $ "enum" `T.isPrefixOf` ctr
                                guard $ T.all (`elem` ['i','v']) (T.drop 4 ctr)
-                               sp
                                num <- untokenize <$> braced
                                case safeRead num of
                                     Just i -> return (i + 1 :: Int)
