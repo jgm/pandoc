@@ -211,18 +211,23 @@ multirowCell block = controlSeq "multirow" >> do
   --     \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
   -- However, everything except `nrows` and `text` make
   -- sense in the context of the Pandoc AST
-  _ <- optional $ symbol '[' *> cellAlignment <* symbol ']'   -- vertical position
+  _ <- optional $ argOpen '[' *> cellAlignment <* symbol ']'  -- vertical position
   nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced
-  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
-  _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
-  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
-  content <- symbol '{' *> (mconcat <$> many block) <* symbol '}'
+  _ <- optional bracketedToks                                 -- bigstrut-related
+  _ <- braced                                                 -- Cell width
+  _ <- optional bracketedToks                                 -- Length used for fine-tuning
+  content <- argOpen '{' *> (mconcat <$> many block) <* symbol '}'
   return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
+
+-- | The opening delimiter of an argument, which (as in TeX) may be
+-- preceded by spaces and a single newline.
+argOpen :: PandocMonad m => Char -> LP m Tok
+argOpen c = try (sp *> symbol c)
 
 multicolumnCell :: PandocMonad m => LP m Blocks -> LP m Cell
 multicolumnCell block = controlSeq "multicolumn" >> do
   span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
-  alignment <- symbol '{' *> cellAlignment <* symbol '}'
+  alignment <- argOpen '{' *> cellAlignment <* symbol '}'
 
   let singleCell = do
         content <- mconcat <$> many block
@@ -240,7 +245,7 @@ multicolumnCell block = controlSeq "multicolumn" >> do
                   (ColSpan span')
                   (fromList bs)
 
-  symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
+  argOpen '{' *> (nestedCell <|> singleCell) <* symbol '}'
 
 -- LaTeX tables are stored with empty cells underneath multirow cells
 -- denoting the grid spaces taken up by them. More specifically, if a
