@@ -16,6 +16,7 @@ We target version 1.5 of the RTF spec.
 module Text.Pandoc.Readers.RTF (readRTF) where
 
 import qualified Data.IntMap as IntMap
+import qualified Data.IntSet as IntSet
 import qualified Data.Sequence as Seq
 import Control.Monad
 import Control.Monad.Except (throwError)
@@ -448,12 +449,16 @@ inGroup p = do
 getStyleFormatting :: PandocMonad m => Int -> RTFParser m [Tok]
 getStyleFormatting stynum = do
   stylesheet <- sStylesheet <$> getState
-  case IntMap.lookup stynum stylesheet of
-    Nothing -> return []
-    Just sty ->
-      case styleBasedOn sty of
-        Just i -> (<> styleFormatting sty)  <$> getStyleFormatting i
-        Nothing -> return $ styleFormatting sty
+  let go visited n =
+        case IntMap.lookup n stylesheet of
+          Nothing -> []
+          Just sty ->
+            case styleBasedOn sty of
+              -- ignore a cyclic \sbasedon chain (#12121):
+              Just i | not (IntSet.member i visited)
+                -> go (IntSet.insert i visited) i <> styleFormatting sty
+              _ -> styleFormatting sty
+  return $ go (IntSet.singleton stynum) stynum
 
 isMetadataField :: Text -> Bool
 isMetadataField "title" = True
