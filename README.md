@@ -82,7 +82,7 @@ It can convert *from*
 - `markdown_strict` (original unextended
   [Markdown](https://daringfireball.net/projects/markdown/))
 - `mediawiki` ([MediaWiki
-  markup](https://www.mediawiki.org/wiki/Help:Formatting))
+  markup](https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Formatting))
 - `man` ([roff man](https://man.cx/groff_man(7)))
 - `mdoc` ([mdoc](https://mandoc.bsd.lv/man/mdoc.7.html) manual page
   markup)
@@ -204,7 +204,7 @@ It can convert *to*
   [Markdown](https://daringfireball.net/projects/markdown/))
 - `markua` ([Markua](https://leanpub.com/markua/read))
 - `mediawiki` ([MediaWiki
-  markup](https://www.mediawiki.org/wiki/Help:Formatting))
+  markup](https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Formatting))
 - `ms` ([roff ms](https://man.cx/groff_ms(7)))
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)

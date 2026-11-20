@@ -1859,6 +1859,7 @@ getNextNumber getCurrentNum = do
 label :: PandocMonad m => LP m ()
 label = do
   controlSeq "label"
+  skipopts -- cleveref's \label[type]{key}
   t <- braced
   updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
 

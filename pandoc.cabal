@@ -568,7 +568,7 @@ library
                  gridtables            >= 0.1.1.1  && < 0.2,
                  haddock-library       >= 1.10     && < 1.12,
                  http-types            >= 0.8      && < 0.13,
-                 ipynb                 >= 0.2      && < 0.3,
+                 ipynb                 >= 0.3      && < 0.4,
                  jira-wiki-markup      >= 1.5.1    && < 1.6,
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.3      && < 2.4,

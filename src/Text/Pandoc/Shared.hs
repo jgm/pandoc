@@ -205,14 +205,20 @@ trimr = T.dropWhileEnd isWS
 
 -- | Trim leading space and trailing space unless after \.
 trimMath :: T.Text -> T.Text
-trimMath = triml . T.reverse . stripBeginSpace . T.reverse -- no Text.spanEnd
+trimMath = trimBegin . trimEnd
   where
-    stripBeginSpace t
-      | T.null pref = t
-      | Just ('\\', _) <- T.uncons suff = T.cons (T.last pref) suff
-      | otherwise = suff
-      where
-        (pref, suff) = T.span isWS t
+    trimBegin = collapseInitialNewlines . T.dropWhile isSpaceOrTab
+    collapseInitialNewlines t = case T.uncons t of
+                                  Just ('\n',_) -> "\n" <> triml t
+                                  _ -> t
+    trimEnd = readdSpace . collapseFinalNewlines . T.dropWhileEnd isSpaceOrTab
+    readdSpace t = case T.unsnoc t of
+                     Just (_, '\\') -> t <> " " -- ends with '\_'
+                     _ -> t
+    collapseFinalNewlines t = case T.unsnoc t of
+                                 Just (_, '\n') -> trimr t <> "\n"
+                                 _ -> t
+    isSpaceOrTab c = c == ' ' || c == '\t'
 
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: T.Text -> T.Text

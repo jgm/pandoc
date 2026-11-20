@@ -154,7 +154,7 @@ outputToBlock DisplayData{ displayData = data',
 outputToBlock ExecuteResult{ executeCount = ec,
                               executeData = data',
                               executeMetadata = metadata' } =
-  B.divWith ("",["output", "execute_result"],[("execution_count",tshow ec)])
+  B.divWith ("",["output", "execute_result"],[("execution_count",maybe "null" tshow ec)])
     <$> handleData metadata' data'
 outputToBlock Err{ errName = ename,
                    errValue = evalue,

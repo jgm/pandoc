@@ -964,11 +964,8 @@ options =
     , option "T" ["title-prefix"]
                  (ReqArg
                   (\arg opt ->
-                    return opt {
-                       optVariables =
-                         setVariable "title-prefix" (T.pack arg) $
-                           optVariables opt,
-                       optStandalone = True })
+                    return opt { optTitlePrefix = Just (T.pack arg)
+                               , optStandalone = True })
                   "STRING")
                  Files
                  (T.pack "Window title prefix")
@@ -992,10 +989,8 @@ options =
     , option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
-                     return opt { optVariables =
-                       setVariable "epub-cover-image"
-                         (T.pack $ normalizePath arg) $
-                         optVariables opt })
+                     return opt { optEpubCoverImage =
+                       Just (normalizePath arg) })
                   "FILE")
                  Files
                  (T.pack "EPUB cover image")
@@ -1100,9 +1095,8 @@ options =
      , option "" ["citation-abbreviations"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata =
-                                  addMeta "citation-abbreviations"
-                                    (normalizePath arg) $ optMetadata opt })
+                     return opt{ optCitationAbbreviations =
+                                    Just (normalizePath arg) })
                    "FILE")
                  Files
                  (T.pack "Citation abbreviations file")

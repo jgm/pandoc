@@ -518,7 +518,24 @@ inlineToMarkdown opts (Str str) = do
                         else escapeText opts) $ str
   return $ literal str'
 inlineToMarkdown opts (Math InlineMath str) = do
-  let str' = T.strip str
+  -- This is to handle `$x%\n$`:
+  let endsWithComment t =
+        go (T.unpack $ T.reverse t)
+       where
+         go [] = False
+         go ('\n':_) = False
+         go ('%':'\\':cs) =
+           let (as,bs) = span (=='\\') cs
+           in  if length as `mod` 2 == 0
+                  then go bs -- this is an escaped %
+                  else True -- this is an unescaped % after an escaped \
+         go ('%':_) = True
+         go (_:cs) = go cs
+  let addFinalNewlineIfEndsInComment t =
+        if endsWithComment t
+           then t <> "\n"
+           else t
+  let str' = addFinalNewlineIfEndsInComment $ T.strip str
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> return $ "`" <> literal str <> "`" <> "$"

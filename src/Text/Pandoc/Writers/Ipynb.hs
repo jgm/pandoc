@@ -222,8 +222,7 @@ blockToOutput (Div (_,["output","error"],kvs) (CodeBlock _ t:_)) =
 blockToOutput (Div (_,["output","execute_result"],kvs) bs) = do
   (data', metadata') <- extractData bs
   return $ Just
-         $ ExecuteResult{ executeCount = fromMaybe 0 $
-                          lookup "execution_count" kvs >>= safeRead
+         $ ExecuteResult{ executeCount = lookup "execution_count" kvs >>= safeRead
                         , executeData = data'
                         , executeMetadata = pairsToJSONMeta kvs <> metadata'}
 blockToOutput (Div (_,["output","display_data"],kvs) bs) = do

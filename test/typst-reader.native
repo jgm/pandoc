@@ -355,8 +355,8 @@ Pandoc
           , Emph
               [ Span
                   ( "" , [ "box" ] , [] )
-                  [ Str "L\8202A\8202"
-                  , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+                  [ Str "L\8203A\8203"
+                  , Span ( "" , [ "box" ] , [] ) [ Str "T\8203E\8203X" ]
                   ]
               , Space
               , Str "Math"
@@ -1820,10 +1820,10 @@ Pandoc
                     , Space
                     , Span
                         ( "" , [ "box" ] , [] )
-                        [ Str "L\8202A\8202"
+                        [ Str "L\8203A\8203"
                         , Span
                             ( "" , [ "box" ] , [] )
-                            [ Str "T\8202E\8202X" ]
+                            [ Str "T\8203E\8203X" ]
                         ]
                     , Space
                     , Str "also"
@@ -4594,8 +4594,8 @@ Pandoc
           , Space
           , Span
               ( "" , [ "box" ] , [] )
-              [ Str "L\8202A\8202"
-              , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+              [ Str "L\8203A\8203"
+              , Span ( "" , [ "box" ] , [] ) [ Str "T\8203E\8203X" ]
               ]
           , Str ","
           , Space
@@ -4824,8 +4824,8 @@ Pandoc
           , Space
           , Span
               ( "" , [ "box" ] , [] )
-              [ Str "L\8202A\8202"
-              , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+              [ Str "L\8203A\8203"
+              , Span ( "" , [ "box" ] , [] ) [ Str "T\8203E\8203X" ]
               ]
           , Space
           , Str "and"
@@ -5469,7 +5469,7 @@ Pandoc
               ]
           , Str ")"
           , Space
-          , Str "\8202\8193"
+          , Str "\8193"
           , Space
           , Str "2023-05-22"
           ]

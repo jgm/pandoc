@@ -53,6 +53,7 @@ rawInlineOr name' fallback = do
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
+  skipopts -- cleveref's \label[type]{key}
   -- as in TeX, the argument may follow on the next line:
   v <- sp *> braced
   let refstr = untokenize v
