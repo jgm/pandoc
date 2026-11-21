@@ -340,6 +340,7 @@ inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end" && name /= "and"
+  guard $ not (isGroupDelimiter name)
   star <- if T.all isAlphaNum name
              then option "" ("*" <$ symbol '*' <* sp)
              else pure ""
@@ -1130,10 +1131,43 @@ section (ident, classes, kvs) lvl = do
   attr' <- registerHeader (lab, classes, kvs) contents
   return $ headerWith attr' lvl contents
 
+-- | \begingroup and \endgroup are handled by 'grouped' (see 'bgroup'
+-- and 'egroup'), so they must not be skipped as unknown commands:
+-- otherwise a skipped \begingroup leaves its \endgroup to close an
+-- enclosing group.
+isGroupDelimiter :: Text -> Bool
+isGroupDelimiter name = name == "begingroup" || name == "endgroup"
+
+-- | Fail if the next token is a \begingroup with no matching \endgroup
+-- in the rest of the input.  Without this check, 'grouped' would parse
+-- the rest of the document once for every unclosed \begingroup, and
+-- again for each one nested in it.
+closedGroupAhead :: PandocMonad m => LP m ()
+closedGroupAhead = do
+  TokStream _ toks <- getInput
+  case toks of
+    Tok _ (CtrlSeq "begingroup") _ : rest -> guard $ closes (1 :: Int) rest
+    _                                    -> pure ()
+ where
+  closes 0 _  = True
+  closes _ [] = False
+  closes n (Tok _ (CtrlSeq "begingroup") _ : ts) = closes (n + 1) ts
+  closes n (Tok _ (CtrlSeq "endgroup") _ : ts)   = closes (n - 1) ts
+  closes n (_ : ts) = closes n ts
+
+-- | Skip a group delimiter that 'grouped' could not pair, as TeX
+-- would report an error but go on.
+unmatchedGroupDelimiter :: PandocMonad m => LP m Blocks
+unmatchedGroupDelimiter = mempty <$ satisfyTok isDelim
+ where
+  isDelim (Tok _ (CtrlSeq name) _) = isGroupDelimiter name
+  isDelim _                        = False
+
 blockCommand :: PandocMonad m => LP m Blocks
 blockCommand = try $ do
   Tok _ (CtrlSeq name) txt <- anyControlSeq
   guard $ name /= "begin" && name /= "end" && name /= "and"
+  guard $ not (isGroupDelimiter name)
   star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
   let names = nubOrd [name', name]
@@ -1680,7 +1714,8 @@ block = do
                                <|> blockCommand
             _                 -> mzero)
           <|> paragraph
-          <|> grouped block
+          <|> (closedGroupAhead *> grouped block)
+          <|> unmatchedGroupDelimiter
   trace (T.take 60 $ tshow $ B.toList res)
   return res
 
