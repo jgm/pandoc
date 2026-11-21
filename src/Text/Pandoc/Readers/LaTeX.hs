@@ -1192,6 +1192,21 @@ parbox = try $ do
   updateState $ \st -> st{ sInTableCell = oldInTableCell }
   return res
 
+-- | The contents of an @\\hbox@ or @\\mbox@ that cannot be read as
+-- inlines, such as a @\\parbox@, read as blocks.  Contents that can be
+-- read as inlines, and any box with @raw_tex@, are left to the inline
+-- command.
+hboxBlocks :: PandocMonad m => LP m Blocks
+hboxBlocks = try $ do
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  guard $ not parseRaw
+  notFollowedBy (void tok)
+  oldInTableCell <- sInTableCell <$> getState
+  updateState $ \st -> st{ sInTableCell = False }
+  res <- grouped block
+  updateState $ \st -> st{ sInTableCell = oldInTableCell }
+  return res
+
 -- | A package's definition command, such as @\\newcolumntype@, which
 -- produces no output.  With @raw_tex@ it is kept as raw LaTeX.
 packageDefinition :: PandocMonad m => Text -> LP m () -> LP m Blocks
@@ -1223,16 +1238,20 @@ blockCommands = M.fromList $
    [ ("par", mempty <$ skipopts)
    , ("addtocounter", addtocounter)
    , ("parbox",  parbox)
+   , ("hbox", hboxBlocks)
+   , ("mbox", hboxBlocks)
    , ("title", mempty <$ (skipopts *>
                              (grouped inline >>= addMeta "title")
                          <|> (grouped block >>= addMeta "title")))
    , ("subtitle", mempty <$ (skipopts *> tok >>= addMeta "subtitle"))
    , ("author", mempty <$ (skipopts *> authors))
    -- -- in letter class, temp. store address & sig as title, author
-   -- \and may separate affiliations in an address:
+   -- \and may separate affiliations in an address, which may also
+   -- hold block content such as several paragraphs:
    , ("address", mempty <$ (skipopts *>
-        tokWith (inline <|> (linebreak <$ controlSeq "and"))
-          >>= addMeta "address"))
+        (tokWith (inline <|> (linebreak <$ controlSeq "and"))
+           >>= addMeta "address")
+        <|> (grouped block >>= addMeta "address")))
    , ("signature", mempty <$ (skipopts *> authors))
    , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
    , ("newtheorem", newtheorem)
@@ -1529,6 +1548,7 @@ letterContents = do
   let addr = case lookupMeta "address" (sMeta st) of
                   Just (MetaBlocks [Plain xs]) ->
                      para $ trimInlines $ fromList xs
+                  Just (MetaBlocks addrBlocks) -> fromList addrBlocks
                   _ -> mempty
   return $ addr <> bs -- sig added by \closing
 
