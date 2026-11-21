@@ -147,6 +147,9 @@ parseTableRow block inline envname prefsufs = do
   let canContainAmp (Tok _ (CtrlSeq "begin") _) = True
       canContainAmp (Tok _ (CtrlSeq "verb") _)  = True
       canContainAmp (Tok _ (CtrlSeq "Verb") _)  = True
+      canContainAmp (Tok _ (CtrlSeq "url") _)  = True
+      canContainAmp (Tok _ (CtrlSeq "href") _)  = True
+      canContainAmp (Tok _ (CtrlSeq "nolinkurl") _)  = True
       canContainAmp _       = False
   -- add prefixes and suffixes in token stream:
   let celltoks (pref, suff) = do
