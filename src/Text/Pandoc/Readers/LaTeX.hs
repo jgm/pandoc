@@ -516,6 +516,8 @@ inlineCommands = M.unions
     , ("url", (\url -> linkWith ("",["uri"],[]) url "" (str url))
                         . unescapeURL . untokenize <$> bracedUrl)
     , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
+    -- url
+    , ("path", code . unescapeURL . untokenize <$> bracedUrl)
     , ("href", do url <- bracedUrl
                   sp
                   link (unescapeURL $ untokenize url) "" <$> tok)
