@@ -419,6 +419,8 @@ unescapeURL t =
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.unions
   [ accentCommands tok
+  , M.fromList [ (name, mempty <$ messageArgs n)
+               | (name, n) <- messageCommands ]
   , miscCommands
   , citationCommands inline
   , siunitxCommands tok
@@ -1207,6 +1209,21 @@ tcolorboxDefinition = skipopts *> definitionArg *> skipopts *> definitionArg
 definitionArg :: PandocMonad m => LP m ()
 definitionArg = void (spaces *> braced)
 
+-- | Package and class messages, such as
+-- @\\PackageError{package}{message}{help}@, with their numbers of
+-- arguments.  They produce no output, and may occur in inline contexts,
+-- e.g. in a macro that reports a missing value.
+messageCommands :: [(Text, Int)]
+messageCommands =
+  [ ("PackageError", 3), ("PackageWarning", 2)
+  , ("PackageWarningNoLine", 2), ("PackageInfo", 2)
+  , ("ClassError", 3), ("ClassWarning", 2)
+  , ("ClassWarningNoLine", 2), ("ClassInfo", 2) ]
+
+-- | Skip the arguments of a message command.
+messageArgs :: PandocMonad m => Int -> LP m ()
+messageArgs n = void $ count n braced
+
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
 blockCommands = M.fromList $
    [ ("newcolumntype", packageDefinition "newcolumntype" $
@@ -1313,7 +1330,7 @@ blockCommands = M.fromList $
    , ("subfile", rawBlockOr "subfile" doSubfile)
    , ("usepackage", rawBlockOr "usepackage" usepackage)
    -- preamble
-   , ("PackageError", mempty <$ (braced >> braced >> braced))
+   , ("PackageError", mempty <$ messageArgs 3)
    -- LaTeX3 conveniences, parsed and ignored:
    , ("ExplSyntaxOn", pure mempty)
    , ("ExplSyntaxOff", pure mempty)
