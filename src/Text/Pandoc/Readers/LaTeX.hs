@@ -1452,7 +1452,7 @@ rawEnv name = do
 rawVerbEnv :: PandocMonad m => Text -> LP m Blocks
 rawVerbEnv name = do
   pos <- getPosition
-  (_, raw) <- withRaw $ verbEnv name
+  (_, raw) <- withRaw $ withVerbatimMode body
   let raw' = "\\begin{" <> name <> "}" <> untokenize raw
   exts <- getOption readerExtensions
   let parseRaw = extensionEnabled Ext_raw_tex exts
@@ -1461,6 +1461,11 @@ rawVerbEnv name = do
      else do
        report $ SkippedContent raw' pos
        return mempty
+ where
+  -- Unlike verbatim, the environment may contain a nested environment
+  -- of the same name (e.g. a tikzpicture in a tikz node), whose \end
+  -- does not end the outer one.
+  body = manyTill (void (begin_ name *> body) <|> void anyTok) (end_ name)
 
 fancyverbEnv :: PandocMonad m => Text -> LP m Blocks
 fancyverbEnv name = do
