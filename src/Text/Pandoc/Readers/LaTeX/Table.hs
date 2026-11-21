@@ -35,6 +35,9 @@ tableEnvironments block inline =
   , ("tabular*", env "tabular*" $ simpTable block inline "tabular*" True)
   , ("tabularx", env "tabularx" $ simpTable block inline "tabularx" True)
   , ("tabular", env "tabular"  $ simpTable block inline "tabular" False)
+  , ("xltabular", env "xltabular" $
+          resetCaption *>
+            simpTable block inline "xltabular" True >>= addTableCaption)
   , ("supertabular", env "supertabular" $ simpTable block inline "supertabular" False)
   , ("supertabular*", env "supertabular*" $ simpTable block inline "supertabular*" False)
   ]
