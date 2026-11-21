@@ -646,7 +646,9 @@ doMacros' n inp =
         -> handleMacros n spos name ts <|> return inp
      Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
       Tok _ Word name : Tok _ Symbol "}" : ts
-        -> handleMacros n spos ("end" <> name) ts <|> return inp
+        -> handleMacros n spos ("end" <> name) ts
+           <|> endOfMacroEnvironment name ts
+           <|> return inp
      Tok _ (CtrlSeq "expandafter") _ : t : ts
         -> combineTok t <$> doMacros' n ts
      Tok spos (CtrlSeq name) _ : ts
@@ -756,6 +758,15 @@ doMacros' n inp =
       , isLetter (T.last txt) =
         Tok spos (CtrlSeq x) (txt <> " ") : acc
     addTok _ _ spos t acc = setpos spos t : acc
+
+    -- \begin{name} expands the macro \name, if there is one. As in
+    -- LaTeX, where \end{name} calls \endname only if it is defined,
+    -- the \end{name} of such an environment is dropped when there is
+    -- no macro \endname (e.g. after \def\proof{...}):
+    endOfMacroEnvironment name ts = do
+      (macros :| _ ) <- sMacros <$> getState
+      guard $ M.member name macros && not (M.member ("end" <> name) macros)
+      doMacros' n ts
 
     handleMacros n' spos name ts = do
       when (n' > 20)  -- detect macro expansion loops
