@@ -197,8 +197,12 @@ parseTableCell block = do
 
 
 cellAlignment :: PandocMonad m => LP m Alignment
-cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
+cellAlignment = skipMany decoration *> alignment <* skipMany decoration
   where
+    decoration = try $ spaces *>
+      (() <$ symbol '|' <|>
+       () <$ ((symbol '@' <|> symbol '!' <|> symbol '>' <|> symbol '<')
+              *> spaces *> braced))
     alignment = do
       c <- untoken <$> singleChar <* optional braced -- ignore args
       return $ case c of
