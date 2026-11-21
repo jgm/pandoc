@@ -1902,10 +1902,14 @@ label = do
 setCaption :: PandocMonad m => LP m Inlines -> LP m ()
 setCaption inline = try $ do
   mbshort <- Just . toList <$> bracketed inline <|> pure Nothing
-  ils <- tokWith inline
+  -- the argument of \caption may contain paragraph breaks, which
+  -- we treat as spaces:
+  ils <- tokWith (inline <|> paragraphBreak)
   optional $ try $ spaces *> label
   updateState $ \st -> st{ sCaption = Just $
                               Caption mbshort [Plain $ toList ils] }
+ where
+  paragraphBreak = space <$ try (newlineTok *> skipMany1 blankline)
 
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption   = Nothing
