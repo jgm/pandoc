@@ -665,7 +665,17 @@ doMacros' n inp =
                     toktype == toktype' &&
                     txt == txt')
 
-    matchPattern toks = try $ mapM_ matchTok toks
+    matchPattern toks = try $ mapM_ matchPatternTok toks
+
+    -- as in TeX, a space in a \def's parameter text matches a run of
+    -- spaces including at most one line end, and a control sequence
+    -- matches regardless of the spaces that follow it:
+    matchPatternTok (Tok _ Spaces _) =
+      (skipMany1 whitespace *> optional (endline *> skipMany whitespace))
+        <|> (endline *> skipMany whitespace)
+    matchPatternTok (Tok _ toktype@(CtrlSeq _) _) =
+      void $ satisfyTok (\(Tok _ toktype' _) -> toktype == toktype')
+    matchPatternTok t = void $ matchTok t
 
     -- the first parameter is the number of the next argument
     -- to be bound (needed for the argspecs that don't carry an
