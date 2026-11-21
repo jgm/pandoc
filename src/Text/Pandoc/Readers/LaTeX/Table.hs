@@ -11,7 +11,7 @@ import Text.Pandoc.TeX
 import Text.Pandoc.Builder as B
 import qualified Data.Map as M
 import Data.Text (Text)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Text as T
 import Control.Applicative ((<|>), optional, many)
 import Control.Monad (when, void)
@@ -52,10 +52,59 @@ hline = try $ do
       (True <$ controlSeq "toprule") <|>
       (True <$ controlSeq "bottomrule") <|>
       (True <$ controlSeq "midrule") <|>
-      (True <$ controlSeq "endhead") <|>
-      (True <$ controlSeq "endfirsthead")
+      (False <$ (controlSeq "noalign" <* spaces <* braced))
   optional rawopt
   when hasParenArg $ void $ optional (parenWrapped (() <$ singleChar))
+
+-- | The parts of a longtable before its body: the first head, the head
+-- repeated on later pages, the foot of every page but the last, and the
+-- last foot.
+data TableSection = FirstHead | RepeatedHead | Foot | LastFoot
+  deriving (Eq, Show)
+
+sectionEnd :: PandocMonad m => LP m TableSection
+sectionEnd =
+      (FirstHead <$ controlSeq "endfirsthead")
+  <|> (RepeatedHead <$ controlSeq "endhead")
+  <|> (Foot <$ controlSeq "endfoot")
+  <|> (LastFoot <$ controlSeq "endlastfoot")
+
+-- | Whether a section ends before @\\end{envname}@.
+hasSections :: Text -> [Tok] -> Bool
+hasSections envname = go
+  where
+    go (Tok _ (CtrlSeq c) _ : rest)
+      | c `elem` ["endfirsthead", "endhead", "endfoot", "endlastfoot"] = True
+      | c == "end", Tok _ Symbol "{" : rest' <- rest
+      , untokenize (takeWhile (not . isRbrace) rest') == envname = False
+    go (_ : rest) = go rest
+    go [] = False
+    isRbrace (Tok _ Symbol "}") = True
+    isRbrace _ = False
+
+-- | A head or foot section, the rows in it, and the caption and label
+-- set when it ends. Rules and empty lines in it are skipped.
+tableSection :: PandocMonad m
+             => LP m Inlines -> LP m Row
+             -> LP m (TableSection, ([Row], (Maybe Caption, Maybe Text)))
+tableSection inline row = try $ do
+  let caption' = try $ do
+        spaces
+        controlSeq "caption" *> setCaption inline
+        spaces
+        optional label
+        spaces
+        optional lbreak
+  let item = (Nothing <$ caption')
+         <|> (Nothing <$ hline)
+         <|> (Nothing <$ try (spaces *> lbreak))
+         <|> (Just <$> try (spaces *> notFollowedBy sectionEnd
+                              *> row <* lbreak))
+  rows <- catMaybes <$> many item
+  spaces
+  kind <- sectionEnd
+  st <- getState
+  return (kind, (rows, (sCaption st, sLastLabel st)))
 
 lbreak :: PandocMonad m => LP m Tok
 lbreak = (controlSeq "\\" <|> controlSeq "tabularnewline")
@@ -332,6 +381,7 @@ simpTable block inline envname hasWidthParameter = try $ do
   skipopts
   colspecs <- parseAligns
   let (aligns, widths, prefsufs) = unzip3 colspecs
+  let row = parseTableRow block inline envname prefsufs
   optional $ controlSeq "caption" *> setCaption inline
   spaces
   optional label
@@ -340,12 +390,28 @@ simpTable block inline envname hasWidthParameter = try $ do
   spaces
   skipMany hline
   spaces
-  header' <- option [] . try . fmap (:[]) $
-             parseTableRow block inline envname prefsufs <*
-               lbreak <* many1 hline
+  before <- (\st -> (sCaption st, sLastLabel st)) <$> getState
+  TokStream _ toks <- getInput
+  sections <- if hasSections envname toks
+                 then many (tableSection inline row)
+                 else return []
+  -- The caption of the first head is the table's; a caption in another
+  -- section repeats it.
+  let (caption', label') = case lookup FirstHead sections of
+        Just (_, captioned) -> captioned
+        Nothing -> foldl firstJust before (map (snd . snd) sections)
+      firstJust (c, l) (c', l') = (c <|> c', l <|> l')
+  updateState $ \st -> st{ sCaption = caption', sLastLabel = label' }
+  let sectionRows k = fst <$> lookup k sections
+  let sectionHead = sectionRows FirstHead <|> sectionRows RepeatedHead
+  let footRows = fromMaybe [] $ sectionRows LastFoot <|> sectionRows Foot
   spaces
-  rows <- sepEndBy (parseTableRow block inline envname prefsufs)
-                    (lbreak <* optional (skipMany hline))
+  header' <- case sectionHead of
+    Just rows' -> return rows'
+    Nothing -> option [] . try . fmap (:[]) $
+                 row <* lbreak <* many1 hline
+  spaces
+  rows <- sepEndBy row (lbreak <* optional (skipMany hline))
   spaces
   optional $ controlSeq "caption" *> setCaption inline
   spaces
@@ -356,7 +422,7 @@ simpTable block inline envname hasWidthParameter = try $ do
   lookAhead $ controlSeq "end" -- make sure we're at end
   let th  = fixTableHead $ TableHead nullAttr header'
   let tbs = [fixTableBody $ TableBody nullAttr 0 [] rows]
-  let tf  = TableFoot nullAttr []
+  let tf  = TableFoot nullAttr (fixTableRows footRows)
   return $ compactifyTable
          $ table emptyCaption (zip aligns widths) th tbs tf
 
