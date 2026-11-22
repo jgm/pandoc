@@ -69,8 +69,9 @@ import Control.Monad
   , when
   , MonadPlus(mzero)
   )
-import Control.Monad.Except ( MonadError(throwError) )
+import Control.Monad.Except ( MonadError(throwError, catchError) )
 import Control.Monad.Identity ( Identity(..) )
+import Control.Monad.Trans (lift)
 import Data.Char
   ( chr
   , isAlphaNum
@@ -90,7 +91,8 @@ import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy as TL
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Builder (Attr, Inline(Str), Inlines, trimInlines)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileStrict, report,
+                                      toTextM, withPaths)
 import Text.Pandoc.Logging
   ( LogMessage(CouldNotLoadIncludeFile, DuplicateIdentifier) )
 import Text.Pandoc.Options
@@ -145,6 +147,7 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import qualified Data.Bifunctor as Bifunctor
+import System.FilePath (normalise)
 
 -- | Remove whitespace from start and end; just like @'trimInlines'@,
 -- but lifted into the 'Future' type.
@@ -727,18 +730,24 @@ insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
 insertIncludedFile parser toStream dirs f mbstartline mbendline = do
   oldPos <- getPosition
   oldInput <- getInput
+  mbfound <- lift $ catchError
+               (Just <$> withPaths dirs
+                           (\fp -> readFileStrict fp >>= toTextM fp) f)
+               (\_ -> return Nothing)
+  -- Use the path where the file was found, so that relative includes
+  -- inside it are resolved relative to its directory (#12087).
+  let path = maybe f (normalise . fst) mbfound
   containers <- getIncludeFiles <$> getState
-  when (T.pack f `elem` containers) $
+  when (T.pack path `elem` containers) $
     throwError $ PandocParseError $ T.pack $ "Include file loop at " ++ show oldPos
-  updateState $ addIncludeFile $ T.pack f
-  mbcontents <- readFileFromDirs dirs f
-  contents <- case mbcontents of
-                   Just s -> return $ exciseLines mbstartline mbendline s
+  updateState $ addIncludeFile $ T.pack path
+  contents <- case mbfound of
+                   Just (_, s) -> return $ exciseLines mbstartline mbendline s
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile (T.pack f) oldPos
                      return ""
   setInput $ toStream contents
-  setPosition $ newPos f (fromMaybe 1 mbstartline) 1
+  setPosition $ newPos path (fromMaybe 1 mbstartline) 1
   result <- parser
   setInput oldInput
   setPosition oldPos

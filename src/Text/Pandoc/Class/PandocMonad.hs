@@ -28,6 +28,7 @@ module Text.Pandoc.Class.PandocMonad
   , getPOSIXTime
   , getZonedTime
   , readFileFromDirs
+  , withPaths
   , report
   , runSilently
   , setRequestHeader

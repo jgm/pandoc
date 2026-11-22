@@ -299,6 +299,10 @@ extra-source-files:
                  test/command/12001/note/doc.md
                  test/command/12001/grid/doc.md
                  test/command/12001/next/doc.md
+                 test/command/12087/sub/a.rst
+                 test/command/12087/sub/b.rst
+                 test/command/12087/sub/a.org
+                 test/command/12087/sub/b.org
                  test/asciidoc-reader.adoc
                  test/asciidoc-reader.native
                  test/asciidoc-reader-include.rb
