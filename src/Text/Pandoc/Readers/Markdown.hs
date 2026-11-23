@@ -2121,10 +2121,9 @@ note = try $ do
         Nothing       -> return $ B.str $ "[^" <> ref <> "]"
         Just (_pos, contents) -> do
           st <- askF
-          -- process the note in a context that doesn't resolve
-          -- notes, to avoid infinite looping with notes inside
-          -- notes:
-          let contents' = runF contents st{ stateNotes' = M.empty }
+          -- Prevent recursive references to this note, but allow
+          -- references to other notes.
+          let contents' = runF contents st{ stateNotes' = M.delete ref notes }
           let addCitationNoteNum c@Citation{} =
                 c{ citationNoteNum = noteNum }
           let adjustCite (Cite cs ils) =

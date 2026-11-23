@@ -521,6 +521,12 @@ tests = [ testGroup "math groups"
           , "recursive note" =:
             "[^1]\n\n[^1]: See [^1]\n"
             =?> para (note (para "See [^1]"))
+          , "nested note" =:
+            "[^1]\n\n[^1]: First [^2]\n\n[^2]: Second\n"
+            =?> para (note (para ("First " <> note (para "Second"))))
+          , "mutually recursive notes" =:
+            "[^1]\n\n[^1]: First [^2]\n\n[^2]: Second [^1]\n"
+             =?> para (note (para ("First " <> note (para "Second [^1]"))))
           ]
         , testGroup "lhs"
           [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
