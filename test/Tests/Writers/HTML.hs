@@ -43,15 +43,22 @@ noteTestDoc =
   header 1 "Page title" <>
   header 2 "First section" <>
   para ("This is a footnote." <>
-        note (para "Down here.") <>
+        note (para ("Outer " <>
+                    note (para ("Middle " <>
+                                note (para "Inner."))) <>
+                    " and " <>
+                    note (para "Sibling."))) <>
+        " And another note." <>
+        note (para "Another.") <>
         " And this is a " <>
         link "https://www.google.com" "" "link" <>
         ".") <>
   blockQuote (para ("A note inside a block quote." <>
-                    note (para "The second note.")) <>
+                    note (para "Quoted.")) <>
               para "A second paragraph.") <>
   header 2 "Second section" <>
-  para "Some more text."
+  para ("Some more text." <>
+        note (para "Last."))
 
 tests :: [TestTree]
 tests =
@@ -118,18 +125,23 @@ tests =
         T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
-          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And another note.<a href=\"#fn5\" class=\"footnote-ref\" id=\"fnref5\"><sup>5</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
           , "<blockquote>"
-          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A note inside a block quote.<a href=\"#fn6\" class=\"footnote-ref\" id=\"fnref6\"><sup>6</sup></a></p>"
           , "<p>A second paragraph.</p>"
           , "</blockquote>"
           , "<h2>Second section</h2>"
-          , "<p>Some more text.</p>"
+          , "<p>Some more text.<a href=\"#fn7\" class=\"footnote-ref\" id=\"fnref7\"><sup>7</sup></a></p>"
           , "<div class=\"footnotes footnotes-end-of-document\">"
           , "<hr />"
           , "<ol>"
-          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
-          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn1\"><p>Outer <a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a> and <a href=\"#fn4\" class=\"footnote-ref\" id=\"fnref4\"><sup>4</sup></a><a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>Middle <a href=\"#fn3\" class=\"footnote-ref\" id=\"fnref3\"><sup>3</sup></a><a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn3\"><p>Inner.<a href=\"#fnref3\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn4\"><p>Sibling.<a href=\"#fnref4\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn5\"><p>Another.<a href=\"#fnref5\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn6\"><p>Quoted.<a href=\"#fnref6\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn7\"><p>Last.<a href=\"#fnref7\" class=\"footnote-back\">↩︎</a></p></li>"
           , "</ol>"
           , "</div>"
           ]
@@ -139,23 +151,32 @@ tests =
         T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
-          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And another note.<a href=\"#fn5\" class=\"footnote-ref\" id=\"fnref5\"><sup>5</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
           , "<div class=\"footnotes footnotes-end-of-block\">"
           , "<ol>"
-          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn1\"><p>Outer <a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a> and <a href=\"#fn4\" class=\"footnote-ref\" id=\"fnref4\"><sup>4</sup></a><a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>Middle <a href=\"#fn3\" class=\"footnote-ref\" id=\"fnref3\"><sup>3</sup></a><a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn3\"><p>Inner.<a href=\"#fnref3\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn4\"><p>Sibling.<a href=\"#fnref4\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn5\"><p>Another.<a href=\"#fnref5\" class=\"footnote-back\">↩︎</a></p></li>"
           , "</ol>"
           , "</div>"
           , "<blockquote>"
-          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A note inside a block quote.<a href=\"#fn6\" class=\"footnote-ref\" id=\"fnref6\"><sup>6</sup></a></p>"
           , "<p>A second paragraph.</p>"
           , "</blockquote>"
           , "<div class=\"footnotes footnotes-end-of-block\">"
-          , "<ol start=\"2\">"
-          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<ol start=\"6\">"
+          , "<li id=\"fn6\"><p>Quoted.<a href=\"#fnref6\" class=\"footnote-back\">↩︎</a></p></li>"
           , "</ol>"
           , "</div>"
           , "<h2>Second section</h2>"
-          , "<p>Some more text.</p>"
+          , "<p>Some more text.<a href=\"#fn7\" class=\"footnote-ref\" id=\"fnref7\"><sup>7</sup></a></p>"
+          , "<div class=\"footnotes footnotes-end-of-block\">"
+          , "<ol start=\"7\">"
+          , "<li id=\"fn7\"><p>Last.<a href=\"#fnref7\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           ]
       , test (htmlWithOpts def{writerReferenceLocation=EndOfSection})
         "at the end of a section" $
@@ -163,20 +184,30 @@ tests =
         T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
-          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And another note.<a href=\"#fn5\" class=\"footnote-ref\" id=\"fnref5\"><sup>5</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
           , "<blockquote>"
-          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A note inside a block quote.<a href=\"#fn6\" class=\"footnote-ref\" id=\"fnref6\"><sup>6</sup></a></p>"
           , "<p>A second paragraph.</p>"
           , "</blockquote>"
           , "<div class=\"footnotes footnotes-end-of-section\">"
           , "<hr />"
           , "<ol>"
-          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
-          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn1\"><p>Outer <a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a> and <a href=\"#fn4\" class=\"footnote-ref\" id=\"fnref4\"><sup>4</sup></a><a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>Middle <a href=\"#fn3\" class=\"footnote-ref\" id=\"fnref3\"><sup>3</sup></a><a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn3\"><p>Inner.<a href=\"#fnref3\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn4\"><p>Sibling.<a href=\"#fnref4\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn5\"><p>Another.<a href=\"#fnref5\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn6\"><p>Quoted.<a href=\"#fnref6\" class=\"footnote-back\">↩︎</a></p></li>"
           , "</ol>"
           , "</div>"
           , "<h2>Second section</h2>"
-          , "<p>Some more text.</p>"
+          , "<p>Some more text.<a href=\"#fn7\" class=\"footnote-ref\" id=\"fnref7\"><sup>7</sup></a></p>"
+          , "<div class=\"footnotes footnotes-end-of-section\">"
+          , "<hr />"
+          , "<ol start=\"7\">"
+          , "<li id=\"fn7\"><p>Last.<a href=\"#fnref7\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           ]
       , test (htmlWithOpts def{writerReferenceLocation=EndOfSection, writerSectionDivs=True})
         "at the end of a section, with section divs" $
@@ -188,22 +219,32 @@ tests =
           , "<h1>Page title</h1>"
           , "<div class=\"section level2\">"
           , "<h2>First section</h2>"
-          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And another note.<a href=\"#fn5\" class=\"footnote-ref\" id=\"fnref5\"><sup>5</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
           , "<blockquote>"
-          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A note inside a block quote.<a href=\"#fn6\" class=\"footnote-ref\" id=\"fnref6\"><sup>6</sup></a></p>"
           , "<p>A second paragraph.</p>"
           , "</blockquote>"
           , "<div class=\"footnotes footnotes-end-of-section\">"
           , "<hr />"
           , "<ol>"
-          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
-          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn1\"><p>Outer <a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a> and <a href=\"#fn4\" class=\"footnote-ref\" id=\"fnref4\"><sup>4</sup></a><a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>Middle <a href=\"#fn3\" class=\"footnote-ref\" id=\"fnref3\"><sup>3</sup></a><a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn3\"><p>Inner.<a href=\"#fnref3\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn4\"><p>Sibling.<a href=\"#fnref4\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn5\"><p>Another.<a href=\"#fnref5\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn6\"><p>Quoted.<a href=\"#fnref6\" class=\"footnote-back\">↩︎</a></p></li>"
           , "</ol>"
           , "</div>"
           , "</div>"
           , "<div class=\"section level2\">"
           , "<h2>Second section</h2>"
-          , "<p>Some more text.</p>"
+          , "<p>Some more text.<a href=\"#fn7\" class=\"footnote-ref\" id=\"fnref7\"><sup>7</sup></a></p>"
+          , "<div class=\"footnotes footnotes-end-of-section\">"
+          , "<hr />"
+          , "<ol start=\"7\">"
+          , "<li id=\"fn7\"><p>Last.<a href=\"#fnref7\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           , "</div>"
           , "</div>"
           ]

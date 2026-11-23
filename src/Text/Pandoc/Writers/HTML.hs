@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.HTML (
   tagWithAttributes
   ) where
 import Control.Monad.State.Strict
-    ( StateT, MonadState(get), gets, modify, evalStateT )
+    ( StateT, MonadState(get), gets, modify, evalStateT, state )
 import Control.Monad ( liftM, when, foldM, unless )
 import Control.Monad.Trans ( MonadTrans(lift) )
 import Data.Char (ord, isSpace, isAscii)
@@ -85,27 +85,30 @@ import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
 import Data.String (fromString)
+import qualified Data.IntMap.Strict as IM
 
 data WriterState = WriterState
-    { stNotes        :: [Html]  -- ^ List of notes
-    , stEmittedNotes :: Int     -- ^ How many notes we've already pushed out to the HTML
-    , stEmittedNoteBlocks :: Int  -- ^ How many @\<div class=footnote>@ blocks we've already pushed out
-    , stMath         :: Bool    -- ^ Math is used in document
-    , stQuotes       :: Bool    -- ^ <q> tag is used
-    , stHighlighting :: Bool    -- ^ Syntax highlighting is used
-    , stHtml5        :: Bool    -- ^ Use HTML5
-    , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
-    , stSlideVariant :: HTMLSlideVariant
-    , stSlideLevel   :: Int     -- ^ Slide level
-    , stInSection    :: Bool    -- ^ Content is in a section (revealjs)
-    , stCodeBlockNum :: Int     -- ^ Number of code block
-    , stCsl          :: Bool    -- ^ Has CSL references
-    , stCslEntrySpacing :: Maybe Int  -- ^ CSL entry spacing
-    , stBlockLevel   :: Int     -- ^ Current block depth, excluding section divs
+    { stNotes             :: IM.IntMap Html  -- ^ List of notes
+    , stNextNoteNumber    :: Int     -- ^ Next note number to be emitted
+    , stEmittedNotes      :: Int     -- ^ How many notes we've already pushed out to the HTML
+    , stEmittedNoteBlocks :: Int     -- ^ How many @\<div class=footnote>@ blocks we've already pushed out
+    , stMath              :: Bool    -- ^ Math is used in document
+    , stQuotes            :: Bool    -- ^ <q> tag is used
+    , stHighlighting      :: Bool    -- ^ Syntax highlighting is used
+    , stHtml5             :: Bool    -- ^ Use HTML5
+    , stEPUBVersion       :: Maybe EPUBVersion -- ^ EPUB version if for epub
+    , stSlideVariant      :: HTMLSlideVariant
+    , stSlideLevel        :: Int     -- ^ Slide level
+    , stInSection         :: Bool    -- ^ Content is in a section (revealjs)
+    , stCodeBlockNum      :: Int     -- ^ Number of code block
+    , stCsl               :: Bool    -- ^ Has CSL references
+    , stCslEntrySpacing   :: Maybe Int  -- ^ CSL entry spacing
+    , stBlockLevel        :: Int     -- ^ Current block depth, excluding section divs
     }
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [],
+defaultWriterState = WriterState {stNotes = IM.empty,
+                                  stNextNoteNumber = 1,
                                   stEmittedNotes = 0,
                                   stEmittedNoteBlocks = 0,
                                   stMath = False,
@@ -320,7 +323,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
     if null (stNotes st)
       then return mempty
       else do
-        notes <- footnoteSection opts EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
+        notes <- footnoteSection opts EndOfDocument (stEmittedNotes st + 1) (IM.elems (stNotes st))
         modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
         return notes
   st <- get
@@ -882,7 +885,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
       then do
         st <- get
         renderedNotes <- footnoteSection opts (writerReferenceLocation opts)
-                           (stEmittedNotes st + 1) (reverse notes)
+                           (stEmittedNotes st + 1) (IM.elems notes)
         modify (\st' -> st'{ stNotes = mempty,
                              stEmittedNotes = stEmittedNotes st' + length notes })
         return (res <> renderedNotes)
@@ -1191,7 +1194,7 @@ blockToHtml opts block = do
       notes <- if null (stNotes st)
         then return mempty
         else footnoteSection opts (writerReferenceLocation opts)
-                             (stEmittedNotes st + 1) (reverse (stNotes st))
+                             (stEmittedNotes st + 1) (IM.elems (stNotes st))
       modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
       return (doc <> notes)
     else return doc
@@ -1694,14 +1697,13 @@ inlineToHtml opts inline = do
                         return $ L.foldl' (!) tag $ attributes ++ specAttrs
                         -- note:  null title included, as in Markdown.pl
     (Note contents) -> do
-                        notes <- gets stNotes
-                        emittedNotes <- gets stEmittedNotes
-                        let number = emittedNotes + length notes + 1
+                        number <- state $ \st@WriterState{stNextNoteNumber=n} ->
+                          (n, st{ stNextNoteNumber = n + 1 })
                         let ref = tshow number
                         htmlContents <- blockListToNote opts ref contents
                         epubVersion <- gets stEPUBVersion
-                        -- push contents onto front of notes
-                        modify $ \st -> st {stNotes = htmlContents:notes}
+                        modify $ \st@WriterState{stNotes=notes} ->
+                          st{ stNotes = IM.insert number htmlContents notes }
                         slideVariant <- gets stSlideVariant
                         let revealSlash = T.pack ['/' | slideVariant == RevealJsSlides]
                         let link = H.a ! A.href (toValue $ toURI html5 $ "#" <>
