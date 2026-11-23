@@ -31,6 +31,7 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
 import System.FilePath
 import System.Directory
+import qualified System.Environment as Env
 import qualified Control.Exception as E
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data.BakedIn (dataFiles)
@@ -227,7 +228,9 @@ getDataFileNames = do
   return $ sort $
     "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
 
--- | Return appropriate user data directory for platform.  We use
+-- | Return appropriate user data directory for platform.  If
+-- PANDOC_USER_DATA_DIR is set, we return its value (which may be
+-- empty, meaning no user data directory).  Otherwise we use
 -- XDG_DATA_HOME (or its default value), but for backwards compatibility,
 -- we fall back to the legacy user data directory ($HOME/.pandoc on *nix)
 -- if the XDG_DATA_HOME is missing and this exists.  If neither directory
@@ -235,13 +238,16 @@ getDataFileNames = do
 -- is not defined (e.g. because we are in an environment where $HOME is
 -- not defined), we return the empty string.
 defaultUserDataDir :: IO FilePath
-defaultUserDataDir = do
-  xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
-               (\(_ :: E.SomeException) -> return mempty)
-  xdgExists <- doesDirectoryExist xdgDir
-  legacyDir <- E.catch (getAppUserDataDirectory "pandoc")
-                (\(_ :: E.SomeException) -> return mempty)
-  legacyDirExists <- doesDirectoryExist legacyDir
-  if not xdgExists && legacyDirExists
-     then return legacyDir
-     else return xdgDir
+defaultUserDataDir =
+  Env.lookupEnv "PANDOC_USER_DATA_DIR" >>= maybe platformUserDataDir return
+ where
+  platformUserDataDir = do
+    xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
+                 (\(_ :: E.SomeException) -> return mempty)
+    xdgExists <- doesDirectoryExist xdgDir
+    legacyDir <- E.catch (getAppUserDataDirectory "pandoc")
+                  (\(_ :: E.SomeException) -> return mempty)
+    legacyDirExists <- doesDirectoryExist legacyDir
+    if not xdgExists && legacyDirExists
+       then return legacyDir
+       else return xdgDir
