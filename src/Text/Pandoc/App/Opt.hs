@@ -955,7 +955,8 @@ fullDefaultsPath :: (PandocMonad m, MonadIO m)
 fullDefaultsPath dataDir file = do
   defaultDataDir <- liftIO defaultUserDataDir
   pandocDataDirs <- getPandocDataDirs
-  let ddirs = map (</> "defaults") (fromMaybe defaultDataDir dataDir : pandocDataDirs)
+  let ddirs = map (</> "defaults") $ filter (not . null) $
+                fromMaybe defaultDataDir dataDir : pandocDataDirs
   let findFile [] = return file
       findFile (fp:fps) = do
         fpExists <- fileExists fp
