@@ -464,6 +464,15 @@ inlineCommands = M.unions
     , ("scriptfont", fontSetup "scriptfont" familyFont)
     , ("scriptscriptfont", fontSetup "scriptscriptfont" familyFont)
     , ("strut", pure mempty)
+    -- graphicx and adjustbox boxes: keep the contents
+    , ("resizebox", rawInlineOr "resizebox" $ boxArg *> boxArg *> boxContents)
+    , ("resizebox*", rawInlineOr "resizebox*" $
+        boxArg *> boxArg *> boxContents)
+    , ("scalebox", rawInlineOr "scalebox" $ boxArg *> skipopts *> boxContents)
+    , ("rotatebox", rawInlineOr "rotatebox" $
+        skipopts *> boxArg *> boxContents)
+    , ("reflectbox", rawInlineOr "reflectbox" boxContents)
+    , ("adjustbox", rawInlineOr "adjustbox" $ boxArg *> boxContents)
     , ("lettrine", rawInlineOr "lettrine" lettrine)
     , ("(", withMathMode
         (mathInline . untokenize <$> manyTill anyTok (controlSeq ")")))
@@ -1185,8 +1194,13 @@ parbox :: PandocMonad m => LP m Blocks
 parbox = try $ do
   skipopts
   braced -- size
+  blockGroup
+
+-- | A group read as blocks, as the contents of a box.  @\\@ in it is a
+-- line break even inside a table cell (see #5711).
+blockGroup :: PandocMonad m => LP m Blocks
+blockGroup = do
   oldInTableCell <- sInTableCell <$> getState
-  -- see #5711
   updateState $ \st -> st{ sInTableCell = False }
   res <- grouped block
   updateState $ \st -> st{ sInTableCell = oldInTableCell }
@@ -1201,11 +1215,7 @@ hboxBlocks = try $ do
   parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
   guard $ not parseRaw
   notFollowedBy (void tok)
-  oldInTableCell <- sInTableCell <$> getState
-  updateState $ \st -> st{ sInTableCell = False }
-  res <- grouped block
-  updateState $ \st -> st{ sInTableCell = oldInTableCell }
-  return res
+  blockGroup
 
 -- | A package's definition command, such as @\\newcolumntype@, which
 -- produces no output.  With @raw_tex@ it is kept as raw LaTeX.
@@ -1225,6 +1235,32 @@ tcolorboxDefinition = skipopts *> definitionArg *> skipopts *> definitionArg
 definitionArg :: PandocMonad m => LP m ()
 definitionArg = void (spaces *> braced)
 
+-- | Skip an argument of a box command, such as the width of
+-- @\\resizebox@.
+boxArg :: PandocMonad m => LP m ()
+boxArg = void braced
+
+-- | The contents of a box command such as @\\scalebox@ in an inline
+-- context.  A box is set in horizontal mode, where a paragraph break
+-- does nothing, so blank lines are read as spaces.  Contents that are
+-- not inline, such as a @tikzpicture@, are skipped.
+boxContents :: PandocMonad m => LP m Inlines
+boxContents = boxInlines <|> (mempty <$ braced)
+
+-- | The contents of a box command read as inlines, with blank lines
+-- read as spaces.
+boxInlines :: PandocMonad m => LP m Inlines
+boxInlines = try (tokWith (inline <|> paragraphBreak))
+  where paragraphBreak = space <$ try (newlineTok *> skipMany1 blankline)
+
+-- | Parse the contents of a box command such as @\\resizebox@ as
+-- blocks when they cannot be read as inlines, e.g. a table or a
+-- @\\parbox@.  Contents that can be read as inlines are left to the
+-- inline command, so that a box at the start of a paragraph does not
+-- end the paragraph.
+boxBlocks :: PandocMonad m => LP m Blocks
+boxBlocks = try $ notFollowedBy (void boxInlines) *> blockGroup
+
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
 blockCommands = M.fromList $
    [ ("newcolumntype", packageDefinition "newcolumntype" $
@@ -1240,6 +1276,11 @@ blockCommands = M.fromList $
    , ("parbox",  parbox)
    , ("hbox", hboxBlocks)
    , ("mbox", hboxBlocks)
+   , ("resizebox", boxArg *> boxArg *> boxBlocks)
+   , ("scalebox", boxArg *> skipopts *> boxBlocks)
+   , ("rotatebox", skipopts *> boxArg *> boxBlocks)
+   , ("reflectbox", boxBlocks)
+   , ("adjustbox", boxArg *> boxBlocks)
    , ("title", mempty <$ (skipopts *>
                              (grouped inline >>= addMeta "title")
                          <|> (grouped block >>= addMeta "title")))
@@ -1379,6 +1420,8 @@ environments = M.union (tableEnvironments block inline) $
    , ("letter", env "letter" letterContents)
    , ("minipage", divWith ("",["minipage"],[]) <$>
        env "minipage" (skipopts *> spaces *> optional braced *> spaces *> blocks))
+   , ("adjustbox", divWith ("",["adjustbox"],[]) <$>
+       env "adjustbox" (boxArg *> blocks))
    , ("figure", env "figure" figure')
    , ("figure*", env "figure*" figure')
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure')
