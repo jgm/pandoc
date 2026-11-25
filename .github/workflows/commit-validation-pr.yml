@@ -13,7 +13,7 @@ jobs:
         fetch-depth: 0
     - name: Check commit message length
       run: |
-        git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | (
+        git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | (
           longlines=0
           while IFS='' read -r line; do
               if [ "${#line}" -gt 78 ] ; then
