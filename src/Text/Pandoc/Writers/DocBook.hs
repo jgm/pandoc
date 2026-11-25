@@ -166,7 +166,7 @@ blockToDocBook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
 blockToDocBook opts (Div (id',"section":_classes,divattrs)
-                     (Header lvl (_,hclasses,_) ils : xs)) = do
+                     (Header lvl (headingId,hclasses,_) ils : xs)) = do
   version <- ask
   -- DocBook doesn't allow sections with no content, so insert some if needed
   let bs = if null xs
@@ -180,19 +180,20 @@ blockToDocBook opts (Div (id',"section":_classes,divattrs)
                                               else "sect" <> tshow n
                  _                    -> "simplesect"
       idAttr = [(idName version, writerIdentifierPrefix opts <> id') | not (T.null id')]
-      -- We want to add namespaces to the root (top-level) element.
-      nsAttr = if version == DocBook5 && lvl == getStartLvl opts && isNothing (writerTemplate opts)
-      -- Though, DocBook 4 does not support namespaces and
-      -- standalone documents will include them in the template.
+      -- Standalone templates supply the namespaces.
+      nsAttr = if version == DocBook5 && lvl == getStartLvl opts
+                                    && isNothing (writerTemplate opts)
                  then [("xmlns", "http://docbook.org/ns/docbook")
                       ,("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                  else []
 
-      -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
-      -- Also enrich the role attribute with certain class tokens
+      -- Keep valid Div attributes and use heading classes for roles.
       miscAttr = enrichRole (filter (isSectionAttr version) divattrs) hclasses
       attribs = nsAttr <> idAttr <> miscAttr
-  title' <- inlinesToDocBook opts ils
+      -- Preserve a heading ID distinct from the section ID.
+      headingAnchor = [Span (headingId, [], []) []
+                     | not (T.null headingId), headingId /= id']
+  title' <- inlinesToDocBook opts (headingAnchor <> ils)
   contents <- blocksToDocBook opts bs
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
 blockToDocBook opts (Div (ident,classes,_) bs) = do
