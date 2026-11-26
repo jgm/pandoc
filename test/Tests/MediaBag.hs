@@ -5,11 +5,12 @@ import Test.Tasty
 import Test.Tasty.HUnit
 -- import Tests.Helpers
 import Text.Pandoc.Class.IO (extractMedia)
-import Text.Pandoc.Class (fillMediaBag, runIOorExplode)
+import Text.Pandoc.Class (fetchItem, fillMediaBag, runIO, runIOorExplode)
 import Text.Pandoc.MediaBag (insertMedia, lookupMedia, mediaPath)
 import System.IO.Temp (withTempDirectory)
 import System.FilePath
 import Text.Pandoc.Builder as B
+import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import System.Directory (doesFileExist, makeAbsolute)
 
@@ -43,6 +44,21 @@ tests = [
           "escaped and literal keys share a mediaPath"
           (mediaPath i1 /= mediaPath i2)
         _ -> assertFailure "items not found in media bag",
+  testCase "fetchItem resolves percent-encoding in file: URIs" $
+      withTempDirectory "." "fileURITest" $ \tmpdir -> do
+        absTmpdir <- makeAbsolute tmpdir
+        let fp = absTmpdir </> "a b.css"
+        BS.writeFile fp "body {}"
+        -- file:///tmp/.../a%20b.css, or file:///C:/.../a%20b.css on Windows
+        let toSlash c = if c == '\\' then '/' else c
+        let upath = case map toSlash fp of
+                      p@('/':_) -> p
+                      p         -> '/':p
+        let esc c = if c == ' ' then "%20" else [c]
+        res <- runIO $ fetchItem ("file://" <> T.pack (concatMap esc upath))
+        case res of
+          Left e -> assertFailure (show e)
+          Right (contents, _) -> contents @?= "body {}",
   testCase "test fillMediaBag & extractMedia" $
       withTempDirectory "." "extractMediaTest" $ \tmpdir -> do
         -- Use absolute paths so the test does not need to change
