@@ -12,6 +12,7 @@ Conversion of table blocks to docx.
 module Text.Pandoc.Writers.Docx.Table
   ( tableToOpenXML
   , rowToOpenXML
+  , insertCaptionLabel
   , OOXMLRow (..)
   , OOXMLCell (..)
   , RowType (..)
@@ -146,17 +147,32 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
 addLabel :: Text -> Text -> Int -> [Block] -> [Block]
 addLabel tableid tablename tablenum bs =
   case bs of
-    (Para ils : rest)  -> Para (label : Str ": " : ils) : rest
-    (Plain ils : rest) -> Plain (label : Str ": " : ils) : rest
-    _ -> Para [label] : bs
+    (Para ils : rest)  -> Para (insertCaptionLabel mkLabelline ils) : rest
+    (Plain ils : rest) -> Plain (insertCaptionLabel mkLabelline ils) : rest
+    _ -> Para [mkLabel False] : bs
  where
-  label = Span (tableid,[],[])
+  mkLabelline marked = [mkLabel marked, Str ": "]
+  mkLabel marked = Span (tableid,[],[])
             [Str (tablename <> "\160"),
              RawInline (Format "openxml")
                ("<w:fldSimple w:instr=\"SEQ Table"
-               <> " \\* ARABIC \"><w:r><w:t>"
+               <> " \\* ARABIC \"><w:r>"
+               <> (if marked
+                     then "<w:rPr><w:highlight w:val=\"yellow\"/></w:rPr>"
+                     else "")
+               <> "<w:t>"
                <> tshow tablenum
                <> "</w:t></w:r></w:fldSimple>")]
+
+-- | Prepend a caption's label to its first paragraph's inlines. When
+-- the paragraph contains only a bare mark span, put the label inside
+-- that span so it is highlighted with the caption. Tell the label
+-- builder whether the label is marked, since the raw OpenXML numbering
+-- field must carry its own run properties.
+insertCaptionLabel :: (Bool -> [Inline]) -> [Inline] -> [Inline]
+insertCaptionLabel mkLabelline [Span attr@("", ["mark"], []) ils] =
+  [Span attr (mkLabelline True ++ ils)]
+insertCaptionLabel mkLabelline ils = mkLabelline False ++ ils
 
 -- | Parts of a table
 data RowType = HeadRow | BodyRow | FootRow
