@@ -2173,11 +2173,24 @@ spanHtml = do
   guardEnabled Ext_native_spans
   try $ do
     (TagOpen _ attrs, _) <- htmlTag (~== TagOpen ("span" :: Text) [])
-    contents <- mconcat <$> manyTill inline (htmlTag (~== TagClose ("span" :: Text)))
+    contents <- mconcat <$> manyTill spanContent (htmlTag (~== TagClose ("span" :: Text)))
     let ident = fromMaybe "" $ lookup "id" attrs
     let classes = maybe [] T.words $ lookup "class" attrs
     let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
     return $ wrapSpan (ident, classes, keyvals) <$> contents
+ where
+  -- If a span directly inside this one isn't closed, this one isn't
+  -- either: after falling back to raw HTML for the inner tag, it would
+  -- parse the same content again and reach the same end.  So fail
+  -- right away, instead of parsing the rest of the paragraph again
+  -- (which is exponential in the number of unclosed spans).  Without
+  -- raw_html the inner tag's text would be parsed as inlines instead,
+  -- which can end differently, so this needs raw_html.
+  spanContent = do
+    innerSpan <- option False $ True <$
+      (guardEnabled Ext_raw_html *>
+       lookAhead (htmlTag (~== TagOpen ("span" :: Text) [])))
+    if innerSpan then spanHtml else inline
 
 divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = do
