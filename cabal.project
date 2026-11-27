@@ -10,7 +10,7 @@ constraints: skylighting-format-blaze-html >= 0.1.2.2,
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 452bd6cd8b94e96a67d067802deb0d29dbcbaff9
+  tag: a969e8b2954434a88090051b59beb66c499b7820
 
 source-repository-package
   type: git

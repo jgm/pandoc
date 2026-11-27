@@ -41,7 +41,7 @@ extra-deps:
 - djot-0.1.4.3
 - emojis-0.1.6
 - git: https://github.com/jgm/texmath.git
-  commit: 452bd6cd8b94e96a67d067802deb0d29dbcbaff9
+  commit: a969e8b2954434a88090051b59beb66c499b7820
 - git: https://github.com/jgm/commonmark-hs.git
   commit: 36c8663d1536f7b096ddc6660678f1147d37f219
   subdirs: [commonmark]
