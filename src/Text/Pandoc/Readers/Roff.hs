@@ -242,9 +242,8 @@ lexTable pos = do
     skipMany spacetab
     newline
     lexTableRows
-  string ".TE"
-  skipMany spacetab
-  eofline
+  -- a table without .TE ends at the end of the input
+  try (spaces *> eof) <|> (string ".TE" *> skipMany spacetab *> eofline)
   return $ singleTok $ Tbl opts (rows <> concat morerows) pos
 
 lexTableRows :: PandocMonad m => RoffLexer m [TableRow]
@@ -254,8 +253,11 @@ lexTableRows = do
   skipMany $ lexComment
           <|> try (mempty <$ (string ".sp" >> skipMany spaceChar >> newline))
   spaces
-  rows <- many (notFollowedBy (try (string ".TE") <|> try (string ".T&")) >>
-                  tableRow)
+  -- lookAhead anyChar: notFollowedBy can't see the end of the input
+  rows <- many (lookAhead anyChar >>
+                notFollowedBy (try (string ".TE") <|> try (string ".T&") <|>
+                               try ("" <$ spaces <* eof)) >>
+                tableRow)
   return $ zip aligns rows
 
 tableCell :: PandocMonad m => RoffLexer m RoffTokens
