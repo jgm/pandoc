@@ -1708,8 +1708,17 @@ inputListing = do
 
 -- lists
 
+notEnv :: PandocMonad m => Text -> LP m ()
+notEnv envName = notFollowedBy $ try $ do
+  controlSeq "begin"
+  name <- untokenize <$> braced
+  guard (name == envName)
+
+listItemBlocks :: PandocMonad m => LP m Blocks
+listItemBlocks = mconcat <$> many (notEnv "multicols" *> block)
+
 item :: PandocMonad m => LP m Blocks
-item = void blocks *> controlSeq "item" *> skipopts *> blocks
+item = void blocks *> controlSeq "item" *> skipopts *> listItemBlocks
 
 descItem :: PandocMonad m => LP m (Inlines, [Blocks])
 descItem = do
@@ -1726,6 +1735,17 @@ listenv name p = try $ do
   res <- env name p
   updateState $ \st -> st{ sInListItem = oldInListItem }
   return res
+
+envItems :: PandocMonad m => Text -> LP m [Blocks]
+envItems envName = try $ do
+  spaces
+  controlSeq "begin"
+  name <- untokenize <$> braced
+  guard (name == envName)
+  _ <- braced
+  items <- env envName (many item)
+  spaces
+  return items
 
 orderedList' :: PandocMonad m => LP m Blocks
 orderedList' = try $ do
@@ -1758,7 +1778,8 @@ orderedList' = try $ do
                                         ("\\setcounter{" <> ctr <>
                                          "}{" <> num <> "}") pos
                                       return 1
-  bs <- listenv "enumerate" (many item)
+  bs <- listenv "enumerate" $
+    concat <$> many (envItems "multicols" <|> try ((:[]) <$> item))
   return $ orderedListWith (start, style, delim) bs
 
 block :: PandocMonad m => LP m Blocks
